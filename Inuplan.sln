@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.WebAPI", "Inuplan.WebAPI\Inuplan.WebAPI.csproj", "{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.DAL", "Inuplan.DAL\Inuplan.DAL.csproj", "{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Common", "Inuplan.Common\Inuplan.Common.csproj", "{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
