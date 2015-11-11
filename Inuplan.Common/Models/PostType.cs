@@ -1,4 +1,4 @@
-﻿// Copyright © 2015 Inuplan
+// Copyright © 2015 Inuplan
 // 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -20,36 +20,21 @@
 
 namespace Inuplan.Common.Models
 {
-    using System;
 
     /// <summary>
-    /// A post
+    /// An enumeration that, defines the post type
     /// </summary>
-    public class Post
+    public enum PostType
     {
         /// <summary>
-        /// Gets or sets the post ID
+        /// General posts from anybody
         /// </summary>
-        public int ID { get; set; }
+        General,
 
         /// <summary>
-        /// Gets or sets the post date
+        /// Posts from Management, which are site-wide information
+        /// that cannot contain replies.
         /// </summary>
-        public DateTime PostedOn { get; set; }
-
-        /// <summary>
-        /// Gets or sets the post comment
-        /// </summary>
-        public string Comment { get; set; }
-
-        /// <summary>
-        /// Gets or sets the post type
-        /// </summary>
-        public virtual PostType MessageType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the post author
-        /// </summary>
-        public virtual User Author { get; set; }
+        Management,
     }
 }

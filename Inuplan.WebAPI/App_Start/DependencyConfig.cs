@@ -23,12 +23,11 @@ namespace Inuplan.WebAPI.App_Start
     using Owin;
     using Inuplan.DAL.Repositories;
     using Inuplan.Common.Repositories;
-    using Inuplan.Common.Models;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
     /// </summary>
-    public class DependencyConfig
+    public static class DependencyConfig
     {
         /// <summary>
         /// Registers types and instances used in the <code>OWIN</code> application

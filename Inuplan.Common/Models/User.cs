@@ -16,7 +16,6 @@
 
 namespace Inuplan.Common.Models
 {
-    using System;
 
     /// <summary>
     /// A user

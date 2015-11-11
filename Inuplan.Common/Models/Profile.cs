@@ -22,6 +22,11 @@ namespace Inuplan.Common.Models
     public class Profile
     {
         /// <summary>
+        /// Gets or sets the ID of the profile
+        /// </summary>
+        public int ID { get; set; }
+
+        /// <summary>
         /// Gets or sets the biographical description
         /// </summary>
         public string Biography { get; set; }

@@ -16,7 +16,7 @@
 
 namespace Inuplan.Common.Models
 {
-    using System;
+    using Optional;
 
     /// <summary>
     /// A file
@@ -34,6 +34,11 @@ namespace Inuplan.Common.Models
         public string FileName { get; set; }
 
         /// <summary>
+        /// Gets or sets the extension for the file
+        /// </summary>
+        public string Extension { get; set; }
+
+        /// <summary>
         /// Gets or sets the file mime type
         /// </summary>
         public string MimeType { get; set; }
@@ -41,7 +46,7 @@ namespace Inuplan.Common.Models
         /// <summary>
         /// Gets or sets the file data
         /// </summary>
-        public byte[] Data { get; set; }
+        public Option<byte[]> Data { get; set; }
 
         /// <summary>
         /// Gets or sets the owner of the file

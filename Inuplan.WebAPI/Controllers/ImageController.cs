@@ -18,14 +18,13 @@ namespace Inuplan.WebAPI.Controllers
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Collections.Generic;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using System.Web;
     using System.Web.Http;
     using Inuplan.Common.Helpers;
     using Inuplan.Common.Models;
+    using Optional;
     
     /// <summary>
     /// Image file controller
@@ -60,7 +59,7 @@ namespace Inuplan.WebAPI.Controllers
 
                     var file = new File
                     {
-                        Data = data,
+                        Data = data.SomeNotNull(),
                         FileName = filename,
                         MimeType = mime,
                         Owner = null
