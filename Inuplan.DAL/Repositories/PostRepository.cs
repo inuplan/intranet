@@ -23,6 +23,7 @@ namespace Inuplan.DAL.Repositories
     using System;
     using System.Collections.Generic;
     using System.Data;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
     using Dapper;
@@ -52,12 +53,22 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         private bool disposed;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PostRepository"/> class.
+        /// </summary>
+        /// <param name="connection">The connection to the database</param>
         public PostRepository(IDbConnection connection)
         {
             this.connection = connection;
             locking = new object();
         }
 
+        /// <summary>
+        /// Create a <see cref="Post"/> entity, where the <see cref="User"/> and <see cref="PostType"/>
+        /// must pre-exist.
+        /// </summary>
+        /// <param name="entity">The <see cref="Post"/> entity</param>
+        /// <returns>A promise of an optional <see cref="Post"/></returns>{
         public Task<Option<Post>> Create(Post entity)
         {
             entity.ID = 0;
@@ -79,13 +90,18 @@ namespace Inuplan.DAL.Repositories
                 });
         }
 
+        /// <summary>
+        /// Retrieve a single Post with the given key
+        /// </summary>
+        /// <param name="key">The key of the <see cref="Post"/></param>
+        /// <returns>A promise of an optional <see cref="Post"/></returns>
         public Task<Option<Post>> Get(int key)
         {
             return Task.Run(() =>
                 {
-                    var sql = @"SELECT p.ID as ID, PostedOn, Comment, /* Post */
-                        t.ID as ID, t.PostType as MessageType, /* PostType */
-                        s.ID as ID, s.FirstName as FirstName, s.LastName as LastName /* User */
+                    var sql = @"SELECT p.ID as ID, PostedOn, Comment,                   /* Post */
+                        t.ID as ID, t.PostType as MessageType,                          /* PostType */
+                        s.ID as ID, s.FirstName as FirstName, s.LastName as LastName    /* User */
                     FROM Posts p 
                     INNER JOIN PostTypes t
                         on p.PostType = t.ID
@@ -105,49 +121,113 @@ namespace Inuplan.DAL.Repositories
                 });
         }
 
+        /// <summary>
+        /// Retrieves a subset of the Post entities in the database.
+        /// Sorts by date: newest to oldest. (descending).
+        /// </summary>
+        /// <param name="skip">The number of items to skip</param>
+        /// <param name="take">The number of items to take</param>
+        /// <returns>Returns a promise of a list of <see cref="Post"/>s</returns>{
         public Task<List<Post>> Get(int skip, int take)
         {
             return Task.Run(() =>
                 {
                     // Join 3 tables in specific order: Posts + PostTypes + Users
                     var sql = @"";
+
+                    // Dapper, multimapping
                     return connection.Query<Post, PostType, User, Post>(sql, (post, t, author) =>
                         {
                             post.MessageType = t;
                             post.Author = author;
                             return post;
 
-                            // T-SQL can do *inclusive* ranges, hence: skip + 1
+                            // T-SQL does *inclusive* ranges, hence: skip + 1
                         }, new { from = skip + 1, to = (skip + take) }).ToList();
                 });
         }
 
+        /// <summary>
+        /// Returns every Post entity in the database
+        /// </summary>
+        /// <returns>A promise of a list of <see cref="Post"/>s</returns>{
         public Task<List<Post>> GetAll()
         {
-            throw new NotImplementedException();
+            return Task.Run(() =>
+                {
+                    // Join 3 tables, select everything...
+                    var sql = @"";
+                    
+                    // Dapper, multimapping
+                    return connection.Query<Post, PostType, User, Post>(sql, (post, t, author) =>
+                        {
+                            post.MessageType = t;
+                            post.Author = author;
+                            return post;
+                        }).ToList();
+                });
         }
 
+        /// <summary>
+        /// Updates a specific <see cref="Post"/> entity in the database
+        /// </summary>
+        /// <param name="key">The key of the <see cref="Post"/></param>
+        /// <param name="entity">The updated <see cref="Post"/></param>
+        /// <returns>Returns a task of bool, which indicates whether the update was succesfull</returns>
         public Task<bool> Update(int key, Post entity)
         {
-            throw new NotImplementedException();
+            return Task.Run(() =>
+                {
+                    var sql = @"";
+                    return connection.ExecuteScalar<bool>(sql, new { 
+                        key,
+                        entity.Comment,
+                        entity.Author,
+                        PostType = entity.MessageType
+                        });
+                });
         }
 
+        /// <summary>
+        /// Deletes a <see cref="Post"/> entity from the database
+        /// </summary>
+        /// <param name="key">The <see cref="Post"/> with the given key to delete</param>
+        /// <returns>Returns a promise, which indicates whether the action was succesfull</returns>
         public Task<bool> Delete(int key)
         {
-            throw new NotImplementedException();
+            return Task.Run(() =>
+                {
+                    var sql = @"";
+                    return connection.ExecuteScalar<bool>(sql, new { key });
+                });
         }
 
+        /// <summary>
+        /// Deletes a <see cref="Post"/> entity from the database.
+        /// The entity must have a valid ID.
+        /// </summary>
+        /// <param name="entity">The <see cref="Post"/> entity to delete</param>
+        /// <returns>Returns a boolean, indicating whether the action was succesfull or not</returns>
         public Task<bool> Delete(Post entity)
         {
-            throw new NotImplementedException();
+            Debug.Assert(entity.ID > 0, "Must have valid ID!");
+            return Delete(entity.ID);
         }
 
+        /// <summary>
+        /// Disposes of the connection to the database
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
         
+        /// <summary>
+        /// Dispose Pattern, this ensures that this class behaves correctly during
+        /// inheritance as well as during threading.
+        /// </summary>
+        /// <param name="disposing">True if disposing, else false</param>
         protected virtual void Dispose(bool disposing)
         {
             lock (locking)
