@@ -61,7 +61,7 @@ namespace Inuplan.DAL.Repositories
         public Task<Option<Post>> Create(Post entity)
         {
             entity.ID = 0;
-            return Task<Option<Post>>.Run(() =>
+            return Task.Run(() =>
                 {
                     // Assumes an MS-SQL server (t-sql used below)
                     var sql = @"INSERT INTO Posts
@@ -99,9 +99,9 @@ namespace Inuplan.DAL.Repositories
                             p.MessageType = t;
                             p.Author = u;
                             return p;
-                        }).FirstOrDefault();
+                        }, new { key }).SingleOrDefault();
 
-                    return entity.SomeNotNull<Post>();
+                    return entity.SomeNotNull();
                 });
         }
 
