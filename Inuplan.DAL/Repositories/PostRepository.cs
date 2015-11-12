@@ -107,7 +107,19 @@ namespace Inuplan.DAL.Repositories
 
         public Task<List<Post>> Get(int skip, int take)
         {
-            throw new NotImplementedException();
+            return Task.Run(() =>
+                {
+                    // Join 3 tables in specific order: Posts + PostTypes + Users
+                    var sql = @"";
+                    return connection.Query<Post, PostType, User, Post>(sql, (post, t, author) =>
+                        {
+                            post.MessageType = t;
+                            post.Author = author;
+                            return post;
+
+                            // T-SQL can do *inclusive* ranges, hence: skip + 1
+                        }, new { from = skip + 1, to = (skip + take) }).ToList();
+                });
         }
 
         public Task<List<Post>> GetAll()
