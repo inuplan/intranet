@@ -76,15 +76,15 @@ namespace Inuplan.DAL.Repositories
                 {
                     // Assumes an MS-SQL server (t-sql used below)
                     var sql = @"INSERT INTO Posts
-                    (PostedOn, Comment, PostType, User)
-                    VALUES (@PostedOn, @Comment, @PostType, @User);
+                    (PostedOn, Comment, PostTypeID, UserID)
+                    VALUES (@PostedOn, @Comment, @PostTypeID, @UserID);
                     SELECT ID FROM Posts WHERE ID = @@IDENTITY";
 
                     entity.ID = connection.ExecuteScalar<int>(sql,
                         new { entity.PostedOn,
                               entity.Comment,
-                              PostType = entity.MessageType,
-                              User = entity.Author.ID });
+                              PostTypeID = entity.MessageType,
+                              UserID = entity.Author.ID });
                     
                     return entity.SomeWhen(e => e.ID != 0);
                 });
@@ -99,22 +99,18 @@ namespace Inuplan.DAL.Repositories
         {
             return Task.Run(() =>
                 {
-                    var sql = @"SELECT p.ID as ID, PostedOn, Comment,                   /* Post */
-                        t.ID as ID, t.PostType as MessageType,                          /* PostType */
-                        s.ID as ID, s.FirstName as FirstName, s.LastName as LastName    /* User */
+                    // SQL join Posts with Users
+                    var sql = @"SELECT p.ID as ID, PostedOn, Comment, p.PostTypeID as MessageType,      /* Posts */
+                        s.ID as ID, FirstName, LastName                                                 /* User */
                     FROM Posts p 
-                    INNER JOIN PostTypes t
-                        on p.PostType = t.ID
-                    INNER JOIN Users s p.User = s.ID
+                    INNER JOIN Users s on p.UserID = s.ID
                     WHERE p.ID = @key"; 
 
-                    var entity = connection.Query<Post, PostType, User, Post>(
-                                     sql, 
-                                     (p, t, u) =>
+                    var entity = connection.Query<Post, User, Post>(sql, 
+                        (post, author) =>
                         {
-                            p.MessageType = t;
-                            p.Author = u;
-                            return p;
+                            post.Author = author;
+                            return post;
                         }, new { key }).SingleOrDefault();
 
                     return entity.SomeNotNull();
@@ -132,13 +128,23 @@ namespace Inuplan.DAL.Repositories
         {
             return Task.Run(() =>
                 {
-                    // Join 3 tables in specific order: Posts + PostTypes + Users
-                    var sql = @"";
+                    // Join 2 tables in specific order: Posts + Users
+                    var sql = @"WITH PostResults AS (
+                    SELECT p.ID as PostID, PostedOn, Comment,                           /* Post */
+                           PostTypeID AS MessageType,                                   /* PostType */
+                           u.ID, FirstName, LastName,                                   /* User */
+                           ROW_NUMBER() OVER (ORDER BY PostedOn DESC) AS 'RowNumber'
+                        FROM Posts p
+                        INNER JOIN Users u
+                            on p.UserID = u.ID
+                    )
+                    SELECT PostID as ID, PostedOn, Comment, MessageType, ID, FirstName, LastName
+                    FROM PostResults
+                    WHERE RowNumber BETWEEN @from AND @to                               /* To is inclusive */";
 
                     // Dapper, multimapping
-                    return connection.Query<Post, PostType, User, Post>(sql, (post, t, author) =>
+                    return connection.Query<Post, User, Post>(sql, (post, author) =>
                         {
-                            post.MessageType = t;
                             post.Author = author;
                             return post;
 
@@ -155,13 +161,16 @@ namespace Inuplan.DAL.Repositories
         {
             return Task.Run(() =>
                 {
-                    // Join 3 tables, select everything...
-                    var sql = @"";
+                    // Join 2 tables, select everything...
+                    var sql = @"SELECT p.ID AS ID, PostedOn, Comment, PostTypeID AS MessageType,        /* Post */
+                        u.ID AS ID, FirstName, LastName                                                 /* User */
+                        FROM Posts p
+                        INNER JOIN Users u
+                        ON p.UserID = u.ID";
                     
                     // Dapper, multimapping
-                    return connection.Query<Post, PostType, User, Post>(sql, (post, t, author) =>
+                    return connection.Query<Post, User, Post>(sql, (post, author) =>
                         {
-                            post.MessageType = t;
                             post.Author = author;
                             return post;
                         }).ToList();
@@ -178,13 +187,17 @@ namespace Inuplan.DAL.Repositories
         {
             return Task.Run(() =>
                 {
-                    var sql = @"";
-                    return connection.ExecuteScalar<bool>(sql, new { 
+                    var sql = @"UPDATE Posts SET PostedOn = @PostedOn, Comment = @Comment, PostTypeID = @MessageType, UserID = @UserID
+                    WHERE ID = @key";
+                    var rows = connection.Execute(sql, new { 
                         key,
                         entity.Comment,
-                        entity.Author,
-                        PostType = entity.MessageType
+                        UserID = entity.Author.ID,
+                        entity.MessageType
                         });
+
+                    // returns true if some rows are affected
+                    return rows > 0;
                 });
         }
 
@@ -197,8 +210,11 @@ namespace Inuplan.DAL.Repositories
         {
             return Task.Run(() =>
                 {
-                    var sql = @"";
-                    return connection.ExecuteScalar<bool>(sql, new { key });
+                    var sql = @"DELETE FROM Posts WHERE ID = @key";
+                    var rows = connection.Execute(sql, new { key });
+
+                    // returns true if some rows are affected
+                    return rows > 0;
                 });
         }
 
