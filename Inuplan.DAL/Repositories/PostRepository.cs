@@ -101,7 +101,7 @@ namespace Inuplan.DAL.Repositories
                 {
                     // SQL join Posts with Users
                     var sql = @"SELECT p.ID as ID, PostedOn, Comment, p.PostTypeID as MessageType,      /* Posts */
-                        s.ID as ID, FirstName, LastName                                                 /* User */
+                        s.ID as ID, FirstName, LastName, RoleID AS Role                                 /* User */
                     FROM Posts p 
                     INNER JOIN Users s on p.UserID = s.ID
                     WHERE p.ID = @key"; 
@@ -132,7 +132,7 @@ namespace Inuplan.DAL.Repositories
                     var sql = @"WITH PostResults AS (
                     SELECT p.ID as PostID, PostedOn, Comment,                           /* Post */
                            PostTypeID AS MessageType,                                   /* PostType */
-                           u.ID, FirstName, LastName,                                   /* User */
+                           u.ID, FirstName, LastName, RoleID AS Role,                   /* User */
                            ROW_NUMBER() OVER (ORDER BY PostedOn DESC) AS 'RowNumber'
                         FROM Posts p
                         INNER JOIN Users u
@@ -162,7 +162,9 @@ namespace Inuplan.DAL.Repositories
         {
             return Task.Run(() =>
                 {
-                    var sql = @"SELECT p.ID AS ID, PostedOn, Comment, PostTypeID AS MessageType, u.ID AS ID, FirstName, LastName
+                    var sql = @"SELECT
+                        p.ID AS ID, PostedOn, Comment, PostTypeID AS MessageType,       /* Post */
+                        u.ID AS ID, FirstName, LastName, RoleID AS Role                 /* User */
                     FROM Posts p
                     INNER JOIN Users u
                     ON p.UserID = u.ID" +
@@ -220,7 +222,7 @@ namespace Inuplan.DAL.Repositories
                         entity.MessageType
                         });
 
-// returns true if some rows are affected
+                    // returns true if some rows are affected
                     return rows > 0;
                 });
         }
@@ -237,7 +239,7 @@ namespace Inuplan.DAL.Repositories
                     var sql = @"DELETE FROM Posts WHERE ID = @key";
                     var rows = connection.Execute(sql, new { key });
 
-// returns true if some rows are affected
+                    // returns true if some rows are affected
                     return rows > 0;
                 });
         }
