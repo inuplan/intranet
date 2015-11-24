@@ -68,7 +68,7 @@ namespace Inuplan.DAL.Repositories
         /// must pre-exist.
         /// </summary>
         /// <param name="entity">The <see cref="Post"/> entity</param>
-        /// <returns>A promise of an optional <see cref="Post"/></returns>{
+        /// <returns>A promise of an optional <see cref="Post"/></returns>
         public Task<Option<Post>> Create(Post entity)
         {
             entity.ID = 0;
@@ -107,7 +107,7 @@ namespace Inuplan.DAL.Repositories
                     WHERE p.ID = @key"; 
 
                     var entity = connection.Query<Post, User, Post>(sql, 
-                        (post, author) =>
+                                     (post, author) =>
                         {
                             post.Author = author;
                             return post;
@@ -123,7 +123,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="skip">The number of items to skip</param>
         /// <param name="take">The number of items to take</param>
-        /// <returns>Returns a promise of a list of <see cref="Post"/>s</returns>{
+        /// <returns>Returns a promise of a list of <see cref="Post"/>s</returns>
         public Task<List<Post>> Get(int skip, int take)
         {
             return Task.Run(() =>
@@ -154,9 +154,33 @@ namespace Inuplan.DAL.Repositories
         }
 
         /// <summary>
+        /// Returns a list of <see cref="Post"/>s defined by the predicate.
+        /// </summary>
+        /// <param name="predicate">An SQL predicate containing a WHERE clause</param>
+        /// <returns>A promise of lists of posts</returns>
+        public Task<List<Post>> Get(string predicate)
+        {
+            return Task.Run(() =>
+                {
+                    var sql = @"SELECT p.ID AS ID, PostedOn, Comment, PostTypeID AS MessageType, u.ID AS ID, FirstName, LastName
+                    FROM Posts p
+                    INNER JOIN Users u
+                    ON p.UserID = u.ID" +
+                    predicate +
+                    "ORDER BY PostedOn DESC";
+
+                    return connection.Query<Post, User, Post>(sql, (post, author) =>
+                        {
+                            post.Author = author;
+                            return post;
+                        }).ToList();
+                });
+        }
+
+        /// <summary>
         /// Returns every Post entity in the database
         /// </summary>
-        /// <returns>A promise of a list of <see cref="Post"/>s</returns>{
+        /// <returns>A promise of a list of <see cref="Post"/>s</returns>
         public Task<List<Post>> GetAll()
         {
             return Task.Run(() =>
@@ -196,7 +220,7 @@ namespace Inuplan.DAL.Repositories
                         entity.MessageType
                         });
 
-                    // returns true if some rows are affected
+// returns true if some rows are affected
                     return rows > 0;
                 });
         }
@@ -213,7 +237,7 @@ namespace Inuplan.DAL.Repositories
                     var sql = @"DELETE FROM Posts WHERE ID = @key";
                     var rows = connection.Execute(sql, new { key });
 
-                    // returns true if some rows are affected
+// returns true if some rows are affected
                     return rows > 0;
                 });
         }

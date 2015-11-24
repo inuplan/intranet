@@ -52,6 +52,13 @@ namespace Inuplan.Common.Repositories
         Task<List<T>> Get(int skip, int take);
 
         /// <summary>
+        /// Returns a list of T given by the predicate.
+        /// </summary>
+        /// <param name="predicate">An SQL statement containing a WHERE clause</param>
+        /// <returns>A list of entities</returns>
+        Task<List<T>> Get(string predicate);
+
+        /// <summary>
         /// Retrieves every entity in the repository
         /// </summary>
         /// <returns>A list of entities</returns>

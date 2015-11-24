@@ -20,21 +20,24 @@
 
 namespace Inuplan.Common.Models
 {
-
     /// <summary>
-    /// An enumeration that, defines the post type
+    /// An enumeration of role types
     /// </summary>
-    public enum PostType
+    public enum RoleType
     {
         /// <summary>
-        /// General posts from anybody
+        /// Administrator role
         /// </summary>
-        General = 1,
+        Administrator = 0,
 
         /// <summary>
-        /// Posts from Management, which are site-wide information
-        /// that cannot contain replies.
+        /// Management role
         /// </summary>
-        Management = 2,
+        Management = 1,
+
+        /// <summary>
+        /// User role
+        /// </summary>
+        User = 2,
     }
 }

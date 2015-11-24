@@ -20,15 +20,18 @@ namespace Inuplan.WebAPI.App_Start
     using System.Web.Http;
     using Autofac;
     using Autofac.Integration.WebApi;
-    using Owin;
-    using Inuplan.DAL.Repositories;
+    using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
+    using Inuplan.DAL.Repositories;
+    using Owin;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
     /// </summary>
     public static class DependencyConfig
     {
+        private static IContainer container;
+
         /// <summary>
         /// Registers types and instances used in the <code>OWIN</code> application
         /// </summary>
@@ -45,10 +48,10 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterWebApiFilterProvider(config);
 
             // Register types here...
-            builder.RegisterGeneric(typeof(Repository<,>)).As(typeof(IRepository<,>));
+            builder.RegisterType<PostRepository>().As<IRepository<int, Post>>();
 
             // Build container
-            var container = builder.Build();
+            container = builder.Build();
 
             // Register Autofac Middleware
             app.UseAutofacMiddleware(container);
@@ -56,5 +59,11 @@ namespace Inuplan.WebAPI.App_Start
             // Set the dependency resolver
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
         }
+
+        public static IContainer Container()
+        {
+            return container;
+        }
+
     }
 }

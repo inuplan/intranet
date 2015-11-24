@@ -21,6 +21,7 @@
 namespace Inuplan.Common.Models
 {
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// A post
@@ -51,5 +52,10 @@ namespace Inuplan.Common.Models
         /// Gets or sets the post author
         /// </summary>
         public virtual User Author { get; set; }
+
+        /// <summary>
+        /// Gets or sets the post replies
+        /// </summary>
+        public List<Post> Replies { get; set; }
     }
 }

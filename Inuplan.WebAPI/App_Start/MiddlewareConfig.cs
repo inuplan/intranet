@@ -16,18 +16,13 @@
 
 namespace Inuplan.WebAPI.App_Start
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using System.Web.Http;
     using Owin;
 
     /// <summary>
     /// Configures the <code>OWIN</code> middleware pipeline
     /// </summary>
-    public class MiddlewareConfig
+    public static class MiddlewareConfig
     {
         /// <summary>
         /// Registers <code>OWIN</code> middleware
@@ -36,6 +31,12 @@ namespace Inuplan.WebAPI.App_Start
         /// <param name="app">The <code>OWIN</code> component</param>
         public static void RegisterMiddlewares(HttpConfiguration config, IAppBuilder app)
         {
+            // Use DI in the OWIN middleware (on OwinMiddleWare classes)
+            app.UseAutofacMiddleware(DependencyConfig.Container());
+
+            // Extends the lifetimes from the middleware to go into the Web API
+            app.UseAutofacWebApi(config);
+            
             // Middleware pipeline
             app.UseWebApi(config);
         }

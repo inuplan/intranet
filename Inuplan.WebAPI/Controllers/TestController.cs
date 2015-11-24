@@ -24,14 +24,17 @@ namespace Inuplan.WebAPI.Controllers
     /// <summary>
     /// Image file controller
     /// </summary>
+    [RoutePrefix("api")]
     public class TestController : ApiController
     {
         /// <summary>
         /// An upload action handler
         /// </summary>
         /// <returns>Returns an http response message</returns>
+        [Route("test/hello")]
         public async Task<HttpResponseMessage> Get()
         {
+            // The full path is: localhost:9000/api/test/hello
             return Request.CreateResponse(HttpStatusCode.OK, "Hello World");
         }
     }

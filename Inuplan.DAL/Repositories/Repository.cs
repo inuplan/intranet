@@ -75,6 +75,16 @@ namespace Inuplan.DAL.Repositories
         }
 
         /// <summary>
+        /// Retrieves a list of T's defined by the predicate.
+        /// </summary>
+        /// <param name="predicate">The SQL predicate containing the WHERE clause</param>
+        /// <returns>A list of T's</returns>
+        public async Task<List<T>> Get(string predicate)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Retrieves every entity in the repository
         /// </summary>
         /// <returns>A list of entities</returns>
