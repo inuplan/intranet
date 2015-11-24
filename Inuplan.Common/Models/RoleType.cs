@@ -36,8 +36,13 @@ namespace Inuplan.Common.Models
         Management = 1,
 
         /// <summary>
+        /// Editor role
+        /// </summary>
+        Editor = 2,
+
+        /// <summary>
         /// User role
         /// </summary>
-        User = 2,
+        User = 3,
     }
 }
