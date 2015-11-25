@@ -35,7 +35,7 @@ namespace Inuplan.DAL.Repositories
     /// A repository of posts.
     /// Used to connect to the database, and retrieve posts.
     /// </summary>
-    public class PostRepository : IRepository<int, Post>
+    public class GeneralPostRepository : IRepository<int, Post>
     {
         
         /// <summary>
@@ -54,18 +54,17 @@ namespace Inuplan.DAL.Repositories
         private bool disposed;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PostRepository"/> class.
+        /// Initializes a new instance of the <see cref="GeneralPostRepository"/> class.
         /// </summary>
         /// <param name="connection">The connection to the database</param>
-        public PostRepository(IDbConnection connection)
+        public GeneralPostRepository(IDbConnection connection)
         {
             this.connection = connection;
             locking = new object();
         }
 
         /// <summary>
-        /// Create a <see cref="Post"/> entity, where the <see cref="User"/> and <see cref="PostType"/>
-        /// must pre-exist.
+        /// Creates a post entity in the database with the <see cref="PostType.General"/> post type.
         /// </summary>
         /// <param name="entity">The <see cref="Post"/> entity</param>
         /// <returns>A promise of an optional <see cref="Post"/></returns>
@@ -83,7 +82,7 @@ namespace Inuplan.DAL.Repositories
                     entity.ID = connection.ExecuteScalar<int>(sql,
                         new { entity.PostedOn,
                               entity.Comment,
-                              PostTypeID = entity.MessageType,
+                              PostTypeID = PostType.General,
                               UserID = entity.Author.ID });
                     
                     return entity.SomeWhen(e => e.ID != 0);
@@ -104,14 +103,17 @@ namespace Inuplan.DAL.Repositories
                         s.ID as ID, FirstName, LastName, RoleID AS Role                                 /* User */
                     FROM Posts p 
                     INNER JOIN Users s on p.UserID = s.ID
-                    WHERE p.ID = @key"; 
+                    WHERE p.ID = @key AND MessageType = @MessageType"; 
 
                     var entity = connection.Query<Post, User, Post>(sql, 
                                      (post, author) =>
                         {
                             post.Author = author;
                             return post;
-                        }, new { key }).SingleOrDefault();
+                        }, new {
+                            key,
+                            MessageType = PostType.General
+                        }).SingleOrDefault();
 
                     return entity.SomeNotNull();
                 });
@@ -140,7 +142,8 @@ namespace Inuplan.DAL.Repositories
                     )
                     SELECT PostID as ID, PostedOn, Comment, MessageType, ID, FirstName, LastName
                     FROM PostResults
-                    WHERE RowNumber BETWEEN @from AND @to                               /* To is inclusive */";
+                    WHERE RowNumber BETWEEN @from AND @to                               /* To is inclusive */
+                    AND MessageType = @MessageType";
 
                     // Dapper, multimapping
                     return connection.Query<Post, User, Post>(sql, (post, author) =>
@@ -149,32 +152,10 @@ namespace Inuplan.DAL.Repositories
                             return post;
 
                             // T-SQL does *inclusive* ranges, hence: skip + 1
-                        }, new { from = skip + 1, to = (skip + take) }).ToList();
-                });
-        }
-
-        /// <summary>
-        /// Returns a list of <see cref="Post"/>s defined by the predicate.
-        /// </summary>
-        /// <param name="predicate">An SQL predicate containing a WHERE clause</param>
-        /// <returns>A promise of lists of posts</returns>
-        public Task<List<Post>> Get(string predicate)
-        {
-            return Task.Run(() =>
-                {
-                    var sql = @"SELECT
-                        p.ID AS ID, PostedOn, Comment, PostTypeID AS MessageType,       /* Post */
-                        u.ID AS ID, FirstName, LastName, RoleID AS Role                 /* User */
-                    FROM Posts p
-                    INNER JOIN Users u
-                    ON p.UserID = u.ID" +
-                    predicate +
-                    "ORDER BY PostedOn DESC";
-
-                    return connection.Query<Post, User, Post>(sql, (post, author) =>
-                        {
-                            post.Author = author;
-                            return post;
+                        }, new {
+                            from = skip + 1,
+                            to = (skip + take),
+                            MessageType = (int)PostType.General
                         }).ToList();
                 });
         }
@@ -192,14 +173,15 @@ namespace Inuplan.DAL.Repositories
                         u.ID AS ID, FirstName, LastName                                                 /* User */
                         FROM Posts p
                         INNER JOIN Users u
-                        ON p.UserID = u.ID";
+                        ON p.UserID = u.ID
+                        WHERE MessageType = @MessageType";
                     
                     // Dapper, multimapping
                     return connection.Query<Post, User, Post>(sql, (post, author) =>
                         {
                             post.Author = author;
                             return post;
-                        }).ToList();
+                        }, new { MessageType = (int)PostType.General }).ToList();
                 });
         }
 
@@ -209,7 +191,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="key">The key of the <see cref="Post"/></param>
         /// <param name="entity">The updated <see cref="Post"/></param>
         /// <returns>Returns a task of bool, which indicates whether the update was succesfull</returns>
-        public Task<bool> Update(int key, Post entity)
+        public Task<Option<bool>> Update(int key, Post entity)
         {
             return Task.Run(() =>
                 {
@@ -223,7 +205,7 @@ namespace Inuplan.DAL.Repositories
                         });
 
                     // returns true if some rows are affected
-                    return rows > 0;
+                    return (rows > 0).SomeWhen(b => b);
                 });
         }
 
@@ -232,15 +214,15 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="key">The <see cref="Post"/> with the given key to delete</param>
         /// <returns>Returns a promise, which indicates whether the action was succesfull</returns>
-        public Task<bool> Delete(int key)
+        public Task<Option<bool>> Delete(int key)
         {
             return Task.Run(() =>
                 {
-                    var sql = @"DELETE FROM Posts WHERE ID = @key";
-                    var rows = connection.Execute(sql, new { key });
+                    var sql = @"DELETE FROM Posts WHERE ID = @key AND PostTypeID = @PostType";
+                    var rows = connection.Execute(sql, new { key, PostType = (int)PostType.General });
 
                     // returns true if some rows are affected
-                    return rows > 0;
+                    return (rows > 0).SomeWhen(b => b);
                 });
         }
 
@@ -250,7 +232,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="entity">The <see cref="Post"/> entity to delete</param>
         /// <returns>Returns a boolean, indicating whether the action was succesfull or not</returns>
-        public Task<bool> Delete(Post entity)
+        public Task<Option<bool>> Delete(Post entity)
         {
             Debug.Assert(entity.ID > 0, "Must have valid ID!");
             return Delete(entity.ID);

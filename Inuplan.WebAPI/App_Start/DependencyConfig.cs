@@ -48,7 +48,6 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterWebApiFilterProvider(config);
 
             // Register types here...
-            builder.RegisterType<PostRepository>().As<IRepository<int, Post>>();
 
             // Build container
             container = builder.Build();

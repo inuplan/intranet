@@ -46,8 +46,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Repositories\Repository.cs" />
-    <Compile Include="Repositories\PostRepository.cs" />
+    <Compile Include="Repositories\ManagementPostRepository.cs" />
+    <Compile Include="Repositories\GeneralPostRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <!-- <None Include="App.config" /> -->
