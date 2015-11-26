@@ -10,6 +10,7 @@ namespace Inuplan.Tests
 		[Test]
 		public void Test()
 		{
+			Console.WriteLine ("Hello from the test TEST");
 			Assert.IsTrue (true);
 		}
 	}

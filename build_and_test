@@ -1,0 +1,5 @@
+#!/bin/bash
+clear
+echo "running Inuplan.Tests..."
+xbuild /nologo
+mono packages/NUnit.Console.3.0.0/tools/nunit3-console.exe Inuplan.Tests/bin/Debug/Inuplan.Tests.dll
