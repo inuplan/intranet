@@ -16,13 +16,13 @@
 
 namespace Inuplan.WebAPI.App_Start
 {
-    using System.Reflection;
     using System.Web.Http;
     using Autofac;
     using Autofac.Integration.WebApi;
     using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
     using Inuplan.DAL.Repositories;
+    using Inuplan.WebAPI.Controllers;
     using Owin;
 
     /// <summary>
@@ -42,12 +42,13 @@ namespace Inuplan.WebAPI.App_Start
             var builder = new ContainerBuilder();
 
             // Register your Web API controllers.
-            builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
+            builder.Register(ctx => new ManagementPostController(ctx.ResolveKeyed<IRepository<int, Post>>("Management")));
 
             // Register the Autofac filter provider.
             builder.RegisterWebApiFilterProvider(config);
 
             // Register types here...
+            builder.RegisterType<ManagementPostRepository>().Keyed<IRepository<int, Post>>("Management");
 
             // Build container
             container = builder.Build();
