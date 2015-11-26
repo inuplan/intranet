@@ -59,17 +59,26 @@ namespace Inuplan.WebAPI.Controllers
         [HttpPut]
         public async Task<HttpResponseMessage> Create(Post post)
         {
-            // Set properties to predefined values
-            post.MessageType = PostType.Management;
+            // Set time to server time
             post.PostedOn = DateTime.Now;
 
-            // Create post
+            // Create post in the database
             var entity = await postRepository.Create(post);
 
             // Return result
             return entity.Match(
                 p => Request.CreateResponse(HttpStatusCode.Created, "Created with ID:" + p.ID),
                 () => Request.CreateResponse(HttpStatusCode.InternalServerError, "Could not create post"));
+        }
+
+        [Route("{id:int}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetSingle(int id)
+        {
+            var result = await postRepository.Get(id);
+            return result.Match(
+                    p => Request.CreateResponse(HttpStatusCode.OK, p),
+                    () => Request.CreateResponse(HttpStatusCode.NotFound));
         }
 
         /// <summary>
@@ -81,7 +90,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <returns>Returns a list of posts</returns>
         [Route("skip/{skip:int}/take/{take:int}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> Get(int skip = 0, int take = 10)
+        public async Task<HttpResponseMessage> GetRange(int skip = 0, int take = 10)
         {
             var posts = await postRepository.Get(skip, take);
             return Request.CreateResponse(HttpStatusCode.OK, posts);
