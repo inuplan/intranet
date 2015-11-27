@@ -28,7 +28,7 @@ using Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Hosting;
 
-namespace Inuplan.WebApi.Middlewares
+namespace Inuplan.WebApi.Middlewares.ADAuthentication
 {
     using AppFunc = Func<IDictionary<string, object>, Task>;
 
