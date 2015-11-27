@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Common", "Inuplan.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Tests", "Inuplan.Tests\Inuplan.Tests.csproj", "{142967F5-34EF-4DBC-B6D4-2EAA8720CDE1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JWT", "JWT\JWT.csproj", "{A80B51B8-DDF6-4026-98A4-B59653E50B38}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,10 @@ Global
 		{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A80B51B8-DDF6-4026-98A4-B59653E50B38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A80B51B8-DDF6-4026-98A4-B59653E50B38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A80B51B8-DDF6-4026-98A4-B59653E50B38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A80B51B8-DDF6-4026-98A4-B59653E50B38}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Inuplan.WebAPI\Inuplan.WebAPI.csproj
