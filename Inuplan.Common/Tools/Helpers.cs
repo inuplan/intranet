@@ -18,35 +18,15 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using Owin;
-using Microsoft.Owin;
-using Microsoft.Owin.Hosting;
-
-namespace Inuplan.WebAPI.Middlewares.ADAuthentication
+namespace Inuplan.Common.Tools
 {
-    using AppFunc = Func<IDictionary<string, object>, Task>;
-
-    public class ADAuthenticationComponent
+    public static class Helpers
     {
-        private readonly AppFunc next;
-
-        public ADAuthenticationComponent(AppFunc next)
+        public static byte[] GetBytes(string str)
         {
-            this.next = next;
-        }
-
-        public async Task Invoke(IDictionary<string, object> environment)
-        {
-            // Authenticate to AD...
-            IOwinContext context = new OwinContext(environment);
-            await context.Response.WriteAsync("Write to output: <b>as html</b>...");
-            await next.Invoke(environment);
+            var bytes = new byte[str.Length * sizeof(char)];
+            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return bytes;
         }
     }
 }

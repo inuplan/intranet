@@ -17,7 +17,9 @@
 namespace Inuplan.WebAPI.App_Start
 {
     using System.Web.Http;
+    using Autofac;
     using Owin;
+    using Inuplan.WebAPI.Middlewares.JWT;
 
     /// <summary>
     /// Configures the <code>OWIN</code> middleware pipeline
@@ -31,13 +33,18 @@ namespace Inuplan.WebAPI.App_Start
         /// <param name="app">The <code>OWIN</code> component</param>
         public static void RegisterMiddlewares(HttpConfiguration config, IAppBuilder app)
         {
-            // Use DI in the OWIN middleware (on OwinMiddleWare classes)
-            app.UseAutofacMiddleware(DependencyConfig.Container());
+            // Setup
+            var container = DependencyConfig.Container();
+            var jwtOptions = container.Resolve<JWTOptions>();
 
-            // Extends the lifetimes from the middleware to go into the Web API
+            // Use DI in the OWIN middleware (on OwinMiddleWare classes)
+            app.UseAutofacMiddleware(container);
             app.UseAutofacWebApi(config);
+
+            // The actual Owin pipeline -->
+            app.Use<JWTCheck>(jwtOptions);
             
-            // Middleware pipeline
+            // Controllers
             app.UseWebApi(config);
         }
     }

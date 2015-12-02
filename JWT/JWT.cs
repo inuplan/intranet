@@ -171,10 +171,10 @@ namespace JWT
                 {
                     exp = Convert.ToInt32(payloadData["exp"]);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     // cast error on exp variable
-                    onError("The variable 'exp' is not an int", payloadData["exp"]);
+                    onError(e.Message, payloadData["exp"]);
                     return none;
                 }
 
@@ -288,7 +288,6 @@ namespace JWT
             {
                 case 0: break; // No pad chars in this case
                 case 2: output += "=="; break; // Two pad chars
-                case 3: output += "="; break;  // One pad char
                 default: throw new Exception("Illegal base64url string!");
             }
             var converted = Convert.FromBase64String(output); // Standard base64 decoder

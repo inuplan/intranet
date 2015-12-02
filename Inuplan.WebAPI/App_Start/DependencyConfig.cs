@@ -16,14 +16,17 @@
 
 namespace Inuplan.WebAPI.App_Start
 {
+    using System.Configuration;
     using System.Web.Http;
     using Autofac;
     using Autofac.Integration.WebApi;
     using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
+    using Inuplan.Common.Tools;
     using Inuplan.DAL.Repositories;
-    using Inuplan.WebAPI.Controllers;
     using Owin;
+    using Inuplan.WebAPI.Controllers;
+    using Inuplan.WebAPI.Middlewares.JWT;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -40,6 +43,7 @@ namespace Inuplan.WebAPI.App_Start
         public static void RegisterContainer(HttpConfiguration config, IAppBuilder app)
         {
             var builder = new ContainerBuilder();
+            var secret = Helpers.GetBytes(ConfigurationManager.AppSettings["Secret"]);
 
             // Register your Web API controllers.
             builder.Register(ctx => new ManagementPostController(ctx.ResolveKeyed<IRepository<int, Post>>("Management")));
@@ -49,6 +53,25 @@ namespace Inuplan.WebAPI.App_Start
 
             // Register types here...
             builder.RegisterType<ManagementPostRepository>().Keyed<IRepository<int, Post>>("Management");
+            builder.Register(ctx => new JWTOptions
+            {
+                LogInvalidSignature = (expected, actual) =>
+                { 
+                    /* Insert logger here... */
+                },
+
+                LogExpired = expiration =>
+                { 
+                    /* Insert logger here.. */
+                },
+
+                LogError = (msg, obj) =>
+                { 
+                    /* Insert logger here... */
+                },
+
+                Secret = secret
+            });
 
             // Build container
             container = builder.Build();
