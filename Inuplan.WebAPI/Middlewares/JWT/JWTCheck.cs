@@ -76,31 +76,42 @@ namespace Inuplan.WebAPI.Middlewares.JWT
             var token = bearer.Map(header => header.Split(' ')[1]);
 
             // Process the JWT token
-            token.Match(
-                t =>
+            var proceed = await token.Match(
+                async t =>
                 {
                     // token exists: then decode it and verify
                     var res = jwt.JsonWebToken.Decode(t, options.Secret, options.LogInvalidSignature, options.LogExpired, options.LogError);
-                    res.Match(
+                    var valid = await res.Match(
                         // If valid token, proceed with the OWIN pipeline
                         async _ =>
                         {
                             context.Set(Constants.JWT_TOKEN, t.Some());
                             await next.Invoke(environment);
+                            return true;
                         },
 
                         // If invalid token
-                        () =>
+                        async () =>
                         {
                             context.Response.StatusCode = 401;
                             context.Response.ReasonPhrase = "Invalid JWT token";
+                            return false;
                         });
+                    return valid;
                 },
                 async () => 
                 {
                     context.Set(Constants.JWT_TOKEN, string.Empty.None());
                     await next.Invoke(environment);
+                    return true;
                 });
+
+            if(!proceed)
+            {
+                await context.Response.WriteAsync(string.Format("Error {0}-\"{1}\"", 
+                    context.Response.StatusCode, 
+                    context.Response.ReasonPhrase));
+            }
         }
     }
 }
