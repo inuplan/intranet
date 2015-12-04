@@ -19,6 +19,7 @@ namespace Inuplan.WebAPI.App_Start
     using System.Web.Http;
     using Autofac;
     using Owin;
+    using Inuplan.WebAPI.Middlewares.ADAuthentication;
     using Inuplan.WebAPI.Middlewares.JWT;
 
     /// <summary>
@@ -33,19 +34,26 @@ namespace Inuplan.WebAPI.App_Start
         /// <param name="app">The <code>OWIN</code> component</param>
         public static void RegisterMiddlewares(HttpConfiguration config, IAppBuilder app)
         {
-            // Setup
-            var container = DependencyConfig.Container();
-            var jwtOptions = container.Resolve<JWTOptions>();
+            app.Run(ctx =>
+                {
+                    ctx.Response.ContentType = "text/plain";
+                    return ctx.Response.WriteAsync("Hello World");
+                });
 
-            // Use DI in the OWIN middleware (on OwinMiddleWare classes)
-            app.UseAutofacMiddleware(container);
-            app.UseAutofacWebApi(config);
+            // // Setup
+            // var container = DependencyConfig.Container();
+            // var jwtOptions = container.Resolve<JWTOptions>();
 
-            // The actual Owin pipeline -->
-            app.Use<JWTCheck>(jwtOptions);
-            
-            // Controllers
-            app.UseWebApi(config);
+            // // Use DI in the OWIN middleware (on OwinMiddleWare classes)
+            // app.UseAutofacMiddleware(container);
+            // app.UseAutofacWebApi(config);
+
+            // // The actual Owin pipeline -->
+            // app.Use<JWTCheck>(jwtOptions);
+            // app.Use<ADAuthenticationComponent>();
+            // 
+            // // Controllers
+            // app.UseWebApi(config);
         }
     }
 }

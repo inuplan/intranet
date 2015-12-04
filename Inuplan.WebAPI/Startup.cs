@@ -16,9 +16,10 @@
 
 namespace Inuplan.WebAPI
 {
+    using System.Net;
     using System.Web.Http;
-    using Inuplan.WebAPI.App_Start;
     using Owin;
+    using Inuplan.WebAPI.App_Start;
 
     /// <summary>
     /// Startup class for the <code>OWIN</code> server.
@@ -33,6 +34,10 @@ namespace Inuplan.WebAPI
         {
             // Configure Web API for self-host.
             var config = new HttpConfiguration();
+
+            // Set the Web API to use integrated windows authentication
+            var listener = (HttpListener)app.Properties["System.Net.HttpListener"];
+            listener.AuthenticationSchemes = AuthenticationSchemes.IntegratedWindowsAuthentication;
 
             // Register components
             RouteConfig.RegisterRoutes(config);

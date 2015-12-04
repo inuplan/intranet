@@ -111,7 +111,9 @@
     <Compile Include="Middlewares\JWT\JWTCheck.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <DeployService-Deploy>True</DeployService-Deploy>
+    </None>
     <Content Include="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -20,13 +20,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.IO;
-using Owin;
+using Inuplan.Common.Tools;
 using Microsoft.Owin;
-using Microsoft.Owin.Hosting;
+using NLog;
 
 namespace Inuplan.WebAPI.Middlewares.ADAuthentication
 {
@@ -45,8 +42,17 @@ namespace Inuplan.WebAPI.Middlewares.ADAuthentication
         {
             // Authenticate to AD...
             IOwinContext context = new OwinContext(environment);
-            await context.Response.WriteAsync("Write to output: <b>as html</b>...");
-            await next.Invoke(environment);
+            var token = context.Get<Optional.Option<string>>(Constants.JWT_TOKEN);
+            
+            if (token.HasValue)
+            {
+                // continue...
+                await next.Invoke(environment);
+            }
+            else
+            {
+
+            }
         }
     }
 }
