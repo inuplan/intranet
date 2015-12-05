@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Inuplan.Common.Tools;
 using Microsoft.Owin;
-using NLog;
 
 namespace Inuplan.WebAPI.Middlewares.ADAuthentication
 {
@@ -51,7 +50,7 @@ namespace Inuplan.WebAPI.Middlewares.ADAuthentication
             }
             else
             {
-
+                var name = context.Request.User.Identity.Name;
             }
         }
     }

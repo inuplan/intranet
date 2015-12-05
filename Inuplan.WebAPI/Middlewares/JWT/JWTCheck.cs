@@ -93,10 +93,14 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                         // If invalid token
                         async () =>
                         {
-                            context.Response.StatusCode = 401;
-                            context.Response.ReasonPhrase = "Invalid JWT token";
-                            return false;
+                            return await Task.Run(() =>
+                            {
+                                context.Response.StatusCode = 401;
+                                context.Response.ReasonPhrase = "Invalid JWT token";
+                                return false;
+                            });
                         });
+
                     return valid;
                 },
                 async () => 
