@@ -50,7 +50,8 @@ namespace Inuplan.WebAPI.Middlewares.ADAuthentication
             }
             else
             {
-                var name = context.Request.User.Identity.Name;
+                var name = context.Request.User.Identity.Name; // Name is: INUPLAN\jms
+                await context.Response.WriteAsync(string.Format("Name is: {0}", name));
             }
         }
     }
