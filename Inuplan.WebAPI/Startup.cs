@@ -35,10 +35,6 @@ namespace Inuplan.WebAPI
             // Configure Web API for self-host.
             var config = new HttpConfiguration();
 
-            // Set the Web API to use integrated windows authentication
-            var listener = (HttpListener)app.Properties["System.Net.HttpListener"];
-            listener.AuthenticationSchemes = AuthenticationSchemes.IntegratedWindowsAuthentication;
-
             // Register components
             RouteConfig.RegisterRoutes(config);
             DependencyConfig.RegisterContainer(config, app);
