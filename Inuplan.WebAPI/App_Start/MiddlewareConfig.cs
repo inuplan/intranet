@@ -42,7 +42,7 @@ namespace Inuplan.WebAPI.App_Start
             app.UseAutofacWebApi(config);
 
             // The actual Owin pipeline -->
-            app.Use<JWTCheck>(jwtOptions);
+            app.Use<JWTValidator>(jwtOptions);
 
             // Controllers
             app.UseWebApi(config);

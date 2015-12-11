@@ -108,7 +108,7 @@
     <Compile Include="Controllers\TestController.cs" />
     <Compile Include="Controllers\ManagementPostController.cs" />
     <Compile Include="Middlewares\JWT\JWTOptions.cs" />
-    <Compile Include="Middlewares\JWT\JWTCheck.cs" />
+    <Compile Include="Middlewares\JWT\JWTValidator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

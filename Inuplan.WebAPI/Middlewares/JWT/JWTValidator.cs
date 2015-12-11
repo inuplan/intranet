@@ -34,7 +34,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
     /// An <code>Owin</code> middleware, which checks whether a given token in the <code>HTTP</code> request header
     /// is valid. Only during an invalid will this middleware make an early return of 401 NotAuthorized.
     /// </summary>
-    public class JWTCheck
+    public class JWTValidator
     {
         /// <summary>
         /// The next middleware
@@ -47,11 +47,11 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         private readonly JWTOptions options;
 
         /// <summary>
-        /// Initializes an instance of the <see cref="JWTCheck"/> class.
+        /// Initializes an instance of the <see cref="JWTValidator"/> class.
         /// </summary>
         /// <param name="next">The next middleware</param>
         /// <param name="options">The options configurations</param>
-        public JWTCheck(AppFunc next, JWTOptions options)
+        public JWTValidator(AppFunc next, JWTOptions options)
         {
             this.next = next;
             this.options = options;
