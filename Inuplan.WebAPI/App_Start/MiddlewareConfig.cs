@@ -19,7 +19,6 @@ namespace Inuplan.WebAPI.App_Start
     using System.Web.Http;
     using Autofac;
     using Owin;
-    using Inuplan.WebAPI.Middlewares.ADAuthentication;
     using Inuplan.WebAPI.Middlewares.JWT;
 
     /// <summary>
@@ -44,7 +43,6 @@ namespace Inuplan.WebAPI.App_Start
 
             // The actual Owin pipeline -->
             app.Use<JWTCheck>(jwtOptions);
-            app.Use<ADAuthenticationComponent>();
 
             // Controllers
             app.UseWebApi(config);

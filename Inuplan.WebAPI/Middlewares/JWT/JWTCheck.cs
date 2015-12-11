@@ -34,7 +34,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
     /// An <code>Owin</code> middleware, which checks whether a given token in the <code>HTTP</code> request header
     /// is valid. Only during an invalid will this middleware make an early return of 401 NotAuthorized.
     /// </summary>
-    public class JWTCheck 
+    public class JWTCheck
     {
         /// <summary>
         /// The next middleware
@@ -63,7 +63,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// it if it is a valid token. <br />
         /// If invalid: 401 NotAuthorized will be returned.<br />
         /// If valid: The token will be inserted into the <code>OwinContext</code> and call next.<br />
-        /// If none: The token will be <see cref="Optional.Option"/> None, and call next.
+        /// If none: The token will be <see cref="Optional.Option.None{T}"/> and return with 401 NotAuthorized.
         /// </summary>
         /// <param name="environment">The environment</param>
         /// <returns>An awaitable task</returns>
@@ -76,46 +76,32 @@ namespace Inuplan.WebAPI.Middlewares.JWT
             var token = bearer.Map(header => header.Split(' ')[1]);
 
             // Process the JWT token
-            var proceed = await token.Match(
-                async t =>
+            token.Match(
+                t =>
                 {
                     // token exists: then decode it and verify
                     var res = jwt.JsonWebToken.Decode(t, options.Secret, options.LogInvalidSignature, options.LogExpired, options.LogError);
-                    var valid = await res.Match(
+                    res.Match(
                         // If valid token, proceed with the OWIN pipeline
                         async _ =>
                         {
                             context.Set(Constants.JWT_TOKEN, t.Some());
                             await next.Invoke(environment);
-                            return true;
                         },
 
                         // If invalid token
-                        async () =>
+                        () =>
                         {
-                            return await Task.Run(() =>
-                            {
-                                context.Response.StatusCode = 401;
-                                context.Response.ReasonPhrase = "Invalid JWT token";
-                                return false;
-                            });
+                            context.Response.StatusCode = 401;
+                            context.Response.ReasonPhrase = "Invalid JWT token";
                         });
-
-                    return valid;
                 },
-                async () => 
+                () =>
                 {
-                    context.Set(Constants.JWT_TOKEN, string.Empty.None());
-                    await next.Invoke(environment);
-                    return true;
+                    // Missing token
+                    context.Response.StatusCode = 401;
+                    context.Response.ReasonPhrase = "Missing JWT Token";
                 });
-
-            if(!proceed)
-            {
-                await context.Response.WriteAsync(string.Format("Error {0}-\"{1}\"", 
-                    context.Response.StatusCode, 
-                    context.Response.ReasonPhrase));
-            }
         }
     }
 }

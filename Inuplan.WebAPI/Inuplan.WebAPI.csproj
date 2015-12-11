@@ -107,7 +107,6 @@
     <Compile Include="Startup.cs" />
     <Compile Include="Controllers\TestController.cs" />
     <Compile Include="Controllers\ManagementPostController.cs" />
-    <Compile Include="Middlewares\ADAuthentication\ADAuthenticationComponent.cs" />
     <Compile Include="Middlewares\JWT\JWTOptions.cs" />
     <Compile Include="Middlewares\JWT\JWTCheck.cs" />
   </ItemGroup>
