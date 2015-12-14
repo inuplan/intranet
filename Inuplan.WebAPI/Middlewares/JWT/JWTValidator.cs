@@ -28,6 +28,8 @@ using jwt = JWT;
 
 namespace Inuplan.WebAPI.Middlewares.JWT
 {
+    using Common.DTOs;
+    using Newtonsoft.Json;
     using AppFunc = Func<IDictionary<string, object>, Task>;
 
     /// <summary>
@@ -76,32 +78,36 @@ namespace Inuplan.WebAPI.Middlewares.JWT
             var token = bearer.Map(header => header.Split(' ')[1]);
 
             // Process the JWT token
-            token.Match(
-                t =>
-                {
-                    // token exists: then decode it and verify
-                    var res = jwt.JsonWebToken.Decode(t, options.Secret, options.LogInvalidSignature, options.LogExpired, options.LogError);
-                    res.Match(
-                        // If valid token, proceed with the OWIN pipeline
-                        async _ =>
-                        {
-                            context.Set(Constants.JWT_TOKEN, t.Some());
-                            await next.Invoke(environment);
-                        },
+            await Task.Run(() =>
+            {
+                token.Match(
+                    t =>
+                    {
+                        // token exists: then decode it and verify
+                        var res = jwt.JsonWebToken.Decode(t, options.Secret, options.LogInvalidSignature, options.LogExpired, options.LogError);
+                        res.Match(
+                            // If valid token, proceed with the OWIN pipeline
+                            async payload =>
+                            {
+                                var claims = JsonConvert.DeserializeObject<ClaimsDTO>(payload);
+                                context.Set(Constants.JWT_CLAIMS, claims.SomeNotNull());
+                                await next.Invoke(environment);
+                            },
 
-                        // If invalid token
-                        () =>
-                        {
-                            context.Response.StatusCode = 401;
-                            context.Response.ReasonPhrase = "Invalid JWT token";
-                        });
-                },
-                () =>
-                {
-                    // Missing token
-                    context.Response.StatusCode = 401;
-                    context.Response.ReasonPhrase = "Missing JWT Token";
-                });
+                            // If invalid token
+                            () =>
+                            {
+                                context.Response.StatusCode = 401;
+                                context.Response.ReasonPhrase = "Invalid JWT token";
+                            });
+                    },
+                    () =>
+                    {
+                        // Missing token
+                        context.Response.StatusCode = 401;
+                        context.Response.ReasonPhrase = "Missing JWT Token";
+                    });
+            });
         }
     }
 }

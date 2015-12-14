@@ -118,7 +118,7 @@ namespace JWT
         /// <returns>A string containing the JSON payload.</returns>
         public static Option<string> Decode(string token, byte[] key, Action<string, string> onInvalidSignature, Action<double> onExpired, Action<string, object> onError, bool verify = true)
         {
-            var result = string.Empty.None();
+            var result = Option.None<string>();
             var parts = token.Split('.');
             if (parts.Length != 3)
             {
@@ -153,7 +153,7 @@ namespace JWT
 
         private static Option<string> Verify(string decodedCrypto, string decodedSignature, string payloadJson, Action<string, string> onInvalidSignature, Action<double> onExpired, Action<string, object> onError)
         {
-            var none = string.Empty.None();
+            var none = Option.None<string>();
             if (decodedCrypto != decodedSignature)
             {
                 // invalid signature: expected vs actual
@@ -212,8 +212,8 @@ namespace JWT
         /// <returns>An object representing the payload.</returns>
         public static Option<object> DecodeToObject(string token, byte[] key,Action<string, string> onInvalidSignature, Action<double> onExpired, Action<string, object> onError, bool verify = true)
         {
-            var payloadJson = Decode(token, key, onInvalidSignature, onExpired, onError, verify);
-            var result = payloadJson.Map(payload => (JsonSerializer.Deserialize<Dictionary<string, object>>(payload)) as object);
+            var payloadData = Decode(token, key, onInvalidSignature, onExpired, onError, verify);
+            var result = payloadData.Map<object>(data => data as object);
             return result;
         }
 
@@ -227,33 +227,6 @@ namespace JWT
         public static object DecodeToObject(string token, string key, Action<string, string> onInvalidSignature, Action<double> onExpired, Action<string, object> onError, bool verify = true)
         {
             return DecodeToObject(token, Encoding.UTF8.GetBytes(key), onInvalidSignature, onExpired, onError, verify);
-        }
-
-        /// <summary>
-        /// Given a JWT, decode it and return the payload as an object (by deserializing it with <see cref="System.Web.Script.Serialization.JavaScriptSerializer"/>).
-        /// </summary>
-        /// <typeparam name="T">The <see cref="Type"/> to return</typeparam>
-        /// <param name="token">The JWT.</param>
-        /// <param name="key">The key that was used to sign the JWT.</param>
-        /// <param name="verify">Whether to verify the signature (default is true).</param>
-        /// <returns>An object representing the payload.</returns>
-        public static Option<T> DecodeToObject<T>(string token, byte[] key, Action<string, string> onInvalidSignature, Action<double> onExpired, Action<string, object> onError, bool verify = true)
-        {
-            var payloadJson = Decode(token, key, onInvalidSignature, onExpired, onError, verify);
-            return payloadJson.Map(payload => JsonSerializer.Deserialize<T>(payload));
-        }
-
-        /// <summary>
-        /// Given a JWT, decode it and return the payload as an object (by deserializing it with <see cref="System.Web.Script.Serialization.JavaScriptSerializer"/>).
-        /// </summary>
-        /// <typeparam name="T">The <see cref="Type"/> to return</typeparam>
-        /// <param name="token">The JWT.</param>
-        /// <param name="key">The key that was used to sign the JWT.</param>
-        /// <param name="verify">Whether to verify the signature (default is true).</param>
-        /// <returns>An object representing the payload.</returns>
-        public static Option<T> DecodeToObject<T>(string token, string key, Action<string, string> onInvalidSignature, Action<double> onExpired, Action<string, object> onError, bool verify = true)
-        {
-            return DecodeToObject<T>(token, Encoding.UTF8.GetBytes(key), onInvalidSignature, onExpired, onError, verify);
         }
 
         private static Option<JwtHashAlgorithm> GetHashAlgorithm(string algorithm, Action<string, object> onError)

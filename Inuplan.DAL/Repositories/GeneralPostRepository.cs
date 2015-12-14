@@ -120,6 +120,16 @@ namespace Inuplan.DAL.Repositories
         }
 
         /// <summary>
+        /// Retrieves an entity by the id
+        /// </summary>
+        /// <param name="id">The id of the entity</param>
+        /// <returns>An awaitable task</returns>
+        public async Task<Option<Post>> GetByID(int id)
+        {
+            return await Get(id);
+        }
+
+        /// <summary>
         /// Retrieves a subset of the Post entities in the database.
         /// Sorts by date: newest to oldest. (descending).
         /// </summary>
