@@ -40,6 +40,11 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         private readonly string domain;
 
         /// <summary>
+        /// The next middleware
+        /// </summary>
+        private readonly OwinMiddleware next;
+
+        /// <summary>
         /// User repository
         /// </summary>
         private readonly IRepository<string, User> userRepository;
@@ -52,6 +57,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         public JWTClaimsRetriever(OwinMiddleware next, JWTClaimsRetrieverOptions options)
             : base(next)
         {
+            this.next = next;
             userRepository = options.UserRepository;
             domain = options.Domain;
         }
