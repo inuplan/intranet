@@ -34,5 +34,10 @@ namespace Inuplan.Common.Tools
         /// HTTP header key for the JWT token.
         /// </summary>
         public static readonly string HTTP_AUTHORIZATION = "Authorization";
+
+        /// <summary>
+        /// The domain name of the corporation
+        /// </summary>
+        public static readonly string DOMAIN = "inuplan.local";
     }
 }

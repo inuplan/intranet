@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Inuplan.WebAPI.Middlewares.JWT
 {
-    class JWTClaimsRetrieverOptions
+    public class JWTClaimsRetrieverOptions
     {
         public IRepository<string, User> UserRepository { get; set; }
 

@@ -14,28 +14,24 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Inuplan.Common.Tools;
-using Microsoft.Owin;
-using Optional;
-
 namespace Inuplan.WebAPI.Middlewares.JWT
 {
-    using Common.DTOs;
-    using Common.Models;
-    using Common.Repositories;
     using System.Diagnostics;
     using System.DirectoryServices.AccountManagement;
-    using AppFunc = Func<IDictionary<string, object>, Task>;
+    using System.Threading.Tasks;
+    using Inuplan.Common.DTOs;
+    using Inuplan.Common.Models;
+    using Inuplan.Common.Repositories;
+    using Inuplan.Common.Tools;
+    using Microsoft.Owin;
+    using Optional;
 
     /// <summary>
     /// An <code>OWIN</code> middleware that ensures claims are wellformed and properly fills out the claims for the <code>JWT token</code>.<br />
     /// If a <code>JWT</code> token has missing claims, a HTTP 400 BadRequest is returned.
     /// This middleware retrieves information about a user from the active directory services.
     /// </summary>
-    public class JWTClaimsRetriever
+    public class JWTClaimsRetriever : OwinMiddleware
     {
         /// <summary>
         /// The domain name for this domain.<br />
@@ -46,7 +42,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// <summary>
         /// The next middleware
         /// </summary>
-        private readonly AppFunc next;
+        private readonly OwinMiddleware next;
 
         /// <summary>
         /// User repository
@@ -57,12 +53,13 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// Instantiates a new instance of the <see cref="JWTClaimsRetriever"/> class.
         /// </summary>
         /// <param name="next">The next <code>OWIN</code> middleware</param>
-        /// <param name="userRepository">The user repository</param>
-        public JWTClaimsRetriever(AppFunc next, IRepository<string, User> userRepository, string domain)
+        /// <param name="options">Options configuration</param>
+        public JWTClaimsRetriever(OwinMiddleware next, JWTClaimsRetrieverOptions options)
+            : base(next)
         {
             this.next = next;
-            this.userRepository = userRepository;
-            this.domain = domain;
+            userRepository = options.UserRepository;
+            domain = options.Domain;
         }
 
         /// <summary>
@@ -71,9 +68,8 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// </summary>
         /// <param name="environment">The environment</param>
         /// <returns>Returns an awaitable task</returns>
-        public async Task Invoke(IDictionary<string, object> environment)
+        public override async Task Invoke(IOwinContext context)
         {
-            IOwinContext context = new OwinContext(environment);
             var oClaims = context.Get<Option<ClaimsDTO>>(Constants.JWT_CLAIMS);
 
             await Task.Run(() =>
@@ -100,7 +96,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                             // We assume that every verified user
                             // has been given a valid role
                             Debug.Assert(c.Role != RoleType.None);
-                            if(c.Role == RoleType.None)
+                            if (c.Role == RoleType.None)
                             {
                                 c.Verified = false;
                             }
@@ -115,7 +111,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                     context.Set(Constants.JWT_CLAIMS, c.Some());
 
                     // Proceed with the OWIN pipeline
-                    await next.Invoke(environment);
+                    await Next.Invoke(context);
                 },
                 () =>
                 {

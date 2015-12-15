@@ -36,7 +36,7 @@ namespace Inuplan.WebAPI.App_Start
             // Setup
             var container = DependencyConfig.Container();
             var jwtValidatorOptions = container.Resolve<JWTValidatorOptions>();
-            var jwtClaimsValidatorOptions = container.Resolve<JWTClaimsRetrieverOptions>();
+            var jwtClaimsRetrieverOptions = container.Resolve<JWTClaimsRetrieverOptions>();
 
             // Use DI in the OWIN middleware (on OwinMiddleWare classes)
             app.UseAutofacMiddleware(container);
@@ -44,7 +44,7 @@ namespace Inuplan.WebAPI.App_Start
 
             // The actual Owin pipeline -->
             app.Use<JWTValidator>(jwtValidatorOptions);
-            app.Use<JWTClaimsRetriever>(jwtClaimsValidatorOptions);
+            app.Use<JWTClaimsRetriever>(jwtClaimsRetrieverOptions);
 
             // Controllers
             app.UseWebApi(config);

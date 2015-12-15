@@ -72,6 +72,11 @@ namespace Inuplan.WebAPI.App_Start
 
                 Secret = secret
             });
+            builder.Register(ctx => new JWTClaimsRetrieverOptions
+            {
+                Domain = Constants.DOMAIN,
+                UserRepository = ctx.Resolve<IRepository<string, User>>()
+            });
 
             // Build container
             container = builder.Build();
