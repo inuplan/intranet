@@ -30,6 +30,9 @@ namespace Inuplan.Common.Tools
         /// </summary>
         public static readonly string JWT_CLAIMS = "claims";
 
+        /// <summary>
+        /// HTTP header key for the JWT token.
+        /// </summary>
         public static readonly string HTTP_AUTHORIZATION = "Authorization";
     }
 }
