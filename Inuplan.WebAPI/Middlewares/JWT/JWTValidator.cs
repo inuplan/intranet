@@ -18,31 +18,23 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Inuplan.Common.Tools;
-using Microsoft.Owin;
-using Optional;
 using jwt = JWT;
 
 namespace Inuplan.WebAPI.Middlewares.JWT
 {
-    using Common.DTOs;
+    using System.Threading.Tasks;
+    using Inuplan.Common.DTOs;
+    using Inuplan.Common.Tools;
+    using Microsoft.Owin;
     using Newtonsoft.Json;
-    using AppFunc = Func<IDictionary<string, object>, Task>;
+    using Optional;
 
     /// <summary>
     /// An <code>Owin</code> middleware, which checks whether a given token in the <code>HTTP</code> request header
     /// is valid. Only during an invalid will this middleware make an early return of 401 NotAuthorized.
     /// </summary>
-    public class JWTValidator
+    public class JWTValidator : OwinMiddleware
     {
-        /// <summary>
-        /// The next middleware
-        /// </summary>
-        private readonly AppFunc next;
-
         /// <summary>
         /// The option configuration
         /// </summary>
@@ -53,9 +45,9 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// </summary>
         /// <param name="next">The next middleware</param>
         /// <param name="options">The options configurations</param>
-        public JWTValidator(AppFunc next, JWTValidatorOptions options)
+        public JWTValidator(OwinMiddleware next, JWTValidatorOptions options)
+            : base(next)
         {
-            this.next = next;
             this.options = options;
         }
 
@@ -69,10 +61,9 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// </summary>
         /// <param name="environment">The environment</param>
         /// <returns>An awaitable task</returns>
-        public async Task Invoke(IDictionary<string, object> environment)
+        public override async Task Invoke(IOwinContext context)
         {
             // Extract the JWT token
-            IOwinContext context = new OwinContext(environment);
             var bearer = context.Request.Headers.Get("Authorization")
                             .SomeWhen(header => (header != null) && header.Contains("Bearer"));
             var token = bearer.Map(header => header.Split(' ')[1]);
@@ -93,7 +84,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                                 context.Set(Constants.JWT_CLAIMS, claims.SomeNotNull());
 
                                 // If valid token, proceed with the OWIN pipeline
-                                await next.Invoke(environment);
+                                await Next.Invoke(context);
 
                                 // When coming back then, sign the new JWT token.
                                 var newClaims = context.Get<Option<ClaimsDTO>>(Constants.JWT_CLAIMS);
