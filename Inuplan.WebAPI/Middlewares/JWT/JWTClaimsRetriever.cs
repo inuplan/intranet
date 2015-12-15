@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Inuplan.Common.Tools;
-using jwt = JWT;
 using Microsoft.Owin;
 using Optional;
 
@@ -27,16 +26,21 @@ namespace Inuplan.WebAPI.Middlewares.JWT
     using Common.DTOs;
     using Common.Models;
     using Common.Repositories;
-    using Newtonsoft.Json;
     using System.Diagnostics;
     using System.DirectoryServices.AccountManagement;
     using AppFunc = Func<IDictionary<string, object>, Task>;
 
     /// <summary>
-    /// Properly fills out the roles for the <code>JWT token</code>
+    /// An <code>OWIN</code> middleware that ensures claims are wellformed and properly fills out the claims for the <code>JWT token</code>.<br />
+    /// If a <code>JWT</code> token has missing claims, a HTTP 400 BadRequest is returned.
+    /// This middleware retrieves information about a user from the active directory services.
     /// </summary>
-    public class JWTRoles
+    public class JWTClaimsRetriever
     {
+        /// <summary>
+        /// The domain name for this domain.<br />
+        /// e.g.: corporation.local
+        /// </summary>
         private readonly string domain;
 
         /// <summary>
@@ -45,28 +49,28 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         private readonly AppFunc next;
 
         /// <summary>
-        /// Secret key for signing <code>JWT</code>
-        /// </summary>
-        private readonly byte[] secret;
-
-        /// <summary>
         /// User repository
         /// </summary>
         private readonly IRepository<string, User> userRepository;
 
         /// <summary>
-        /// Instantiates a new instance of the <see cref="JWTRoles"/> class.
+        /// Instantiates a new instance of the <see cref="JWTClaimsRetriever"/> class.
         /// </summary>
         /// <param name="next">The next <code>OWIN</code> middleware</param>
         /// <param name="userRepository">The user repository</param>
-        public JWTRoles(AppFunc next, IRepository<string, User> userRepository, string domain, byte[] secret)
+        public JWTClaimsRetriever(AppFunc next, IRepository<string, User> userRepository, string domain)
         {
             this.next = next;
             this.userRepository = userRepository;
-            this.secret = secret;
             this.domain = domain;
         }
 
+        /// <summary>
+        /// Gets and fills the role for the JWT claims
+        /// or simply does nothing if user already has been verified
+        /// </summary>
+        /// <param name="environment">The environment</param>
+        /// <returns>Returns an awaitable task</returns>
         public async Task Invoke(IDictionary<string, object> environment)
         {
             IOwinContext context = new OwinContext(environment);
@@ -96,20 +100,27 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                             // We assume that every verified user
                             // has been given a valid role
                             Debug.Assert(c.Role != RoleType.None);
+                            if(c.Role == RoleType.None)
+                            {
+                                c.Verified = false;
+                            }
                         }
 
                         return c;
                     });
 
-                claims.Match(async _ =>
+                claims.Match(async c =>
                 {
+                    // Updates claims
+                    context.Set(Constants.JWT_CLAIMS, c.Some());
+
                     // Proceed with the OWIN pipeline
                     await next.Invoke(environment);
                 },
                 () =>
                 {
                     // No claims in the OWIN context
-                    context.Response.StatusCode = 400;
+                    context.Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
                     context.Response.ReasonPhrase = "Missing claims in token";
                 });
             });

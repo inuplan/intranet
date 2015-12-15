@@ -29,5 +29,7 @@ namespace Inuplan.Common.Tools
         /// <code>Owin</code> context, key for JWT claims
         /// </summary>
         public static readonly string JWT_CLAIMS = "claims";
+
+        public static readonly string HTTP_AUTHORIZATION = "Authorization";
     }
 }

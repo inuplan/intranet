@@ -46,14 +46,14 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// <summary>
         /// The option configuration
         /// </summary>
-        private readonly JWTOptions options;
+        private readonly JWTValidatorOptions options;
 
         /// <summary>
         /// Initializes an instance of the <see cref="JWTValidator"/> class.
         /// </summary>
         /// <param name="next">The next middleware</param>
         /// <param name="options">The options configurations</param>
-        public JWTValidator(AppFunc next, JWTOptions options)
+        public JWTValidator(AppFunc next, JWTValidatorOptions options)
         {
             this.next = next;
             this.options = options;
@@ -86,25 +86,42 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                         // token exists: then decode it and verify
                         var res = jwt.JsonWebToken.Decode(t, options.Secret, options.LogInvalidSignature, options.LogExpired, options.LogError);
                         res.Match(
-                            // If valid token, proceed with the OWIN pipeline
+                            // Has jwt payload
                             async payload =>
                             {
                                 var claims = JsonConvert.DeserializeObject<ClaimsDTO>(payload);
                                 context.Set(Constants.JWT_CLAIMS, claims.SomeNotNull());
+
+                                // If valid token, proceed with the OWIN pipeline
                                 await next.Invoke(environment);
+
+                                // When coming back then, sign the new JWT token.
+                                var newClaims = context.Get<Option<ClaimsDTO>>(Constants.JWT_CLAIMS);
+                                newClaims.Map(c =>
+                                {
+                                    // If it is verified
+                                    if (c.Verified)
+                                    {
+                                        var newToken = jwt.JsonWebToken.Encode(c, options.Secret, jwt.JwtHashAlgorithm.HS512);
+                                        var newBearer = string.Format("Bearer {0}", newToken);
+                                        context.Response.Headers.Set(Constants.HTTP_AUTHORIZATION, newBearer);
+                                    }
+
+                                    return c;
+                                });
                             },
 
                             // If invalid token
                             () =>
                             {
-                                context.Response.StatusCode = 401;
+                                context.Response.StatusCode = (int)System.Net.HttpStatusCode.Unauthorized;
                                 context.Response.ReasonPhrase = "Invalid JWT token";
                             });
                     },
                     () =>
                     {
                         // Missing token
-                        context.Response.StatusCode = 401;
+                        context.Response.StatusCode = (int)System.Net.HttpStatusCode.Unauthorized;
                         context.Response.ReasonPhrase = "Missing JWT Token";
                     });
             });

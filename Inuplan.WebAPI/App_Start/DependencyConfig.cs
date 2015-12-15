@@ -53,7 +53,7 @@ namespace Inuplan.WebAPI.App_Start
 
             // Register types here...
             builder.RegisterType<ManagementPostRepository>().Keyed<IRepository<int, Post>>("Management");
-            builder.Register(ctx => new JWTOptions
+            builder.Register(ctx => new JWTValidatorOptions
             {
                 LogInvalidSignature = (expected, actual) =>
                 { 

@@ -19,14 +19,10 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Inuplan.WebAPI.Middlewares.JWT
 {
-    using AppFunc = Func<IDictionary<string, object>, Task>;
-
-    public class JWTOptions
+    public class JWTValidatorOptions
     {
         /// <summary>
         /// Gets or sets the action in which should be invoked upon
