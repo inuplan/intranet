@@ -120,33 +120,6 @@ namespace Inuplan.Tests.WebAPI.Middlewares
         }
 
         /// <summary>
-        /// Tests if the next middleware is called with the right context.
-        /// Expected: Context should not contain an entry with a key <see cref="Common.Tools.Constants.JWT_CLAIMS"/>
-        /// </summary>
-        [Fact]
-        public async void When_Invalid_Token_Next_Context_Should_Not_Contain_Claims()
-        {
-            // Arrange - JWT with incorrect key
-            var key = SHA256.Create().ComputeHash(Helpers.GetBytes("secret"));
-            var claims = new ClaimsDTO { Verified = true };
-            var token = JWT.Encode(claims, new byte[32], JwsAlgorithm.HS256);
-
-            // Arrange - Middleware configuration
-            var env = createOwinEnvironment(token);
-            var opt = new JWTValidatorOptions { Secret = key, Mapper = new NewtonsoftMapper() };
-
-            // Arrange - Test subject
-            var containsClaims = false;
-            var validator = new JWTValidator(async n => containsClaims = await Task.FromResult(!n.ContainsKey(Constants.JWT_CLAIMS)), opt);
-
-            // Act
-            await validator.Invoke(env);
-
-            // Assert
-            Assert.False(containsClaims, "The next middleware should not contain the JWT claims");
-        }
-
-        /// <summary>
         /// Helper method, which constructs an owin environment and inserts
         /// the given token into the owin dictionary.
         /// </summary>
