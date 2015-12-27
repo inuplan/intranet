@@ -101,7 +101,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                     },
                     () =>
                     {
-                        // Invalid token
+                        // Invalid token, reason(s): missing username, wrong key etc.
                         context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                         context.Response.ReasonPhrase = "Invalid JWT token";
                     });
@@ -138,7 +138,8 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                 /* Log failure */
             }
 
-            return result;
+            // If claims does NOT contain a username, then it is invalid
+            return result.Filter(c => !string.IsNullOrEmpty(c.Username.Trim()));
         }
     }
 }
