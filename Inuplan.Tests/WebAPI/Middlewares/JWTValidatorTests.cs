@@ -38,7 +38,7 @@ namespace Inuplan.Tests.WebAPI.Middlewares
     {
         /// <summary>
         /// Tests if the next middleware is called
-        /// when the token is valid.<br />
+        /// when the token is valid.
         /// Expected: Should call next.
         /// </summary>
         [Fact]
@@ -54,7 +54,7 @@ namespace Inuplan.Tests.WebAPI.Middlewares
             var opt = new JWTValidatorOptions { Secret = key, Mapper = new NewtonsoftMapper() };
 
             // Arrange - Test subject
-            bool next = false;
+            var next = false;
             var validator = new JWTValidator(async n => next = await Task.FromResult(true), opt);
 
             // Act
@@ -82,7 +82,7 @@ namespace Inuplan.Tests.WebAPI.Middlewares
             var options = new JWTValidatorOptions { Secret = key, Mapper = new NewtonsoftMapper() };
 
             // Arrange - Test subject
-            bool next = false;
+            var next = false;
             var validator = new JWTValidator(async n => next = await Task.FromResult(true), options);
 
             // Act
@@ -90,6 +90,60 @@ namespace Inuplan.Tests.WebAPI.Middlewares
 
             // Assert
             Assert.False(next, "The next middleware should not be invoked because the JWT token has the wrong signature.");
+        }
+
+        /// <summary>
+        /// Tests if the next middleware is called with the right context.
+        /// Expected: Context should contain an entry with a key <see cref="Common.Tools.Constants.JWT_CLAIMS"/>
+        /// </summary>
+        [Fact]
+        public async void When_Valid_Token_Next_Context_Should_Contain_Claims()
+        {
+            // Arrange - JWT with correct key
+            var key = SHA256.Create().ComputeHash(Helpers.GetBytes("secret"));
+            var claims = new ClaimsDTO { Verified = true };
+            var token = JWT.Encode(claims, key, JwsAlgorithm.HS256);
+
+            // Arrange - Middleware configuration
+            var env = createOwinEnvironment(token);
+            var opt = new JWTValidatorOptions { Secret = key, Mapper = new NewtonsoftMapper() };
+
+            // Arrange - Test subject
+            var containsClaims = false;
+            var validator = new JWTValidator(async n => containsClaims = await Task.FromResult(n.ContainsKey(Constants.JWT_CLAIMS)), opt);
+
+            // Act
+            await validator.Invoke(env);
+
+            // Assert
+            Assert.True(containsClaims, "The next middleware should contain the JWT claims");
+        }
+
+        /// <summary>
+        /// Tests if the next middleware is called with the right context.
+        /// Expected: Context should not contain an entry with a key <see cref="Common.Tools.Constants.JWT_CLAIMS"/>
+        /// </summary>
+        [Fact]
+        public async void When_Invalid_Token_Next_Context_Should_Not_Contain_Claims()
+        {
+            // Arrange - JWT with incorrect key
+            var key = SHA256.Create().ComputeHash(Helpers.GetBytes("secret"));
+            var claims = new ClaimsDTO { Verified = true };
+            var token = JWT.Encode(claims, new byte[32], JwsAlgorithm.HS256);
+
+            // Arrange - Middleware configuration
+            var env = createOwinEnvironment(token);
+            var opt = new JWTValidatorOptions { Secret = key, Mapper = new NewtonsoftMapper() };
+
+            // Arrange - Test subject
+            var containsClaims = false;
+            var validator = new JWTValidator(async n => containsClaims = await Task.FromResult(!n.ContainsKey(Constants.JWT_CLAIMS)), opt);
+
+            // Act
+            await validator.Invoke(env);
+
+            // Assert
+            Assert.False(containsClaims, "The next middleware should not contain the JWT claims");
         }
 
         /// <summary>
