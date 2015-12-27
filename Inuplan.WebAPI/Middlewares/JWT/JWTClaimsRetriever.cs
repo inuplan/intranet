@@ -73,18 +73,18 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// <returns>Returns an awaitable task</returns>
         public async Task Invoke(IDictionary<string, object> environment)
         {
-            IOwinContext context = new OwinContext(environment);
+            var context = (IOwinContext)(new OwinContext(environment));
             var oClaims = context.Get<Option<ClaimsDTO>>(Constants.JWT_CLAIMS);
 
             await Task.Run(() =>
             {
-                var claims = oClaims.Map(
-                    c =>
-                    {
-                        // Get if token has been verified (a repeat user)
-                        // if not, then we must retrieve the roles from the database
-                        if (!c.Verified)
+                var claims = oClaims
+                    .Filter(c => c.Verified)
+                    .Map(
+                        c =>
                         {
+                            // Get if token has been verified (a repeat user)
+                            // if not, then we must retrieve the roles from the database
                             var user = GetOrCreateUser(c).Result;
 
                             // Fill the jwt claims with the correct user info
@@ -94,20 +94,9 @@ namespace Inuplan.WebAPI.Middlewares.JWT
 
                             // Set verify flag to true
                             c.Verified = true;
-                        }
-                        else
-                        {
-                            // We assume that every verified user
-                            // has been given a valid role
-                            Debug.Assert(c.Role != RoleType.None);
-                            if(c.Role == RoleType.None)
-                            {
-                                c.Verified = false;
-                            }
-                        }
 
-                        return c;
-                    });
+                            return c;
+                        });
 
                 claims.Match(async c =>
                 {

@@ -32,8 +32,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Optional, Version=2.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Optional.2.2.0\lib\net45\Optional.dll</HintPath>
+    <Reference Include="jose-jwt, Version=1.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\jose-jwt.1.9.0\lib\4.0\jose-jwt.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Optional, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Optional.3.0.0\lib\net45\Optional.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -46,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DTOs\ClaimsDTO.cs" />
+    <Compile Include="Mappers\NewtonsoftMapper.cs" />
     <Compile Include="Models\File.cs" />
     <Compile Include="Models\Post.cs" />
     <Compile Include="Models\Profile.cs" />
@@ -58,8 +67,10 @@
     <Compile Include="Tools\Constants.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="LICENSE" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

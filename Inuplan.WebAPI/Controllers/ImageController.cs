@@ -44,29 +44,31 @@ namespace Inuplan.WebAPI.Controllers
             var provider = await Request.Content.ReadAsMultipartAsync(new MultipartMemoryStreamProvider());
             var filesTmp = new ConcurrentBag<File>();
 
-//             Parallel.ForEach(
-//                 provider.Contents,
-//                 async content =>
-//                 {
-//                     var stream = await content.ReadAsStreamAsync();
-//                     var data = Tools.ReadFully(stream);
-// 
-//                     var filename = content.Headers.ContentDisposition.FileName;
-//                     var mime = content.Headers.ContentType.MediaType;
-//                     var created = DateTime.Now;
-// 
-//                     var file = new File
-//                     {
-//                         Data = data.SomeNotNull(),
-//                         FileName = filename,
-//                         MimeType = mime,
-//                         Owner = null
-//                     };
-// 
-//                     filesTmp.Add(file);
-//                 });
+            //             Parallel.ForEach(
+            //                 provider.Contents,
+            //                 async content =>
+            //                 {
+            //                     var stream = await content.ReadAsStreamAsync();
+            //                     var data = Tools.ReadFully(stream);
+            // 
+            //                     var filename = content.Headers.ContentDisposition.FileName;
+            //                     var mime = content.Headers.ContentType.MediaType;
+            //                     var created = DateTime.Now;
+            // 
+            //                     var file = new File
+            //                     {
+            //                         Data = data.SomeNotNull(),
+            //                         FileName = filename,
+            //                         MimeType = mime,
+            //                         Owner = null
+            //                     };
+            // 
+            //                     filesTmp.Add(file);
+            //                 });
 
+#pragma warning disable RECS0083 // Shows NotImplementedException throws in the quick task bar
             throw new NotImplementedException();
+#pragma warning restore RECS0083 // Shows NotImplementedException throws in the quick task bar
         }
     }
 }
