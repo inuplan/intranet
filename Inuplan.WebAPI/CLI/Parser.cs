@@ -26,7 +26,7 @@ namespace Inuplan.WebAPI.CLI
     /// <summary>
     /// Command-line interface parser
     /// </summary>
-    public class Parser
+    public static class Parser
     {
         /// <summary>
         /// Parses user input to valid program input.
@@ -40,7 +40,7 @@ namespace Inuplan.WebAPI.CLI
             {
                 var sb = new StringBuilder();
 
-                if (options.BaseAddress.EndsWith("/"))
+                if (options.BaseAddress.EndsWith("/", StringComparison.Ordinal))
                 {
                     sb.Append(options.BaseAddress.Substring(0, options.BaseAddress.Length - 1));
                 }
@@ -92,8 +92,6 @@ namespace Inuplan.WebAPI.CLI
                     case "exit":
                         Console.WriteLine("Exiting...");
                         loop = false;
-                        break;
-                    default:
                         break;
                 }
             }            

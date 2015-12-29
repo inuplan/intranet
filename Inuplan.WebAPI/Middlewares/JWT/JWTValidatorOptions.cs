@@ -18,6 +18,7 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+using Jose;
 using System;
 
 namespace Inuplan.WebAPI.Middlewares.JWT
@@ -48,6 +49,11 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// The second parameter is the instance which caused the error.
         /// </summary>
         public Action<string, object> LogError { get; set; }
+
+        /// <summary>
+        /// Gets or sets the custom json mapper
+        /// </summary>
+        public IJsonMapper Mapper { get; set; }
 
         /// <summary>
         /// Gets or sets the secret signing key used to decrypt JWT token.

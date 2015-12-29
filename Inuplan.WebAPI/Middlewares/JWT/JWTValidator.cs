@@ -18,19 +18,18 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Inuplan.Common.Tools;
-using Microsoft.Owin;
-using Optional;
-using jwt = JWT;
-
 namespace Inuplan.WebAPI.Middlewares.JWT
 {
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Net;
+    using System.Threading.Tasks;
     using Common.DTOs;
-    using Newtonsoft.Json;
-    using AppFunc = Func<IDictionary<string, object>, Task>;
+    using Common.Models;
+    using Inuplan.Common.Tools;
+    using Microsoft.Owin;
+    using Optional;
+    using AppFunc = System.Func<System.Collections.Generic.IDictionary<string, object>, System.Threading.Tasks.Task>;
 
     /// <summary>
     /// An <code>Owin</code> middleware, which checks whether a given token in the <code>HTTP</code> request header
@@ -72,59 +71,75 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         public async Task Invoke(IDictionary<string, object> environment)
         {
             // Extract the JWT token
-            IOwinContext context = new OwinContext(environment);
+            var context = (IOwinContext)(new OwinContext(environment));
             var bearer = context.Request.Headers.Get("Authorization")
                             .SomeWhen(header => (header != null) && header.Contains("Bearer"));
             var token = bearer.Map(header => header.Split(' ')[1]);
 
             // Process the JWT token
-            await Task.Run(() =>
-            {
-                token.Match(
-                    t =>
+            await token.Match(
+                t =>
+                {
+                    // The key requirement (assumption)
+                    Debug.Assert(options.Secret.Length == 32, "Key should be (8 * 32) = 256 bits long because we use HS256 encryption");
+
+                    // token exists: then decode it 
+                    Jose.JWT.JsonMapper = options.Mapper;
+                    var data = decode(t, options.Secret);
+
+                    // and verify
+                    data.Match(async claims =>
                     {
-                        // token exists: then decode it and verify
-                        var res = jwt.JsonWebToken.Decode(t, options.Secret, options.LogInvalidSignature, options.LogExpired, options.LogError);
-                        res.Match(
-                            // Has jwt payload
-                            async payload =>
-                            {
-                                var claims = JsonConvert.DeserializeObject<ClaimsDTO>(payload);
-                                context.Set(Constants.JWT_CLAIMS, claims.SomeNotNull());
+                        // Store claims in Owin
+                        context.Set(Constants.JWT_CLAIMS, claims);
 
-                                // If valid token, proceed with the OWIN pipeline
-                                await next.Invoke(environment);
+                        // Proceed to next middleware
+                        await next.Invoke(environment);
 
-                                // When coming back then, sign the new JWT token.
-                                var newClaims = context.Get<Option<ClaimsDTO>>(Constants.JWT_CLAIMS);
-                                newClaims.Map(c =>
-                                {
-                                    // If it is verified
-                                    if (c.Verified)
-                                    {
-                                        var newToken = jwt.JsonWebToken.Encode(c, options.Secret, jwt.JwtHashAlgorithm.HS512);
-                                        var newBearer = string.Format("Bearer {0}", newToken);
-                                        context.Response.Headers.Set(Constants.HTTP_AUTHORIZATION, newBearer);
-                                    }
-
-                                    return c;
-                                });
-                            },
-
-                            // If invalid token
-                            () =>
-                            {
-                                context.Response.StatusCode = (int)System.Net.HttpStatusCode.Unauthorized;
-                                context.Response.ReasonPhrase = "Invalid JWT token";
-                            });
+                        // Assert that the claims has been verified after passing through the middleware
+                        Debug.Assert(claims.Verified, "Claims should be verified after processing");
                     },
                     () =>
                     {
-                        // Missing token
-                        context.Response.StatusCode = (int)System.Net.HttpStatusCode.Unauthorized;
-                        context.Response.ReasonPhrase = "Missing JWT Token";
+                        // Invalid token, reason(s): missing username, wrong key etc.
+                        context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                        context.Response.ReasonPhrase = "Invalid JWT token";
                     });
-            });
+
+                    return Task.FromResult(0);
+                },
+                () =>
+                {
+                    // Missing token
+                    context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                    context.Response.ReasonPhrase = "Missing JWT Token";
+                    return Task.FromResult(0);
+                });
+        }
+
+        /// <summary>
+        /// Decodes the token and returns some if succesfull otherwise it returns none.
+        /// </summary>
+        /// <param name="token">The JWT token</param>
+        /// <param name="key">The key</param>
+        /// <returns>An optional value depending on whether the decoding process has been succesfull</returns>
+        private Option<ClaimsDTO> decode(string token, byte[] key)
+        {
+            var result = Option.None<ClaimsDTO>();
+            try
+            {
+                var data = Jose.JWT.Decode<ClaimsDTO>(token, key);
+
+                // returns None if user has been verified and been given None role
+                result = data.SomeWhen(c => !(c.Verified && c.Role == RoleType.None));
+            }
+            catch (Jose.IntegrityException)
+            {
+                /* Log failure */
+            }
+
+            // If claims does NOT contain a username, then it is invalid
+            return result.Filter(c => !string.IsNullOrEmpty(c.Username.Trim()));
         }
     }
 }

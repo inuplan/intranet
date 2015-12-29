@@ -35,7 +35,7 @@ namespace Inuplan.WebAPI.Controllers
         public async Task<HttpResponseMessage> Get()
         {
             // The full path is: localhost:9000/api/test/hello
-            return Request.CreateResponse(HttpStatusCode.OK, "Hello World");
+            return await Task.FromResult(Request.CreateResponse(HttpStatusCode.OK, "Hello World"));
         }
     }
 }
