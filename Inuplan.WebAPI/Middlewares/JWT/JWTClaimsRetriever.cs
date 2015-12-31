@@ -19,15 +19,15 @@ namespace Inuplan.WebAPI.Middlewares.JWT
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.DirectoryServices.AccountManagement;
+    using System.Net;
     using System.Threading.Tasks;
     using Common.DTOs;
     using Common.Models;
-    using Common.Repositories;
     using Common.Tools;
     using Microsoft.Owin;
     using Optional;
     using AppFunc = System.Func<System.Collections.Generic.IDictionary<string, object>, System.Threading.Tasks.Task>;
-    using System.Net;
+
     /// <summary>
     /// An <code>OWIN</code> middleware that ensures claims are wellformed and properly fills out the claims for the <code>JWT token</code>.<br />
     /// If a <code>JWT</code> token has missing claims, a HTTP 400 BadRequest is returned.
@@ -36,32 +36,25 @@ namespace Inuplan.WebAPI.Middlewares.JWT
     public class JWTClaimsRetriever
     {
         /// <summary>
-        /// The domain name for this domain.<br />
-        /// e.g.: corporation.local
-        /// </summary>
-        private readonly string domain;
-
-        /// <summary>
         /// The next middleware
         /// </summary>
         private readonly AppFunc next;
 
         /// <summary>
-        /// User repository
+        /// The configuration options for this middleware
         /// </summary>
-        private readonly IRepository<string, User> userRepository;
+        private readonly JWTClaimsRetrieverOptions options;
 
         // TODO: Create an options class... for this middleware
         /// <summary>
         /// Instantiates a new instance of the <see cref="JWTClaimsRetriever"/> class.
         /// </summary>
         /// <param name="next">The next <code>OWIN</code> middleware</param>
-        /// <param name="userRepository">The user repository</param>
-        public JWTClaimsRetriever(AppFunc next, IRepository<string, User> userRepository, string domain)
+        /// <param name="options">The options configuration for this middleware</param>
+        public JWTClaimsRetriever(AppFunc next, JWTClaimsRetrieverOptions options)
         {
             this.next = next;
-            this.userRepository = userRepository;
-            this.domain = domain;
+            this.options = options;
         }
 
         /// <summary>
@@ -73,73 +66,52 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         public async Task Invoke(IDictionary<string, object> environment)
         {
             var context = (IOwinContext)(new OwinContext(environment));
-            var claims = context.Get<ClaimsDTO>(Constants.JWT_CLAIMS);
+            var oClaims = context.Get<ClaimsDTO>(Constants.JWT_CLAIMS).SomeNotNull();
 
-            var user = await GetOrCreateUser(claims);
-            user.Match(async u =>
-            {
-                if(!claims.Verified)
+            await oClaims.Match(
+                async claims =>
                 {
-                    // Update the JWT claims with the correct info
-                    claims.FirstName = u.FirstName;
-                    claims.LastName = u.LastName;
-                    claims.Email = u.Email;
-                    claims.Role = u.Role;
+                    var user = await GetOrCreateUser(claims);
+                    user.Match(async u =>
+                    {
+                        if (!claims.Verified)
+                        {
+                            // Update the JWT claims with the correct info
+                            claims.FirstName = u.FirstName;
+                            claims.LastName = u.LastName;
+                            claims.Email = u.Email;
+                            claims.Role = u.Role;
 
-                    // Set the verify flag to true
-                    claims.Verified = true;
+                            // Set the verify flag to true
+                            claims.Verified = true;
 
-                    // TODO: Re-encode the JWT and add it to the response stream
-                    // context.Response.Headers.Add(...)
-                }
+                            // Sign token
+                            Jose.JWT.JsonMapper = options.Mapper;
+                            var token = Jose.JWT.Encode(claims, options.Secret, Jose.JwsAlgorithm.HS256);
+                            var bearer = new string[] { string.Format("Bearer {0}", token) };
 
-                // Proceed to the next middleware
-                await next.Invoke(environment);
-            },
-            () =>
-            {
-                // Internal error
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                context.Response.ReasonPhrase = "Could not create user in the database";
-            });
+                            // Add to response header
+                            context.Response.Headers.Add("Authorization", bearer);
+                        }
 
-            // await Task.Run(() =>
-            // {
-            //     var claims = oClaims
-            //         .Filter(c => c.Verified)
-            //         .Map(
-            //             c =>
-            //             {
-            //                 // Get if token has been verified (a repeat user)
-            //                 // if not, then we must retrieve the roles from the database
-            //                 var user = GetOrCreateUser(c).Result;
+                        // Proceed to the next middleware
+                        await next.Invoke(environment);
+                    },
+                    () =>
+                    {
+                        // Internal error
+                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        context.Response.ReasonPhrase = "Could not create user in the database";
+                    });
 
-            //                 // Fill the jwt claims with the correct user info
-            //                 c.FirstName = user.FirstName;
-            //                 c.LastName = user.LastName;
-            //                 c.Role = user.Role;
-
-            //                 // Set verify flag to true
-            //                 c.Verified = true;
-
-            //                 return c;
-            //             });
-
-            //     claims.Match(async c =>
-            //     {
-            //         // Updates claims
-            //         context.Set(Constants.JWT_CLAIMS, c.Some());
-
-            //         // Proceed with the OWIN pipeline
-            //         await next.Invoke(environment);
-            //     },
-            //     () =>
-            //     {
-            //         // No username in claims
-            //         context.Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
-            //         context.Response.ReasonPhrase = "Missing username in claims";
-            //     });
-            // });
+                    return await Task.FromResult(0);
+                },
+                () =>
+                {
+                    // Could log error. Should never happen according to unit tests...
+                    Debug.Assert(false, "This invariant should never happen IF this middleware is called AFTER JWTValidator");
+                    return Task.FromResult(-1);
+                });
         }
 
         /// <summary>
@@ -151,7 +123,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         private async Task<Option<User>> GetOrCreateUser(ClaimsDTO c)
         {
             // Try to get user from database
-            var oUser = await userRepository.Get(c.Username);
+            var oUser = await options.UserRepository.Get(c.Username);
             var created = false;
 
             var user = oUser.ValueOr(() =>
@@ -159,7 +131,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                 // User does not exist
                 // This should only run once when a user first tries to use the service
                 // Get user details from AD 
-                var principalContext = new PrincipalContext(ContextType.Domain, domain);
+                var principalContext = new PrincipalContext(ContextType.Domain, options.Domain);
                 var adUser = UserPrincipal.FindByIdentity(principalContext, c.Username);
 
                 // Construct user
@@ -172,7 +144,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                 };
 
                 // Save the user in the database...
-                var dbUser = userRepository.Create(u).Result;
+                var dbUser = options.UserRepository.Create(u).Result;
 
                 // Check if user has been created
                 created = dbUser.HasValue;
