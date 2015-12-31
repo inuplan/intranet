@@ -27,7 +27,7 @@ namespace Inuplan.WebAPI.App_Start
     /// <summary>
     /// Configuration setup class for the routes
     /// </summary>
-    public class RouteConfig
+    public static class RouteConfig
     {
         /// <summary>
         /// Registers default routes in the application

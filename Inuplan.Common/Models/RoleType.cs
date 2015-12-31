@@ -26,6 +26,11 @@ namespace Inuplan.Common.Models
     public enum RoleType
     {
         /// <summary>
+        /// Users with none, have no access rights
+        /// </summary>
+        None = -1,
+
+        /// <summary>
         /// Administrator role
         /// </summary>
         Administrator = 0,

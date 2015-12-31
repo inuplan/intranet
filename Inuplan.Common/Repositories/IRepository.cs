@@ -43,6 +43,13 @@ namespace Inuplan.Common.Repositories
         Task<Option<T>> Get(K key);
 
         /// <summary>
+        /// Retrieves an entity by the given id
+        /// </summary>
+        /// <param name="id">The id of the entity</param>
+        /// <returns>A task of an entity or <see cref="Option.None"/></returns>
+        Task<Option<T>> GetByID(int id);
+
+        /// <summary>
         /// Paging function, which skips a number of entities, then <br />
         /// takes a number of entities.
         /// </summary>

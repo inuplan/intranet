@@ -1,15 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.WebAPI", "Inuplan.WebAPI\Inuplan.WebAPI.csproj", "{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.DAL", "Inuplan.DAL\Inuplan.DAL.csproj", "{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Common", "Inuplan.Common\Inuplan.Common.csproj", "{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Tests", "Inuplan.Tests\Inuplan.Tests.csproj", "{142967F5-34EF-4DBC-B6D4-2EAA8720CDE1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JWT", "JWT\JWT.csproj", "{A80B51B8-DDF6-4026-98A4-B59653E50B38}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Tests", "Inuplan.Tests\Inuplan.Tests.csproj", "{1C2ACEE7-8333-4EE0-A589-771838B4686F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,31 +17,27 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Release|Any CPU.Build.0 = Release|Any CPU
-		{142967F5-34EF-4DBC-B6D4-2EAA8720CDE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{142967F5-34EF-4DBC-B6D4-2EAA8720CDE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{142967F5-34EF-4DBC-B6D4-2EAA8720CDE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{142967F5-34EF-4DBC-B6D4-2EAA8720CDE1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}.Release|Any CPU.Build.0 = Release|Any CPU
 		{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A80B51B8-DDF6-4026-98A4-B59653E50B38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A80B51B8-DDF6-4026-98A4-B59653E50B38}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A80B51B8-DDF6-4026-98A4-B59653E50B38}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A80B51B8-DDF6-4026-98A4-B59653E50B38}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Inuplan.WebAPI\Inuplan.WebAPI.csproj
+		{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C2ACEE7-8333-4EE0-A589-771838B4686F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C2ACEE7-8333-4EE0-A589-771838B4686F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C2ACEE7-8333-4EE0-A589-771838B4686F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C2ACEE7-8333-4EE0-A589-771838B4686F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = Inuplan.WebAPI\Inuplan.WebAPI.csproj
 	EndGlobalSection
 EndGlobal

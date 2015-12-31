@@ -26,9 +26,18 @@ namespace Inuplan.Common.Tools
     public static class Constants
     {
         /// <summary>
-        /// String, key identifier used in <code>OwinContex</code>
-        /// Identifies the decoded <see cref="Optional.Option"/> token
+        /// <code>Owin</code> context, key for JWT claims
         /// </summary>
-        public static readonly string JWT_TOKEN = "JWT_TOKEN";
+        public static readonly string JWT_CLAIMS = "claims";
+
+        /// <summary>
+        /// HTTP header key for the JWT token.
+        /// </summary>
+        public static readonly string HTTP_AUTHORIZATION = "Authorization";
+
+        /// <summary>
+        /// The domain name of the corporation
+        /// </summary>
+        public static readonly string DOMAIN = "inuplan.local";
     }
 }

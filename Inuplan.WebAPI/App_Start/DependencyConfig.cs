@@ -27,10 +27,11 @@ namespace Inuplan.WebAPI.App_Start
     using Owin;
     using Inuplan.WebAPI.Controllers;
     using Inuplan.WebAPI.Middlewares.JWT;
-
-    /// <summary>
-    /// Setup the configuration for the Inversion of Control container
-    /// </summary>
+    using System.Security.Cryptography;
+    using Common.Mappers;
+    using Jose;/// <summary>
+               /// Setup the configuration for the Inversion of Control container
+               /// </summary>
     public static class DependencyConfig
     {
         private static IContainer container;
@@ -43,7 +44,11 @@ namespace Inuplan.WebAPI.App_Start
         public static void RegisterContainer(HttpConfiguration config, IAppBuilder app)
         {
             var builder = new ContainerBuilder();
-            var secret = Helpers.GetBytes(ConfigurationManager.AppSettings["Secret"]);
+            var sha256 = SHA256.Create();
+            
+            // this ensures that the string -> byte[] has size of 256 bits.
+            // which is a requirement in the HS* crypto algorithm
+            var secret = sha256.ComputeHash(Helpers.GetBytes(ConfigurationManager.AppSettings["Secret"]));
 
             // Register your Web API controllers.
             builder.Register(ctx => new ManagementPostController(ctx.ResolveKeyed<IRepository<int, Post>>("Management")));
@@ -53,25 +58,33 @@ namespace Inuplan.WebAPI.App_Start
 
             // Register types here...
             builder.RegisterType<ManagementPostRepository>().Keyed<IRepository<int, Post>>("Management");
-            builder.Register(ctx => new JWTOptions
+            builder.Register(ctx => new JWTValidatorOptions
             {
                 LogInvalidSignature = (expected, actual) =>
-                { 
+                {
                     /* Insert logger here... */
                 },
 
                 LogExpired = expiration =>
-                { 
+                {
                     /* Insert logger here.. */
                 },
 
                 LogError = (msg, obj) =>
-                { 
+                {
                     /* Insert logger here... */
                 },
 
+                Mapper = ctx.Resolve<IJsonMapper>(),
+
                 Secret = secret
             });
+            builder.Register(ctx => new JWTClaimsRetrieverOptions
+            {
+                Domain = Constants.DOMAIN,
+                UserRepository = ctx.Resolve<IRepository<string, User>>()
+            });
+            builder.Register(ctx => new NewtonsoftMapper()).As<IJsonMapper>();
 
             // Build container
             container = builder.Build();

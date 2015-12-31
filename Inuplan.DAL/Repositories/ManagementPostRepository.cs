@@ -162,6 +162,16 @@ namespace Inuplan.DAL.Repositories
         }
 
         /// <summary>
+        /// Retrieves an entity by the id
+        /// </summary>
+        /// <param name="id">The id of the entity</param>
+        /// <returns>An awaitable task</returns>
+        public async Task<Option<Post>> GetByID(int id)
+        {
+            return await Get(id);
+        }
+
+        /// <summary>
         /// Returns every Management Post entity in the database
         /// </summary>
         /// <returns>A promise of a list of <see cref="Post"/>s</returns>
@@ -275,5 +285,6 @@ namespace Inuplan.DAL.Repositories
                 }
             }
         }
+
     }
 }
