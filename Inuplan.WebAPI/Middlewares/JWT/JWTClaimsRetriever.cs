@@ -91,7 +91,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                             var bearer = new string[] { string.Format("Bearer {0}", token) };
 
                             // Add to response header
-                            context.Response.Headers.Add("Authorization", bearer);
+                            context.Response.Headers.Add(Constants.HTTP_AUTHORIZATION, bearer);
                         }
 
                         // Proceed to the next middleware
