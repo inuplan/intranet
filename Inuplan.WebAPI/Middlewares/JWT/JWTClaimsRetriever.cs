@@ -152,8 +152,8 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                 return u;
             });
 
-            // Returns a user if it has succesfully been created in the database
-            return user.SomeWhen(u => created);
+            // Returns a user upon creation or existing user
+            return user.SomeWhen(u => oUser.HasValue || created);
         }
     }
 }
