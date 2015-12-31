@@ -78,7 +78,7 @@ namespace Inuplan.Tests.WebAPI.Middlewares
             var key = SHA256.Create().ComputeHash(Helpers.GetBytes("secret"));
 
             // Implicit assumption: valid claim MUST contain a username!
-            var claims = new ClaimsDTO { Verified = true, Username = "jdoe" };
+            var claims = new ClaimsDTO { Verified = true };
             var token = JWT.Encode(claims, new byte[32], JwsAlgorithm.HS256);
 
             // Arrange - Middleware configuration
