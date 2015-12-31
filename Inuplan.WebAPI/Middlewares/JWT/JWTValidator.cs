@@ -139,7 +139,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
             }
 
             // If claims does NOT contain a username, then it is invalid
-            return result.Filter(c => !string.IsNullOrEmpty(c.Username.Trim()));
+            return result.Filter(c => !string.IsNullOrEmpty(c.Username));
         }
     }
 }

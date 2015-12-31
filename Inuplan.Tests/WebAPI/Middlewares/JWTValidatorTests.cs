@@ -46,7 +46,9 @@ namespace Inuplan.Tests.WebAPI.Middlewares
         {
             // Arrange - JWT with correct key
             var key = SHA256.Create().ComputeHash(Helpers.GetBytes("secret"));
-            var claims = new ClaimsDTO { Verified = true };
+
+            // Implicit assumption: valid claim MUST contain a username!
+            var claims = new ClaimsDTO { Verified = true, Username = "jdoe" };
             var token = JWT.Encode(claims, key, JwsAlgorithm.HS256);
 
             // Arrange - Middleware configuration
@@ -74,7 +76,9 @@ namespace Inuplan.Tests.WebAPI.Middlewares
         {
             // Arrange - JWT with incorrect key
             var key = SHA256.Create().ComputeHash(Helpers.GetBytes("secret"));
-            var claims = new ClaimsDTO { Verified = true };
+
+            // Implicit assumption: valid claim MUST contain a username!
+            var claims = new ClaimsDTO { Verified = true, Username = "jdoe" };
             var token = JWT.Encode(claims, new byte[32], JwsAlgorithm.HS256);
 
             // Arrange - Middleware configuration
@@ -101,7 +105,9 @@ namespace Inuplan.Tests.WebAPI.Middlewares
         {
             // Arrange - JWT with correct key
             var key = SHA256.Create().ComputeHash(Helpers.GetBytes("secret"));
-            var claims = new ClaimsDTO { Verified = true };
+
+            // Implicit assumption: valid claim MUST contain a username!
+            var claims = new ClaimsDTO { Verified = true, Username = "jdoe" };
             var token = JWT.Encode(claims, key, JwsAlgorithm.HS256);
 
             // Arrange - Middleware configuration
