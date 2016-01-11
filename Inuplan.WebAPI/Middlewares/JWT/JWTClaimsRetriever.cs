@@ -101,7 +101,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                     {
                         // Internal error
                         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                        context.Response.ReasonPhrase = "Could not create user in the database";
+                        context.Response.ReasonPhrase = "Could not get or create user in the database";
                     });
 
                     return await Task.FromResult(0);
