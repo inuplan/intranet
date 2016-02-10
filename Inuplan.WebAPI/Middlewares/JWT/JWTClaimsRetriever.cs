@@ -44,8 +44,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// The configuration options for this middleware
         /// </summary>
         private readonly JWTClaimsRetrieverOptions options;
-
-        // TODO: Create an options class... for this middleware
+        
         /// <summary>
         /// Instantiates a new instance of the <see cref="JWTClaimsRetriever"/> class.
         /// </summary>
