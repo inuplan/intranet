@@ -32,9 +32,13 @@ namespace Inuplan.Tests.WebAPI.Middlewares
     using Common.DTOs;
     using Jose;
     using Microsoft.Owin;
-    using Common.Mappers;    /// <summary>
-                             /// Tests the <see cref="JWTClaimsRetriever"/> middleware.
-                             /// </summary>
+    using Common.Mappers;
+    using Moq;
+    using Common.Models;
+    using Optional;
+    using Common.Repositories;    /// <summary>
+                                  /// Tests the <see cref="JWTClaimsRetriever"/> middleware.
+                                  /// </summary>
     public class JWTClaimsRetrieverTests
     {
         /// <summary>
@@ -53,10 +57,30 @@ namespace Inuplan.Tests.WebAPI.Middlewares
 
             var env = createOwinEnvironment(token);
 
+            var dbAD = new List<User>();
+            var dbNext = 0;
+            var mockAD = new Mock<IRepository<string, User>>();
+            mockAD
+                .Setup(r => r.Create(It.IsAny<User>()))
+                .Callback<User>(u =>
+                {
+                    dbNext++;
+                    u.ID = dbNext;
+                    dbAD.Add(u);
+                })
+                .Returns((User user) => Task.FromResult(dbAD.Single(u => user.FirstName.Equals(u.FirstName)).Some()));
+
+            var opt = new JWTClaimsRetrieverOptions
+            {
+                Mapper = new NewtonsoftMapper(),
+                Secret = key,
+                UserActiveDirectoryRepository = null, // mock?
+                UserDatabaseRepository = null // mock!
+            };
             // Note: Proper design, the options should not have a variable "Domain", instead it should
             // have a reference to either a PrincipalContext or UserPrincipal
             // Better yet: make an interface for UserPrincipal and use that instead + mock that
-            var opt = new JWTClaimsRetrieverOptions { Secret = key, Domain = "local", Mapper = new NewtonsoftMapper(), UserRepository = null };
+            // var opt = new JWTClaimsRetrieverOptions { Secret = key, Domain = "local", Mapper = new NewtonsoftMapper(), UserDatabaseRepository = null };
         }
 
         /// <summary>

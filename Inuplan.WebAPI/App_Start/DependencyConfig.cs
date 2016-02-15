@@ -81,8 +81,7 @@ namespace Inuplan.WebAPI.App_Start
             });
             builder.Register(ctx => new JWTClaimsRetrieverOptions
             {
-                Domain = Constants.DOMAIN,
-                UserRepository = ctx.Resolve<IRepository<string, User>>()
+                UserDatabaseRepository = ctx.Resolve<IRepository<string, User>>()
             });
             builder.Register(ctx => new NewtonsoftMapper()).As<IJsonMapper>();
 

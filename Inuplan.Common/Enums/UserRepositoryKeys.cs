@@ -18,42 +18,22 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.WebAPI.Middlewares.JWT
+namespace Inuplan.Common.Enums
 {
-    using Inuplan.Common.Models;
-    using Inuplan.Common.Repositories;
-    using Jose;
 
     /// <summary>
-    /// The configuration options for <see cref="JWTClaimsRetriever"/> middleware.
+    /// Enumeration of keys, which identifies where to retrieve user information from.
     /// </summary>
-    public class JWTClaimsRetrieverOptions
+    public enum UserRepositoryKeys
     {
         /// <summary>
-        /// Gets or sets the user repository, which retrieves from the SQL database
+        /// Key for retrieving users from the active directory database
         /// </summary>
-        public IRepository<string, User> UserDatabaseRepository { get; set; }
+        ActiveDirectory,
 
         /// <summary>
-        /// Gets or sets the user repository, which retrieves from the active directory database
+        /// Key for retrieving users from the SQL database
         /// </summary>
-        public IRepository<string, User> UserActiveDirectoryRepository { get; set; }
-
-        /// <summary>
-        /// Gets or sets the domain name for the <code>Active Directory</code>
-        /// Example: corp.local
-        /// </summary>
-        //public string Domain { get; set; }
-
-        /// <summary>
-        /// Gets or sets the private encryption key used to 
-        /// encode/decode <code>JWT</code> tokens.
-        /// </summary>
-        public byte[] Secret { get; set; }
-
-        /// <summary>
-        /// Gets or sets the JSON mapper
-        /// </summary>
-        public IJsonMapper Mapper { get; set; }
+        Database
     }
 }
