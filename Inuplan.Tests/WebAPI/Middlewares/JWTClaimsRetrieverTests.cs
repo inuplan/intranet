@@ -20,10 +20,8 @@
 
 namespace Inuplan.Tests.WebAPI.Middlewares
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using Inuplan.WebAPI.Middlewares.JWT;
     using Xunit;
@@ -54,14 +52,12 @@ namespace Inuplan.Tests.WebAPI.Middlewares
             // Implicit assumption: valid claim MUST contain a username!
             var claims = new ClaimsDTO { Verified = true, Username = "jdoe" };
             var token = JWT.Encode(claims, key, JwsAlgorithm.HS256);
+            var environment = createOwinEnvironment(token, claims);
 
-            var environment = createOwinEnvironment(token);
+            // Arrange - mock behavior for Active Directory "Get" method
             var usersAD = new List<User>();
-
-            // Arrange - mock behavior for Active Directory
             var activeDirectoryRepository = new Mock<IRepository<string, User>>();
             activeDirectoryRepository
-                // When calling "Get" method
                 .Setup(ad => ad.Get(It.IsAny<string>()))
                 .Callback<string>(u =>
                 {
@@ -70,7 +66,8 @@ namespace Inuplan.Tests.WebAPI.Middlewares
                         Email = "jdoe@corp.org",
                         FirstName = "John",
                         LastName = "Doe",
-                        Username = u
+                        Username = u,
+                        Role = RoleType.User
                     };
 
                     usersAD.Add(jdoe);
@@ -79,7 +76,8 @@ namespace Inuplan.Tests.WebAPI.Middlewares
                 // Return the user
                 .Returns((string n) => Task.FromResult(usersAD.Single(u => (u.Username == n)).Some()));
 
-            // Arrange - mock behavior for SQL database
+            // TODO: Maybe I don't need the List as temporary storage...
+            // Arrange - mock behavior for SQL database "Create" method
             var usersDB = new List<User>();
             var idCounterDB = 0;
             var sqlRepository = new Mock<IRepository<string, User>>();
@@ -91,19 +89,27 @@ namespace Inuplan.Tests.WebAPI.Middlewares
                     idCounterDB++;
 
                     // Set user id to the
+                    u.ID = idCounterDB;
+
+                    // Save user in the list
+                    usersDB.Add(u);
                 })
+                .Returns((User u) => Task.FromResult(u.Some()));
 
             var opt = new JWTClaimsRetrieverOptions
             {
                 Mapper = new NewtonsoftMapper(),
                 Secret = key,
-                UserActiveDirectoryRepository = null, // mock?
-                UserDatabaseRepository = null // mock!
+                UserActiveDirectoryRepository = activeDirectoryRepository.Object, 
+                UserDatabaseRepository = sqlRepository.Object 
             };
-            // Note: Proper design, the options should not have a variable "Domain", instead it should
-            // have a reference to either a PrincipalContext or UserPrincipal
-            // Better yet: make an interface for UserPrincipal and use that instead + mock that
-            // var opt = new JWTClaimsRetrieverOptions { Secret = key, Domain = "local", Mapper = new NewtonsoftMapper(), UserDatabaseRepository = null };
+
+            // Test subject
+            var next = false;
+            var claimsMiddleware = new JWTClaimsRetriever(async n => next = await Task.FromResult(true), opt);
+
+            // TODO: Act and Assert
+            await claimsMiddleware.Invoke(environment);
         }
 
         /// <summary>
@@ -112,9 +118,13 @@ namespace Inuplan.Tests.WebAPI.Middlewares
         /// </summary>
         /// <param name="token">The JWT token</param>
         /// <returns>A dictionary containing the token</returns>
-        private IDictionary<string, object> createOwinEnvironment(string token)
+        private IDictionary<string, object> createOwinEnvironment(string token, ClaimsDTO claims)
         {
             var ctx = new OwinContext();
+
+            // Assumption: JWTValidator middleware has been called beforehand (order matters)
+            // Therefore we store claims in Owin to simulate the ordering
+            ctx.Set(Constants.JWT_CLAIMS, claims);
             ctx.Request.Headers.Add("Authorization", new string[] { string.Format("Bearer {0}", token) });
             return ctx.Environment;
         }

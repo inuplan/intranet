@@ -125,13 +125,13 @@ namespace Inuplan.WebAPI.Middlewares.JWT
 
             var user = oUser.Match(
                // Return user, if it is a valid user
-               some: dbUser => dbUser.SomeWhen(ValidUser),
+               some: dbUser => dbUser.SomeWhen(ValidDBUser),
 
                // This should only be run once for every user
                none: () =>
                {
                    // If user does not exist in the database, then we must first retrieve it from active directory
-                   var adUser = options.UserActiveDirectoryRepository.Get(c.Username).Result.Filter(ValidUser);
+                   var adUser = options.UserActiveDirectoryRepository.Get(c.Username).Result.Filter(ValidADUser);
                    return adUser.Match(
                        // Create user in the database and return it
                        some: u => options.UserDatabaseRepository.Create(u).Result,
@@ -144,16 +144,35 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         }
 
         /// <summary>
-        /// A user is valid when the <see cref="User.ID"/> is greater than zero,
-        /// has a <see cref="User.FirstName"/>, and a <see cref="User.LastName"/>
-        /// as well as a <see cref="User.Email"/> address. Furthermore the <see cref="User.Role"/> must NOT be <see cref="RoleType.None"/>.
+        /// Checks if a user is a valid active directory user
         /// </summary>
         /// <param name="user">The user to check</param>
-        /// <returns>A boolean value, indicating whether the user is valid</returns>
-        private bool ValidUser(User user)
+        /// <returns>Returns true if valid otherwise it returns false</returns>
+        private bool ValidADUser(User user)
         {
-            return
-                user.ID > 0 &&
+            return ValidUser(user, withID: false);
+        }
+
+        /// <summary>
+        /// Checks if a user is a valid database user
+        /// </summary>
+        /// <param name="user">The user to check</param>
+        /// <returns>Returns true if valid otherwise it returns false</returns>
+        public bool ValidDBUser(User user)
+        {
+            return ValidUser(user, withID: true);
+        }
+
+        /// <summary>
+        /// A user is valid when the user has a <see cref="User.FirstName"/>, and a <see cref="User.LastName"/>
+        /// as well as an <see cref="User.Email"/> address. Furthermore the <see cref="User.Role"/> must NOT be <see cref="RoleType.None"/>.
+        /// </summary>
+        /// <param name="user">The user to check</param>
+        /// <param name="withID">Should check the ID? if set to true then it checks that ID is greater than zero</param>
+        /// <returns>A boolean value, indicating whether the user is valid</returns>
+        private bool ValidUser(User user, bool withID = false)
+        {
+            return (withID ? user.ID > 0 : true) &&
                 !string.IsNullOrEmpty(user.FirstName) &&
                 !string.IsNullOrEmpty(user.LastName) &&
                 !string.IsNullOrEmpty(user.Email) &&
