@@ -55,20 +55,43 @@ namespace Inuplan.Tests.WebAPI.Middlewares
             var claims = new ClaimsDTO { Verified = true, Username = "jdoe" };
             var token = JWT.Encode(claims, key, JwsAlgorithm.HS256);
 
-            var env = createOwinEnvironment(token);
+            var environment = createOwinEnvironment(token);
+            var usersAD = new List<User>();
 
-            var dbAD = new List<User>();
-            var dbNext = 0;
-            var mockAD = new Mock<IRepository<string, User>>();
-            mockAD
-                .Setup(r => r.Create(It.IsAny<User>()))
+            // Arrange - mock behavior for Active Directory
+            var activeDirectoryRepository = new Mock<IRepository<string, User>>();
+            activeDirectoryRepository
+                // When calling "Get" method
+                .Setup(ad => ad.Get(It.IsAny<string>()))
+                .Callback<string>(u =>
+                {
+                    var jdoe = new User
+                    {
+                        Email = "jdoe@corp.org",
+                        FirstName = "John",
+                        LastName = "Doe",
+                        Username = u
+                    };
+
+                    usersAD.Add(jdoe);
+                })
+
+                // Return the user
+                .Returns((string n) => Task.FromResult(usersAD.Single(u => (u.Username == n)).Some()));
+
+            // Arrange - mock behavior for SQL database
+            var usersDB = new List<User>();
+            var idCounterDB = 0;
+            var sqlRepository = new Mock<IRepository<string, User>>();
+            sqlRepository
+                .Setup(db => db.Create(It.IsAny<User>()))
                 .Callback<User>(u =>
                 {
-                    dbNext++;
-                    u.ID = dbNext;
-                    dbAD.Add(u);
+                    // Increment ID counter
+                    idCounterDB++;
+
+                    // Set user id to the
                 })
-                .Returns((User user) => Task.FromResult(dbAD.Single(u => user.FirstName.Equals(u.FirstName)).Some()));
 
             var opt = new JWTClaimsRetrieverOptions
             {
