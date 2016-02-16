@@ -132,6 +132,18 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                {
                    // If user does not exist in the database, then we must first retrieve it from active directory
                    var adUser = options.UserActiveDirectoryRepository.Get(c.Username).Result.Filter(ValidADUser);
+
+                   // Transform role to the provided role in the claims
+                   // If no role is present, then default to User role
+                   var adUserWithRole = adUser.Map(u =>
+                   {
+                       if (c.Role != RoleType.None)
+                           u.Role = c.Role;
+                       else
+                           u.Role = RoleType.User;
+                       return u;
+                   });
+
                    return adUser.Match(
                        // Create user in the database and return it
                        some: u => options.UserDatabaseRepository.Create(u).Result,
@@ -150,7 +162,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// <returns>Returns true if valid otherwise it returns false</returns>
         private bool ValidADUser(User user)
         {
-            return ValidUser(user, withID: false);
+            return ValidUser(user, withID: false, roleCanBeNone: true);
         }
 
         /// <summary>
@@ -169,14 +181,15 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// </summary>
         /// <param name="user">The user to check</param>
         /// <param name="withID">Should check the ID? if set to true then it checks that ID is greater than zero</param>
+        /// <param name="roleCanBeNone">Should check the role if it is none</param>
         /// <returns>A boolean value, indicating whether the user is valid</returns>
-        private bool ValidUser(User user, bool withID = false)
+        private bool ValidUser(User user, bool withID = false, bool roleCanBeNone = false)
         {
             return (withID ? user.ID > 0 : true) &&
                 !string.IsNullOrEmpty(user.FirstName) &&
                 !string.IsNullOrEmpty(user.LastName) &&
                 !string.IsNullOrEmpty(user.Email) &&
-                user.Role != RoleType.None;
+                (roleCanBeNone ? true : user.Role != RoleType.None);
         }
     }
 }

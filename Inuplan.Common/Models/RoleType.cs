@@ -28,12 +28,7 @@ namespace Inuplan.Common.Models
         /// <summary>
         /// Users with none, have no access rights
         /// </summary>
-        None = -1,
-
-        /// <summary>
-        /// Administrator role
-        /// </summary>
-        Administrator = 0,
+        None = 0,
 
         /// <summary>
         /// Management role
@@ -49,5 +44,10 @@ namespace Inuplan.Common.Models
         /// User role
         /// </summary>
         User = 3,
+
+        /// <summary>
+        /// Administrator role
+        /// </summary>
+        Administrator = 4,
     }
 }
