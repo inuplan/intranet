@@ -22,6 +22,7 @@ namespace Inuplan.Tests.WebAPI.Middlewares
 {
     using Common.DTOs;
     using Common.Mappers;
+    using Common.Models;
     using Common.Tools;
     using Inuplan.WebAPI.Middlewares.JWT;
     using Jose;
@@ -48,7 +49,8 @@ namespace Inuplan.Tests.WebAPI.Middlewares
             var key = SHA256.Create().ComputeHash(Helpers.GetBytes("secret"));
 
             // Implicit assumption: valid claim MUST contain a username!
-            var claims = new ClaimsDTO { Verified = true, Username = "jdoe" };
+            // Implicit assumption: valid claim MUST contain a Role that is NOT None
+            var claims = new ClaimsDTO { Verified = true, Username = "jdoe", Role = RoleType.User };
             var token = JWT.Encode(claims, key, JwsAlgorithm.HS256);
 
             // Arrange - Middleware configuration
@@ -107,7 +109,7 @@ namespace Inuplan.Tests.WebAPI.Middlewares
             var key = SHA256.Create().ComputeHash(Helpers.GetBytes("secret"));
 
             // Implicit assumption: valid claim MUST contain a username!
-            var claims = new ClaimsDTO { Verified = true, Username = "jdoe" };
+            var claims = new ClaimsDTO { Verified = true, Username = "jdoe", Role = RoleType.User };
             var token = JWT.Encode(claims, key, JwsAlgorithm.HS256);
 
             // Arrange - Middleware configuration

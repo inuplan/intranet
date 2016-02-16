@@ -30,15 +30,20 @@ namespace Inuplan.WebAPI.Middlewares.JWT
     public class JWTClaimsRetrieverOptions
     {
         /// <summary>
-        /// Gets or sets the user repository.
+        /// Gets or sets the user repository, which retrieves from the SQL database
         /// </summary>
-        public IRepository<string, User> UserRepository { get; set; }
+        public IRepository<string, User> UserDatabaseRepository { get; set; }
+
+        /// <summary>
+        /// Gets or sets the user repository, which retrieves from the active directory database
+        /// </summary>
+        public IRepository<string, User> UserActiveDirectoryRepository { get; set; }
 
         /// <summary>
         /// Gets or sets the domain name for the <code>Active Directory</code>
         /// Example: corp.local
         /// </summary>
-        public string Domain { get; set; }
+        //public string Domain { get; set; }
 
         /// <summary>
         /// Gets or sets the private encryption key used to 

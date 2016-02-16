@@ -1,4 +1,4 @@
-// Copyright © 2015 Inuplan
+﻿// Copyright © 2015 Inuplan
 // 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -18,36 +18,22 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Models
+namespace Inuplan.Common.Enums
 {
+
     /// <summary>
-    /// An enumeration of role types
+    /// Enumeration of keys, which identifies where to retrieve user information from.
     /// </summary>
-    public enum RoleType
+    public enum UserRepositoryKeys
     {
         /// <summary>
-        /// Users with none, have no access rights
+        /// Key for retrieving users from the active directory database
         /// </summary>
-        None = 0,
+        ActiveDirectory,
 
         /// <summary>
-        /// Management role
+        /// Key for retrieving users from the SQL database
         /// </summary>
-        Management = 1,
-
-        /// <summary>
-        /// Editor role
-        /// </summary>
-        Editor = 2,
-
-        /// <summary>
-        /// User role
-        /// </summary>
-        User = 3,
-
-        /// <summary>
-        /// Administrator role
-        /// </summary>
-        Administrator = 4,
+        Database
     }
 }

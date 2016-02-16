@@ -18,7 +18,6 @@ namespace Inuplan.WebAPI.Middlewares.JWT
 {
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.DirectoryServices.AccountManagement;
     using System.Net;
     using System.Threading.Tasks;
     using Common.DTOs;
@@ -122,37 +121,75 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         private async Task<Option<User>> GetOrCreateUser(ClaimsDTO c)
         {
             // Try to get user from database
-            var oUser = await options.UserRepository.Get(c.Username);
-            var created = false;
+            var oUser = await options.UserDatabaseRepository.Get(c.Username);
 
-            var user = oUser.ValueOr(() =>
-            {
-                // User does not exist
-                // This should only run once when a user first tries to use the service
-                // Get user details from AD 
-                var principalContext = new PrincipalContext(ContextType.Domain, options.Domain);
-                var adUser = UserPrincipal.FindByIdentity(principalContext, c.Username);
+            var user = oUser.Match(
+               // Return user, if it is a valid user
+               some: dbUser => dbUser.SomeWhen(ValidDBUser),
 
-                // Construct user
-                var u = new User
-                {
-                    FirstName = adUser.GivenName,
-                    LastName = adUser.Surname,
-                    Email = adUser.EmailAddress,
-                    Role = RoleType.User
-                };
+               // This should only be run once for every user
+               none: () =>
+               {
+                   // If user does not exist in the database, then we must first retrieve it from active directory
+                   var adUser = options.UserActiveDirectoryRepository.Get(c.Username).Result.Filter(ValidADUser);
 
-                // Save the user in the database...
-                var dbUser = options.UserRepository.Create(u).Result;
+                   // Transform role to the provided role in the claims
+                   // If no role is present, then default to User role
+                   var adUserWithRole = adUser.Map(u =>
+                   {
+                       if (c.Role != RoleType.None)
+                           u.Role = c.Role;
+                       else
+                           u.Role = RoleType.User;
+                       return u;
+                   });
 
-                // Check if user has been created
-                created = dbUser.HasValue;
+                   return adUser.Match(
+                       // Create user in the database and return it
+                       some: u => options.UserDatabaseRepository.Create(u).Result,
 
-                return u;
-            });
+                       // Could not retrieve a valid user from AD
+                       none: () => Option.None<User>());
+               });
 
-            // Returns a user upon creation or existing user
-            return user.SomeWhen(u => oUser.HasValue || created);
+            return user;
+        }
+
+        /// <summary>
+        /// Checks if a user is a valid active directory user
+        /// </summary>
+        /// <param name="user">The user to check</param>
+        /// <returns>Returns true if valid otherwise it returns false</returns>
+        private bool ValidADUser(User user)
+        {
+            return ValidUser(user, withID: false, roleCanBeNone: true);
+        }
+
+        /// <summary>
+        /// Checks if a user is a valid database user
+        /// </summary>
+        /// <param name="user">The user to check</param>
+        /// <returns>Returns true if valid otherwise it returns false</returns>
+        public bool ValidDBUser(User user)
+        {
+            return ValidUser(user, withID: true);
+        }
+
+        /// <summary>
+        /// A user is valid when the user has a <see cref="User.FirstName"/>, and a <see cref="User.LastName"/>
+        /// as well as an <see cref="User.Email"/> address. Furthermore the <see cref="User.Role"/> must NOT be <see cref="RoleType.None"/>.
+        /// </summary>
+        /// <param name="user">The user to check</param>
+        /// <param name="withID">Should check the ID? if set to true then it checks that ID is greater than zero</param>
+        /// <param name="roleCanBeNone">Should check the role if it is none</param>
+        /// <returns>A boolean value, indicating whether the user is valid</returns>
+        private bool ValidUser(User user, bool withID = false, bool roleCanBeNone = false)
+        {
+            return (withID ? user.ID > 0 : true) &&
+                !string.IsNullOrEmpty(user.FirstName) &&
+                !string.IsNullOrEmpty(user.LastName) &&
+                !string.IsNullOrEmpty(user.Email) &&
+                (roleCanBeNone ? true : user.Role != RoleType.None);
         }
     }
 }

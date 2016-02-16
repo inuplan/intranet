@@ -94,7 +94,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                         context.Set(Constants.JWT_CLAIMS, claims);
 
                         // Proceed to next middleware
-                        await next.Invoke(environment);
+                        await next.Invoke(context.Environment);
 
                         // Assert that the claims has been verified after passing through the middleware
                         Debug.Assert(claims.Verified, "Claims should be verified after processing");
