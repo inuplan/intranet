@@ -54,7 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DTOs\ClaimsDTO.cs" />
-    <Compile Include="Enums\UserRepositoryKeys.cs" />
+    <Compile Include="Enums\ServiceKeys.cs" />
     <Compile Include="Mappers\NewtonsoftMapper.cs" />
     <Compile Include="Models\File.cs" />
     <Compile Include="Models\Post.cs" />

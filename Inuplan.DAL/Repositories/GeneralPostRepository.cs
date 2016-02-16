@@ -165,7 +165,7 @@ namespace Inuplan.DAL.Repositories
                         }, new {
                             from = skip + 1,
                             to = (skip + take),
-                            MessageType = (int)PostType.General
+                            MessageType = PostType.General
                         }).ToList();
                 });
         }
@@ -191,7 +191,7 @@ namespace Inuplan.DAL.Repositories
                         {
                             post.Author = author;
                             return post;
-                        }, new { MessageType = (int)PostType.General }).ToList();
+                        }, new { MessageType = PostType.General }).ToList();
                 });
         }
 
@@ -229,7 +229,7 @@ namespace Inuplan.DAL.Repositories
             return Task.Run(() =>
                 {
                     var sql = @"DELETE FROM Posts WHERE ID = @key AND PostTypeID = @PostType";
-                    var rows = connection.Execute(sql, new { key, PostType = (int)PostType.General });
+                    var rows = connection.Execute(sql, new { key, PostType = PostType.General });
 
                     // returns true if some rows are affected
                     return (rows > 0).SomeWhen(b => b);

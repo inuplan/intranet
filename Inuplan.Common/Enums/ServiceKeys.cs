@@ -24,16 +24,21 @@ namespace Inuplan.Common.Enums
     /// <summary>
     /// Enumeration of keys, which identifies where to retrieve user information from.
     /// </summary>
-    public enum UserRepositoryKeys
+    public enum ServiceKeys
     {
         /// <summary>
         /// Key for retrieving users from the active directory database
         /// </summary>
-        ActiveDirectory,
+        UserActiveDirectory,
 
         /// <summary>
         /// Key for retrieving users from the SQL database
         /// </summary>
-        Database
+        UserDatabase,
+
+        /// <summary>
+        /// Key for retrieving posts from management in the SQL database
+        /// </summary>
+        ManagementPosts
     }
 }
