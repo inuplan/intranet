@@ -83,7 +83,7 @@ namespace Inuplan.DAL.Repositories
                     entity.ID = connection.ExecuteScalar<int>(sql,
                         new { entity.PostedOn,
                               entity.Comment,
-                              PostTypeID = (int)PostType.Management,
+                              PostTypeID = PostType.Management,
                               UserID = entity.Author.ID });
                     
                     return entity.SomeWhen(e => e.ID != 0);
@@ -113,7 +113,7 @@ namespace Inuplan.DAL.Repositories
                             return post;
                         }, new {
                             key,
-                            MessageType = (int)PostType.Management
+                            MessageType = PostType.Management
                         }).SingleOrDefault();
 
                     return entity.SomeNotNull();
@@ -156,7 +156,7 @@ namespace Inuplan.DAL.Repositories
                         }, new {
                             From = skip + 1,
                             To = (skip + take),
-                            MessageType = (int)PostType.Management
+                            MessageType = PostType.Management
                         }).ToList();
                 });
         }
@@ -192,7 +192,7 @@ namespace Inuplan.DAL.Repositories
                         {
                             post.Author = author;
                             return post;
-                        }, new { MessageType = (int)PostType.Management }).ToList();
+                        }, new { MessageType = PostType.Management }).ToList();
                 });
         }
 
