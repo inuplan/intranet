@@ -17,21 +17,24 @@
 namespace Inuplan.WebAPI.App_Start
 {
     using System.Configuration;
+    using System.Security.Cryptography;
     using System.Web.Http;
     using Autofac;
     using Autofac.Integration.WebApi;
+    using Common.Enums;
+    using Common.Mappers;
     using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
     using Inuplan.Common.Tools;
     using Inuplan.DAL.Repositories;
-    using Owin;
     using Inuplan.WebAPI.Controllers;
     using Inuplan.WebAPI.Middlewares.JWT;
-    using System.Security.Cryptography;
-    using Common.Mappers;
-    using Jose;/// <summary>
-               /// Setup the configuration for the Inversion of Control container
-               /// </summary>
+    using Jose;
+    using Owin;
+    using System.Data.SqlClient;
+    using System.Data;    /// <summary>
+                          /// Setup the configuration for the Inversion of Control container
+                          /// </summary>
     public static class DependencyConfig
     {
         private static IContainer container;
@@ -51,13 +54,15 @@ namespace Inuplan.WebAPI.App_Start
             var secret = sha256.ComputeHash(Helpers.GetBytes(ConfigurationManager.AppSettings["Secret"]));
 
             // Register your Web API controllers.
-            builder.Register(ctx => new ManagementPostController(ctx.ResolveKeyed<IRepository<int, Post>>("Management")));
+            builder.Register(ctx => new ManagementPostController(ctx.ResolveKeyed<IRepository<int, Post>>(ServiceKeys.ManagementPosts)));
 
             // Register the Autofac filter provider.
             builder.RegisterWebApiFilterProvider(config);
 
             // Register types here...
-            builder.RegisterType<ManagementPostRepository>().Keyed<IRepository<int, Post>>("Management");
+            builder.Register(ctx => new SqlConnection(ConfigurationManager.AppSettings["connectionString"])).As<IDbConnection>();
+            builder.RegisterType<ManagementPostRepository>().Keyed<IRepository<int, Post>>(ServiceKeys.ManagementPosts);
+            builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
             builder.Register(ctx => new JWTValidatorOptions
             {
                 LogInvalidSignature = (expected, actual) =>
@@ -81,7 +86,7 @@ namespace Inuplan.WebAPI.App_Start
             });
             builder.Register(ctx => new JWTClaimsRetrieverOptions
             {
-                UserDatabaseRepository = ctx.Resolve<IRepository<string, User>>()
+                UserDatabaseRepository = ctx.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserDatabase)
             });
             builder.Register(ctx => new NewtonsoftMapper()).As<IJsonMapper>();
 
