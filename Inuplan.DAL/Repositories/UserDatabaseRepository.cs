@@ -73,7 +73,7 @@ namespace Inuplan.DAL.Repositories
             // MS-SQL (T-SQL)
             var sql = @"INSERT INTO Users (Username, FirstName, LastName, Email, RoleID)
                         VALUES (@Username, @FirstName, @LastName, @Email, @RoleID);
-                        SELECT ID FROM Posts WHERE ID = @@IDENTITY";
+                        SELECT ID FROM Users WHERE ID = @@IDENTITY";
 
             entity.ID = await connection.ExecuteScalarAsync<int>(sql, new
             {
