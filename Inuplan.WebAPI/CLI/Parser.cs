@@ -26,6 +26,27 @@ namespace Inuplan.WebAPI.CLI
     public class Parser
     {
         /// <summary>
+        /// Default address if none has been given
+        /// </summary>
+        private readonly string defaultAddress;
+
+        /// <summary>
+        /// Default port if none has been given
+        /// </summary>
+        private readonly int defaultPort;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Parser"/> class.
+        /// </summary>
+        /// <param name="defaultAddress">The default address</param>
+        /// <param name="defaultPort">The default port number</param>
+        public Parser(string defaultAddress, int defaultPort)
+        {
+            this.defaultAddress = defaultAddress;
+            this.defaultPort = defaultPort;
+        }
+
+        /// <summary>
         /// Parses user input to valid program input.
         /// </summary>
         /// <param name="input">The user input argument string</param>
@@ -37,12 +58,12 @@ namespace Inuplan.WebAPI.CLI
 
             var result = options.Map(opt =>
             {
-                var address = !(string.IsNullOrEmpty(opt.BaseAddress)) ? opt.BaseAddress : string.Empty;
-                var port = (opt.ListenOnPort > 0) ? opt.ListenOnPort : 9000;
+                var address = !(string.IsNullOrEmpty(opt.BaseAddress)) ? opt.BaseAddress : defaultAddress;
+                var port = (opt.ListenOnPort > 0) ? opt.ListenOnPort : defaultPort;
                 return address + ":" + port;
             });
 
-            return result.Filter(path => !string.IsNullOrEmpty(path) && path.Length > 1);
+            return result;
         }
 
         /// <summary>

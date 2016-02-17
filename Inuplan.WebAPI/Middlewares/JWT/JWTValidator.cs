@@ -28,6 +28,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
     using Common.Models;
     using Inuplan.Common.Tools;
     using Microsoft.Owin;
+    using NLog;
     using Optional;
     using AppFunc = System.Func<System.Collections.Generic.IDictionary<string, object>, System.Threading.Tasks.Task>;
 
@@ -37,6 +38,11 @@ namespace Inuplan.WebAPI.Middlewares.JWT
     /// </summary>
     public class JWTValidator
     {
+        /// <summary>
+        /// The logger
+        /// </summary>
+        private static ILogger logger = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// The next middleware
         /// </summary>
@@ -71,10 +77,12 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         public async Task Invoke(IDictionary<string, object> environment)
         {
             // Extract the JWT token
+            logger.Trace("Invoking validator");
             var context = (IOwinContext)(new OwinContext(environment));
             var bearer = context.Request.Headers.Get("Authorization")
                             .SomeWhen(header => (header != null) && header.Contains("Bearer"));
             var token = bearer.Map(header => header.Split(' ')[1]);
+            logger.Trace(token);
 
             // Process the JWT token
             await token.Match(
@@ -86,14 +94,17 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                     // token exists: then decode it 
                     Jose.JWT.JsonMapper = options.Mapper;
                     var data = decode(t, options.Secret);
+                    logger.Trace("Token: {0}\tDecoded: {1}", t, data);
 
                     // and verify
                     data.Match(async claims =>
                     {
                         // Store claims in Owin
                         context.Set(Constants.JWT_CLAIMS, claims);
+                        logger.Trace("Stored claims in owin context: {0}", claims);
 
                         // Proceed to next middleware
+                        logger.Trace("Calling next middleware");
                         await next.Invoke(context.Environment);
 
                         // Assert that the claims has been verified after passing through the middleware
@@ -102,6 +113,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                     () =>
                     {
                         // Invalid token, reason(s): missing username, wrong key etc.
+                        logger.Error("Invalid token error");
                         context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                         context.Response.ReasonPhrase = "Invalid JWT token";
                     });
@@ -111,6 +123,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                 () =>
                 {
                     // Missing token
+                    logger.Error("Missing token");
                     context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                     context.Response.ReasonPhrase = "Missing JWT Token";
                     return Task.FromResult(0);
@@ -133,9 +146,10 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                 // returns None if user has been verified and been given None role
                 result = data.SomeWhen(c => !(c.Verified && c.Role == RoleType.None));
             }
-            catch (Jose.IntegrityException)
+            catch (Jose.IntegrityException ex)
             {
                 /* Log failure */
+                logger.Error("Could not decode, exception: {0}", ex);
             }
 
             // If claims does NOT contain a username, then it is invalid
