@@ -39,6 +39,16 @@ namespace Inuplan.Common.Enums
         /// <summary>
         /// Key for retrieving posts from management in the SQL database
         /// </summary>
-        ManagementPosts
+        ManagementPosts,
+
+        /// <summary>
+        /// Key for retrieving general posts from users in the SQL database
+        /// </summary>
+        GeneralPosts,
+
+        /// <summary>
+        /// Key for retrieving the current domain name
+        /// </summary>
+        DomainName
     }
 }

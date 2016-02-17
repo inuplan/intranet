@@ -54,7 +54,6 @@ namespace Inuplan.Tests.WebAPI.Middlewares
         /// 
         /// Side-effects:
         /// 1. A claim with no roles given, will be given the <see cref="RoleType.User"/> upon creation.
-        /// 
         /// </summary>
         /// <param name="userRole">The starting role, which should be in the claims</param>
         /// <param name="expected">The expected result, which Role the claims should be filled out with</param>
