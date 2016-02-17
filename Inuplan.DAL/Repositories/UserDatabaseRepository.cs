@@ -93,11 +93,11 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="entity">The user entity</param>
         /// <returns>An awaitable optional boolean value indicating whether the operation was succesfull</returns>
-        public async Task<Option<bool>> Delete(User entity)
+        public async Task<bool> Delete(User entity)
         {
             var sql = @"DELETE FROM Users WHERE ID = @key";
             var rows = await connection.ExecuteAsync(sql, new { key = entity.ID });
-            return rows.Some().Map(r => r > 0);
+            return rows > 0;
         }
 
         /// <summary>
@@ -105,13 +105,11 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="key">The ID of the user</param>
         /// <returns>An awaitable optional boolean value, indicating whether the operation was succesfull</returns>
-        public async Task<Option<bool>> Delete(string key)
+        public async Task<bool> Delete(string key)
         {
             var sql = @"DELETE FROM Users WHERE Username = @key";
             var rows = await connection.ExecuteAsync(sql, new { key });
-            return rows
-                .Some()
-                .Map(r => r == 1);
+            return rows == 1;
         }
 
         /// <summary>
@@ -191,7 +189,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="key">The username of the user</param>
         /// <param name="entity">The updated user information</param>
         /// <returns>An awaitable optional boolean value</returns>
-        public async Task<Option<bool>> Update(string key, User entity)
+        public async Task<bool> Update(string key, User entity)
         {
             var sql = @"UPDATE Users SET
                             FirstName = @FirstName,
@@ -211,9 +209,7 @@ namespace Inuplan.DAL.Repositories
                 key
             });
 
-            return result
-                    .Some()
-                    .Map(r => r == 1);
+            return result == 1;
         }
 
         /// <summary>

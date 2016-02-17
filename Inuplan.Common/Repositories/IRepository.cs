@@ -70,20 +70,20 @@ namespace Inuplan.Common.Repositories
         /// <param name="key">The key k</param>
         /// <param name="entity">The updated entity T</param>
         /// <returns>True if successful otherwise false</returns>
-        Task<Option<bool>> Update(K key, T entity);
+        Task<bool> Update(K key, T entity);
 
         /// <summary>
         /// Deletes an entity <see cref="T"/> with the key K
         /// </summary>
         /// <param name="key">The key K</param>
         /// <returns>True if successful otherwise false</returns>
-        Task<Option<bool>> Delete(K key);
+        Task<bool> Delete(K key);
 
         /// <summary>
         /// Deletes an entity <see cref="T"/>
         /// </summary>
         /// <param name="entity">The entity <see cref="T"/></param>
         /// <returns>True if successful otherwise false</returns>
-        Task<Option<bool>> Delete(T entity);
+        Task<bool> Delete(T entity);
     }
 }

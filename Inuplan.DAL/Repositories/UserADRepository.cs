@@ -77,7 +77,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="entity">N/A</param>
         /// <exception cref="NotSupportedException">Not supported operation</exception>
         /// <returns>N/A</returns>
-        public Task<Option<bool>> Delete(User entity)
+        public Task<bool> Delete(User entity)
         {
             throw new NotSupportedException("Not supported operation!");
         }
@@ -88,7 +88,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="key">N/A</param>
         /// <exception cref="NotSupportedException">Not supported operation</exception>
         /// <returns>N/A</returns>
-        public Task<Option<bool>> Delete(string key)
+        public Task<bool> Delete(string key)
         {
             throw new NotSupportedException("Not supported operation!");
         }
@@ -157,7 +157,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="entity">N/A</param>
         /// <exception cref="NotSupportedException">Not supported operation</exception>
         /// <returns>N/A</returns>
-        public Task<Option<bool>> Update(string key, User entity)
+        public Task<bool> Update(string key, User entity)
         {
             throw new NotSupportedException("Not supported operation!");
         }

@@ -201,7 +201,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="key">The key of the <see cref="Post"/></param>
         /// <param name="entity">The updated <see cref="Post"/></param>
         /// <returns>Returns a task of bool, which indicates whether the update was succesfull</returns>
-        public Task<Option<bool>> Update(int key, Post entity)
+        public Task<bool> Update(int key, Post entity)
         {
             return Task.Run(() =>
                 {
@@ -215,7 +215,7 @@ namespace Inuplan.DAL.Repositories
                         });
 
                     // returns true if some rows are affected
-                    return (rows > 0).SomeWhen(b => b);
+                    return (rows > 0);
                 });
         }
 
@@ -224,7 +224,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="key">The <see cref="Post"/> with the given key to delete</param>
         /// <returns>Returns a promise, which indicates whether the action was succesfull</returns>
-        public Task<Option<bool>> Delete(int key)
+        public Task<bool> Delete(int key)
         {
             return Task.Run(() =>
                 {
@@ -232,7 +232,7 @@ namespace Inuplan.DAL.Repositories
                     var rows = connection.Execute(sql, new { key, PostType = PostType.General });
 
                     // returns true if some rows are affected
-                    return (rows > 0).SomeWhen(b => b);
+                    return (rows > 0);
                 });
         }
 
@@ -242,7 +242,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="entity">The <see cref="Post"/> entity to delete</param>
         /// <returns>Returns a boolean, indicating whether the action was succesfull or not</returns>
-        public Task<Option<bool>> Delete(Post entity)
+        public Task<bool> Delete(Post entity)
         {
             Debug.Assert(entity.ID > 0, "Must have valid ID!");
             return Delete(entity.ID);

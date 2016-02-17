@@ -120,7 +120,7 @@ namespace Inuplan.WebAPI.Controllers
         {
             int key = post.ID;
             var result = await postRepository.Update(key, post);
-            return result.Match(
+            return result.SomeWhen(r => r).Match(
                     _ => Request.CreateResponse(HttpStatusCode.NoContent),
                     () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }
@@ -135,7 +135,7 @@ namespace Inuplan.WebAPI.Controllers
         public async Task<HttpResponseMessage> Delete(int id)
         {
             var result = await postRepository.Delete(id);
-            return result.Match(
+            return result.SomeWhen(r => r).Match(
                     _ => Request.CreateResponse(HttpStatusCode.NoContent),
                     () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }
