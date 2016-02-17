@@ -34,6 +34,7 @@ namespace Inuplan.WebAPI.App_Start
     using Inuplan.WebAPI.Middlewares.JWT;
     using Jose;
     using Owin;
+    using NLog;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -59,6 +60,14 @@ namespace Inuplan.WebAPI.App_Start
 
             // Autofac filter provider
             builder.RegisterWebApiFilterProvider(config);
+
+            // Logger
+            builder.RegisterType<Logger>().As<ILogger>().OnActivating(e =>
+            {
+                var n = e.Component.Activator.LimitType.DeclaringType.Name;
+                var instance = LogManager.GetLogger(n);
+                e.ReplaceInstance(instance);
+            });
 
             // AD repository
             builder.Register(ctx => ConfigurationManager.AppSettings["domainName"]).Keyed<string>(ServiceKeys.DomainName);
