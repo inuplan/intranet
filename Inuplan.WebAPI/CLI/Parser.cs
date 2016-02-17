@@ -37,7 +37,7 @@ namespace Inuplan.WebAPI.CLI
 
             var result = options.Map(opt =>
             {
-                var address = !(string.IsNullOrEmpty(opt.BaseAddress.Trim())) ? opt.BaseAddress : string.Empty;
+                var address = !(string.IsNullOrEmpty(opt.BaseAddress)) ? opt.BaseAddress : string.Empty;
                 var port = (opt.ListenOnPort > 0) ? opt.ListenOnPort : 9000;
                 return address + ":" + port;
             });
