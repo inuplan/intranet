@@ -46,7 +46,7 @@ namespace Inuplan.Common.Models
         /// <summary>
         /// Gets or sets the post type
         /// </summary>
-        public virtual PostType MessageType { get; set; }
+        public PostType MessageType { get; set; }
 
         /// <summary>
         /// Gets or sets the post author
