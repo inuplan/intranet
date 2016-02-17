@@ -31,13 +31,13 @@ namespace Inuplan.WebAPI.CLI
         /// <summary>
         /// Gets or sets the base address of the <code>Web API</code>
         /// </summary>
-        [Option('a', "address", Required = true, HelpText = "Sets the base address of the web api. Example: http://www.example.com")]
+        [Option('a', "address", HelpText = "Sets the base address of the web api. Example: http://www.example.com. Must NOT end in a forward slash")]
         public string BaseAddress { get; set; }
 
         /// <summary>
         /// Gets or sets the port which the <code>Web API</code> listens on
         /// </summary>
-        [Option('p', "port", Required = true, HelpText = "Sets the port number of the web api. Example: 8080")]
+        [Option('p', "port", HelpText = "Sets the port number of the web api. Example: 8080")]
         public int ListenOnPort { get; set; }
     }
 }

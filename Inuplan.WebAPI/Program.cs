@@ -16,8 +16,6 @@
 
 namespace Inuplan.WebAPI
 {
-    using System;
-    using System.Net.Http;
     using Inuplan.WebAPI.CLI;
     using Microsoft.Owin.Hosting;
 
@@ -37,13 +35,14 @@ namespace Inuplan.WebAPI
         /// <param name="args">Arguments provided through the command-line interface</param>
         public static void Main(string[] args)
         {
-            var input = Parser.Parse(args);
+            var parser = new Parser();
+            var input = parser.Parse(args);
             var baseAddress = input.ValueOr(DefaultAddress);
 
             // Start OWIN host 
             using (WebApp.Start<Startup>(url: baseAddress))
             {
-                Parser.StartConsole(baseAddress);
+                parser.StartConsole(baseAddress);
             }
         }
     }

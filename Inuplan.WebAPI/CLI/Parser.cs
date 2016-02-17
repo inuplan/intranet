@@ -17,51 +17,40 @@
 namespace Inuplan.WebAPI.CLI
 {
     using System;
-    using System.Text;
     using Optional;
+    using CommandLine;
 
     /// <summary>
     /// Command-line interface parser
     /// </summary>
-    public static class Parser
+    public class Parser
     {
         /// <summary>
         /// Parses user input to valid program input.
         /// </summary>
         /// <param name="input">The user input argument string</param>
         /// <returns>A valid program input string</returns>
-        public static Option<string> Parse(string[] input)
+        public Option<string> Parse(string[] input)
         {
-            var options = new ProgramOptions();
-            if (CommandLine.Parser.Default.ParseArguments(input, options))
+            var parsed = CommandLine.Parser.Default.ParseArguments<ProgramOptions>(input);
+            var options = parsed.MapResult(opt => opt.Some(), errors => Option.None<ProgramOptions>());
+
+            var result = options.Map(opt =>
             {
-                var sb = new StringBuilder();
+                var address = !(string.IsNullOrEmpty(opt.BaseAddress.Trim())) ? opt.BaseAddress : string.Empty;
+                var port = (opt.ListenOnPort > 0) ? opt.ListenOnPort : 9000;
+                return address + ":" + port;
+            });
 
-                if (options.BaseAddress.EndsWith("/", StringComparison.Ordinal))
-                {
-                    sb.Append(options.BaseAddress.Substring(0, options.BaseAddress.Length - 1));
-                }
-                else
-                {
-                    sb.Append(options.BaseAddress);
-                }
-
-                sb.Append(":");
-                sb.Append(options.ListenOnPort);
-
-                return Option.Some(sb.ToString());
-            }
-
-            return Option.None<string>();
+            return result.Filter(path => !string.IsNullOrEmpty(path) && path.Length > 1);
         }
 
         /// <summary>
         /// Starts the console
         /// </summary>
         /// <param name="address">The address of the <code>Web API</code></param>
-        public static void StartConsole(string address)
+        public void StartConsole(string address)
         {
-            Console.Clear();
             Console.WriteLine("Inuplan A/S Web API listening on: {0}\n", address);
 
             var loop = true;
