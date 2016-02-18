@@ -86,7 +86,10 @@ namespace Inuplan.WebAPI.App_Start
             });
             builder.Register(ctx => new JWTClaimsRetrieverOptions
             {
-                UserDatabaseRepository = ctx.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserDatabase)
+                UserDatabaseRepository = ctx.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserDatabase),
+                UserActiveDirectoryRepository = ctx.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory),
+                Mapper = ctx.Resolve<IJsonMapper>(),
+                Secret = secret
             });
 
             // Build container
