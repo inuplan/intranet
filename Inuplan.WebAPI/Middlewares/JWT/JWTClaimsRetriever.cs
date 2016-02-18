@@ -24,6 +24,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
     using Common.Models;
     using Common.Tools;
     using Microsoft.Owin;
+    using NLog;
     using Optional;
     using AppFunc = System.Func<System.Collections.Generic.IDictionary<string, object>, System.Threading.Tasks.Task>;
 
@@ -34,6 +35,11 @@ namespace Inuplan.WebAPI.Middlewares.JWT
     /// </summary>
     public class JWTClaimsRetriever
     {
+        /// <summary>
+        /// The logger
+        /// </summary>
+        private static ILogger logger = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// The next middleware
         /// </summary>
@@ -63,15 +69,19 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// <returns>Returns an awaitable task</returns>
         public async Task Invoke(IDictionary<string, object> environment)
         {
+            logger.Trace("Invoke method");
             var context = (IOwinContext)(new OwinContext(environment));
             var oClaims = context.Get<ClaimsDTO>(Constants.JWT_CLAIMS).SomeNotNull();
+            logger.Trace(oClaims);
 
             await oClaims.Match(
                 async claims =>
                 {
+                    logger.Trace("Claims: {0}", claims);
                     var user = await GetOrCreateUser(claims);
                     user.Match(async u =>
                     {
+                        logger.Trace("User: {0}", u);
                         if (!claims.Verified)
                         {
                             // Update the JWT claims with the correct info
@@ -82,17 +92,21 @@ namespace Inuplan.WebAPI.Middlewares.JWT
 
                             // Set the verify flag to true
                             claims.Verified = true;
+                            logger.Debug("Updated claims");
 
                             // Sign token
                             Jose.JWT.JsonMapper = options.Mapper;
                             var token = Jose.JWT.Encode(claims, options.Secret, Jose.JwsAlgorithm.HS256);
                             var bearer = new string[] { string.Format("Bearer {0}", token) };
+                            logger.Trace("Token: {0}", token);
+                            logger.Debug("Signed token");
 
                             // Add to response header
                             context.Response.Headers.Add(Constants.HTTP_AUTHORIZATION, bearer);
                         }
 
                         // Proceed to the next middleware
+                        logger.Debug("Calling next middleware");
                         await next.Invoke(environment);
                     },
                     () =>
@@ -100,13 +114,14 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                         // Internal error
                         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                         context.Response.ReasonPhrase = "Could not get or create user in the database";
+                        logger.Error("Could not get or create user in the database");
                     });
 
                     return await Task.FromResult(0);
                 },
                 () =>
                 {
-                    // Could log error. Should never happen according to unit tests...
+                    logger.Error("Should never happen - according to the unit tests!");
                     Debug.Assert(false, "This invariant should never happen IF this middleware is called AFTER JWTValidator");
                     return Task.FromResult(-1);
                 });
@@ -121,6 +136,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         private async Task<Option<User>> GetOrCreateUser(ClaimsDTO c)
         {
             // Try to get user from database
+            logger.Trace("GetOrCreateUser, claims: {0}", c);
             var oUser = await options.UserDatabaseRepository.Get(c.Username);
 
             var user = oUser.Match(
@@ -152,6 +168,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                        none: () => Option.None<User>());
                });
 
+            logger.Trace("Returning user {0}", user);
             return user;
         }
 

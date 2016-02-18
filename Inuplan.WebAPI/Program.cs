@@ -18,6 +18,7 @@ namespace Inuplan.WebAPI
 {
     using Inuplan.WebAPI.CLI;
     using Microsoft.Owin.Hosting;
+    using NLog;
 
     /// <summary>
     /// The web API server class
@@ -25,9 +26,19 @@ namespace Inuplan.WebAPI
     public class Program
     {
         /// <summary>
+        /// The logger
+        /// </summary>
+        private static ILogger logger = LogManager.GetCurrentClassLogger();
+
+        /// <summary>
         /// Default value if somehow no address is provided
         /// </summary>
-        private const string DefaultAddress = "http://localhost:9000";
+        private const string defaultAddress = "http://localhost";
+
+        /// <summary>
+        /// Default value if no port has been given
+        /// </summary>
+        private const int defaultPort = 9000;
 
         /// <summary>
         /// The main function
@@ -35,9 +46,10 @@ namespace Inuplan.WebAPI
         /// <param name="args">Arguments provided through the command-line interface</param>
         public static void Main(string[] args)
         {
-            var parser = new Parser();
+            logger.Trace("Starting program with args: {0}", args);
+            var parser = new Parser(defaultAddress, defaultPort);
             var input = parser.Parse(args);
-            var baseAddress = input.ValueOr(DefaultAddress);
+            var baseAddress = input.ValueOr(defaultAddress);
 
             // Start OWIN host 
             using (WebApp.Start<Startup>(url: baseAddress))

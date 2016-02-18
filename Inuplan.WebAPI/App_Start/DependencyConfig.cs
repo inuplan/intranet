@@ -33,6 +33,7 @@ namespace Inuplan.WebAPI.App_Start
     using Inuplan.WebAPI.Controllers;
     using Inuplan.WebAPI.Middlewares.JWT;
     using Jose;
+    using NLog;
     using Owin;
 
     /// <summary>
@@ -66,7 +67,11 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserADRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
 
             // SQL repositories
+#if DEBUG
+            builder.Register(ctx => new SqlConnection(ConfigurationManager.AppSettings["localConnection"])).As<IDbConnection>();
+#else
             builder.Register(ctx => new SqlConnection(ConfigurationManager.AppSettings["connectionString"])).As<IDbConnection>();
+#endif
             builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
             builder.RegisterType<ManagementPostRepository>().Keyed<IRepository<int, Post>>(ServiceKeys.ManagementPosts);
             builder.RegisterType<GeneralPostRepository>().Keyed<IRepository<int, Post>>(ServiceKeys.GeneralPosts);
@@ -80,11 +85,15 @@ namespace Inuplan.WebAPI.App_Start
             builder.Register(ctx => new JWTValidatorOptions
             {
                 Mapper = ctx.Resolve<IJsonMapper>(),
-                Secret = secret
+                Secret = secret,
+                
             });
             builder.Register(ctx => new JWTClaimsRetrieverOptions
             {
-                UserDatabaseRepository = ctx.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserDatabase)
+                UserDatabaseRepository = ctx.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserDatabase),
+                UserActiveDirectoryRepository = ctx.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory),
+                Mapper = ctx.Resolve<IJsonMapper>(),
+                Secret = secret
             });
 
             // Build container

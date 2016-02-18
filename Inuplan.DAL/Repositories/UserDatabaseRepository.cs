@@ -126,7 +126,7 @@ namespace Inuplan.DAL.Repositories
             var entity = await connection.QueryAsync<User>(sql, new { key });
 
             return entity
-                    .Single()
+                    .SingleOrDefault()
                     .SomeWhen(u => u != null && u.ID > 0);
         }
 
