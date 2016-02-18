@@ -17,7 +17,6 @@
 namespace Inuplan.WebAPI.Middlewares.JWT
 {
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Net;
     using System.Threading.Tasks;
     using Common.DTOs;
@@ -74,7 +73,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
             var claims = context.Get<ClaimsDTO>(Constants.JWT_CLAIMS);
 
             logger.Trace("Claims: {0}", claims);
-            var user = await GetOrCreateUser(claims);
+            var user = await GetOrCreateUser(claims, context);
             user.Match(async u =>
             {
                 logger.Trace("User: {0}", u);
@@ -120,11 +119,11 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// </summary>
         /// <param name="c">The claims of the <code>JWT</code> token</param>
         /// <returns>Returns an awaitable task which contains a <see cref="User"/></returns>
-        private async Task<Option<User>> GetOrCreateUser(ClaimsDTO c)
+        private Task<Option<User>> GetOrCreateUser(ClaimsDTO c, IOwinContext context)
         {
             // Try to get user from database
             logger.Trace("GetOrCreateUser, claims: {0}", c);
-            var oUser = await options.UserDatabaseRepository.Get(c.Username);
+            var oUser = options.UserDatabaseRepository.Get(c.Username).Result;
 
             var user = oUser.Match(
                // Return user, if it is a valid user
@@ -156,7 +155,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                });
 
             logger.Trace("Returning user {0}", user);
-            return user;
+            return Task.FromResult(user);
         }
 
         /// <summary>
