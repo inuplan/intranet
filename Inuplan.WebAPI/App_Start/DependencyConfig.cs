@@ -67,7 +67,11 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserADRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
 
             // SQL repositories
+#if DEBUG
+            builder.Register(ctx => new SqlConnection(ConfigurationManager.AppSettings["localConnection"])).As<IDbConnection>();
+#else
             builder.Register(ctx => new SqlConnection(ConfigurationManager.AppSettings["connectionString"])).As<IDbConnection>();
+#endif
             builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
             builder.RegisterType<ManagementPostRepository>().Keyed<IRepository<int, Post>>(ServiceKeys.ManagementPosts);
             builder.RegisterType<GeneralPostRepository>().Keyed<IRepository<int, Post>>(ServiceKeys.GeneralPosts);
