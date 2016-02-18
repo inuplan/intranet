@@ -49,7 +49,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// The configuration options for this middleware
         /// </summary>
         private readonly JWTClaimsRetrieverOptions options;
-        
+
         /// <summary>
         /// Instantiates a new instance of the <see cref="JWTClaimsRetriever"/> class.
         /// </summary>
@@ -71,60 +71,47 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         {
             logger.Trace("Invoke method");
             var context = (IOwinContext)(new OwinContext(environment));
-            var oClaims = context.Get<ClaimsDTO>(Constants.JWT_CLAIMS).SomeNotNull();
-            logger.Trace(oClaims);
+            var claims = context.Get<ClaimsDTO>(Constants.JWT_CLAIMS);
 
-            await oClaims.Match(
-                async claims =>
+            logger.Trace("Claims: {0}", claims);
+            var user = await GetOrCreateUser(claims);
+            user.Match(async u =>
+            {
+                logger.Trace("User: {0}", u);
+                if (!claims.Verified)
                 {
-                    logger.Trace("Claims: {0}", claims);
-                    var user = await GetOrCreateUser(claims);
-                    user.Match(async u =>
-                    {
-                        logger.Trace("User: {0}", u);
-                        if (!claims.Verified)
-                        {
-                            // Update the JWT claims with the correct info
-                            claims.FirstName = u.FirstName;
-                            claims.LastName = u.LastName;
-                            claims.Email = u.Email;
-                            claims.Role = u.Role;
+                    // Update the JWT claims with the correct info
+                    claims.FirstName = u.FirstName;
+                    claims.LastName = u.LastName;
+                    claims.Email = u.Email;
+                    claims.Role = u.Role;
 
-                            // Set the verify flag to true
-                            claims.Verified = true;
-                            logger.Debug("Updated claims");
+                    // Set the verify flag to true
+                    claims.Verified = true;
+                    logger.Debug("Updated claims");
 
-                            // Sign token
-                            Jose.JWT.JsonMapper = options.Mapper;
-                            var token = Jose.JWT.Encode(claims, options.Secret, Jose.JwsAlgorithm.HS256);
-                            var bearer = new string[] { string.Format("Bearer {0}", token) };
-                            logger.Trace("Token: {0}", token);
-                            logger.Debug("Signed token");
+                    // Sign token
+                    Jose.JWT.JsonMapper = options.Mapper;
+                    var token = Jose.JWT.Encode(claims, options.Secret, Jose.JwsAlgorithm.HS256);
+                    var bearer = new string[] { string.Format("Bearer {0}", token) };
+                    logger.Trace("Token: {0}", token);
+                    logger.Debug("Signed token");
 
-                            // Add to response header
-                            context.Response.Headers.Add(Constants.HTTP_AUTHORIZATION, bearer);
-                        }
+                    // Add to response header
+                    context.Response.Headers.Add(Constants.HTTP_AUTHORIZATION, bearer);
+                }
 
-                        // Proceed to the next middleware
-                        logger.Debug("Calling next middleware");
-                        await next.Invoke(environment);
-                    },
-                    () =>
-                    {
-                        // Internal error
-                        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                        context.Response.ReasonPhrase = "Could not get or create user in the database";
-                        logger.Error("Could not get or create user in the database");
-                    });
-
-                    return await Task.FromResult(0);
-                },
-                () =>
-                {
-                    logger.Error("Should never happen - according to the unit tests!");
-                    Debug.Assert(false, "This invariant should never happen IF this middleware is called AFTER JWTValidator");
-                    return Task.FromResult(-1);
-                });
+                // Proceed to the next middleware
+                logger.Debug("Calling next middleware");
+                await next.Invoke(environment);
+            },
+            () =>
+            {
+                // Internal error
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.ReasonPhrase = "Could not get or create user in the database";
+                logger.Error("Could not get or create user in the database");
+            });
         }
 
         /// <summary>

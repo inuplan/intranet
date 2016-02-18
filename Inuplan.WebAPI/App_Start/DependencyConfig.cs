@@ -68,9 +68,9 @@ namespace Inuplan.WebAPI.App_Start
 
             // SQL repositories
 #if DEBUG
-            builder.Register(ctx => new SqlConnection(ConfigurationManager.AppSettings["localConnection"])).As<IDbConnection>();
+            builder.Register(ctx => new SqlConnection(ConfigurationManager.AppSettings["localConnection"])).As<IDbConnection>().InstancePerRequest();
 #else
-            builder.Register(ctx => new SqlConnection(ConfigurationManager.AppSettings["connectionString"])).As<IDbConnection>();
+            builder.Register(ctx => new SqlConnection(ConfigurationManager.AppSettings["connectionString"])).As<IDbConnection>().InstancePerRequest();
 #endif
             builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
             builder.RegisterType<ManagementPostRepository>().Keyed<IRepository<int, Post>>(ServiceKeys.ManagementPosts);
@@ -86,15 +86,15 @@ namespace Inuplan.WebAPI.App_Start
             {
                 Mapper = ctx.Resolve<IJsonMapper>(),
                 Secret = secret,
-                
-            });
+
+            }).InstancePerRequest();
             builder.Register(ctx => new JWTClaimsRetrieverOptions
             {
                 UserDatabaseRepository = ctx.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserDatabase),
                 UserActiveDirectoryRepository = ctx.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory),
                 Mapper = ctx.Resolve<IJsonMapper>(),
                 Secret = secret
-            });
+            }).InstancePerRequest();
 
             // Build container
             container = builder.Build();
