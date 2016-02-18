@@ -16,10 +16,17 @@
 
 namespace Inuplan.WebAPI.App_Start
 {
+    using System.Configuration;
+    using System.Data;
+    using System.Data.SqlClient;
+    using System.DirectoryServices.AccountManagement;
+    using System.Security.Cryptography;
     using System.Web.Http;
-    using Autofac;
-    using Owin;
+    using Common.Mappers;
+    using Common.Tools;
+    using DAL.Repositories;
     using Inuplan.WebAPI.Middlewares.JWT;
+    using Owin;
 
     /// <summary>
     /// Configures the <code>OWIN</code> middleware pipeline
@@ -33,21 +40,57 @@ namespace Inuplan.WebAPI.App_Start
         /// <param name="app">The <code>OWIN</code> component</param>
         public static void RegisterMiddlewares(HttpConfiguration config, IAppBuilder app)
         {
-            // Setup
-            var container = DependencyConfig.Container();
-            var jwtValidatorOptions = container.Resolve<JWTValidatorOptions>();
-            var jwtClaimsRetrieverOptions = container.Resolve<JWTClaimsRetrieverOptions>();
+            JWTValidatorOptions validatorOptions;
+            JWTClaimsRetrieverOptions claimsOptions;
+            SetupOptions(out validatorOptions, out claimsOptions);
 
-            // Use DI in the OWIN middleware (on OwinMiddleWare classes)
-            app.UseAutofacMiddleware(container);
-            app.UseAutofacWebApi(config);
+            // Owin pipeline
+            app.Use<JWTValidator>(validatorOptions);
+            app.Use<JWTClaimsRetriever>(claimsOptions);
+        }
 
-            // The actual Owin pipeline -->
-            app.Use<JWTValidator>(jwtValidatorOptions);
-            app.Use<JWTClaimsRetriever>(jwtClaimsRetrieverOptions);
+        /// <summary>
+        /// Sets up options for the 2 middlewares
+        /// </summary>
+        /// <param name="validatorOptions">The validator middleware options</param>
+        /// <param name="claimsOptions">The claims middleware options</param>
+        private static void SetupOptions(out JWTValidatorOptions validatorOptions, out JWTClaimsRetrieverOptions claimsOptions)
+        {
+            // Setup signing
+            var secretKey = ConfigurationManager.AppSettings["secret"];
+            var sha256 = SHA256.Create();
+            var key = sha256.ComputeHash(Helpers.GetBytes(secretKey));
 
-            // Controllers
-            app.UseWebApi(config);
+            // Setup connections
+            IDbConnection connection = new SqlConnection(GetConnectionString());
+            var domain = ConfigurationManager.AppSettings["domain"];
+            var principalContext = new PrincipalContext(ContextType.Domain, domain);
+
+            // Setup middleware options
+            var jsonMapper = new NewtonsoftMapper();
+            validatorOptions = new JWTValidatorOptions { Mapper = jsonMapper, Secret = key };
+            claimsOptions = new JWTClaimsRetrieverOptions
+            {
+                UserDatabaseRepository = new UserDatabaseRepository(connection),
+                UserActiveDirectoryRepository = new UserADRepository(principalContext),
+                Mapper = jsonMapper,
+                Secret = key
+            };
+        }
+
+
+        /// <summary>
+        /// Retrieves the connection string to the database.
+        /// </summary>
+        /// <returns>A connection string</returns>
+        private static string GetConnectionString()
+        {
+#if DEBUG
+            var connectionString = ConfigurationManager.AppSettings["localConnection"];
+#else
+            var connectionString = ConfigurationManager.AppSettings["connectionString"];
+#endif
+            return connectionString;
         }
     }
 }
