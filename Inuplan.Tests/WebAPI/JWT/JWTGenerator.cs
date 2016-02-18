@@ -42,7 +42,7 @@ namespace Inuplan.Tests.WebAPI.JWT
             var claims = new ClaimsDTO
             {
                 Verified = false,
-                Username = "jdoe",
+                Username = "JMS",
                 Role = RoleType.User
             };
             var token = JWT.Encode(claims, key, JwsAlgorithm.HS256);
