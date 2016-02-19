@@ -42,7 +42,7 @@ namespace Inuplan.WebAPI.Controllers
 
             var user = RequestContext.Principal;
             var provider = await Request.Content.ReadAsMultipartAsync(new MultipartMemoryStreamProvider());
-            var filesTmp = new ConcurrentBag<File>();
+            //var filesTmp = new ConcurrentBag<File>();
 
             //             Parallel.ForEach(
             //                 provider.Contents,
