@@ -80,6 +80,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                 if (!claims.Verified)
                 {
                     // Update the JWT claims with the correct info
+                    claims.ID = u.ID;
                     claims.FirstName = u.FirstName;
                     claims.LastName = u.LastName;
                     claims.Email = u.Email;
@@ -121,9 +122,24 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// <returns>Returns an awaitable task which contains a <see cref="User"/></returns>
         private Task<Option<User>> GetOrCreateUser(ClaimsDTO c)
         {
+            logger.Debug("GetOrCreateUser method");
+            if(c.Verified)
+            {
+                logger.Trace("User is verified! So we just return immidiately");
+                return Task.FromResult((new User
+                {
+                    ID = c.ID,
+                    Username = c.Username,
+                    FirstName = c.FirstName,
+                    LastName = c.LastName,
+                    Email = c.Email,
+                    Role = c.Role,
+                }).Some());
+            }
+
             // Try to get user from database
-            logger.Trace("GetOrCreateUser, claims: {0}", c);
             var oUser = options.UserDatabaseRepository.Get(c.Username).Result;
+            logger.Trace("Get user from database: {0}", oUser);
 
             var user = oUser.Match(
                // Return user, if it is a valid user

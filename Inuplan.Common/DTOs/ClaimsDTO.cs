@@ -31,6 +31,11 @@ namespace Inuplan.Common.DTOs
     public class ClaimsDTO
     {
         /// <summary>
+        /// Gets or sets the user ID
+        /// </summary>
+        public int ID { get; set; }
+
+        /// <summary>
         /// Gets or sets the username for this claim
         /// </summary>
         public string Username { get; set; }
@@ -46,7 +51,9 @@ namespace Inuplan.Common.DTOs
         public string LastName { get; set; }
 
         /// <summary>
-        /// Gets or sets whether the claim has been verified
+        /// Gets or sets whether the claim has been verified.
+        /// Also means that every property has been filled out
+        /// and is legitimate.
         /// </summary>
         public bool Verified { get; set; }
 
@@ -68,11 +75,12 @@ namespace Inuplan.Common.DTOs
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.AppendFormat("Username: {0}", Username);
-            sb.AppendFormat("First name: {0}\nLast name: {1}", FirstName, LastName);
-            sb.AppendFormat("Is verified: {0}", Verified);
-            sb.AppendFormat("Email address: {0}", Email);
-            sb.AppendFormat("Role: {0}", Role);
+            sb.AppendFormat("ID: {0}\n", ID);
+            sb.AppendFormat("Username: {0}\n", Username);
+            sb.AppendFormat("First name: {0}\nLast name: {1}\n", FirstName, LastName);
+            sb.AppendFormat("Is verified: {0}\n", Verified);
+            sb.AppendFormat("Email address: {0}\n", Email);
+            sb.AppendFormat("Role: {0}\n", Role);
             return sb.ToString();
         }
     }

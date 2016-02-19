@@ -24,13 +24,8 @@ namespace Inuplan.Tests.WebAPI.JWT
     using Common.Models;
     using Common.Tools;
     using Jose;
-    using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
     using System.Security.Cryptography;
-    using System.Text;
-    using System.Threading.Tasks;
     using Xunit;
 
     public class JWTGenerator
@@ -43,7 +38,7 @@ namespace Inuplan.Tests.WebAPI.JWT
             {
                 Verified = false,
                 Username = "JMS",
-                Role = RoleType.User
+                Role = RoleType.User,
             };
             var token = JWT.Encode(claims, key, JwsAlgorithm.HS256);
             Debug.WriteLine(string.Format("Bearer {0}", token));
