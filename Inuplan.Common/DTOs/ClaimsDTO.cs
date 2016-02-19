@@ -1,11 +1,7 @@
 ﻿using Inuplan.Common.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Inuplan.Common.DTOs
 {
@@ -19,5 +15,16 @@ namespace Inuplan.Common.DTOs
 
         [JsonConverter(typeof(StringEnumConverter))]
         public RoleType Role { get; set; }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.AppendFormat("Username: {0}", Username);
+            sb.AppendFormat("First name: {0}\nLast name: {1}", FirstName, LastName);
+            sb.AppendFormat("Is verified: {0}", Verified);
+            sb.AppendFormat("Email address: {0}", Email);
+            sb.AppendFormat("Role: {0}", Role);
+            return sb.ToString();
+        }
     }
 }
