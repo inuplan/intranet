@@ -144,7 +144,14 @@ namespace Inuplan.WebAPI.Middlewares.JWT
                 var data = Jose.JWT.Decode<ClaimsDTO>(token, key);
 
                 // returns None if user has been verified and been given None role
-                result = data.SomeWhen(c => !(c.Verified && c.Role == RoleType.None));
+                result = data.SomeWhen(c =>
+                {
+                    // If the claim - claims to be verified, we validate it
+                    if (c.Verified) return ValidVerifiedClaim(c);
+
+                    // Otherwise if the username does not exists, it is invalid
+                    return !string.IsNullOrEmpty(c.Username);
+                });
             }
             catch (Jose.IntegrityException ex)
             {
@@ -153,7 +160,26 @@ namespace Inuplan.WebAPI.Middlewares.JWT
             }
 
             // If claims does NOT contain a username, then it is invalid
-            return result.Filter(c => !string.IsNullOrEmpty(c.Username));
+            return result;
         }
+
+        /// <summary>
+        /// A valid verified claim must contain every property and
+        /// <see cref="RoleType"/> must not be <see cref="RoleType.None"/> as well as
+        /// <see cref="ClaimsDTO.ID"/> must be greater than zero.
+        /// </summary>
+        /// <param name="c">The claim to check</param>
+        /// <returns>If valid claim, then true otherwise false</returns>
+        private bool ValidVerifiedClaim(ClaimsDTO c)
+        {
+            return
+                c.ID > 0 &&
+                c.Role != RoleType.None &&
+                !string.IsNullOrEmpty(c.FirstName) &&
+                !string.IsNullOrEmpty(c.LastName) &&
+                !string.IsNullOrEmpty(c.Username) &&
+                !string.IsNullOrEmpty(c.Email);
+        }
+
     }
 }

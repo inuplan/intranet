@@ -48,9 +48,18 @@ namespace Inuplan.Tests.WebAPI.Middlewares
             // Arrange - JWT with correct key
             var key = SHA256.Create().ComputeHash(Helpers.GetBytes("secret"));
 
-            // Implicit assumption: valid claim MUST contain a username!
+            // Implicit assumption: valid claim MUST contain all properties!
             // Implicit assumption: valid claim MUST contain a Role that is NOT None
-            var claims = new ClaimsDTO { Verified = true, Username = "jdoe", Role = RoleType.User };
+            var claims = new ClaimsDTO
+            {
+                Verified = true,
+                ID = 1,
+                Username = "jdoe",
+                Role = RoleType.User,
+                Email = "jdoe@company.org",
+                FirstName = "John",
+                LastName = "Doe"
+            };
             var token = JWT.Encode(claims, key, JwsAlgorithm.HS256);
 
             // Arrange - Middleware configuration
@@ -79,8 +88,18 @@ namespace Inuplan.Tests.WebAPI.Middlewares
             // Arrange - JWT with incorrect key
             var key = SHA256.Create().ComputeHash(Helpers.GetBytes("secret"));
 
-            // Implicit assumption: valid claim MUST contain a username!
-            var claims = new ClaimsDTO { Verified = true };
+            // Implicit assumption: valid claim MUST contain all properties! and a role that
+            // is not None.
+            var claims = new ClaimsDTO
+            {
+                Verified = true,
+                ID = 1,
+                Username = "jdoe",
+                Role = RoleType.User,
+                Email = "jdoe@company.org",
+                FirstName = "John",
+                LastName = "Doe"
+            };
             var token = JWT.Encode(claims, new byte[32], JwsAlgorithm.HS256);
 
             // Arrange - Middleware configuration
@@ -108,8 +127,18 @@ namespace Inuplan.Tests.WebAPI.Middlewares
             // Arrange - JWT with correct key
             var key = SHA256.Create().ComputeHash(Helpers.GetBytes("secret"));
 
-            // Implicit assumption: valid claim MUST contain a username!
-            var claims = new ClaimsDTO { Verified = true, Username = "jdoe", Role = RoleType.User };
+            // Implicit assumption: valid claim MUST contain all properties! and a role that
+            // is not None.
+            var claims = new ClaimsDTO
+            {
+                Verified = true,
+                ID = 1,
+                Username = "jdoe",
+                Role = RoleType.User,
+                Email = "jdoe@company.org",
+                FirstName = "John",
+                LastName = "Doe"
+            };
             var token = JWT.Encode(claims, key, JwsAlgorithm.HS256);
 
             // Arrange - Middleware configuration
