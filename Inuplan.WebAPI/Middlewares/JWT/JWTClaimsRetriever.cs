@@ -73,7 +73,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
             var claims = context.Get<ClaimsDTO>(Constants.JWT_CLAIMS);
 
             logger.Trace("Claims: {0}", claims);
-            var user = await GetOrCreateUser(claims, context);
+            var user = await GetOrCreateUser(claims);
             user.Match(async u =>
             {
                 logger.Trace("User: {0}", u);
@@ -119,7 +119,7 @@ namespace Inuplan.WebAPI.Middlewares.JWT
         /// </summary>
         /// <param name="c">The claims of the <code>JWT</code> token</param>
         /// <returns>Returns an awaitable task which contains a <see cref="User"/></returns>
-        private Task<Option<User>> GetOrCreateUser(ClaimsDTO c, IOwinContext context)
+        private Task<Option<User>> GetOrCreateUser(ClaimsDTO c)
         {
             // Try to get user from database
             logger.Trace("GetOrCreateUser, claims: {0}", c);
