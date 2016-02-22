@@ -33,7 +33,7 @@ namespace Inuplan.Common.Models
         /// <summary>
         /// Gets or sets the filename of the file
         /// </summary>
-        public string FileName { get; set; }
+        public string Filename { get; set; }
 
         /// <summary>
         /// Gets or sets the extension for the file
