@@ -57,6 +57,7 @@
     <Compile Include="Enums\ServiceKeys.cs" />
     <Compile Include="Mappers\NewtonsoftMapper.cs" />
     <Compile Include="Models\File.cs" />
+    <Compile Include="Models\Image.cs" />
     <Compile Include="Models\Post.cs" />
     <Compile Include="Models\Profile.cs" />
     <Compile Include="Models\User.cs" />
