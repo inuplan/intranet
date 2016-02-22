@@ -56,7 +56,8 @@
     <Compile Include="DTOs\ClaimsDTO.cs" />
     <Compile Include="Enums\ServiceKeys.cs" />
     <Compile Include="Mappers\NewtonsoftMapper.cs" />
-    <Compile Include="Models\File.cs" />
+    <Compile Include="Models\FileData.cs" />
+    <Compile Include="Models\FileInfo.cs" />
     <Compile Include="Models\Image.cs" />
     <Compile Include="Models\Post.cs" />
     <Compile Include="Models\Profile.cs" />
