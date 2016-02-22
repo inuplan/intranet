@@ -16,41 +16,26 @@
 
 namespace Inuplan.Common.Models
 {
-    using Optional;
+    using System;
 
     /// <summary>
-    /// A file
+    /// A file on the server.
     /// </summary>
-    public class File
+    public class FileData
     {
         /// <summary>
-        /// Gets or sets the ID of the file
+        /// Gets or sets the file ID
         /// </summary>
         public int ID { get; set; }
 
         /// <summary>
-        /// Gets or sets the filename of the file
-        /// </summary>
-        public string FileName { get; set; }
-
-        /// <summary>
-        /// Gets or sets the extension for the file
-        /// </summary>
-        public string Extension { get; set; }
-
-        /// <summary>
-        /// Gets or sets the file mime type
-        /// </summary>
-        public string MimeType { get; set; }
-
-        /// <summary>
         /// Gets or sets the file data
         /// </summary>
-        public Option<byte[]> Data { get; set; }
+        public Lazy<byte[]> Data { get; set; }
 
         /// <summary>
-        /// Gets or sets the owner of the file
+        /// Gets or sets the path to the file
         /// </summary>
-        public virtual User Owner { get; set; }
+        public string Path { get; set; }
     }
 }

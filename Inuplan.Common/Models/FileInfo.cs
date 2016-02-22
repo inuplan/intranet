@@ -20,31 +20,34 @@
 
 namespace Inuplan.Common.Models
 {
-
     /// <summary>
-    /// An image that contains 3 different sizes.
-    /// A thumbnail by 150px by 150px, half-size and the original image.
+    /// Meta data about a file.
     /// </summary>
-    public class Image
+    public class FileInfo
     {
         /// <summary>
-        /// Gets or sets the metadata for the file.
+        /// Gets or sets the id
         /// </summary>
-        public FileInfo MetaData { get; set; }
+        public int ID { get; set; }
 
         /// <summary>
-        /// Gets or sets the file for the thumbnail.
+        /// Gets or sets the filename of the file
         /// </summary>
-        public FileData Thumbnail { get; set; }
+        public string FileName { get; set; }
 
         /// <summary>
-        /// Gets or sets the file for the medium sized image.
+        /// Gets or sets the extension for the file
         /// </summary>
-        public FileData Medium { get; set; }
+        public string Extension { get; set; }
 
         /// <summary>
-        /// Gets or sets the file for the original image
+        /// Gets or sets the file mime type
         /// </summary>
-        public FileData Original { get; set; }
+        public string MimeType { get; set; }
+
+        /// <summary>
+        /// Gets or sets the owner of the file
+        /// </summary>
+        public virtual User Owner { get; set; }
     }
 }
