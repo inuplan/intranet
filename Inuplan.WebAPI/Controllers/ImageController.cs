@@ -38,7 +38,7 @@ namespace Inuplan.WebAPI.Controllers
     /// <summary>
     /// Image file controller
     /// </summary>
-    [RoutePrefix("image")]
+    [RoutePrefix("{username:alpha:length(2,6)}/image")]
     public class ImageController : ApiController
     {
         private static Logger logger = LogManager.GetCurrentClassLogger();
@@ -51,13 +51,13 @@ namespace Inuplan.WebAPI.Controllers
         /// <summary>
         /// The image repository, which stores the images.
         /// </summary>
-        private readonly IRepository<string, Image> imageRepository;
+        private readonly IRepository<Tuple<string, string>, Image> imageRepository;
 
         /// <summary>
         /// Instantiates a new <see cref="ImageController"/> instance.
         /// </summary>
         /// <param name="imageRepository">The image repository, which stores the images</param>
-        public ImageController(IRepository<string, Image> imageRepository, ImageHandleFactory imageHandleFactory)
+        public ImageController(IRepository<Tuple<string, string>, Image> imageRepository, ImageHandleFactory imageHandleFactory)
         {
             this.imageRepository = imageRepository;
             this.imageHandleFactory = imageHandleFactory;
@@ -68,8 +68,8 @@ namespace Inuplan.WebAPI.Controllers
         /// </summary>
         /// <param name="username">The 3-letter username to upload to</param>
         /// <returns>Returns a response message to the caller</returns>
-        // POST image/JMS/upload
-        [Route("{username:alpha:length(2,6)}/upload")]
+        // POST JMS/image/upload
+        [Route("upload")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(string username)
         {
