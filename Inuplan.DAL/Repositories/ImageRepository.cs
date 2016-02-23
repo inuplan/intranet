@@ -34,9 +34,9 @@ namespace Inuplan.DAL.Repositories
 
     /// <summary>
     /// The first item in the key tuple is the <see cref="User.Username"/> and the
-    /// second item is the full filename of the image
+    /// second item is the filename of the image, and the third is the extension of the filename
     /// </summary>
-    public class ImageRepository : IRepository<Tuple<string, string>, Image>
+    public class ImageRepository : IRepository<Tuple<string, string, string>, Image>
     {
         private readonly IDbConnection connection;
         private bool disposedValue = false;
@@ -176,13 +176,32 @@ namespace Inuplan.DAL.Repositories
             return (deleted == 4);
         }
 
-        public Task<bool> Delete(Tuple<string, string> key)
+        public Task<bool> Delete(Tuple<string, string, string> key)
         {
             throw new NotSupportedException("Use Delete(Image entity) method instead!");
         }
 
-        public Task<Option<Image>> Get(Tuple<string, string> key)
+        public async Task<Option<Image>> Get(Tuple<string, string, string> key)
         {
+            var sqlUserID = @"SELECT ID AS OwnerID FROM Users WHERE Username = @Username";
+            var ownerID = (await connection.QueryAsync<int>(sqlUserID, new { Username = key.Item1 })).Single();
+
+            var sqlImage = @"SELECT ID, Filename, Extension, MimeType, OwnerID
+                            FROM FileInfo
+                            WHERE Filename = @Filename AND Extension = @Extension AND OwnerID = @OwnerID";
+            var fileInfo = (await connection.QueryAsync<Common.Models.FileInfo>(sqlImage, new
+            {
+                Filename = key.Item2,
+                Extension = key.Item3,
+                OwnerID = ownerID
+            })).SingleOrDefault();
+
+            var imagesTable = (await connection.QueryAsync(@"SELECT * FROM Images WHERE ID = @ID", new { ID = fileInfo.ID })).Single();
+
+            // TODO: Continue... tomorrow
+            int thumbnailID = imagesTable.ThumbnailID;
+
+
             throw new NotImplementedException();
         }
 
@@ -201,7 +220,7 @@ namespace Inuplan.DAL.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<bool> Update(Tuple<string, string> key, Image entity)
+        public Task<bool> Update(Tuple<string, string, string> key, Image entity)
         {
             throw new NotImplementedException();
         }
