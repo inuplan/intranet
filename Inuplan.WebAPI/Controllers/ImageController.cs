@@ -21,34 +21,32 @@
 
 namespace Inuplan.WebAPI.Controllers
 {
-    using System;
-    using System.Text;
-    using System.Security.Cryptography;
+    using System.Collections.Concurrent;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
     using Common.DTOs;
+    using Common.Factories;
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
-    using sysDraw = System.Drawing;
-    using System.Drawing.Imaging;
-    using System.Collections.Concurrent;
-    using System.Drawing.Drawing2D;
+    using NLog;
+    using System;
+
     /// <summary>
     /// Image file controller
     /// </summary>
     [RoutePrefix("image")]
     public class ImageController : ApiController
     {
-        /// <summary>
-        /// Sets the length of the filename.
-        /// </summary>
-        private const int FILENAME_LENGTH = 5;
+        private static Logger logger = LogManager.GetCurrentClassLogger();
 
-        private const double MEDIUM_SCALE_FACTOR = 0.5d;
+        /// <summary>
+        /// Image handle factory
+        /// </summary>
+        private readonly ImageHandleFactory imageHandleFactory;
 
         /// <summary>
         /// The image repository, which stores the images.
@@ -56,18 +54,13 @@ namespace Inuplan.WebAPI.Controllers
         private readonly IRepository<string, Image> imageRepository;
 
         /// <summary>
-        /// The root of the root folder
-        /// </summary>
-        private readonly string root;
-
-        /// <summary>
         /// Instantiates a new <see cref="ImageController"/> instance.
         /// </summary>
         /// <param name="imageRepository">The image repository, which stores the images</param>
-        public ImageController(string root, IRepository<string, Image> imageRepository)
+        public ImageController(IRepository<string, Image> imageRepository, ImageHandleFactory imageHandleFactory)
         {
             this.imageRepository = imageRepository;
-            this.root = root;
+            this.imageHandleFactory = imageHandleFactory;
         }
 
         /// <summary>
@@ -104,96 +97,44 @@ namespace Inuplan.WebAPI.Controllers
             };
 
             var provider = await Request.Content.ReadAsMultipartAsync(new MultipartMemoryStreamProvider());
+            var bag = new ConcurrentBag<Image>();
 
-            var bag = new ConcurrentBag<int>();
             var tasks = provider.Contents.Select(async file =>
             {
-                // TODO: encode filename
-                var fullname = file.Headers.ContentDisposition.FileName.Split('.');
-                var filename = fullname[0];
-                var extension = fullname[1];
-                var data = await file.ReadAsByteArrayAsync();
+                // Process individual image
+                var handler = imageHandleFactory.GetImageHandler();
+                var image = await handler.ProcessImage(owner, file);
 
-                var fileInfo = new FileInfo
-                {
-                    Filename = filename,
-                    Extension = extension,
-                    MimeType = Helpers.GetMIMEType(extension),
-                    Owner = owner
-                };
-
-                var original = new FileData
-                {
-                    Data = new Lazy<byte[]>(() => data),
-                    Path = GetPath(owner.Username, data, extension)
-                };
-
-                using (var stream = await file.ReadAsStreamAsync())
-                {
-                    var mediumImage = sysDraw.Image.FromStream(stream);
-
-                    var newWidth = (int)(mediumImage.Width * MEDIUM_SCALE_FACTOR);
-                    var newHeight = (int)(mediumImage.Height * MEDIUM_SCALE_FACTOR);
-                    using (var newImage = new sysDraw.Bitmap(newWidth, newHeight))
-                    using (var graphics = sysDraw.Graphics.FromImage(newImage))
-                    {
-                        graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                        graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                        graphics.DrawImage(mediumImage, new sysDraw.Rectangle(0, 0, newWidth, newHeight));
-
-                        // TODO: Save image to byte array
-
-                    }
-
-                    // TODO: Manipulate image to certain sizes:
-                    var medium = new FileData
-                    {
-                    };
-
-                    // Remember to reset pointer?!
-                    stream.Position = 0;
-                }
-                var thumbnail = new FileData
-                {
-                };
-
-                var image = new Image
-                {
-                    MetaData = fileInfo,
-                    Original = original,
-                    Medium = medium,
-                    Thumbnail = thumbnail
-                };
-
-                await imageRepository.Create(image);
-                bag.Add(1);
+                // Add images to the collection
+                bag.Add(image);
             });
 
+            // Wait for all images to be processed
             await Task.WhenAll(tasks);
+            var error = false;
+
+            // Save images to the repository
+            var save = bag.Select(async image =>
+            {
+                var created = await imageRepository.Create(image);
+                created.Match(
+                    success =>
+                    {
+                        logger.Debug("Saved image: {0}.{1}\tWith ID: {2}", success.MetaData.Filename, success.MetaData.Extension, success.MetaData.ID);
+                    },
+                    () =>
+                    {
+                        logger.Error("Could not save: {0}.{1}", image.MetaData.Filename, image.MetaData.Extension);
+                        error = true;
+                    });
+            });
+
+            await Task.WhenAll(save);
 
             var response = string.Format("Finished uploading {0} file(s)", bag.Count);
-            return Request.CreateResponse(HttpStatusCode.OK, response);
-        }
-
-        /// <summary>
-        /// Returns a well-formed path
-        /// </summary>
-        /// <param name="username">The username of the user</param>
-        /// <param name="data">The image</param>
-        /// <returns>A path to where the image should be stored</returns>
-        [NonAction]
-        private string GetPath(string username, byte[] data, string extension)
-        {
-            // Return %root%/username/date{yyyymmdd}/{sha1:length(5)}.extension
-            var sb = new StringBuilder();
-            sb.AppendFormat("{0}/{1}/{2:yyyyMMdd}/", root, username, DateTime.Now);
-
-            var sha1 = SHA1.Create();
-            var hash = sha1.ComputeHash(data).ToString().Substring(0, FILENAME_LENGTH);
-
-            sb.AppendFormat("{0}.{1}", hash, extension);
-            return sb.ToString();
+            return (!error) ?
+                Request.CreateResponse(HttpStatusCode.OK, response) :
+                Request.CreateResponse(HttpStatusCode.InternalServerError);
         }
     }
 }

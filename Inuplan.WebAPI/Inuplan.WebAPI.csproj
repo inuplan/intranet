@@ -115,8 +115,10 @@
     <Compile Include="Controllers\ImageController.cs" />
     <Compile Include="CLI\ProgramOptions.cs" />
     <Compile Include="CLI\Parser.cs" />
+    <Compile Include="Image\Factories\HandleFactory.cs" />
     <Compile Include="Middlewares\JWT\JWTClaimsRetriever.cs" />
     <Compile Include="Middlewares\JWT\JWTClaimsRetrieverOptions.cs" />
+    <Compile Include="Image\Handle.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
