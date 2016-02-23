@@ -19,7 +19,9 @@ namespace Inuplan.WebAPI.App_Start
     using Autofac;
     using Autofac.Integration.WebApi;
     using Common.Enums;
+    using Common.Factories;
     using Controllers;
+    using Image.Factories;
     using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
     using Owin;
@@ -45,9 +47,25 @@ namespace Inuplan.WebAPI.App_Start
 
             // Register Web API controllers
             builder.Register(ctx => new ManagementPostController(ctx.ResolveKeyed<IRepository<int, Post>>(ServiceKeys.ManagementPosts)));
+            builder.Register(ctx =>
+            {
+                var imgRepo = ctx.ResolveKeyed<IRepository<string, Image>>(ServiceKeys.ImageRepository);
+                var factory = ctx.Resolve<ImageHandleFactory>();
+                return new ImageController(imgRepo, factory);
+            });
 
             // Autofac filter provider
             builder.RegisterWebApiFilterProvider(config);
+
+            // Register classes
+            builder.Register(ctx =>
+            {
+                var root = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase);
+                return new HandleFactory(mediumScaleFactor: 0.5, thumbnailWidth: 160, root: root, filenameLength: 5);
+            }).As<ImageHandleFactory>();
+
+            // Register repositories
+            // HERE...
 
             // Build container
             container = builder.Build();
