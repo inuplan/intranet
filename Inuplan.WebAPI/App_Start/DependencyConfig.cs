@@ -16,14 +16,20 @@
 
 namespace Inuplan.WebAPI.App_Start
 {
+    using System;
+    using System.Configuration;
+    using System.Data;
+    using System.Data.SqlClient;
+    using System.Web.Http;
     using Autofac;
     using Autofac.Integration.WebApi;
     using Common.Enums;
+    using Common.Factories;
     using Controllers;
+    using DAL.Repositories;
+    using Image.Factories;
     using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
-    using Owin;
-    using System.Web.Http;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -45,9 +51,27 @@ namespace Inuplan.WebAPI.App_Start
 
             // Register Web API controllers
             builder.Register(ctx => new ManagementPostController(ctx.ResolveKeyed<IRepository<int, Post>>(ServiceKeys.ManagementPosts)));
+            builder.Register(ctx =>
+            {
+                var imgRepo = ctx.ResolveKeyed<IRepository<Tuple<string, string, string>, Image>>(ServiceKeys.ImageRepository);
+                var factory = ctx.Resolve<ImageHandleFactory>();
+                return new ImageController(imgRepo, factory);
+            });
 
             // Autofac filter provider
             builder.RegisterWebApiFilterProvider(config);
+
+            // Register classes
+            builder.Register(ctx =>
+            {
+                var root = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase);
+                return new HandleFactory(mediumScaleFactor: 0.5, thumbnailWidth: 160, root: root, filenameLength: 5);
+            }).As<ImageHandleFactory>();
+            builder.Register(ctx => new SqlConnection(GetConnectionString())).As<IDbConnection>();
+
+            // Register repositories
+            builder.Register(ctx => new ImageRepository(ctx.Resolve<IDbConnection>()))
+                .Keyed<IRepository<Tuple<string, string, string>, Image>>(ServiceKeys.ImageRepository);
 
             // Build container
             container = builder.Build();
@@ -63,6 +87,20 @@ namespace Inuplan.WebAPI.App_Start
         public static IContainer Container()
         {
             return container;
+        }
+        
+        /// <summary>
+        /// Retrieves the connection string to the database.
+        /// </summary>
+        /// <returns>A connection string</returns>
+        private static string GetConnectionString()
+        {
+#if DEBUG
+            var connectionString = ConfigurationManager.AppSettings["localConnection"];
+#else
+            var connectionString = ConfigurationManager.AppSettings["connectionString"];
+#endif
+            return connectionString;
         }
     }
 }

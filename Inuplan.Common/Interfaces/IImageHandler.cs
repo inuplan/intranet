@@ -18,36 +18,23 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Models
+namespace Inuplan.Common.Interfaces
 {
+    using System;
+    using System.Threading.Tasks;
+    using Models;
+    using System.Net.Http;
     /// <summary>
-    /// Meta data about a file.
+    /// Process images
     /// </summary>
-    public class FileInfo
+    public interface IImageHandler 
     {
         /// <summary>
-        /// Gets or sets the id
+        /// Begins processing
         /// </summary>
-        public int ID { get; set; }
-
-        /// <summary>
-        /// Gets or sets the filename of the file
-        /// </summary>
-        public string Filename { get; set; }
-
-        /// <summary>
-        /// Gets or sets the extension for the file
-        /// </summary>
-        public string Extension { get; set; }
-
-        /// <summary>
-        /// Gets or sets the file mime type
-        /// </summary>
-        public string MimeType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the owner of the file
-        /// </summary>
-        public virtual User Owner { get; set; }
+        /// <param name="user">The user who initiated the process</param>
+        /// <param name="fileContent">The http content file</param>
+        /// <returns>A processed image</returns>
+        Task<Image> ProcessImage(User user, HttpContent fileContent);
     }
 }

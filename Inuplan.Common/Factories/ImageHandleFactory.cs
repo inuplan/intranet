@@ -18,36 +18,19 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Models
+namespace Inuplan.Common.Factories
 {
+    using Interfaces;
+
     /// <summary>
-    /// Meta data about a file.
+    /// An image handle factory
     /// </summary>
-    public class FileInfo
+    public abstract class ImageHandleFactory
     {
         /// <summary>
-        /// Gets or sets the id
+        /// Creates an image handler
         /// </summary>
-        public int ID { get; set; }
-
-        /// <summary>
-        /// Gets or sets the filename of the file
-        /// </summary>
-        public string Filename { get; set; }
-
-        /// <summary>
-        /// Gets or sets the extension for the file
-        /// </summary>
-        public string Extension { get; set; }
-
-        /// <summary>
-        /// Gets or sets the file mime type
-        /// </summary>
-        public string MimeType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the owner of the file
-        /// </summary>
-        public virtual User Owner { get; set; }
+        /// <returns>An image handler</returns>
+        public abstract IImageHandler GetImageHandler();
     }
 }
