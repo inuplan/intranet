@@ -34,9 +34,9 @@ namespace Inuplan.Common.Tools
         public static string GetMIMEType(string extension)
         {
             if (extension.Length > 0 &&
-                MIMETypesDictionary.ContainsKey(extension.Remove(0, 1)))
+                MIMETypesDictionary.ContainsKey(extension))
             {
-                return MIMETypesDictionary[extension.Remove(0, 1)];
+                return MIMETypesDictionary[extension];
             }
 
             return "unknown/unknown";

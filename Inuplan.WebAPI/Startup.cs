@@ -38,7 +38,7 @@ namespace Inuplan.WebAPI
             // Register components
             RouteConfig.RegisterRoutes(config);
             DependencyConfig.RegisterContainer(config);
-            MiddlewareConfig.RegisterMiddlewares(config, app);
+            //MiddlewareConfig.RegisterMiddlewares(config, app);
 
             // Controllers
             app.UseWebApi(config);

@@ -30,6 +30,12 @@ namespace Inuplan.WebAPI.App_Start
     using Image.Factories;
     using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
+    using Authorization.JWT;
+    using System.Security.Cryptography;
+    using Common.Tools;
+    using Jose;
+    using Common.Mappers;
+    using System.DirectoryServices.AccountManagement;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -47,7 +53,15 @@ namespace Inuplan.WebAPI.App_Start
         /// <param name="config">The <see cref="HttpConfiguration"/></param>
         public static void RegisterContainer(HttpConfiguration config)
         {
+            // Setup signing
+            var secretKey = ConfigurationManager.AppSettings["secret"];
+            var sha256 = SHA256.Create();
+            var key = sha256.ComputeHash(Helpers.GetBytes(secretKey));
+
             var builder = new ContainerBuilder();
+
+            // Register connection string
+            builder.Register(ctx => new SqlConnection(GetConnectionString())).As<IDbConnection>();
 
             // Register Web API controllers
             builder.Register(ctx => new ManagementPostController(ctx.ResolveKeyed<IRepository<int, Post>>(ServiceKeys.ManagementPosts)));
@@ -58,8 +72,18 @@ namespace Inuplan.WebAPI.App_Start
                 return new ImageController(imgRepo, factory);
             });
 
-            // Autofac filter provider
+            // Autofac filter provider for ImageController
             builder.RegisterWebApiFilterProvider(config);
+            builder.Register(ctx =>
+            {
+                var mapper = ctx.Resolve<IJsonMapper>();
+                var userDB = ctx.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
+                var userAD = ctx.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+                return new InuplanAuthorizationAttribute(key, mapper, userDB, userAD);
+            })
+            .AsWebApiAuthorizationFilterFor<ImageController>()
+            .InstancePerRequest();
+            
 
             // Register classes
             builder.Register(ctx =>
@@ -67,11 +91,14 @@ namespace Inuplan.WebAPI.App_Start
                 var root = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase);
                 return new HandleFactory(mediumScaleFactor: 0.5, thumbnailWidth: 160, root: root, filenameLength: 5);
             }).As<ImageHandleFactory>();
-            builder.Register(ctx => new SqlConnection(GetConnectionString())).As<IDbConnection>();
+            builder.Register(ctx => new NewtonsoftMapper()).As<IJsonMapper>();
+            builder.Register(ctx => new PrincipalContext(ContextType.Domain, ConfigurationManager.AppSettings["domain"]));
 
             // Register repositories
             builder.Register(ctx => new ImageRepository(ctx.Resolve<IDbConnection>()))
                 .Keyed<IRepository<Tuple<string, string, string>, Image>>(ServiceKeys.ImageRepository);
+            builder.Register(ctx => new UserDatabaseRepository(ctx.Resolve<IDbConnection>())).Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
+            builder.Register(ctx => new UserADRepository(ctx.Resolve<PrincipalContext>())).Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
 
             // Build container
             container = builder.Build();

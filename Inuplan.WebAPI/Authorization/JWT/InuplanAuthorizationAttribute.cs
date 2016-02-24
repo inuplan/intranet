@@ -20,6 +20,8 @@
 
 namespace Inuplan.WebAPI.Authorization.JWT
 {
+    using System.Diagnostics;
+    using System.Web.Http.Controllers;
     using Autofac.Integration.WebApi;
     using Common.DTOs;
     using Common.Models;
@@ -28,15 +30,13 @@ namespace Inuplan.WebAPI.Authorization.JWT
     using NLog;
     using Optional;
     using Optional.Unsafe;
-    using Principal;
-    using System.Diagnostics;
+    using System.Security.Principal;
+    using System.Web;
     using System.Threading;
-    using System.Web.Http.Controllers;
-
-    /// <summary>
-    /// Custom authorization filter, that uses <code>JWT</code> tokens
-    /// and database as well as active directory to either create or authorize users.
-    /// </summary>
+    using Principal;/// <summary>
+                    /// Custom authorization filter, that uses <code>JWT</code> tokens
+                    /// and database as well as active directory to either create or authorize users.
+                    /// </summary>
     public class InuplanAuthorizationAttribute : IAutofacAuthorizationFilter
     {
         /// <summary>
@@ -71,7 +71,9 @@ namespace Inuplan.WebAPI.Authorization.JWT
         /// <param name="mapper">The json mapper</param>
         /// <param name="userDatabaseRepository">The user database repository</param>
         /// <param name="userActiveDirectoryRepository">The user active directory repository</param>
-        public InuplanAuthorizationAttribute(byte[] key, IJsonMapper mapper,
+        public InuplanAuthorizationAttribute(
+            byte[] key,
+            IJsonMapper mapper,
             IRepository<string, User> userDatabaseRepository,
             IRepository<string, User> userActiveDirectoryRepository)
         {
@@ -88,9 +90,16 @@ namespace Inuplan.WebAPI.Authorization.JWT
         /// <param name="actionContext"></param>
         public void OnAuthorization(HttpActionContext actionContext)
         {
-            var bearer = actionContext.Request.Headers.Authorization.Parameter
-                                    .SomeWhen(h => h != null && h.Contains("Bearer"));
-            var token = bearer.Map(header => header.Split(' ')[1]);
+            var header = actionContext.Request.Headers.Authorization.SomeNotNull();
+            var token = header.FlatMap(h =>
+            {
+                if (h.Scheme.Equals("Bearer"))
+                {
+                    return h.Parameter.Some();
+                }
+
+                return Option.None<string>();
+            });
 
             // Process the JWT token into a claim
             var claims = token.FlatMap(t => decode(t, key));
@@ -123,14 +132,11 @@ namespace Inuplan.WebAPI.Authorization.JWT
                     actionContext.Response.Headers.Add("Authorization", b);
                 }
 
-                // Set the principal to custom user
-                var genericPrincipal = actionContext.RequestContext.Principal;
-                var principal = new InuplanPrincipal(genericPrincipal.Identity, new string[] { u.Role.ToString() }, u);
+                // Set user
+                IIdentity identity = new GenericIdentity(u.Username, "JWT");
+                IPrincipal principal = new InuplanPrincipal(identity, new string[] { u.Role.ToString() }, u);
                 Thread.CurrentPrincipal = principal;
-                if(System.Web.HttpContext.Current.User != null)
-                {
-                    System.Web.HttpContext.Current.User = principal;
-                }
+                actionContext.RequestContext.Principal = principal;
             }
             else
             {

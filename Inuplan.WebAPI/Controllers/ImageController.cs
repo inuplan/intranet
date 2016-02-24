@@ -33,7 +33,7 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Tools;
     using NLog;
     using System;
-
+    using Authorization.Principal;
     /// <summary>
     /// Image file controller
     /// </summary>
@@ -77,24 +77,13 @@ namespace Inuplan.WebAPI.Controllers
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "Must be a multipart content type!");
             }
 
-            // TODO: Could convert JWT middleware to AuthorizationAttribute
-            var claims = Request.GetOwinContext().Get<ClaimsDTO>(Constants.JWT_CLAIMS);
-            if(!username.Equals(claims.Username, StringComparison.OrdinalIgnoreCase))
+            var principal = (InuplanPrincipal)RequestContext.Principal;
+            if (!username.Equals(principal.Identity.Name))
             {
                 return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot upload to another users folder");
             }
 
-            // TODO: Could set user in the middleware (custom principal, perhaps?)
-            var owner = new User
-            {
-                Email = claims.Email,
-                FirstName = claims.FirstName,
-                LastName = claims.LastName,
-                ID = claims.ID,
-                Role = claims.Role,
-                Username = claims.Username
-            };
-
+            var owner = principal.User;
             var provider = await Request.Content.ReadAsMultipartAsync(new MultipartMemoryStreamProvider());
             var bag = new ConcurrentBag<Image>();
 
