@@ -54,11 +54,6 @@ namespace Inuplan.WebAPI.Image
         private readonly int thumbnailWidth;
 
         /// <summary>
-        /// Determines whether this class has been disposed
-        /// </summary>
-        private bool disposedValue = false;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="Handle"/> class.
         /// </summary>
         /// <param name="mediumScaleFactor">The medium scaling factor (percent)</param>
