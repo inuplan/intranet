@@ -18,36 +18,18 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.WebAPI.Middlewares.JWT
+namespace Inuplan.WebAPI.Authorization.Principal
 {
-    using Inuplan.Common.Models;
-    using Inuplan.Common.Repositories;
-    using Jose;
+    using Common.Models;
+    using System.Security.Principal;
 
-    /// <summary>
-    /// The configuration options for <see cref="JWTClaimsRetriever"/> middleware.
-    /// </summary>
-    public class JWTClaimsRetrieverOptions
+    public class InuplanPrincipal : GenericPrincipal
     {
-        /// <summary>
-        /// Gets or sets the user repository, which retrieves from the SQL database
-        /// </summary>
-        public IRepository<string, User> UserDatabaseRepository { get; set; }
+        public InuplanPrincipal(IIdentity identity, string[] roles, User user) : base(identity, roles)
+        {
+            this.User = user;
+        }
 
-        /// <summary>
-        /// Gets or sets the user repository, which retrieves from the active directory database
-        /// </summary>
-        public IRepository<string, User> UserActiveDirectoryRepository { get; set; }
-
-        /// <summary>
-        /// Gets or sets the private encryption key used to 
-        /// encode/decode <code>JWT</code> tokens.
-        /// </summary>
-        public byte[] Secret { get; set; }
-
-        /// <summary>
-        /// Gets or sets the JSON mapper
-        /// </summary>
-        public IJsonMapper Mapper { get; set; }
+        public User User { get; private set; }
     }
 }

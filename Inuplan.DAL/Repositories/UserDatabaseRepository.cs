@@ -69,22 +69,31 @@ namespace Inuplan.DAL.Repositories
         public async Task<Option<User>> Create(User entity)
         {
             entity.ID = 0;
-
-            // MS-SQL (T-SQL)
-            var sql = @"INSERT INTO Users (Username, FirstName, LastName, Email, RoleID)
+            using(var transaction = connection.BeginTransaction())
+            {
+                // MS-SQL (T-SQL)
+                var sql = @"INSERT INTO Users (Username, FirstName, LastName, Email, RoleID)
                         VALUES (@Username, @FirstName, @LastName, @Email, @RoleID);
                         SELECT ID FROM Users WHERE ID = @@IDENTITY";
 
-            entity.ID = await connection.ExecuteScalarAsync<int>(sql, new
-            {
-                Username = entity.Username,
-                FirstName = entity.FirstName,
-                LastName = entity.LastName,
-                Email = entity.Email,
-                RoleID = entity.Role
-            });
+                entity.ID = await transaction.Connection.ExecuteScalarAsync<int>(sql, new
+                {
+                    Username = entity.Username,
+                    FirstName = entity.FirstName,
+                    LastName = entity.LastName,
+                    Email = entity.Email,
+                    RoleID = entity.Role
+                });
 
-            return entity.SomeWhen(u => u.ID > 0);
+                var result = entity.SomeWhen(u => u.ID > 0);
+
+                // Discard insertion if user has not been created
+                if (!result.HasValue) transaction.Rollback();
+
+                // Commit transaction
+                transaction.Commit();
+                return result;
+            }
         }
 
         /// <summary>

@@ -112,6 +112,8 @@
     <Compile Include="App_Start\DependencyConfig.cs" />
     <Compile Include="App_Start\MiddlewareConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Authorization\JWT\InuplanAuthorizationAttribute.cs" />
+    <Compile Include="Authorization\Principal\InuplanPrincipal.cs" />
     <Compile Include="Controllers\ImageController.cs" />
     <Compile Include="CLI\ProgramOptions.cs" />
     <Compile Include="CLI\Parser.cs" />
@@ -150,6 +152,7 @@
       <Name>Inuplan.DAL</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
