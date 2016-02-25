@@ -33,10 +33,12 @@ namespace Inuplan.DAL.Repositories
     using Dapper;
     using Optional;
     using System.Data.SqlClient;
-    using NLog;    /// <summary>
-                   /// The first item in the key tuple is the <see cref="User.Username"/> and the
-                   /// second item is the filename of the image, and the third is the extension of the filename
-                   /// </summary>
+    using NLog;
+
+    /// <summary>
+    /// The first item in the key tuple is the <see cref="User.Username"/> and the
+    /// second item is the filename of the image, and the third is the extension of the filename
+    /// </summary>
     public class ImageRepository : IRepository<Tuple<string, string, string>, Image>
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
@@ -236,7 +238,7 @@ namespace Inuplan.DAL.Repositories
         public async Task<Option<Image>> Get(Tuple<string, string, string> key)
         {
             // Get unique user
-            var sqlUserID = @"SELECT * AS OwnerID FROM Users WHERE Username = @Username";
+            var sqlUserID = @"SELECT * FROM Users WHERE Username = @Username";
             var owner = (await connection.QueryAsync<User>(sqlUserID, new { Username = key.Item1 })).Single();
 
             // Get unique file info
@@ -275,16 +277,17 @@ namespace Inuplan.DAL.Repositories
             }
 
             // Retrieve the FileData images
-            var thumbnailPath = connection.ExecuteScalar<string>(@"SELECT Path FROM FileData WHERE ID = @ID", new { thumbnailID });
-            var mediumPath = connection.ExecuteScalar<string>(@"SELECT Path FROM FileData WHERE ID = @ID", new { mediumID });
-            var originalPath = connection.ExecuteScalar<string>(@"SELECT Path FROM FileData WHERE ID = @ID", new { originalID });
+            var thumbnailPath = connection.ExecuteScalar<string>(@"SELECT Path FROM FileData WHERE ID = @ID", new { ID = thumbnailID });
+            var mediumPath = connection.ExecuteScalar<string>(@"SELECT Path FROM FileData WHERE ID = @ID", new { ID = mediumID });
+            var originalPath = connection.ExecuteScalar<string>(@"SELECT Path FROM FileData WHERE ID = @ID", new { ID = originalID });
 
             // Construct Image object
             var image = new Image
             {
                 Thumbnail = new FileData { ID = thumbnailID, Path = thumbnailPath, Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnailPath)) },
                 Medium = new FileData { ID = mediumID, Path = mediumPath, Data = new Lazy<byte[]>(() => File.ReadAllBytes(mediumPath)) },
-                Original = new FileData { ID = originalID, Path = originalPath, Data = new Lazy<byte[]>(() => File.ReadAllBytes(originalPath)) }
+                Original = new FileData { ID = originalID, Path = originalPath, Data = new Lazy<byte[]>(() => File.ReadAllBytes(originalPath)) },
+                MetaData = fileInfo
             };
 
             return image.Some();

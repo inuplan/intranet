@@ -20,27 +20,31 @@
 
 namespace Inuplan.WebAPI.Controllers
 {
+    using System;
     using System.Collections.Concurrent;
     using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
-    using Common.DTOs;
+    using Authorization.Principal;
+    using Autofac.Extras.Attributed;
+    using Common.Enums;
     using Common.Factories;
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
     using NLog;
-    using System;
-    using Authorization.Principal;
-    using Autofac.Extras.Attributed;
-    using Common.Enums;/// <summary>
-                       /// Image file controller
-                       /// </summary>
+
+    /// <summary>
+    /// Image file controller
+    /// </summary>
     [RoutePrefix("{username:alpha:length(2,6)}/image")]
     public class ImageController : ApiController
     {
+        /// <summary>
+        /// The logging framework
+        /// </summary>
         private static Logger logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
@@ -77,12 +81,14 @@ namespace Inuplan.WebAPI.Controllers
         {
             if(!Request.Content.IsMimeMultipartContent())
             {
+                logger.Error("Must be a multipart content type");
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "Must be a multipart content type!");
             }
 
             var principal = (InuplanPrincipal)RequestContext.Principal;
             if (!username.Equals(principal.Identity.Name))
             {
+                logger.Error("Cannot upload to another users folder");
                 return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot upload to another users folder");
             }
 
@@ -93,6 +99,7 @@ namespace Inuplan.WebAPI.Controllers
             var tasks = provider.Contents.Select(async file =>
             {
                 // Process individual image
+                logger.Trace("Processing image...");
                 var handler = imageHandleFactory.GetImageHandler();
                 var image = await handler.ProcessImage(owner, file);
 
@@ -124,9 +131,127 @@ namespace Inuplan.WebAPI.Controllers
 
             var response = string.Format("Finished uploading {0} file(s)", bag.Count);
             return (!error) ?
-                Request.CreateResponse(HttpStatusCode.OK, response) :
+                Request.CreateResponse(HttpStatusCode.Created, response) :
                 Request.CreateResponse(HttpStatusCode.InternalServerError,
                    "Could not save file.Possible reasons: File already exists or database error.See log files for more information.");
+        }
+
+        /// <summary>
+        /// Retrieves the original image from the database
+        /// </summary>
+        /// <param name="username">The username of the current user</param>
+        /// <param name="fullname">The full name of the image requested</param>
+        /// <returns>The requested image</returns>
+        // GET JMS/image/test.jpeg
+        [Route("{fullname}")]
+        [AllowAnonymous]
+        public async Task<HttpResponseMessage> Get(string username, string fullname)
+        {
+            var tmp = Helpers.GetFilename(fullname);
+            var filename = tmp.Item1;
+            var extension = tmp.Item2;
+
+            var image = await imageRepository.Get(new Tuple<string, string, string>(username, filename, extension));
+
+            return image.Match(i =>
+            {
+                var imageBlob = i.Original.Data.Value;
+                var response = Request.CreateResponse(HttpStatusCode.OK);
+                response.Content = new ByteArrayContent(imageBlob);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.MetaData.MimeType);
+                return response;
+            },
+            () =>
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            });
+        }
+
+        /// <summary>
+        /// Retrieves the half-sized image from the database.
+        /// </summary>
+        /// <param name="username">The username of the current user</param>
+        /// <param name="fullname">The full name of the image requested</param>
+        /// <returns>The requested image</returns>
+        // GET JMS/image/preview/test.jpeg
+        [Route("preview/{fullname}")]
+        [AllowAnonymous]
+        public async Task<HttpResponseMessage> GetPreview(string username, string fullname)
+        {
+            var tmp = Helpers.GetFilename(fullname);
+            var filename = tmp.Item1;
+            var extension = tmp.Item2;
+
+            var image = await imageRepository.Get(new Tuple<string, string, string>(username, filename, extension));
+
+            return image.Match(i =>
+            {
+                var imageBlob = i.Medium.Data.Value;
+                var response = Request.CreateResponse(HttpStatusCode.OK);
+                response.Content = new ByteArrayContent(imageBlob);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.MetaData.MimeType);
+                return response;
+            },
+            () =>
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            });
+        }
+
+        /// <summary>
+        /// Retrieves the thumbnail image from the database.
+        /// </summary>
+        /// <param name="username">The username of the current user</param>
+        /// <param name="fullname">The full name of the image requested</param>
+        /// <returns>The requested image</returns>
+        // GET JMS/image/thumbnail/test.jpeg
+        [Route("thumbnail/{fullname}")]
+        [AllowAnonymous]
+        public async Task<HttpResponseMessage> GetThumbnail(string username, string fullname)
+        {
+            var tmp = Helpers.GetFilename(fullname);
+            var filename = tmp.Item1;
+            var extension = tmp.Item2;
+
+            var image = await imageRepository.Get(new Tuple<string, string, string>(username, filename, extension));
+
+            return image.Match(i =>
+            {
+                var imageBlob = i.Thumbnail.Data.Value;
+                var response = Request.CreateResponse(HttpStatusCode.OK);
+                response.Content = new ByteArrayContent(imageBlob);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.MetaData.MimeType);
+                return response;
+            },
+            () =>
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            });
+        }
+
+        /// <summary>
+        /// Retrieves an image by the ID
+        /// </summary>
+        /// <param name="username">The username of the</param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [Route("~/image/id/{id:int}")]
+        [AllowAnonymous]
+        public async Task<HttpResponseMessage> GetByID(int id)
+        {
+            var image = await imageRepository.GetByID(id);
+            return image.Match(i =>
+            {
+                var imageBlob = i.Original.Data.Value;
+                var response = Request.CreateResponse(HttpStatusCode.OK);
+                response.Content = new ByteArrayContent(imageBlob);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.MetaData.MimeType);
+                return response;
+            },
+            () =>
+            {
+                return Request.CreateResponse(HttpStatusCode.NotFound);
+            });
         }
     }
 }

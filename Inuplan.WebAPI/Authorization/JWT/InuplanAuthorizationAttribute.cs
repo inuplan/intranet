@@ -35,10 +35,12 @@ namespace Inuplan.WebAPI.Authorization.JWT
     using System.Threading;
     using Principal;
     using Autofac.Extras.Attributed;
-    using Common.Enums;/// <summary>
-                       /// Custom authorization filter, that uses <code>JWT</code> tokens
-                       /// and database as well as active directory to either create or authorize users.
-                       /// </summary>
+    using Common.Enums;
+    using System.Web.Http;
+    using System.Linq;/// <summary>
+                      /// Custom authorization filter, that uses <code>JWT</code> tokens
+                      /// and database as well as active directory to either create or authorize users.
+                      /// </summary>
     public class InuplanAuthorizationAttribute : IAutofacAuthorizationFilter
     {
         /// <summary>
@@ -92,6 +94,12 @@ namespace Inuplan.WebAPI.Authorization.JWT
         /// <param name="actionContext"></param>
         public void OnAuthorization(HttpActionContext actionContext)
         {
+            // If AllowAnonymous, we allow it
+            if (actionContext.ActionDescriptor.GetCustomAttributes<AllowAnonymousAttribute>().Any() ||
+                    actionContext.ActionDescriptor.ControllerDescriptor.GetCustomAttributes<AllowAnonymousAttribute>().Any())
+                return;
+
+            // Otherwise we inspect the request
             var header = actionContext.Request.Headers.Authorization.SomeNotNull();
             var token = header.FlatMap(h =>
             {

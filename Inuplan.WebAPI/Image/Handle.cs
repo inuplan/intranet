@@ -79,7 +79,7 @@ namespace Inuplan.WebAPI.Image
             using(fileContent)
             {
                 // Get filename
-                var fullname = Filename(fileContent.Headers.ContentDisposition.FileName);
+                var fullname = Helpers.GetFilename(fileContent.Headers.ContentDisposition.FileName);
                 var filename = fullname.Item1.Replace("\"", string.Empty);
                 var extension = fullname.Item2.Replace("\"", string.Empty);
 
@@ -140,28 +140,6 @@ namespace Inuplan.WebAPI.Image
             }
         }
 
-        /// <summary>
-        /// Extracts the filename and extension from a full filename.
-        /// </summary>
-        /// <param name="fullname">The full filename</param>
-        /// <returns>A tuple, where the first item is the filename and the second item is the extension</returns>
-        private Tuple<string, string> Filename(string fullname)
-        {
-            var split = fullname.Split('.');
-            var file = string.Empty;
-
-            // loop untill 2nd last item
-            for (int i = 0; i < split.Length - 1; i++)
-            {
-                // append all to string
-                file += split[i];
-            }
-
-            // last item must be the extension
-            var extension = split[split.Length - 1];
-
-            return new Tuple<string, string>(file, extension);
-        }
 
         /// <summary>
         /// Resize the image to the specified width and height. <br />

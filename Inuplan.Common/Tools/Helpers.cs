@@ -18,6 +18,7 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -47,6 +48,29 @@ namespace Inuplan.Common.Tools
                 sb.Append(hex);
             }
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Extracts the filename and extension from a full filename.
+        /// </summary>
+        /// <param name="fullname">The full filename</param>
+        /// <returns>A tuple, where the first item is the filename and the second item is the extension</returns>
+        public static Tuple<string, string> GetFilename(string fullname)
+        {
+            var split = fullname.Split('.');
+            var file = string.Empty;
+
+            // loop untill 2nd last item
+            for (int i = 0; i < split.Length - 1; i++)
+            {
+                // append all to string
+                file += split[i];
+            }
+
+            // last item must be the extension
+            var extension = split[split.Length - 1];
+
+            return new Tuple<string, string>(file, extension);
         }
 
         public static string GetMIMEType(string extension)
