@@ -36,6 +36,7 @@ namespace Inuplan.WebAPI.App_Start
     using Jose;
     using Common.Mappers;
     using System.DirectoryServices.AccountManagement;
+    using Autofac.Extras.Attributed;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -53,52 +54,44 @@ namespace Inuplan.WebAPI.App_Start
         /// <param name="config">The <see cref="HttpConfiguration"/></param>
         public static void RegisterContainer(HttpConfiguration config)
         {
-            // Setup signing
+            // Setup variables
             var secretKey = ConfigurationManager.AppSettings["secret"];
-            var sha256 = SHA256.Create();
-            var key = sha256.ComputeHash(Helpers.GetBytes(secretKey));
+            var key = SHA256.Create().ComputeHash(Helpers.GetBytes(secretKey));
+            var root = ConfigurationManager.AppSettings["root"];
+            var connectionString = GetConnectionString();
+            var domain = ConfigurationManager.AppSettings["domain"];
 
+            // Create builder
             var builder = new ContainerBuilder();
 
-            // Register connection string
-            builder.Register(ctx => new SqlConnection(GetConnectionString())).As<IDbConnection>();
+            // Register connection
+            builder.Register(ctx => new SqlConnection(connectionString)).As<IDbConnection>().InstancePerDependency();
 
             // Register Web API controllers
-            builder.Register(ctx => new ManagementPostController(ctx.ResolveKeyed<IRepository<int, Post>>(ServiceKeys.ManagementPosts)));
-            builder.Register(ctx =>
-            {
-                var imgRepo = ctx.ResolveKeyed<IRepository<Tuple<string, string, string>, Image>>(ServiceKeys.ImageRepository);
-                var factory = ctx.Resolve<ImageHandleFactory>();
-                return new ImageController(imgRepo, factory);
-            });
+            builder.RegisterType<TestController>().InstancePerRequest();
+            builder.RegisterType<ManagementPostController>().WithAttributeFilter();
+            builder.RegisterType<ImageController>().WithAttributeFilter();
 
-            // Autofac filter provider for ImageController
+            // Autofac filter providers
             builder.RegisterWebApiFilterProvider(config);
-            builder.Register(ctx =>
-            {
-                var mapper = ctx.Resolve<IJsonMapper>();
-                var userDB = ctx.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
-                var userAD = ctx.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-                return new InuplanAuthorizationAttribute(key, mapper, userDB, userAD);
-            })
-            .AsWebApiAuthorizationFilterFor<ImageController>()
-            .InstancePerRequest();
-            
+            builder.RegisterType<InuplanAuthorizationAttribute>().WithAttributeFilter()
+                .AsWebApiAuthorizationFilterFor<TestController>()
+                .InstancePerRequest();
+            builder.RegisterType<InuplanAuthorizationAttribute>().WithAttributeFilter()
+                .AsWebApiAuthorizationFilterFor<ImageController>()
+                .InstancePerRequest();
 
             // Register classes
-            builder.Register(ctx =>
-            {
-                var root = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase);
-                return new HandleFactory(mediumScaleFactor: 0.5, thumbnailWidth: 160, root: root, filenameLength: 5);
-            }).As<ImageHandleFactory>();
-            builder.Register(ctx => new NewtonsoftMapper()).As<IJsonMapper>();
-            builder.Register(ctx => new PrincipalContext(ContextType.Domain, ConfigurationManager.AppSettings["domain"]));
+            builder.RegisterType<NewtonsoftMapper>().As<IJsonMapper>();
+            builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
+            builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain)).InstancePerRequest();
+            builder.RegisterInstance(key).Keyed<byte[]>(ServiceKeys.SecretKey);
+            builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
 
             // Register repositories
-            builder.Register(ctx => new ImageRepository(ctx.Resolve<IDbConnection>()))
-                .Keyed<IRepository<Tuple<string, string, string>, Image>>(ServiceKeys.ImageRepository);
-            builder.Register(ctx => new UserDatabaseRepository(ctx.Resolve<IDbConnection>())).Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
-            builder.Register(ctx => new UserADRepository(ctx.Resolve<PrincipalContext>())).Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            builder.RegisterType<ImageRepository>().WithAttributeFilter().Keyed<IRepository<Tuple<string, string, string>, Image>>(ServiceKeys.ImageRepository).InstancePerRequest();
+            builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase).InstancePerRequest();
+            builder.RegisterType<UserADRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory).InstancePerRequest();
 
             // Build container
             container = builder.Build();

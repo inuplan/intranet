@@ -54,6 +54,16 @@ namespace Inuplan.Common.Enums
         /// <summary>
         /// Key for the image repository
         /// </summary>
-        ImageRepository
+        ImageRepository,
+
+        /// <summary>
+        /// Key for the signing key
+        /// </summary>
+        SecretKey,
+
+        /// <summary>
+        /// Key for the web api root folder
+        /// </summary>
+        RootPath,
     }
 }

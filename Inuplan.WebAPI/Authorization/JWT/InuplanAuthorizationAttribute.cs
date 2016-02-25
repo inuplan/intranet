@@ -33,10 +33,12 @@ namespace Inuplan.WebAPI.Authorization.JWT
     using System.Security.Principal;
     using System.Web;
     using System.Threading;
-    using Principal;/// <summary>
-                    /// Custom authorization filter, that uses <code>JWT</code> tokens
-                    /// and database as well as active directory to either create or authorize users.
-                    /// </summary>
+    using Principal;
+    using Autofac.Extras.Attributed;
+    using Common.Enums;/// <summary>
+                       /// Custom authorization filter, that uses <code>JWT</code> tokens
+                       /// and database as well as active directory to either create or authorize users.
+                       /// </summary>
     public class InuplanAuthorizationAttribute : IAutofacAuthorizationFilter
     {
         /// <summary>
@@ -72,10 +74,10 @@ namespace Inuplan.WebAPI.Authorization.JWT
         /// <param name="userDatabaseRepository">The user database repository</param>
         /// <param name="userActiveDirectoryRepository">The user active directory repository</param>
         public InuplanAuthorizationAttribute(
-            byte[] key,
+            [WithKey(ServiceKeys.SecretKey)]byte[] key,
             IJsonMapper mapper,
-            IRepository<string, User> userDatabaseRepository,
-            IRepository<string, User> userActiveDirectoryRepository)
+            [WithKey(ServiceKeys.UserDatabase)]IRepository<string, User> userDatabaseRepository,
+            [WithKey(ServiceKeys.UserActiveDirectory)] IRepository<string, User> userActiveDirectoryRepository)
         {
             Debug.Assert(key.Length == 32, "Key should be (8 * 32) = 256 bits long because we use HS256 encryption");
             this.key = key;
@@ -129,6 +131,7 @@ namespace Inuplan.WebAPI.Authorization.JWT
                     var b = new string[] { string.Format("Bearer {0}", t) };
 
                     // Add to response header
+                    if (actionContext.Response == null) actionContext.Response = new System.Net.Http.HttpResponseMessage();
                     actionContext.Response.Headers.Add("Authorization", b);
                 }
 

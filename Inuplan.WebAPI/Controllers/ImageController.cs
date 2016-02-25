@@ -34,9 +34,10 @@ namespace Inuplan.WebAPI.Controllers
     using NLog;
     using System;
     using Authorization.Principal;
-    /// <summary>
-    /// Image file controller
-    /// </summary>
+    using Autofac.Extras.Attributed;
+    using Common.Enums;/// <summary>
+                       /// Image file controller
+                       /// </summary>
     [RoutePrefix("{username:alpha:length(2,6)}/image")]
     public class ImageController : ApiController
     {
@@ -56,7 +57,9 @@ namespace Inuplan.WebAPI.Controllers
         /// Instantiates a new <see cref="ImageController"/> instance.
         /// </summary>
         /// <param name="imageRepository">The image repository, which stores the images</param>
-        public ImageController(IRepository<Tuple<string, string, string>, Image> imageRepository, ImageHandleFactory imageHandleFactory)
+        public ImageController(
+            [WithKey(ServiceKeys.ImageRepository)]IRepository<Tuple<string, string, string>, Image> imageRepository,
+            ImageHandleFactory imageHandleFactory)
         {
             this.imageRepository = imageRepository;
             this.imageHandleFactory = imageHandleFactory;
@@ -99,7 +102,7 @@ namespace Inuplan.WebAPI.Controllers
 
             // Wait for all images to be processed
             await Task.WhenAll(tasks);
-            var error = false;
+            var error = true;
 
             // Save images to the repository
             var save = bag.Select(async image =>
@@ -109,11 +112,11 @@ namespace Inuplan.WebAPI.Controllers
                     success =>
                     {
                         logger.Debug("Saved image: {0}.{1}\tWith ID: {2}", success.MetaData.Filename, success.MetaData.Extension, success.MetaData.ID);
+                        error = false;
                     },
                     () =>
                     {
                         logger.Error("Could not save: {0}.{1}", image.MetaData.Filename, image.MetaData.Extension);
-                        error = true;
                     });
             });
 
@@ -122,7 +125,8 @@ namespace Inuplan.WebAPI.Controllers
             var response = string.Format("Finished uploading {0} file(s)", bag.Count);
             return (!error) ?
                 Request.CreateResponse(HttpStatusCode.OK, response) :
-                Request.CreateResponse(HttpStatusCode.InternalServerError);
+                Request.CreateResponse(HttpStatusCode.InternalServerError,
+                   "Could not save file.Possible reasons: File already exists or database error.See log files for more information.");
         }
     }
 }

@@ -80,8 +80,8 @@ namespace Inuplan.WebAPI.Image
             {
                 // Get filename
                 var fullname = Filename(fileContent.Headers.ContentDisposition.FileName);
-                var filename = fullname.Item1;
-                var extension = fullname.Item2;
+                var filename = fullname.Item1.Replace("\"", string.Empty);
+                var extension = fullname.Item2.Replace("\"", string.Empty);
 
                 // Result container
                 FileData original = new FileData();
@@ -224,12 +224,13 @@ namespace Inuplan.WebAPI.Image
         {
             // Return %root%/username/date{yyyymmdd}/{sha1:length(5)}.extension
             var sb = new StringBuilder();
-            sb.AppendFormat("{0}/{1}/{2:yyyyMMdd}/", root, username, DateTime.Now);
+            sb.AppendFormat("{0}\\{1}\\{2:yyyyMMdd}\\", root, username, DateTime.Now);
 
             var sha1 = SHA1.Create();
-            var hash = sha1.ComputeHash(data).ToString().Substring(0, filenameLength);
+            var hash = sha1.ComputeHash(data);
+            var hex = Helpers.HexStringFromBytes(hash).Substring(0, filenameLength);
 
-            sb.AppendFormat("{0}.{1}", hash, extension);
+            sb.AppendFormat("{0}.{1}", hex, extension);
             return sb.ToString();
         }
     }

@@ -20,6 +20,8 @@
 
 namespace Inuplan.WebAPI.Image.Factories
 {
+    using Autofac.Extras.Attributed;
+    using Common.Enums;
     using Common.Factories;
     using Common.Interfaces;
 
@@ -55,7 +57,7 @@ namespace Inuplan.WebAPI.Image.Factories
         /// <param name="thumbnailWidth">The thumbnail width</param>
         /// <param name="root">The root path directory</param>
         /// <param name="filenameLength">The filename length</param>
-        public HandleFactory(double mediumScaleFactor, int thumbnailWidth, string root, int filenameLength)
+        public HandleFactory([WithKey(ServiceKeys.RootPath)]string root, double mediumScaleFactor = 0.5d, int thumbnailWidth = 160, int filenameLength = 5)
         {
             this.mediumScaleFactor = mediumScaleFactor;
             this.thumbnailWidth = thumbnailWidth;

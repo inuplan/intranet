@@ -27,17 +27,19 @@ namespace Inuplan.DAL.Repositories
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using System.Transactions;
     using Common.Models;
     using Common.Repositories;
     using Dapper;
     using Optional;
-
-    /// <summary>
-    /// The first item in the key tuple is the <see cref="User.Username"/> and the
-    /// second item is the filename of the image, and the third is the extension of the filename
-    /// </summary>
+    using System.Data.SqlClient;
+    using NLog;    /// <summary>
+                   /// The first item in the key tuple is the <see cref="User.Username"/> and the
+                   /// second item is the filename of the image, and the third is the extension of the filename
+                   /// </summary>
     public class ImageRepository : IRepository<Tuple<string, string, string>, Image>
     {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         /// <summary>
         /// The database connection
         /// </summary>
@@ -65,84 +67,90 @@ namespace Inuplan.DAL.Repositories
         /// <returns>An optional image with correct ID</returns>
         public async Task<Option<Image>> Create(Image entity)
         {
-            using (var transaction = connection.BeginTransaction())
+            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                var conn = transaction.Connection;
-                entity.MetaData.ID = 0;
-                var sqlInfo = @"INSERT INTO FileInfo
+                try
+                {
+                    entity.MetaData.ID = 0;
+                    var sqlInfo = @"INSERT INTO FileInfo
                         (Filename, Extension, MimeType, OwnerID)
-                        VALUES(@Filename, @Extension, @MimeType, OwnerID);
+                        VALUES(@Filename, @Extension, @MimeType, @OwnerID);
                         SELECT ID FROM FileInfo WHERE ID = @@IDENTITY;";
 
-                // Create info file
-                entity.MetaData.ID = await conn.ExecuteScalarAsync<int>(sqlInfo, new
-                {
-                    Filename = entity.MetaData.Filename,
-                    Extension = entity.MetaData.Extension,
-                    MimeType = entity.MetaData.MimeType,
-                    OwnerID = entity.MetaData.Owner.ID
-                });
+                    // Create info file
+                    entity.MetaData.ID = await connection.ExecuteScalarAsync<int>(sqlInfo, new
+                    {
+                        Filename = entity.MetaData.Filename,
+                        Extension = entity.MetaData.Extension,
+                        MimeType = entity.MetaData.MimeType,
+                        OwnerID = entity.MetaData.Owner.ID
+                    });
 
-                // Create 3 images
-                var sqlOriginal = @"INSERT INTO FileData (Path) VALUES (@Path);
+                    // Create 3 images
+                    var sqlOriginal = @"INSERT INTO FileData (Path) VALUES (@Path);
                                 SELECT ID FROM FileData WHERE ID = @@IDENTITY;";
-                entity.Original.ID = await conn.ExecuteScalarAsync<int>(sqlOriginal, new
-                {
-                    Path = entity.Original.Path
-                });
+                    entity.Original.ID = await connection.ExecuteScalarAsync<int>(sqlOriginal, new
+                    {
+                        Path = entity.Original.Path
+                    });
 
-                var sqlMedium = @"INSERT INTO FileData (Path) VALUES (@Path);
+                    var sqlMedium = @"INSERT INTO FileData (Path) VALUES (@Path);
                                 SELECT ID FROM FileData WHERE ID = @@IDENTITY;";
-                entity.Medium.ID = await conn.ExecuteScalarAsync<int>(sqlMedium, new
-                {
-                    Path = entity.Medium.Path
-                });
+                    entity.Medium.ID = await connection.ExecuteScalarAsync<int>(sqlMedium, new
+                    {
+                        Path = entity.Medium.Path
+                    });
 
-                var sqlThumbnail = @"INSERT INTO FileData (Path) VALUES (@Path);
+                    var sqlThumbnail = @"INSERT INTO FileData (Path) VALUES (@Path);
                                 SELECT ID FROM FileData WHERE ID = @@IDENTITY;";
-                entity.Thumbnail.ID = await conn.ExecuteScalarAsync<int>(sqlThumbnail, new
-                {
-                    Path = entity.Thumbnail.Path
-                });
+                    entity.Thumbnail.ID = await connection.ExecuteScalarAsync<int>(sqlThumbnail, new
+                    {
+                        Path = entity.Thumbnail.Path
+                    });
 
-                var sql = @"INSERT INTO Images (ID, ThumbnailID, MediumID, OriginalID)
+                    var sql = @"INSERT INTO Images (ID, ThumbnailID, MediumID, OriginalID)
                         VALUES (@FID, @TID, @MID, @OID);";
-                await conn.ExecuteAsync(sql, new
-                {
-                    FID = entity.MetaData.ID,
-                    TID = entity.Thumbnail.ID,
-                    MID = entity.Medium.ID,
-                    OID = entity.Original.ID
-                });
+                    await connection.ExecuteAsync(sql, new
+                    {
+                        FID = entity.MetaData.ID,
+                        TID = entity.Thumbnail.ID,
+                        MID = entity.Medium.ID,
+                        OID = entity.Original.ID
+                    });
 
-                // Write directory...
-                // Assumption: All files are in the same directory
-                var dir = Path.GetDirectoryName(entity.Medium.Path);
-                var dirInfo = Directory.CreateDirectory(dir);
+                    var success = entity.MetaData.ID > 0 &&
+                                    entity.Original.ID > 0 &&
+                                    entity.Medium.ID > 0 &&
+                                    entity.Thumbnail.ID > 0;
 
-                var success = entity.MetaData.ID > 0 &&
-                                entity.Original.ID > 0 &&
-                                entity.Medium.ID > 0 &&
-                                entity.Thumbnail.ID > 0;
+                    if (success)
+                    {
+                        // Write directory...
+                        // Assumption: All files are in the same directory
+                        var dir = Path.GetDirectoryName(entity.Medium.Path);
+                        var dirInfo = Directory.CreateDirectory(dir);
 
-                if (success)
-                {
-                    // Commit database transactions
-                    transaction.Commit();
+                        // Commit database transactions
+                        transactionScope.Complete();
 
-                    // Write files 
-                    // Assumption: Filesystem always succeed writing
-                    File.WriteAllBytes(entity.Original.Path, entity.Original.Data.Value);
-                    File.WriteAllBytes(entity.Medium.Path, entity.Medium.Data.Value);
-                    File.WriteAllBytes(entity.Thumbnail.Path, entity.Thumbnail.Data.Value);
+                        // Write files 
+                        // Assumption: Filesystem always succeed writing
+                        File.WriteAllBytes(entity.Original.Path, entity.Original.Data.Value);
+                        File.WriteAllBytes(entity.Medium.Path, entity.Medium.Data.Value);
+                        File.WriteAllBytes(entity.Thumbnail.Path, entity.Thumbnail.Data.Value);
 
-                    return entity.SomeWhen(i => success);
+                        return entity.Some();
+                    }
+
                 }
-
-                // Rollback to pre-transaction
-                transaction.Rollback();
-                return Option.None<Image>();
+                catch (SqlException ex)
+                {
+                    // log error
+                    logger.Error(ex);
+                }
             }
+
+            return Option.None<Image>();
         }
 
         /// <summary>
