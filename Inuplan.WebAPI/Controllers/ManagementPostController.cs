@@ -24,10 +24,10 @@ namespace Inuplan.WebAPI.Controllers
     using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
     using Optional;
-
-    /// <summary>
-    /// A <see cref="Post"/> controller
-    /// </summary>
+    using Autofac.Extras.Attributed;
+    using Common.Enums;    /// <summary>
+                           /// A <see cref="Post"/> controller
+                           /// </summary>
     [RoutePrefix("api/posts/executive")]
     public class ManagementPostController : ApiController
     {
@@ -45,7 +45,7 @@ namespace Inuplan.WebAPI.Controllers
         /// Initializes an instance of the <see cref="ManagementPostController"/> class.
         /// </summary>
         /// <param name="postRepository">A repository of posts</param>
-        public ManagementPostController(IRepository<int, Post> postRepository)
+        public ManagementPostController([WithKey(ServiceKeys.ManagementPosts)]IRepository<int, Post> postRepository)
         {
             this.postRepository = postRepository;
         }

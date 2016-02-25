@@ -49,6 +49,21 @@ namespace Inuplan.Common.Enums
         /// <summary>
         /// Key for retrieving the current domain name
         /// </summary>
-        DomainName
+        DomainName,
+
+        /// <summary>
+        /// Key for the image repository
+        /// </summary>
+        ImageRepository,
+
+        /// <summary>
+        /// Key for the signing key
+        /// </summary>
+        SecretKey,
+
+        /// <summary>
+        /// Key for the web api root folder
+        /// </summary>
+        RootPath,
     }
 }

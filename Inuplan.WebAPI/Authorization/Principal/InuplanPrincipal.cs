@@ -18,36 +18,18 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Models
+namespace Inuplan.WebAPI.Authorization.Principal
 {
-    /// <summary>
-    /// Meta data about a file.
-    /// </summary>
-    public class FileInfo
+    using Common.Models;
+    using System.Security.Principal;
+
+    public class InuplanPrincipal : GenericPrincipal
     {
-        /// <summary>
-        /// Gets or sets the id
-        /// </summary>
-        public int ID { get; set; }
+        public InuplanPrincipal(IIdentity identity, string[] roles, User user) : base(identity, roles)
+        {
+            this.User = user;
+        }
 
-        /// <summary>
-        /// Gets or sets the filename of the file
-        /// </summary>
-        public string Filename { get; set; }
-
-        /// <summary>
-        /// Gets or sets the extension for the file
-        /// </summary>
-        public string Extension { get; set; }
-
-        /// <summary>
-        /// Gets or sets the file mime type
-        /// </summary>
-        public string MimeType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the owner of the file
-        /// </summary>
-        public virtual User Owner { get; set; }
+        public User User { get; private set; }
     }
 }

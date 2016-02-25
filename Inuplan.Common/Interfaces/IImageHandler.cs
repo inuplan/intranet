@@ -18,42 +18,23 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.WebAPI.Middlewares.JWT
+namespace Inuplan.Common.Interfaces
 {
-    using Inuplan.Common.Models;
-    using Inuplan.Common.Repositories;
-    using Jose;
-
+    using System;
+    using System.Threading.Tasks;
+    using Models;
+    using System.Net.Http;
     /// <summary>
-    /// The configuration options for <see cref="JWTClaimsRetriever"/> middleware.
+    /// Process images
     /// </summary>
-    public class JWTClaimsRetrieverOptions
+    public interface IImageHandler 
     {
         /// <summary>
-        /// Gets or sets the user repository, which retrieves from the SQL database
+        /// Begins processing
         /// </summary>
-        public IRepository<string, User> UserDatabaseRepository { get; set; }
-
-        /// <summary>
-        /// Gets or sets the user repository, which retrieves from the active directory database
-        /// </summary>
-        public IRepository<string, User> UserActiveDirectoryRepository { get; set; }
-
-        /// <summary>
-        /// Gets or sets the domain name for the <code>Active Directory</code>
-        /// Example: corp.local
-        /// </summary>
-        //public string Domain { get; set; }
-
-        /// <summary>
-        /// Gets or sets the private encryption key used to 
-        /// encode/decode <code>JWT</code> tokens.
-        /// </summary>
-        public byte[] Secret { get; set; }
-
-        /// <summary>
-        /// Gets or sets the JSON mapper
-        /// </summary>
-        public IJsonMapper Mapper { get; set; }
+        /// <param name="user">The user who initiated the process</param>
+        /// <param name="fileContent">The http content file</param>
+        /// <returns>A processed image</returns>
+        Task<Image> ProcessImage(User user, HttpContent fileContent);
     }
 }

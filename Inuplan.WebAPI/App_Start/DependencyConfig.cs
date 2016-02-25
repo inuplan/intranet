@@ -16,14 +16,27 @@
 
 namespace Inuplan.WebAPI.App_Start
 {
+    using System;
+    using System.Configuration;
+    using System.Data;
+    using System.Data.SqlClient;
+    using System.Web.Http;
     using Autofac;
     using Autofac.Integration.WebApi;
     using Common.Enums;
+    using Common.Factories;
     using Controllers;
+    using DAL.Repositories;
+    using Image.Factories;
     using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
-    using Owin;
-    using System.Web.Http;
+    using Authorization.JWT;
+    using System.Security.Cryptography;
+    using Common.Tools;
+    using Jose;
+    using Common.Mappers;
+    using System.DirectoryServices.AccountManagement;
+    using Autofac.Extras.Attributed;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -41,13 +54,44 @@ namespace Inuplan.WebAPI.App_Start
         /// <param name="config">The <see cref="HttpConfiguration"/></param>
         public static void RegisterContainer(HttpConfiguration config)
         {
+            // Setup variables
+            var secretKey = ConfigurationManager.AppSettings["secret"];
+            var key = SHA256.Create().ComputeHash(Helpers.GetBytes(secretKey));
+            var root = ConfigurationManager.AppSettings["root"];
+            var connectionString = GetConnectionString();
+            var domain = ConfigurationManager.AppSettings["domain"];
+
+            // Create builder
             var builder = new ContainerBuilder();
 
-            // Register Web API controllers
-            builder.Register(ctx => new ManagementPostController(ctx.ResolveKeyed<IRepository<int, Post>>(ServiceKeys.ManagementPosts)));
+            // Register connection
+            builder.Register(ctx => new SqlConnection(connectionString)).As<IDbConnection>().InstancePerDependency();
 
-            // Autofac filter provider
+            // Register Web API controllers
+            builder.RegisterType<TestController>().InstancePerRequest();
+            builder.RegisterType<ManagementPostController>().WithAttributeFilter();
+            builder.RegisterType<ImageController>().WithAttributeFilter();
+
+            // Autofac filter providers
             builder.RegisterWebApiFilterProvider(config);
+            builder.RegisterType<InuplanAuthorizationAttribute>().WithAttributeFilter()
+                .AsWebApiAuthorizationFilterFor<TestController>()
+                .InstancePerRequest();
+            builder.RegisterType<InuplanAuthorizationAttribute>().WithAttributeFilter()
+                .AsWebApiAuthorizationFilterFor<ImageController>()
+                .InstancePerRequest();
+
+            // Register classes
+            builder.RegisterType<NewtonsoftMapper>().As<IJsonMapper>();
+            builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
+            builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain)).InstancePerRequest();
+            builder.RegisterInstance(key).Keyed<byte[]>(ServiceKeys.SecretKey);
+            builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
+
+            // Register repositories
+            builder.RegisterType<ImageRepository>().WithAttributeFilter().Keyed<IRepository<Tuple<string, string, string>, Image>>(ServiceKeys.ImageRepository).InstancePerRequest();
+            builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase).InstancePerRequest();
+            builder.RegisterType<UserADRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory).InstancePerRequest();
 
             // Build container
             container = builder.Build();
@@ -63,6 +107,20 @@ namespace Inuplan.WebAPI.App_Start
         public static IContainer Container()
         {
             return container;
+        }
+        
+        /// <summary>
+        /// Retrieves the connection string to the database.
+        /// </summary>
+        /// <returns>A connection string</returns>
+        private static string GetConnectionString()
+        {
+#if DEBUG
+            var connectionString = ConfigurationManager.AppSettings["localConnection"];
+#else
+            var connectionString = ConfigurationManager.AppSettings["connectionString"];
+#endif
+            return connectionString;
         }
     }
 }

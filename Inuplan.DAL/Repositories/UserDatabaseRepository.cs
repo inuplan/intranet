@@ -28,7 +28,7 @@ namespace Inuplan.DAL.Repositories
     using Common.Repositories;
     using Dapper;
     using Optional;
-
+    using System.Transactions;
     /// <summary>
     /// Repository for <see cref="User"/>s in the database.
     /// Can do CRUD operations.
@@ -58,6 +58,7 @@ namespace Inuplan.DAL.Repositories
         public UserDatabaseRepository(IDbConnection connection)
         {
             this.connection = connection;
+            this.connection.Open();
             locking = new object();
         }
 
@@ -69,22 +70,32 @@ namespace Inuplan.DAL.Repositories
         public async Task<Option<User>> Create(User entity)
         {
             entity.ID = 0;
-
-            // MS-SQL (T-SQL)
-            var sql = @"INSERT INTO Users (Username, FirstName, LastName, Email, RoleID)
+            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                // MS-SQL (T-SQL)
+                var sql = @"INSERT INTO Users (Username, FirstName, LastName, Email, RoleID)
                         VALUES (@Username, @FirstName, @LastName, @Email, @RoleID);
                         SELECT ID FROM Users WHERE ID = @@IDENTITY";
 
-            entity.ID = await connection.ExecuteScalarAsync<int>(sql, new
-            {
-                Username = entity.Username,
-                FirstName = entity.FirstName,
-                LastName = entity.LastName,
-                Email = entity.Email,
-                RoleID = entity.Role
-            });
+                entity.ID = await connection.ExecuteScalarAsync<int>(sql, new
+                {
+                    Username = entity.Username,
+                    FirstName = entity.FirstName,
+                    LastName = entity.LastName,
+                    Email = entity.Email,
+                    RoleID = entity.Role
+                });
 
-            return entity.SomeWhen(u => u.ID > 0);
+                var result = entity.SomeWhen(u => u.ID > 0);
+
+                // On success commit
+                if (result.HasValue)
+                {
+                    transactionScope.Complete();
+                }
+
+                return result;
+            }
         }
 
         /// <summary>
