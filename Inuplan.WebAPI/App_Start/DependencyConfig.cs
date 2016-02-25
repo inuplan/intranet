@@ -84,14 +84,14 @@ namespace Inuplan.WebAPI.App_Start
             // Register classes
             builder.RegisterType<NewtonsoftMapper>().As<IJsonMapper>();
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
-            builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain)).InstancePerRequest();
+            builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
             builder.RegisterInstance(key).Keyed<byte[]>(ServiceKeys.SecretKey);
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
 
             // Register repositories
             builder.RegisterType<ImageRepository>().WithAttributeFilter().Keyed<IRepository<Tuple<string, string, string>, Image>>(ServiceKeys.ImageRepository).InstancePerRequest();
-            builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase).InstancePerRequest();
-            builder.RegisterType<UserADRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory).InstancePerRequest();
+            builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
+            builder.RegisterType<UserADRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
 
             // Build container
             container = builder.Build();

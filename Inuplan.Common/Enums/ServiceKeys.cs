@@ -47,11 +47,6 @@ namespace Inuplan.Common.Enums
         GeneralPosts,
 
         /// <summary>
-        /// Key for retrieving the current domain name
-        /// </summary>
-        DomainName,
-
-        /// <summary>
         /// Key for the image repository
         /// </summary>
         ImageRepository,
