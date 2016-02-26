@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace Inuplan.Intranet.Client
             this.client = client;
         }
 
-        public async Task<HttpResponseMessage> Send(HttpRequestMessage message)
+        public async Task<HttpResponseMessage> Send(HttpRequestMessage message, NameValueCollection headers)
         {
             // Check current http header for JWT token
 
