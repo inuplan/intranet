@@ -59,7 +59,6 @@ namespace Inuplan.DAL.Repositories
         public ImageRepository(IDbConnection connection)
         {
             this.connection = connection;
-            this.connection.Open();
         }
 
         /// <summary>

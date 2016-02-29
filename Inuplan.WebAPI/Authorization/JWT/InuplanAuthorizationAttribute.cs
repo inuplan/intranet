@@ -22,7 +22,6 @@ namespace Inuplan.WebAPI.Authorization.JWT
 {
     using System.Diagnostics;
     using System.Web.Http.Controllers;
-    using Autofac.Integration.WebApi;
     using Common.DTOs;
     using Common.Models;
     using Common.Repositories;
@@ -30,18 +29,21 @@ namespace Inuplan.WebAPI.Authorization.JWT
     using NLog;
     using Optional;
     using Optional.Unsafe;
-    using System.Security.Principal;
-    using System.Web;
-    using System.Threading;
-    using Principal;
-    using Autofac.Extras.Attributed;
     using Common.Enums;
     using System.Web.Http;
-    using System.Linq;/// <summary>
-                      /// Custom authorization filter, that uses <code>JWT</code> tokens
-                      /// and database as well as active directory to either create or authorize users.
-                      /// </summary>
-    public class InuplanAuthorizationAttribute : IAutofacAuthorizationFilter
+    using System.Linq;
+    using System.Net.Http;
+    using Autofac;
+    using App_Start;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using System.Web.Http.Filters;
+    using Microsoft.Owin;
+    using Common.Tools;/// <summary>
+                       /// Custom authorization filter, that uses <code>JWT</code> tokens
+                       /// and database as well as active directory to either create or authorize users.
+                       /// </summary>
+    public class InuplanAuthorizationAttribute : AuthorizationFilterAttribute
     {
         /// <summary>
         /// The logging framework
@@ -59,41 +61,24 @@ namespace Inuplan.WebAPI.Authorization.JWT
         private readonly IJsonMapper mapper;
 
         /// <summary>
-        /// The user database repository
-        /// </summary>
-        private readonly IRepository<string, User> userDatabaseRepository;
-
-        /// <summary>
-        /// The user active directory repository
-        /// </summary>
-        private readonly IRepository<string, User> userActiveDirectoryRepository;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="InuplanAuthorizationAttribute"/> class.
         /// </summary>
         /// <param name="key">The key used for signing tokens</param>
         /// <param name="mapper">The json mapper</param>
-        /// <param name="userDatabaseRepository">The user database repository</param>
-        /// <param name="userActiveDirectoryRepository">The user active directory repository</param>
-        public InuplanAuthorizationAttribute(
-            [WithKey(ServiceKeys.SecretKey)]byte[] key,
-            IJsonMapper mapper,
-            [WithKey(ServiceKeys.UserDatabase)]IRepository<string, User> userDatabaseRepository,
-            [WithKey(ServiceKeys.UserActiveDirectory)] IRepository<string, User> userActiveDirectoryRepository)
+        public InuplanAuthorizationAttribute() 
         {
+            key = DependencyConfig.Container().ResolveKeyed<byte[]>(ServiceKeys.SecretKey);
+            mapper = DependencyConfig.Container().Resolve<IJsonMapper>();
             Debug.Assert(key.Length == 32, "Key should be (8 * 32) = 256 bits long because we use HS256 encryption");
-            this.key = key;
-            this.mapper = mapper;
-            this.userDatabaseRepository = userDatabaseRepository;
-            this.userActiveDirectoryRepository = userActiveDirectoryRepository;
         }
 
         /// <summary>
         /// Authorizes a request
         /// </summary>
         /// <param name="actionContext"></param>
-        public void OnAuthorization(HttpActionContext actionContext)
+        public override void OnAuthorization(HttpActionContext actionContext)
         {
+            logger.Trace("Authorizing...");
             // If AllowAnonymous, we allow it
             if (actionContext.ActionDescriptor.GetCustomAttributes<AllowAnonymousAttribute>().Any() ||
                     actionContext.ActionDescriptor.ControllerDescriptor.GetCustomAttributes<AllowAnonymousAttribute>().Any())
@@ -113,17 +98,28 @@ namespace Inuplan.WebAPI.Authorization.JWT
 
             // Process the JWT token into a claim
             var claims = token.FlatMap(t => decode(t, key));
+            var user = Option.None<User>();
 
             // Get or create the user
-            var user = claims.FlatMap(c => GetOrCreateUser(c));
-
-            if(claims.HasValue && user.HasValue)
+            using(var scope = DependencyConfig.Container().BeginLifetimeScope())
             {
+                logger.Trace("Retrieving dependencies, from database and active directory");
+                var userDatabaseRepository = scope.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
+                var userActiveDirectoryRepository = scope.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+                user = claims.FlatMap(c => GetOrCreateUser(c, userDatabaseRepository, userActiveDirectoryRepository));
+            }
+
+            if (claims.HasValue && user.HasValue)
+            {
+                logger.Trace("Claims and user have values");
+                IOwinContext owinContext = new OwinContext(actionContext.Request.GetOwinContext().Environment);
                 var c = claims.ValueOrFailure();
                 var u = user.ValueOrFailure();
 
+                string b = string.Empty;
                 if (!c.Verified)
                 {
+                    logger.Trace("Is not verified, updating claims...");
                     // Update the JWT claims with the correct info
                     c.ID = u.ID;
                     c.FirstName = u.FirstName;
@@ -135,23 +131,24 @@ namespace Inuplan.WebAPI.Authorization.JWT
                     c.Verified = true;
 
                     // Sign token
+                    logger.Trace("Signing token...");
                     var t = JWT.Encode(c, key, JwsAlgorithm.HS256);
-                    var b = new string[] { string.Format("Bearer {0}", t) };
-
-                    // Add to response header
-                    if (actionContext.Response == null) actionContext.Response = new System.Net.Http.HttpResponseMessage();
-                    actionContext.Response.Headers.Add("Authorization", b);
+                    b = string.Format("Bearer {0}", t);
                 }
 
+                // Save token in the owin context
+                owinContext.Set(Constants.JWT_TOKEN, b);
+
+                logger.Trace("Returning from authorized check...");
                 // Set user
-                IIdentity identity = new GenericIdentity(u.Username, "JWT");
-                IPrincipal principal = new InuplanPrincipal(identity, new string[] { u.Role.ToString() }, u);
-                Thread.CurrentPrincipal = principal;
-                actionContext.RequestContext.Principal = principal;
+                //IIdentity identity = new GenericIdentity(u.Username, "JWT");
+                //IPrincipal principal = new InuplanPrincipal(identity, new string[] { u.Role.ToString() }, u);
+                //Thread.CurrentPrincipal = principal;
+                //actionContext.RequestContext.Principal = principal;
             }
             else
             {
-                actionContext.Response = new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized);
+                actionContext.Response = new HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized);
             }
         }
 
@@ -212,7 +209,7 @@ namespace Inuplan.WebAPI.Authorization.JWT
         /// </summary>
         /// <param name="c">The claims of the <code>JWT</code> token</param>
         /// <returns>Returns an awaitable task which contains a <see cref="User"/></returns>
-        private Option<User> GetOrCreateUser(ClaimsDTO c)
+        private Option<User> GetOrCreateUser(ClaimsDTO c, IRepository<string, User> userDatabaseRepository, IRepository<string, User> userActiveDirectoryRepository)
         {
             if(c.Verified)
             {

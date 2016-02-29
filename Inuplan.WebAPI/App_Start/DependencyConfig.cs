@@ -37,7 +37,7 @@ namespace Inuplan.WebAPI.App_Start
     using Common.Mappers;
     using System.DirectoryServices.AccountManagement;
     using Autofac.Extras.Attributed;
-
+    using Mocks;
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
     /// </summary>
@@ -65,7 +65,12 @@ namespace Inuplan.WebAPI.App_Start
             var builder = new ContainerBuilder();
 
             // Register connection
-            builder.Register(ctx => new SqlConnection(connectionString)).As<IDbConnection>().InstancePerDependency();
+            builder.Register(ctx =>
+            {
+                var connection = new SqlConnection(connectionString);
+                connection.Open();
+                return connection;
+            }).As<IDbConnection>().InstancePerDependency();
 
             // Register Web API controllers
             builder.RegisterType<TestController>().InstancePerRequest();
@@ -73,13 +78,11 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<ImageController>().WithAttributeFilter();
 
             // Autofac filter providers
-            builder.RegisterWebApiFilterProvider(config);
-            builder.RegisterType<InuplanAuthorizationAttribute>().WithAttributeFilter()
-                .AsWebApiAuthorizationFilterFor<TestController>()
-                .InstancePerRequest();
-            builder.RegisterType<InuplanAuthorizationAttribute>().WithAttributeFilter()
-                .AsWebApiAuthorizationFilterFor<ImageController>()
-                .InstancePerRequest();
+            //builder.RegisterWebApiFilterProvider(config);
+            //builder.RegisterType<InuplanAuthorizationAttribute>().WithAttributeFilter()
+            //    .AsWebApiAuthorizationFilterFor<TestController>();
+            //builder.RegisterType<InuplanAuthorizationAttribute>().WithAttributeFilter()
+            //    .AsWebApiAuthorizationFilterFor<ImageController>();
 
             // Register classes
             builder.RegisterType<NewtonsoftMapper>().As<IJsonMapper>();
@@ -90,8 +93,10 @@ namespace Inuplan.WebAPI.App_Start
 
             // Register repositories
             builder.RegisterType<ImageRepository>().WithAttributeFilter().Keyed<IRepository<Tuple<string, string, string>, Image>>(ServiceKeys.ImageRepository).InstancePerRequest();
-            builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
-            builder.RegisterType<UserADRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            //builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
+            //builder.RegisterType<UserADRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            builder.RegisterType<NoADRepo>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            builder.RegisterType<NoDBRepo>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
 
             // Build container
             container = builder.Build();
@@ -99,7 +104,7 @@ namespace Inuplan.WebAPI.App_Start
             // Set the dependency resolver
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
         }
-
+        
         /// <summary>
         /// Exposes the dependency injection container
         /// </summary>
@@ -108,7 +113,7 @@ namespace Inuplan.WebAPI.App_Start
         {
             return container;
         }
-        
+
         /// <summary>
         /// Retrieves the connection string to the database.
         /// </summary>
