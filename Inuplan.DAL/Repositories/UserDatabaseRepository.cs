@@ -58,7 +58,6 @@ namespace Inuplan.DAL.Repositories
         public UserDatabaseRepository(IDbConnection connection)
         {
             this.connection = connection;
-            this.connection.Open();
             locking = new object();
         }
 

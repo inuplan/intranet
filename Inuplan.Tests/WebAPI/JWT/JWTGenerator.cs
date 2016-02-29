@@ -33,15 +33,17 @@ namespace Inuplan.Tests.WebAPI.JWT
         [Fact]
         public void Test_JWTS()
         {
+
             var key = SHA256.Create().ComputeHash(Helpers.GetBytes("b6Y34qVqNTHYX32EQhPUqABzqygZ6VhetKepspRpA3yrARXzjF4tr2CEuMgu"));
             var claims = new ClaimsDTO
             {
                 Verified = false,
-                Username = "JMS",
+                Username = "jdoe",
                 Role = RoleType.User,
             };
+
             var token = JWT.Encode(claims, key, JwsAlgorithm.HS256);
-            Debug.WriteLine(string.Format("Bearer {0}", token));
+            var bearer = (string.Format("Bearer {0}", token));
         }
     }
 }

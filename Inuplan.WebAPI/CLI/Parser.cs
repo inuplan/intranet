@@ -19,12 +19,17 @@ namespace Inuplan.WebAPI.CLI
     using System;
     using Optional;
     using CommandLine;
-
+    using NLog;
     /// <summary>
     /// Command-line interface parser
     /// </summary>
     public class Parser
     {
+        /// <summary>
+        /// The logger
+        /// </summary>
+        private static ILogger logger = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// Default address if none has been given
         /// </summary>
@@ -72,6 +77,8 @@ namespace Inuplan.WebAPI.CLI
         /// <param name="address">The address of the <code>Web API</code></param>
         public void StartConsole(string address)
         {
+            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
+            AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
             Console.WriteLine("Inuplan A/S Web API listening on: {0}\n", address);
 
             var loop = true;
@@ -102,6 +109,16 @@ namespace Inuplan.WebAPI.CLI
                         break;
                 }
             }            
+        }
+
+        private static void CurrentDomain_FirstChanceException(object sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+        {
+            logger.Error("First chance", e);
+        }
+
+        private static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
+        {
+            logger.Error("Unhandled exception", e);
         }
     }
 }
