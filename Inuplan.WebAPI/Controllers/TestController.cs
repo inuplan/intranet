@@ -33,13 +33,9 @@ namespace Inuplan.WebAPI.Controllers
         /// </summary>
         /// <returns>Returns an http response message</returns>
         [Route("test/hello")]
-        [InuplanAuthorization]
         public async Task<HttpResponseMessage> Get()
         {
             // The full path is: localhost:9000/api/test/hello
-            // Get owin context and add the bearer(token) to the response header
-            // Or create a custom middleware that only checks upon returning a response
-            // and then modifies the response by adding the bearer token into the header.
             return await Task.FromResult(Request.CreateResponse(HttpStatusCode.OK, "Hello World"));
         }
     }

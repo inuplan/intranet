@@ -77,13 +77,6 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<ManagementPostController>().WithAttributeFilter();
             builder.RegisterType<ImageController>().WithAttributeFilter();
 
-            // Autofac filter providers
-            //builder.RegisterWebApiFilterProvider(config);
-            //builder.RegisterType<InuplanAuthorizationAttribute>().WithAttributeFilter()
-            //    .AsWebApiAuthorizationFilterFor<TestController>();
-            //builder.RegisterType<InuplanAuthorizationAttribute>().WithAttributeFilter()
-            //    .AsWebApiAuthorizationFilterFor<ImageController>();
-
             // Register classes
             builder.RegisterType<NewtonsoftMapper>().As<IJsonMapper>();
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();

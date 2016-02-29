@@ -20,29 +20,32 @@
 
 namespace Inuplan.WebAPI.Authorization.JWT
 {
-    using System.Diagnostics;
-    using System.Web.Http.Controllers;
+    using App_Start;
+    using Autofac;
     using Common.DTOs;
+    using Common.Enums;
     using Common.Models;
     using Common.Repositories;
+    using Common.Tools;
     using Jose;
     using NLog;
     using Optional;
     using Optional.Unsafe;
-    using Common.Enums;
-    using System.Web.Http;
+    using Principal;
+    using System.Diagnostics;
     using System.Linq;
+    using System.Net;
     using System.Net.Http;
-    using Autofac;
-    using App_Start;
+    using System.Security.Principal;
     using System.Threading;
-    using System.Threading.Tasks;
+    using System.Web.Http;
+    using System.Web.Http.Controllers;
     using System.Web.Http.Filters;
-    using Microsoft.Owin;
-    using Common.Tools;/// <summary>
-                       /// Custom authorization filter, that uses <code>JWT</code> tokens
-                       /// and database as well as active directory to either create or authorize users.
-                       /// </summary>
+
+    /// <summary>
+    /// Custom authorization filter, that uses <code>JWT</code> tokens
+    /// and database as well as active directory to either create or authorize users.
+    /// </summary>
     public class InuplanAuthorizationAttribute : AuthorizationFilterAttribute
     {
         /// <summary>
@@ -97,7 +100,7 @@ namespace Inuplan.WebAPI.Authorization.JWT
             });
 
             // Process the JWT token into a claim
-            var claims = token.FlatMap(t => decode(t, key));
+            var claims = token.FlatMap(t => Decode(t, key));
             var user = Option.None<User>();
 
             // Get or create the user
@@ -112,15 +115,15 @@ namespace Inuplan.WebAPI.Authorization.JWT
             if (claims.HasValue && user.HasValue)
             {
                 logger.Trace("Claims and user have values");
-                IOwinContext owinContext = new OwinContext(actionContext.Request.GetOwinContext().Environment);
+                var owinContext = actionContext.Request.GetOwinContext();
                 var c = claims.ValueOrFailure();
                 var u = user.ValueOrFailure();
+                var b = string.Format("Bearer {0}", token.ValueOrFailure());
 
-                string b = string.Empty;
                 if (!c.Verified)
                 {
-                    logger.Trace("Is not verified, updating claims...");
                     // Update the JWT claims with the correct info
+                    logger.Trace("Is not verified, updating claims...");
                     c.ID = u.ID;
                     c.FirstName = u.FirstName;
                     c.LastName = u.LastName;
@@ -137,18 +140,19 @@ namespace Inuplan.WebAPI.Authorization.JWT
                 }
 
                 // Save token in the owin context
+                logger.Trace("Saving bearer(token) in owin context");
                 owinContext.Set(Constants.JWT_TOKEN, b);
 
-                logger.Trace("Returning from authorized check...");
                 // Set user
-                //IIdentity identity = new GenericIdentity(u.Username, "JWT");
-                //IPrincipal principal = new InuplanPrincipal(identity, new string[] { u.Role.ToString() }, u);
-                //Thread.CurrentPrincipal = principal;
-                //actionContext.RequestContext.Principal = principal;
+                IIdentity identity = new GenericIdentity(u.Username, "JWT");
+                IPrincipal principal = new InuplanPrincipal(identity, new string[] { u.Role.ToString() }, u);
+                Thread.CurrentPrincipal = principal;
+                actionContext.RequestContext.Principal = principal;
+                logger.Trace("Returning from authorized check...");
             }
             else
             {
-                actionContext.Response = new HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized);
+                actionContext.Response = new HttpResponseMessage(HttpStatusCode.Unauthorized);
             }
         }
 
@@ -158,7 +162,7 @@ namespace Inuplan.WebAPI.Authorization.JWT
         /// <param name="token">The JWT token</param>
         /// <param name="key">The key</param>
         /// <returns>An optional value depending on whether the decoding process has been succesfull</returns>
-        private Option<ClaimsDTO> decode(string token, byte[] key)
+        private Option<ClaimsDTO> Decode(string token, byte[] key)
         {
             var result = Option.None<ClaimsDTO>();
             try

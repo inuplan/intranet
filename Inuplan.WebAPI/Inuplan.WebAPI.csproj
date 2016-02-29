@@ -133,6 +133,7 @@
     <Compile Include="App_Start\DependencyConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Authorization\JWT\InuplanAuthorizationAttribute.cs" />
+    <Compile Include="Authorization\JWT\InuplanMiddleware.cs" />
     <Compile Include="Authorization\Principal\InuplanPrincipal.cs" />
     <Compile Include="Controllers\ImageController.cs" />
     <Compile Include="CLI\ProgramOptions.cs" />

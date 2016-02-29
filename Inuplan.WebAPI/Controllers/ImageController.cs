@@ -74,7 +74,7 @@ namespace Inuplan.WebAPI.Controllers
         /// </summary>
         /// <param name="username">The 3-letter username to upload to</param>
         /// <returns>Returns a response message to the caller</returns>
-        // POST JMS/image/upload
+        // POST user/image/upload
         [Route("upload")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(string username)
@@ -85,14 +85,13 @@ namespace Inuplan.WebAPI.Controllers
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "Must be a multipart content type!");
             }
 
-            var principal = (InuplanPrincipal)RequestContext.Principal;
-            if (!username.Equals(principal.Identity.Name))
+            if (!AuthorizeToUsername(username))
             {
                 logger.Error("Cannot upload to another users folder");
                 return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot upload to another users folder");
             }
 
-            var owner = principal.User;
+            // Proceed - everything OK
             var provider = await Request.Content.ReadAsMultipartAsync(new MultipartMemoryStreamProvider());
             var bag = new ConcurrentBag<Image>();
 
@@ -101,7 +100,7 @@ namespace Inuplan.WebAPI.Controllers
                 // Process individual image
                 logger.Trace("Processing image...");
                 var handler = imageHandleFactory.GetImageHandler();
-                var image = await handler.ProcessImage(owner, file);
+                var image = await handler.ProcessImage(((InuplanPrincipal)RequestContext.Principal).User, file);
 
                 // Add images to the collection
                 bag.Add(image);
@@ -133,7 +132,7 @@ namespace Inuplan.WebAPI.Controllers
             return (!error) ?
                 Request.CreateResponse(HttpStatusCode.Created, response) :
                 Request.CreateResponse(HttpStatusCode.InternalServerError,
-                   "Could not save file.Possible reasons: File already exists or database error.See log files for more information.");
+                   "Could not save file. Possible reasons: File already exists or database error. See log files for more information.");
         }
 
         /// <summary>
@@ -142,7 +141,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username">The username of the current user</param>
         /// <param name="fullname">The full name of the image requested</param>
         /// <returns>The requested image</returns>
-        // GET JMS/image/test.jpeg
+        // GET user/image/test.jpeg
         [Route("{fullname}")]
         [AllowAnonymous]
         public async Task<HttpResponseMessage> Get(string username, string fullname)
@@ -173,7 +172,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username">The username of the current user</param>
         /// <param name="fullname">The full name of the image requested</param>
         /// <returns>The requested image</returns>
-        // GET JMS/image/preview/test.jpeg
+        // GET user/image/preview/test.jpeg
         [Route("preview/{fullname}")]
         [AllowAnonymous]
         public async Task<HttpResponseMessage> GetPreview(string username, string fullname)
@@ -204,7 +203,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username">The username of the current user</param>
         /// <param name="fullname">The full name of the image requested</param>
         /// <returns>The requested image</returns>
-        // GET JMS/image/thumbnail/test.jpeg
+        // GET user/image/thumbnail/test.jpeg
         [Route("thumbnail/{fullname}")]
         [AllowAnonymous]
         public async Task<HttpResponseMessage> GetThumbnail(string username, string fullname)
@@ -252,6 +251,43 @@ namespace Inuplan.WebAPI.Controllers
             {
                 return Request.CreateResponse(HttpStatusCode.NotFound);
             });
+        }
+
+        /// <summary>
+        /// Deletes an image from the server and filesystem
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="fullname"></param>
+        /// <returns></returns>
+        [Route("{fullname}")]
+        [HttpDelete]
+        // DELETE user/image/test.jpeg
+        public async Task<HttpResponseMessage> Delete(string username, string fullname)
+        {
+            if(!AuthorizeToUsername(username))
+            {
+                logger.Error("Cannot delete another user's image");
+                return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot delete another user's image");
+            }
+
+            var filename = Helpers.GetFilename(fullname);
+            var deleted = await imageRepository.Delete(new Tuple<string, string, string>(username, filename.Item1, filename.Item2));
+
+            return deleted ?
+                Request.CreateResponse(HttpStatusCode.OK, "Image deleted") :
+                Request.CreateResponse(HttpStatusCode.InternalServerError, "Failed to delete image");
+        }
+
+        /// <summary>
+        /// Checks if the username matches the principal name
+        /// </summary>
+        /// <param name="username">The username to check</param>
+        /// <returns>True if the same, otherwise false</returns>
+        [NonAction]
+        private bool AuthorizeToUsername(string username)
+        {
+            var principal = (InuplanPrincipal)RequestContext.Principal;
+            return username.Equals(principal.Identity.Name);
         }
     }
 }

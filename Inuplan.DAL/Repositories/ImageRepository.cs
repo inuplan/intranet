@@ -41,7 +41,11 @@ namespace Inuplan.DAL.Repositories
     /// </summary>
     public class ImageRepository : IRepository<Tuple<string, string, string>, Image>
     {
+        /// <summary>
+        /// The logging framework
+        /// </summary>
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// The database connection
         /// </summary>
@@ -163,69 +167,88 @@ namespace Inuplan.DAL.Repositories
         {
             Debug.Assert(entity.MetaData.ID > 0, "The image must have an ID!");
 
-            var imagesTable = await connection.QueryAsync(@"SELECT * FROM Images WHERE ID = @ID", new
+            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                ID = entity.MetaData.ID
-            });
+                var deleted = 0;
+                var imagesTable = await connection.QueryAsync(@"SELECT * FROM Images WHERE ID = @ID", new
+                {
+                    ID = entity.MetaData.ID
+                });
 
-            // Get ID for each image
-            int thumbnailID = imagesTable.Single().ThumbnailID;
-            int mediumID = imagesTable.Single().MediumID;
-            int originalID = imagesTable.Single().OriginalID;
+                // Get ID for each image
+                int thumbnailID = imagesTable.Single().ThumbnailID;
+                int mediumID = imagesTable.Single().MediumID;
+                int originalID = imagesTable.Single().OriginalID;
 
-            // Get path for each image
-            var pathThumbnail = (await connection.QueryAsync<string>(@"SELECT Path FROM FileData WHERE ID = @ID", new
-            {
-                ID = thumbnailID
-            })).Single();
-            var pathMedium = (await connection.QueryAsync<string>(@"SELECT Path FROM FileData WHERE ID = @ID", new
-            {
-                ID = mediumID
-            })).Single();
-            var pathOriginal = (await connection.QueryAsync<string>(@"SELECT Path FROM FileData WHERE ID = @ID", new
-            {
-                ID = originalID
-            })).Single();
+                // Get path for each image
+                var pathThumbnail = (await connection.QueryAsync<string>(@"SELECT Path FROM FileData WHERE ID = @ID", new
+                {
+                    ID = thumbnailID
+                })).Single();
+                var pathMedium = (await connection.QueryAsync<string>(@"SELECT Path FROM FileData WHERE ID = @ID", new
+                {
+                    ID = mediumID
+                })).Single();
+                var pathOriginal = (await connection.QueryAsync<string>(@"SELECT Path FROM FileData WHERE ID = @ID", new
+                {
+                    ID = originalID
+                })).Single();
 
-            // Delete files from filesystem
-            if(File.Exists(pathThumbnail))
-            {
-                File.Delete(pathThumbnail);
+
+                // Delete the data in FileInfo and Images (cascades)
+                deleted = await connection.ExecuteAsync(@"DELETE FROM FileInfo WHERE ID = @ID", new { ID = entity.MetaData.ID });
+
+                // Delete the data in FileData
+                deleted += await connection.ExecuteAsync(@"DELETE FROM FileData WHERE ID = @ID", new[]
+                {
+                    new { ID = thumbnailID },
+                    new { ID = mediumID },
+                    new { ID = originalID }
+                });
+
+
+                if(deleted == 4)
+                {
+                    // Commit database changes
+                    transactionScope.Complete();
+
+                    // Delete files from filesystem
+                    if (File.Exists(pathThumbnail))
+                    {
+                        File.Delete(pathThumbnail);
+                    }
+
+                    if (File.Exists(pathMedium))
+                    {
+                        File.Delete(pathMedium);
+                    }
+
+                    if (File.Exists(pathOriginal))
+                    {
+                        File.Delete(pathOriginal);
+                    }
+
+                    return true;
+                }
+
+                return false;
             }
-
-            if(File.Exists(pathMedium))
-            {
-                File.Delete(pathMedium);
-            }
-
-            if(File.Exists(pathOriginal))
-            {
-                File.Delete(pathOriginal);
-            }
-
-            // Delete the data in FileData
-            var deleted = await connection.ExecuteAsync(@"DELETE FROM FileData WHERE ID = @ID", new[]
-            {
-                new { ID = thumbnailID },
-                new { ID = mediumID },
-                new { ID = originalID }
-            });
-
-            // Delete the data in FileInfo and Images (cascades)
-            deleted += await connection.ExecuteAsync(@"DELETE FROM FileInfo WHERE ID = @ID", new { ID = entity.MetaData.ID });
-
-            // 4 Rows should have been affected
-            return (deleted == 4);
         }
 
         /// <summary>
-        /// Not supported operation. Use <seealso cref="Delete(Image)"/> method.
+        /// Deletes an image from the database
         /// </summary>
-        /// <param name="key">N/A</param>
-        /// <returns>N/A</returns>
-        public Task<bool> Delete(Tuple<string, string, string> key)
+        /// <param name="key">The username, filename and extension</param>
+        /// <returns>True if deleted otherwise false</returns>
+        public async Task<bool> Delete(Tuple<string, string, string> key)
         {
-            throw new NotSupportedException("Use Delete(Image entity) method instead!");
+            // Username, filename, extension
+            var image = await Get(key);
+            return await image.Match(async img =>
+            {
+                return await Delete(img);
+            },
+            () => Task.FromResult(false));
         }
 
         /// <summary>
@@ -399,6 +422,15 @@ namespace Inuplan.DAL.Repositories
         }
 
         /// <summary>
+        /// The dispose pattern
+        /// </summary>
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+        }
+
+        /// <summary>
         /// Dispose pattern which disposes managed resources.
         /// </summary>
         /// <param name="disposing">Boolean value indicating whether to dispose</param>
@@ -414,15 +446,6 @@ namespace Inuplan.DAL.Repositories
 
                 disposedValue = true;
             }
-        }
-
-        /// <summary>
-        /// The dispose pattern
-        /// </summary>
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
         }
 
         /// <summary>

@@ -50,12 +50,12 @@ namespace Inuplan.WebAPI.Mocks
         {
             return Task.FromResult(new User
             {
-                Email = "jms@inuplan",
-                FirstName = "Johnny",
-                LastName = "Sørensen",
+                Email = "jdoe@corp.com",
+                FirstName = "John",
+                LastName = "Doe",
                 ID = 1,
                 Role = RoleType.User,
-                Username = "JMS"
+                Username = "jdoe"
             }.Some());
         }
 
