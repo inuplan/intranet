@@ -13,6 +13,9 @@ namespace Inuplan.Intranet
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
+            // Attribute routing
+            routes.MapMvcAttributeRoutes();
+
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",

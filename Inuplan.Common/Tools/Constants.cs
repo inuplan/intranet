@@ -28,6 +28,8 @@ namespace Inuplan.Common.Tools
         /// <summary>
         /// The JWT token.
         /// </summary>
-        public static readonly string JWT_TOKEN = "JWT_TOKEN";
+        public static readonly string JWT_BEARER = "JWT_BEARER";
+
+        public static readonly string TOKEN_COOKIE = "inuplan.token";
     }
 }

@@ -1,0 +1,71 @@
+﻿@model IEnumerable<Inuplan.Common.DTOs.ImageDTO>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Johnny images</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.ImageID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Filename)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Extension)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Username)
+        </th>
+        <th>
+            Image thumbnail
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.ImageID)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Filename)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Extension)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Username)
+        </td>
+        <td>
+            <a href="@item.PathOriginalUrl"><img src="@item.PathThumbnailUrl" /></a>
+        </td>
+        <td>
+            @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+        </td>
+    </tr>
+}
+</table>
+<button type="button" onclick="loadDoc()">Change Content</button>
+
+@section scripts
+{
+    <script>
+        function loadDoc() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (xhttp.readyState == 4 && xhttp.status == 200) {
+                    document.getElementById("demo").innerHTML = xhttp.responseText;
+                }
+            };
+            xhttp.open("GET", "ajax_info.txt", true);
+            xhttp.send();
+        }
+    </script>
+}

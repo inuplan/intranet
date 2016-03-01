@@ -268,9 +268,21 @@ namespace Inuplan.WebAPI.Controllers
         public async Task<List<ImageDTO>> GetAll(string username)
         {
             // Helper method, Image -> string URL
-            var getUrl = new Func<Image, string>(
-                i => string.Format("{0}/image/{1}.{2}",
-                    i.MetaData.Owner.Username,
+            var getOriginalUrl = new Func<Image, string>(
+                i => string.Format("{0}/{1}.{2}",
+                    Request.RequestUri.AbsoluteUri,
+                    i.MetaData.Filename,
+                    i.MetaData.Extension));
+
+            var getPreviewUrl = new Func<Image, string>(
+                i => string.Format("{0}/preview/{1}.{2}",
+                    Request.RequestUri.AbsoluteUri,
+                    i.MetaData.Filename,
+                    i.MetaData.Extension));
+
+            var getThumbnailUrl = new Func<Image, string>(
+                i => string.Format("{0}/thumbnail/{1}.{2}",
+                    Request.RequestUri.AbsoluteUri,
                     i.MetaData.Filename,
                     i.MetaData.Extension));
 
@@ -286,7 +298,9 @@ namespace Inuplan.WebAPI.Controllers
                                     Filename = i.MetaData.Filename,
                                     ImageID = i.MetaData.ID,
                                     Username = i.MetaData.Owner.Username,
-                                    PathUrl = getUrl(i)
+                                    PathOriginalUrl = getOriginalUrl(i),
+                                    PathPreviewUrl = getPreviewUrl(i),
+                                    PathThumbnailUrl = getThumbnailUrl(i)
                                 }).ToList();
         }
 

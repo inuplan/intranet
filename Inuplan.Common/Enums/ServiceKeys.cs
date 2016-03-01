@@ -60,5 +60,7 @@ namespace Inuplan.Common.Enums
         /// Key for the web api root folder
         /// </summary>
         RootPath,
+
+        Domain,
     }
 }

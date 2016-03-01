@@ -1,23 +1,42 @@
-﻿using System.Web.Mvc;
+﻿// Copyright © 2015 Inuplan
+// 
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Inuplan.Intranet.Controllers
 {
+    using System.Web.Mvc;
+    using Inuplan.Intranet.Authorization;
+    using System.Threading.Tasks;
+
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        private readonly Client authClient;
+
+        public HomeController(Client authClient)
         {
-            return View();
+            this.authClient = authClient;
         }
 
-        public ActionResult About()
+        // GET: Home
+        public async Task<ActionResult> Index()
         {
-            ViewBag.Message = "Your application description page.";
-            return View();
-        }
-
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
+            await authClient.SetToken(Request, User, Response);
             return View();
         }
     }

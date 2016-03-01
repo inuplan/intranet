@@ -16,28 +16,27 @@
 
 namespace Inuplan.WebAPI.App_Start
 {
-    using System;
-    using System.Configuration;
-    using System.Data;
-    using System.Data.SqlClient;
-    using System.Web.Http;
     using Autofac;
+    using Autofac.Extras.Attributed;
     using Autofac.Integration.WebApi;
     using Common.Enums;
     using Common.Factories;
+    using Common.Mappers;
+    using Common.Tools;
     using Controllers;
     using DAL.Repositories;
     using Image.Factories;
     using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
-    using Authorization.JWT;
-    using System.Security.Cryptography;
-    using Common.Tools;
     using Jose;
-    using Common.Mappers;
+    using System;
+    using System.Configuration;
+    using System.Data;
+    using System.Data.SqlClient;
     using System.DirectoryServices.AccountManagement;
-    using Autofac.Extras.Attributed;
-    using Mocks;
+    using System.Security.Cryptography;
+    using System.Web.Http;
+
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
     /// </summary>
@@ -86,10 +85,10 @@ namespace Inuplan.WebAPI.App_Start
 
             // Register repositories
             builder.RegisterType<ImageRepository>().WithAttributeFilter().Keyed<IRepository<Tuple<string, string, string>, Image>>(ServiceKeys.ImageRepository).InstancePerRequest();
-            //builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
-            //builder.RegisterType<UserADRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-            builder.RegisterType<NoADRepo>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-            builder.RegisterType<NoDBRepo>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
+            builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
+            builder.RegisterType<UserADRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            //builder.RegisterType<NoADRepo>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            //builder.RegisterType<NoDBRepo>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
 
             // Build container
             container = builder.Build();

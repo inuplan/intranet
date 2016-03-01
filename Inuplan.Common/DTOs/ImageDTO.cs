@@ -12,6 +12,8 @@ namespace Inuplan.Common.DTOs
         public string Filename { get; set; }
         public string Extension { get; set; }
         public string Username { get; set; }
-        public string PathUrl { get; set; }
+        public string PathOriginalUrl { get; set; }
+        public string PathPreviewUrl { get; set; }
+        public string PathThumbnailUrl { get; set; }
     }
 }

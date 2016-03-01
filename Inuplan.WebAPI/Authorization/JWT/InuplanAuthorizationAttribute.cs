@@ -142,7 +142,7 @@ namespace Inuplan.WebAPI.Authorization.JWT
 
                 // Save token in the owin context
                 logger.Trace("Saving bearer(token) in owin context");
-                owinContext.Set(Constants.JWT_TOKEN, b);
+                owinContext.Set(Constants.JWT_BEARER, b);
 
                 // Set user
                 IIdentity identity = new GenericIdentity(u.Username, "JWT");
