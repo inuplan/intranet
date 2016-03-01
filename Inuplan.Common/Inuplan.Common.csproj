@@ -56,10 +56,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DTOs\ClaimsDTO.cs" />
+    <Compile Include="DTOs\ImageDTO.cs" />
     <Compile Include="Enums\ServiceKeys.cs" />
     <Compile Include="Factories\ImageHandleFactory.cs" />
     <Compile Include="Interfaces\IImageHandler.cs" />
     <Compile Include="Mappers\NewtonsoftMapper.cs" />
+    <Compile Include="Models\Album.cs" />
     <Compile Include="Models\FileData.cs" />
     <Compile Include="Models\FileInfo.cs" />
     <Compile Include="Models\Image.cs" />

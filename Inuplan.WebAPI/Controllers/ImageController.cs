@@ -20,21 +20,23 @@
 
 namespace Inuplan.WebAPI.Controllers
 {
-    using System;
-    using System.Collections.Concurrent;
-    using System.Linq;
-    using System.Net;
-    using System.Net.Http;
-    using System.Threading.Tasks;
-    using System.Web.Http;
     using Authorization.Principal;
     using Autofac.Extras.Attributed;
+    using Common.DTOs;
     using Common.Enums;
     using Common.Factories;
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
     using NLog;
+    using System;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net;
+    using System.Net.Http;
+    using System.Threading.Tasks;
+    using System.Web.Http;
 
     /// <summary>
     /// Image file controller
@@ -234,6 +236,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username">The username of the</param>
         /// <param name="id"></param>
         /// <returns></returns>
+        // GET image/2
         [Route("~/image/id/{id:int}")]
         [AllowAnonymous]
         public async Task<HttpResponseMessage> GetByID(int id)
@@ -254,14 +257,48 @@ namespace Inuplan.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Retrieves all images for a single user
+        /// </summary>
+        /// <param name="username">The username</param>
+        /// <returns>An awaitable list of <see cref="ImageDTO"/></returns>
+        // GET user/image
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("")]
+        public async Task<List<ImageDTO>> GetAll(string username)
+        {
+            // Helper method, Image -> string URL
+            var getUrl = new Func<Image, string>(
+                i => string.Format("{0}/image/{1}.{2}",
+                    i.MetaData.Owner.Username,
+                    i.MetaData.Filename,
+                    i.MetaData.Extension));
+
+            // Get all images from DB
+            var images = await imageRepository.GetAll();
+
+            // Filters by username, and creates an ImageDTO list
+            return images
+                                .Where(i => i.MetaData.Owner.Username.Equals(username))
+                                .Select(i => new ImageDTO
+                                {
+                                    Extension = i.MetaData.Extension,
+                                    Filename = i.MetaData.Filename,
+                                    ImageID = i.MetaData.ID,
+                                    Username = i.MetaData.Owner.Username,
+                                    PathUrl = getUrl(i)
+                                }).ToList();
+        }
+
+        /// <summary>
         /// Deletes an image from the server and filesystem
         /// </summary>
         /// <param name="username"></param>
         /// <param name="fullname"></param>
         /// <returns></returns>
+        // DELETE user/image/test.jpeg
         [Route("{fullname}")]
         [HttpDelete]
-        // DELETE user/image/test.jpeg
         public async Task<HttpResponseMessage> Delete(string username, string fullname)
         {
             if(!AuthorizeToUsername(username))

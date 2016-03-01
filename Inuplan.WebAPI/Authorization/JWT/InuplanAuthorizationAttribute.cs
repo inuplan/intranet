@@ -81,11 +81,12 @@ namespace Inuplan.WebAPI.Authorization.JWT
         /// <param name="actionContext"></param>
         public override void OnAuthorization(HttpActionContext actionContext)
         {
-            logger.Trace("Authorizing...");
             // If AllowAnonymous, we allow it
             if (actionContext.ActionDescriptor.GetCustomAttributes<AllowAnonymousAttribute>().Any() ||
                     actionContext.ActionDescriptor.ControllerDescriptor.GetCustomAttributes<AllowAnonymousAttribute>().Any())
                 return;
+
+            logger.Trace("Authorizing...");
 
             // Otherwise we inspect the request
             var header = actionContext.Request.Headers.Authorization.SomeNotNull();
