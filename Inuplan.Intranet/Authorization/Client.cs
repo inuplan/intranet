@@ -37,37 +37,33 @@ namespace Inuplan.Intranet.Authorization
             this.cookieExpiration = cookieExpiration;
         }
 
-        public async Task SetToken(HttpRequestBase request, IPrincipal user, HttpResponseBase response)
+        public void SetTokenIfExists(HttpResponseBase response, Option<string> token)
         {
-            var token = await GetToken(request, user);
             token.Match(t =>
             {
-                var fromCookie = request.Cookies.AllKeys.Any(k => k.Equals(Constants.TOKEN_COOKIE));
-                if(!fromCookie)
-                {
-                    // Insert into cookie, since we got the token from the api
-                    var cookie = new HttpCookie(Constants.TOKEN_COOKIE, t);
-                    cookie.Domain = domain;
-                    cookie.Expires = DateTime.Now.Add(cookieExpiration);
-                    response.SetCookie(cookie);
-                }
+                var cookie = new HttpCookie(Constants.TOKEN_COOKIE, t);
+                cookie.Domain = domain;
+                cookie.Expires = DateTime.Now.Add(cookieExpiration);
+                response.SetCookie(cookie);
             },
-            () => { /* log error */ });
+            () => { /* No need to set token */});
         }
 
-        public async Task<Option<string>> GetToken(HttpRequestBase request, IPrincipal user)
+        public async Task<Option<string>> GetTokenIfNotExists(HttpRequestBase request, IPrincipal user)
         {
-            Option<string> token = Option.None<string>();
-            var cookieToken = await GetTokenFromCookie(request);
-
-            return (cookieToken.HasValue) ? cookieToken : await GetTokenFromAPI(user);
+            // If cookie value exists, we don't need to get it
+            // otherwise we get it from the api
+            return (CookieHasToken(request)) ? Option.None<string>() : await GetTokenFromAPI(user);
         }
 
-        private Task<Option<string>> GetTokenFromCookie(HttpRequestBase request)
+        private bool CookieHasToken(HttpRequestBase request)
         {
-            var cookie = request.Cookies.Get(Constants.TOKEN_COOKIE).SomeNotNull();
-            var token = cookie.FlatMap(c => c.Value.SomeNotNull());
-            return Task.FromResult(token);
+            return request
+                    .Cookies
+                    .AllKeys
+                    .Any(k => 
+                        k.Equals(Constants.TOKEN_COOKIE) &&
+                        !string.IsNullOrEmpty(k));
         }
 
         private async Task<Option<string>> GetTokenFromAPI(IPrincipal user)

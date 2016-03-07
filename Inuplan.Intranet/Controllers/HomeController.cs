@@ -36,7 +36,11 @@ namespace Inuplan.Intranet.Controllers
         // GET: Home
         public async Task<ActionResult> Index()
         {
-            await authClient.SetToken(Request, User, Response);
+            // Get token (if its does not exist)
+            //var token = await authClient.GetTokenIfNotExists(Request, User);
+
+            // Set token (if we got it)
+            // authClient.SetTokenIfExists(Response, token);
             return View();
         }
     }
