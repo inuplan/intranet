@@ -290,8 +290,10 @@ namespace Inuplan.WebAPI.Controllers
             var images = await imageRepository.GetAll();
 
             // Filters by username, and creates an ImageDTO list
-            return images
-                                .Where(i => i.MetaData.Owner.Username.Equals(username))
+            var result = images
+                                .Where(i => 
+                                    i.MetaData.Owner
+                                    .Username.Equals(username, StringComparison.OrdinalIgnoreCase))
                                 .Select(i => new ImageDTO
                                 {
                                     Extension = i.MetaData.Extension,
@@ -302,6 +304,7 @@ namespace Inuplan.WebAPI.Controllers
                                     PathPreviewUrl = getPreviewUrl(i),
                                     PathThumbnailUrl = getThumbnailUrl(i)
                                 }).ToList();
+            return result;
         }
 
         /// <summary>

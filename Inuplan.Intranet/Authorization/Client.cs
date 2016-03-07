@@ -20,20 +20,17 @@ namespace Inuplan.Intranet.Authorization
         private readonly byte[] key;
         private readonly string remote;
         private readonly string domain;
-        private readonly int wait;
         private readonly TimeSpan cookieExpiration;
 
         public Client(
             byte[] key,
             string remote,
             string domain,
-            TimeSpan cookieExpiration,
-            int wait = 5)
+            TimeSpan cookieExpiration)
         {
             this.key = key;
             this.remote = remote;
             this.domain = domain;
-            this.wait = wait;
             this.cookieExpiration = cookieExpiration;
         }
 
