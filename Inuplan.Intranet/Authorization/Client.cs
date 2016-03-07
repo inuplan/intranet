@@ -12,6 +12,7 @@ using Newtonsoft.Json.Linq;
 using Optional;
 using Inuplan.Common.Enums;
 using Inuplan.Common.Tools;
+using Optional.Unsafe;
 
 namespace Inuplan.Intranet.Authorization
 {
@@ -46,11 +47,33 @@ namespace Inuplan.Intranet.Authorization
             () => { /* No need to set token */});
         }
 
+        public async Task<string> GetToken(HttpRequestBase request, IPrincipal user)
+        {
+            var cookieToken = request.Cookies[Constants.TOKEN_COOKIE].Value
+                                .SomeWhen(t => !string.IsNullOrEmpty(t))
+                                .Map(c => Task.FromResult(c));
+
+            var result = cookieToken.ValueOr(async () =>
+            {
+                var t = await GetTokenFromAPI(user);
+                return t.ValueOr(string.Empty);
+            });
+
+            return await result;
+        }
+
         public async Task<Option<string>> GetTokenIfNotExists(HttpRequestBase request, IPrincipal user)
         {
             // If cookie value exists, we don't need to get it
             // otherwise we get it from the api
             return (CookieHasToken(request)) ? Option.None<string>() : await GetTokenFromAPI(user);
+        }
+
+        public static string GetUsername(IPrincipal user)
+        {
+            var fulluser = user.Identity.Name;
+            var username = fulluser.Split('\\')[1];
+            return username.ToUpper();
         }
 
         private bool CookieHasToken(HttpRequestBase request)
@@ -91,13 +114,6 @@ namespace Inuplan.Intranet.Authorization
             }
 
             return result.SomeNotNull();
-        }
-
-        private string GetUsername(IPrincipal user)
-        {
-            var fulluser = user.Identity.Name;
-            var username = fulluser.Split('\\')[1];
-            return username.ToUpper();
         }
     }
 }

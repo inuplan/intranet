@@ -82,6 +82,7 @@ namespace Inuplan.WebAPI.Image
                 var fullname = Helpers.GetFilename(fileContent.Headers.ContentDisposition.FileName);
                 var filename = fullname.Item1.Replace("\"", string.Empty);
                 var extension = fullname.Item2.Replace("\"", string.Empty);
+                var mime = fileContent.Headers.ContentType.MediaType;
 
                 // Result container
                 FileData original = new FileData();
@@ -93,7 +94,7 @@ namespace Inuplan.WebAPI.Image
                 {
                     Filename = filename,
                     Extension = extension,
-                    MimeType = Helpers.GetMIMEType(extension),
+                    MimeType = mime,
                     Owner = user
                 };
 

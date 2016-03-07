@@ -341,7 +341,7 @@ namespace Inuplan.WebAPI.Controllers
         private bool AuthorizeToUsername(string username)
         {
             var principal = (InuplanPrincipal)RequestContext.Principal;
-            return username.Equals(principal.Identity.Name);
+            return username.Equals(principal.Identity.Name, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

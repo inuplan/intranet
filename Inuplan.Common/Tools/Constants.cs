@@ -31,5 +31,7 @@ namespace Inuplan.Common.Tools
         public static readonly string JWT_BEARER = "JWT_BEARER";
 
         public static readonly string TOKEN_COOKIE = "inuplan.token";
+
+        public static readonly string JWT_SCHEME = "Bearer";
     }
 }
