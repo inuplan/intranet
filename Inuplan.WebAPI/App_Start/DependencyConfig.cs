@@ -75,7 +75,7 @@ namespace Inuplan.WebAPI.App_Start
             // Register Web API controllers
             builder.RegisterType<TestController>().InstancePerRequest();
             builder.RegisterType<ManagementPostController>().WithAttributeFilter();
-            builder.RegisterType<ImageController>().WithAttributeFilter();
+            builder.RegisterType<UserImageController>().WithAttributeFilter();
 
             // Register classes
             builder.RegisterType<NewtonsoftMapper>().As<IJsonMapper>();

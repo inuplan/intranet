@@ -135,7 +135,7 @@
     <Compile Include="Authorization\JWT\InuplanAuthorizationAttribute.cs" />
     <Compile Include="Authorization\JWT\InuplanMiddleware.cs" />
     <Compile Include="Authorization\Principal\InuplanPrincipal.cs" />
-    <Compile Include="Controllers\ImageController.cs" />
+    <Compile Include="Controllers\UserImageController.cs" />
     <Compile Include="CLI\ProgramOptions.cs" />
     <Compile Include="CLI\Parser.cs" />
     <Compile Include="Controllers\TokenController.cs" />

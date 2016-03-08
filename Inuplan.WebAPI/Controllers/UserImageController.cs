@@ -42,7 +42,7 @@ namespace Inuplan.WebAPI.Controllers
     /// Image file controller
     /// </summary>
     [RoutePrefix("{username:alpha:length(2,6)}/image")]
-    public class ImageController : ApiController
+    public class UserImageController : ApiController
     {
         /// <summary>
         /// The logging framework
@@ -70,10 +70,10 @@ namespace Inuplan.WebAPI.Controllers
         private readonly IVectorRepository<int, List<Post>, Post> imageCommentsRepo;
 
         /// <summary>
-        /// Instantiates a new <see cref="ImageController"/> instance.
+        /// Instantiates a new <see cref="UserImageController"/> instance.
         /// </summary>
         /// <param name="imageRepository">The image repository, which stores the images</param>
-        public ImageController(
+        public UserImageController(
             [WithKey(ServiceKeys.ImageRepository)] IScalarRepository<Tuple<string, string, string>, Image> imageRepository,
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             [WithKey(ServiceKeys.ImageCommentsRepository)] IVectorRepository<int, List<Post>, Post> imageCommentsRepo,
