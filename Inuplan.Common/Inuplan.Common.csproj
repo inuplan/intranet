@@ -56,7 +56,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DTOs\ClaimsDTO.cs" />
+    <Compile Include="DTOs\CommentDTO.cs" />
     <Compile Include="DTOs\ImageDTO.cs" />
+    <Compile Include="DTOs\UserDTO.cs" />
     <Compile Include="Enums\ServiceKeys.cs" />
     <Compile Include="Factories\ImageHandleFactory.cs" />
     <Compile Include="Interfaces\IImageHandler.cs" />

@@ -30,6 +30,7 @@ namespace Inuplan.WebAPI.App_Start
     using Inuplan.Common.Repositories;
     using Jose;
     using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.Data;
     using System.Data.SqlClient;
@@ -85,6 +86,7 @@ namespace Inuplan.WebAPI.App_Start
 
             // Register repositories
             builder.RegisterType<ImageRepository>().WithAttributeFilter().Keyed<IScalarRepository<Tuple<string, string, string>, Image>>(ServiceKeys.ImageRepository).InstancePerRequest();
+            builder.RegisterType<ImageCommentRepository>().Keyed<IVectorRepository<int, List<Post>, Post>>(ServiceKeys.ImageCommentsRepository);
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
             builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
             //builder.RegisterType<NoADRepo>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);

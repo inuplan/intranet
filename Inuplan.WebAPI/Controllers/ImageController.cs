@@ -65,17 +65,24 @@ namespace Inuplan.WebAPI.Controllers
         private readonly IScalarRepository<string, User> userDatabaseRepository;
 
         /// <summary>
+        /// The repository comments for an image.
+        /// </summary>
+        private readonly IVectorRepository<int, List<Post>, Post> imageCommentsRepo;
+
+        /// <summary>
         /// Instantiates a new <see cref="ImageController"/> instance.
         /// </summary>
         /// <param name="imageRepository">The image repository, which stores the images</param>
         public ImageController(
             [WithKey(ServiceKeys.ImageRepository)] IScalarRepository<Tuple<string, string, string>, Image> imageRepository,
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
+            [WithKey(ServiceKeys.ImageCommentsRepository)] IVectorRepository<int, List<Post>, Post> imageCommentsRepo,
             ImageHandleFactory imageHandleFactory)
         {
             this.imageRepository = imageRepository;
             this.userDatabaseRepository = userDatabaseRepository;
             this.imageHandleFactory = imageHandleFactory;
+            this.imageCommentsRepo = imageCommentsRepo;
         }
 
         /// <summary>
@@ -268,30 +275,49 @@ namespace Inuplan.WebAPI.Controllers
         /// </summary>
         /// <param name="username">The username</param>
         /// <returns>An awaitable list of <see cref="ImageDTO"/></returns>
-        // GET user/image
+        // GET user/image?comments=true
         [HttpGet]
         [AllowAnonymous]
         [Route("")]
-        public async Task<List<ImageDTO>> GetAll(string username)
+        public async Task<List<ImageDTO>> GetAll(string username, [FromUri] bool comments = false)
         {
             // Helper method, Image -> string URL
+            var baseAddress = "http://" + Request.RequestUri.Authority + Request.RequestUri.LocalPath;
             var getOriginalUrl = new Func<Image, string>(
                 i => string.Format("{0}/{1}.{2}",
-                    Request.RequestUri.AbsoluteUri,
+                    baseAddress,
                     i.MetaData.Filename,
                     i.MetaData.Extension));
 
             var getPreviewUrl = new Func<Image, string>(
                 i => string.Format("{0}/preview/{1}.{2}",
-                    Request.RequestUri.AbsoluteUri,
+                    baseAddress,
                     i.MetaData.Filename,
                     i.MetaData.Extension));
 
             var getThumbnailUrl = new Func<Image, string>(
                 i => string.Format("{0}/thumbnail/{1}.{2}",
-                    Request.RequestUri.AbsoluteUri,
+                    baseAddress,
                     i.MetaData.Filename,
                     i.MetaData.Extension));
+
+            // Helper method: Gets the comments for an image given the id
+            var getCommentImage = new Func<int, IEnumerable<IGrouping<int, List<Post>>>, List<CommentDTO>>((int id, IEnumerable<IGrouping<int, List<Post>>> collection) =>
+               collection.Where(g => g.Key == id).SelectMany(g => g.SelectMany(t => t.Select(p => new CommentDTO
+               {
+                   Author = new UserDTO
+                   {
+                       ID = p.Author.ID,
+                       FirstName = p.Author.FirstName,
+                       LastName = p.Author.LastName,
+                       Username = p.Author.Username,
+                       Email = p.Author.Email,
+//                       ProfileImageUrl = "TBD",
+                   },
+                   Comment = p.Comment,
+                   ID = p.ID,
+                   PostedOn = p.PostedOn
+               }))).ToList());
 
             // Get all images from DB
             var user = await userDatabaseRepository.Get(username);
@@ -304,6 +330,7 @@ namespace Inuplan.WebAPI.Controllers
 
             // Filters by username, and creates an ImageDTO list
             var images = await imageRepository.GetAll();
+            var allComments = await imageCommentsRepo.GetAll();
             var result = images
                                 .Where(i => 
                                     i.MetaData.Owner
@@ -316,8 +343,17 @@ namespace Inuplan.WebAPI.Controllers
                                     Username = i.MetaData.Owner.Username,
                                     PathOriginalUrl = getOriginalUrl(i),
                                     PathPreviewUrl = getPreviewUrl(i),
-                                    PathThumbnailUrl = getThumbnailUrl(i)
-                                }).ToList();
+                                    PathThumbnailUrl = getThumbnailUrl(i),
+                                })
+                                .Select(i => {
+                                    if (comments)
+                                    {
+                                        i.Comments = getCommentImage(i.ImageID, allComments);
+                                    }
+
+                                    return i;
+                                })
+                                .ToList();
             return result;
         }
 

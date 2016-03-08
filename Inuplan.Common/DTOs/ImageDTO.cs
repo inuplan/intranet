@@ -20,6 +20,8 @@
 
 namespace Inuplan.Common.DTOs
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// A data transfer object for an image on the server.
     /// </summary>
@@ -59,5 +61,10 @@ namespace Inuplan.Common.DTOs
         /// Gets or sets the url path to the thumbnail image
         /// </summary>
         public string PathThumbnailUrl { get; set; }
+
+        /// <summary>
+        /// Gets or sets the comments for this image
+        /// </summary>
+        public List<CommentDTO> Comments { get; set; }
     }
 }

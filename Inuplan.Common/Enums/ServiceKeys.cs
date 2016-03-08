@@ -61,6 +61,9 @@ namespace Inuplan.Common.Enums
         /// </summary>
         RootPath,
 
-        Domain,
+        /// <summary>
+        /// Key for the ImageCommentsRepository
+        /// </summary>
+        ImageCommentsRepository,
     }
 }
