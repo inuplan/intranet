@@ -26,18 +26,12 @@ namespace Inuplan.Common.Tools
     public static class Constants
     {
         /// <summary>
-        /// <code>Owin</code> context, key for JWT claims
+        /// The JWT token.
         /// </summary>
-        public static readonly string JWT_CLAIMS = "claims";
+        public static readonly string JWT_BEARER = "JWT_BEARER";
 
-        /// <summary>
-        /// HTTP header key for the JWT token.
-        /// </summary>
-        public static readonly string HTTP_AUTHORIZATION = "Authorization";
+        public static readonly string TOKEN_COOKIE = "inuplan.token";
 
-        /// <summary>
-        /// The domain name of the corporation
-        /// </summary>
-        public static readonly string DOMAIN = "inuplan.local";
+        public static readonly string JWT_SCHEME = "Bearer";
     }
 }

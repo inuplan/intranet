@@ -20,6 +20,7 @@
 
 namespace Inuplan.Common.Models
 {
+    using System.Collections.Generic;
 
     /// <summary>
     /// An image that contains 3 different sizes.
@@ -46,5 +47,10 @@ namespace Inuplan.Common.Models
         /// Gets or sets the file for the original image
         /// </summary>
         public FileData Original { get; set; }
+
+        /// <summary>
+        /// Gets or sets the comments for this image
+        /// </summary>
+        public List<Post> Comments { get; set; }
     }
 }

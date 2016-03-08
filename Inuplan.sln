@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Common", "Inuplan.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Tests", "Inuplan.Tests\Inuplan.Tests.csproj", "{1C2ACEE7-8333-4EE0-A589-771838B4686F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Intranet", "Inuplan.Intranet\Inuplan.Intranet.csproj", "{4333C7BF-7DA2-4F33-B13E-1A22458DE153}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{1C2ACEE7-8333-4EE0-A589-771838B4686F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C2ACEE7-8333-4EE0-A589-771838B4686F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1C2ACEE7-8333-4EE0-A589-771838B4686F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4333C7BF-7DA2-4F33-B13E-1A22458DE153}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4333C7BF-7DA2-4F33-B13E-1A22458DE153}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4333C7BF-7DA2-4F33-B13E-1A22458DE153}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4333C7BF-7DA2-4F33-B13E-1A22458DE153}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

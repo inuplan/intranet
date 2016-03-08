@@ -67,21 +67,5 @@ namespace Inuplan.Common.DTOs
         /// </summary>
         [JsonConverter(typeof(StringEnumConverter))]
         public RoleType Role { get; set; }
-
-        /// <summary>
-        /// Pretty formatting for the <code>ToString</code> method.
-        /// </summary>
-        /// <returns>A human readable string</returns>
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            sb.AppendFormat("ID: {0}\n", ID);
-            sb.AppendFormat("Username: {0}\n", Username);
-            sb.AppendFormat("First name: {0}\nLast name: {1}\n", FirstName, LastName);
-            sb.AppendFormat("Is verified: {0}\n", Verified);
-            sb.AppendFormat("Email address: {0}\n", Email);
-            sb.AppendFormat("Role: {0}\n", Role);
-            return sb.ToString();
-        }
     }
 }

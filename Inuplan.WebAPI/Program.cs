@@ -16,6 +16,7 @@
 
 namespace Inuplan.WebAPI
 {
+    using System;
     using Inuplan.WebAPI.CLI;
     using Microsoft.Owin.Hosting;
     using NLog;
@@ -57,5 +58,6 @@ namespace Inuplan.WebAPI
                 parser.StartConsole(baseAddress);
             }
         }
+
     }
 }

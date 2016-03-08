@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Inuplan.Intranet.App_Start;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
@@ -12,6 +14,7 @@ namespace Inuplan.Intranet
     {
         protected void Application_Start()
         {
+            AutofacConfig.RegisterContainer();
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
