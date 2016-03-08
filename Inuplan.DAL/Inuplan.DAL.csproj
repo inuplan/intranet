@@ -59,6 +59,7 @@
     <Compile Include="Repositories\ImageRepository.cs" />
     <Compile Include="Repositories\ManagementPostRepository.cs" />
     <Compile Include="Repositories\GeneralPostRepository.cs" />
+    <Compile Include="Repositories\ImageCommentRepository.cs" />
     <Compile Include="Repositories\UserADRepository.cs" />
     <Compile Include="Repositories\UserDatabaseRepository.cs" />
   </ItemGroup>

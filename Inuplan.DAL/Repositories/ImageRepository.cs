@@ -34,12 +34,13 @@ namespace Inuplan.DAL.Repositories
     using Optional;
     using System.Data.SqlClient;
     using NLog;
+    using Key = System.Tuple<string, string, string>;
 
     /// <summary>
     /// The first item in the key tuple is the <see cref="User.Username"/> and the
     /// second item is the filename of the image, and the third is the extension of the filename
     /// </summary>
-    public class ImageRepository : IRepository<Tuple<string, string, string>, Image>
+    public class ImageRepository : IScalarRepository<Key, Image>
     {
         /// <summary>
         /// The logging framework
@@ -195,6 +196,16 @@ namespace Inuplan.DAL.Repositories
                 })).Single();
 
 
+                // Delete the comments for the image. (cascades: Posts -> ImagePosts)
+                var deletePostsSql = @"DELETE P
+                    FROM Posts P INNER JOIN ImagePosts I
+                    ON P.ID = I.PostID
+                    WHERE I.FileInfoID = @key";
+
+                // We cannot know if it was successfull, because there might be no comments...
+                // Although an exception will be thrown, if unsuccesfull.
+                await connection.ExecuteAsync(deletePostsSql, new { key = entity.MetaData.ID });
+
                 // Delete the data in FileInfo and Images (cascades)
                 deleted = await connection.ExecuteAsync(@"DELETE FROM FileInfo WHERE ID = @ID", new { ID = entity.MetaData.ID });
 
@@ -240,7 +251,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="key">The username, filename and extension</param>
         /// <returns>True if deleted otherwise false</returns>
-        public async Task<bool> Delete(Tuple<string, string, string> key)
+        public async Task<bool> Delete(Key key)
         {
             // Username, filename, extension
             var image = await Get(key);
@@ -257,7 +268,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="key">First item is the <see cref="User.Username"/>, the second item is the <see cref="Common.Models.FileInfo.Filename"/>m
         /// the third item is the file extension <see cref="Common.Models.FileInfo.Extension"/>.</param>
         /// <returns>An optional image.</returns>
-        public async Task<Option<Image>> Get(Tuple<string, string, string> key)
+        public async Task<Option<Image>> Get(Key key)
         {
             // Get unique user
             var sqlUserID = @"SELECT * FROM Users WHERE Username = @Username";
@@ -416,7 +427,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="key">N/A</param>
         /// <param name="entity">N/A</param>
         /// <returns>N/A</returns>
-        public Task<bool> Update(Tuple<string, string, string> key, Image entity)
+        public Task<bool> Update(Key key, Image entity)
         {
             throw new NotSupportedException("Cannot update an image! Delete then reupload.");
         }

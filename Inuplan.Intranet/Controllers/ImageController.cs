@@ -54,12 +54,22 @@ namespace Inuplan.Intranet.Controllers
 
             // Display upload form?
             ViewBag.CanEdit = (username.Equals(Client.GetUsername(User), StringComparison.OrdinalIgnoreCase));
+            ViewBag.Username = username;
 
             using (var client = new HttpClient())
             {
                 client.BaseAddress = new Uri(baseAddress);
                 var path = string.Format("/{0}/image", username);
                 var result = await client.GetAsync(path);
+                
+                if(result.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    // TODO: Handle 404 better!
+                    /* NotFound! */
+                    ViewBag.Username = "Not Found";
+                    return View(new List<ImageDTO>());
+                }
+
                 var content = await result.Content.ReadAsStringAsync();
                 var images = JsonConvert.DeserializeObject<List<ImageDTO>>(content);
 

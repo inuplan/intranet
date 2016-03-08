@@ -35,7 +35,7 @@ namespace Inuplan.DAL.Repositories
     /// A repository of posts.
     /// Used to connect to the database, and retrieve posts.
     /// </summary>
-    public class GeneralPostRepository : IRepository<int, Post>
+    public class GeneralPostRepository : IScalarRepository<int, Post>
     {
         
         /// <summary>

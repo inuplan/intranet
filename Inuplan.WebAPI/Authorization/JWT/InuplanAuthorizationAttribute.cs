@@ -108,8 +108,8 @@ namespace Inuplan.WebAPI.Authorization.JWT
             using(var scope = DependencyConfig.Container().BeginLifetimeScope())
             {
                 logger.Trace("Retrieving dependencies, from database and active directory");
-                var userDatabaseRepository = scope.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
-                var userActiveDirectoryRepository = scope.ResolveKeyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+                var userDatabaseRepository = scope.ResolveKeyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
+                var userActiveDirectoryRepository = scope.ResolveKeyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
                 user = claims.FlatMap(c => GetOrCreateUser(c, userDatabaseRepository, userActiveDirectoryRepository));
             }
 
@@ -214,7 +214,7 @@ namespace Inuplan.WebAPI.Authorization.JWT
         /// </summary>
         /// <param name="c">The claims of the <code>JWT</code> token</param>
         /// <returns>Returns an awaitable task which contains a <see cref="User"/></returns>
-        private Option<User> GetOrCreateUser(ClaimsDTO c, IRepository<string, User> userDatabaseRepository, IRepository<string, User> userActiveDirectoryRepository)
+        private Option<User> GetOrCreateUser(ClaimsDTO c, IScalarRepository<string, User> userDatabaseRepository, IScalarRepository<string, User> userActiveDirectoryRepository)
         {
             if(c.Verified)
             {

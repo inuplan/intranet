@@ -35,7 +35,7 @@ namespace Inuplan.DAL.Repositories
     /// A repository of management posts.
     /// Used to connect to the database, and retrieve management posts.
     /// </summary>
-    public class ManagementPostRepository : IRepository<int, Post>
+    public class ManagementPostRepository : IScalarRepository<int, Post>
     {
         
         /// <summary>
