@@ -60,14 +60,21 @@ namespace Inuplan.WebAPI.Controllers
         private readonly IRepository<Tuple<string, string, string>, Image> imageRepository;
 
         /// <summary>
+        /// The user database repository, which contains the registered users.
+        /// </summary>
+        private readonly IRepository<string, User> userDatabaseRepository;
+
+        /// <summary>
         /// Instantiates a new <see cref="ImageController"/> instance.
         /// </summary>
         /// <param name="imageRepository">The image repository, which stores the images</param>
         public ImageController(
-            [WithKey(ServiceKeys.ImageRepository)]IRepository<Tuple<string, string, string>, Image> imageRepository,
+            [WithKey(ServiceKeys.ImageRepository)] IRepository<Tuple<string, string, string>, Image> imageRepository,
+            [WithKey(ServiceKeys.UserDatabase)] IRepository<string, User> userDatabaseRepository,
             ImageHandleFactory imageHandleFactory)
         {
             this.imageRepository = imageRepository;
+            this.userDatabaseRepository = userDatabaseRepository;
             this.imageHandleFactory = imageHandleFactory;
         }
 
@@ -287,9 +294,16 @@ namespace Inuplan.WebAPI.Controllers
                     i.MetaData.Extension));
 
             // Get all images from DB
-            var images = await imageRepository.GetAll();
+            var user = await userDatabaseRepository.Get(username);
+            if(!user.HasValue)
+            {
+                // User does not exists!
+                logger.Error("User: {0}, does not exists!", username);
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+            }
 
             // Filters by username, and creates an ImageDTO list
+            var images = await imageRepository.GetAll();
             var result = images
                                 .Where(i => 
                                     i.MetaData.Owner
