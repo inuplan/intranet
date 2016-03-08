@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Inuplan.WebAPI.Mocks
 {
-    public class NoDBRepo : IRepository<string, User>
+    public class NoDBRepo : IScalarRepository<string, User>
     {
         public Task<Option<User>> Create(User entity)
         {

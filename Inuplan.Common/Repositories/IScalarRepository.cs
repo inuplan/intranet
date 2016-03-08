@@ -22,11 +22,12 @@ namespace Inuplan.Common.Repositories
     using Optional;
 
     /// <summary>
-    /// A generic repository interface, with standard <code>CRUD</code> operations defined
+    /// A generic repository interface, with standard <code>CRUD</code> operations defined.
+    /// This repository operates on a single entity value.
     /// </summary>
     /// <typeparam name="K">The type of key</typeparam>
     /// <typeparam name="T">The type of entity</typeparam>
-    public interface IRepository<K, T> : IDisposable
+    public interface IScalarRepository<K, T> : IDisposable
     {
         /// <summary>
         /// Create an entity in the repository.

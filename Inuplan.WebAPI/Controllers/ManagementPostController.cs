@@ -34,7 +34,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <summary>
         /// A repository of Posts entities
         /// </summary>
-        private readonly IRepository<int, Post> postRepository;
+        private readonly IScalarRepository<int, Post> postRepository;
 
         /// <summary>
         /// Determines whether the resource has been disposed
@@ -45,7 +45,7 @@ namespace Inuplan.WebAPI.Controllers
         /// Initializes an instance of the <see cref="ManagementPostController"/> class.
         /// </summary>
         /// <param name="postRepository">A repository of posts</param>
-        public ManagementPostController([WithKey(ServiceKeys.ManagementPosts)]IRepository<int, Post> postRepository)
+        public ManagementPostController([WithKey(ServiceKeys.ManagementPosts)]IScalarRepository<int, Post> postRepository)
         {
             this.postRepository = postRepository;
         }

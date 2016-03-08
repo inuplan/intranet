@@ -57,20 +57,20 @@ namespace Inuplan.WebAPI.Controllers
         /// <summary>
         /// The image repository, which stores the images.
         /// </summary>
-        private readonly IRepository<Tuple<string, string, string>, Image> imageRepository;
+        private readonly IScalarRepository<Tuple<string, string, string>, Image> imageRepository;
 
         /// <summary>
         /// The user database repository, which contains the registered users.
         /// </summary>
-        private readonly IRepository<string, User> userDatabaseRepository;
+        private readonly IScalarRepository<string, User> userDatabaseRepository;
 
         /// <summary>
         /// Instantiates a new <see cref="ImageController"/> instance.
         /// </summary>
         /// <param name="imageRepository">The image repository, which stores the images</param>
         public ImageController(
-            [WithKey(ServiceKeys.ImageRepository)] IRepository<Tuple<string, string, string>, Image> imageRepository,
-            [WithKey(ServiceKeys.UserDatabase)] IRepository<string, User> userDatabaseRepository,
+            [WithKey(ServiceKeys.ImageRepository)] IScalarRepository<Tuple<string, string, string>, Image> imageRepository,
+            [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             ImageHandleFactory imageHandleFactory)
         {
             this.imageRepository = imageRepository;
