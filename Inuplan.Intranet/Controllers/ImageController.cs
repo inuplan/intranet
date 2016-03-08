@@ -20,19 +20,17 @@
 
 namespace Inuplan.Intranet.Controllers
 {
-    using Common.Tools;
-    using Inuplan.Common.DTOs;
-    using Inuplan.Intranet.Authorization;
-    using Newtonsoft.Json;
-    using Optional.Unsafe;
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Net.Http;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using System.Web;
     using System.Web.Mvc;
+    using Common.Tools;
+    using Inuplan.Common.DTOs;
+    using Inuplan.Intranet.Authorization;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Image controller, which also functions as a proxy for the web api.
