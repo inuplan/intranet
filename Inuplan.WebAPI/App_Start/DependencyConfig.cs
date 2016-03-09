@@ -85,7 +85,7 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
 
             // Register repositories
-            builder.RegisterType<UserImageRepository>().WithAttributeFilter().Keyed<IScalarRepository<Tuple<string, string, string>, Image>>(ServiceKeys.ImageRepository).InstancePerRequest();
+            builder.RegisterType<UserImageRepository>().WithAttributeFilter().Keyed<IScalarRepository<Tuple<string, string, string>, Image>>(ServiceKeys.UserImageRepository).InstancePerRequest();
             builder.RegisterType<ImageCommentRepository>().Keyed<IVectorRepository<int, List<Post>, Post>>(ServiceKeys.ImageCommentsRepository);
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
             builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);

@@ -74,7 +74,7 @@ namespace Inuplan.WebAPI.Controllers
         /// </summary>
         /// <param name="imageRepository">The image repository, which stores the images</param>
         public UserImageController(
-            [WithKey(ServiceKeys.ImageRepository)] IScalarRepository<Tuple<string, string, string>, Image> imageRepository,
+            [WithKey(ServiceKeys.UserImageRepository)] IScalarRepository<Tuple<string, string, string>, Image> imageRepository,
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             [WithKey(ServiceKeys.ImageCommentsRepository)] IVectorRepository<int, List<Post>, Post> imageCommentsRepo,
             ImageHandleFactory imageHandleFactory)

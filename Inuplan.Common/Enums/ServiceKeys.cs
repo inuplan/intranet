@@ -47,9 +47,9 @@ namespace Inuplan.Common.Enums
         GeneralPosts,
 
         /// <summary>
-        /// Key for the image repository
+        /// Key for the user image repository
         /// </summary>
-        ImageRepository,
+        UserImageRepository,
 
         /// <summary>
         /// Key for the signing key
