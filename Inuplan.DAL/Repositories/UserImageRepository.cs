@@ -40,7 +40,7 @@ namespace Inuplan.DAL.Repositories
     /// The first item in the key tuple is the <see cref="User.Username"/> and the
     /// second item is the filename of the image, and the third is the extension of the filename
     /// </summary>
-    public class ImageRepository : IScalarRepository<Key, Image>
+    public class UserImageRepository : IScalarRepository<Key, Image>
     {
         /// <summary>
         /// The logging framework
@@ -58,10 +58,10 @@ namespace Inuplan.DAL.Repositories
         private bool disposedValue = false;
 
         /// <summary>
-        /// Initializes a new instance of this <see cref="ImageRepository"/> class.
+        /// Initializes a new instance of this <see cref="UserImageRepository"/> class.
         /// </summary>
         /// <param name="connection">The database connection</param>
-        public ImageRepository(IDbConnection connection)
+        public UserImageRepository(IDbConnection connection)
         {
             this.connection = connection;
         }
