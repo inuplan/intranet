@@ -26,12 +26,12 @@ namespace Inuplan.Common.Models
     /// An image that contains 3 different sizes.
     /// A thumbnail by 150px by 150px, half-size and the original image.
     /// </summary>
-    public class Image
+    public class UserImage
     {
         /// <summary>
         /// Gets or sets the metadata for the file.
         /// </summary>
-        public FileInfo MetaData { get; set; }
+        public FileInfo Metadata { get; set; }
 
         /// <summary>
         /// Gets or sets the file for the thumbnail.

@@ -77,16 +77,17 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<ManagementPostController>().WithAttributeFilter();
             builder.RegisterType<UserImageController>().WithAttributeFilter();
 
-            // Register classes
+            // Register classes and keys
+            builder.RegisterInstance(key).Keyed<byte[]>(ServiceKeys.SecretKey);
+            builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
             builder.RegisterType<NewtonsoftMapper>().As<IJsonMapper>();
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
-            builder.RegisterInstance(key).Keyed<byte[]>(ServiceKeys.SecretKey);
-            builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
 
             // Register repositories
-            builder.RegisterType<UserImageRepository>().WithAttributeFilter().Keyed<IScalarRepository<ImageKey, Image>>(ServiceKeys.UserImageRepository);
-            builder.RegisterType<ImageCommentRepository>().Keyed<IVectorRepository<int, List<Post>, Post>>(ServiceKeys.ImageCommentsRepository);
+            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<ImageKey, UserImage>>();
+            builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, List<Post>, Post>>();
+            builder.RegisterType<UserProfileImageRepository>().As<IScalarRepository<string, ProfileImage>>();
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
             builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
             //builder.RegisterType<NoADRepo>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);

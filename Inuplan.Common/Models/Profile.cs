@@ -34,6 +34,6 @@ namespace Inuplan.Common.Models
         /// <summary>
         /// Gets or sets the profile image path
         /// </summary>
-        public virtual Image Image { get; set; }
+        public ProfileImage Image { get; set; }
     }
 }

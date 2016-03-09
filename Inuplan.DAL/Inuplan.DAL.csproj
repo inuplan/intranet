@@ -62,6 +62,7 @@
     <Compile Include="Repositories\ImageCommentRepository.cs" />
     <Compile Include="Repositories\UserADRepository.cs" />
     <Compile Include="Repositories\UserDatabaseRepository.cs" />
+    <Compile Include="Repositories\UserProfileImageRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <!-- <None Include="App.config" /> -->

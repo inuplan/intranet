@@ -58,7 +58,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <summary>
         /// The image repository, which stores the images.
         /// </summary>
-        private readonly IScalarRepository<Key, Image> userImageRepository;
+        private readonly IScalarRepository<Key, UserImage> userImageRepository;
 
         /// <summary>
         /// The user database repository, which contains the registered users.
@@ -69,21 +69,24 @@ namespace Inuplan.WebAPI.Controllers
         /// The repository comments for an image.
         /// </summary>
         private readonly IVectorRepository<int, List<Post>, Post> imageCommentsRepo;
+        private readonly IScalarRepository<string, ProfileImage> profileImageRepository;
 
         /// <summary>
         /// Instantiates a new <see cref="UserImageController"/> instance.
         /// </summary>
         /// <param name="userImageRepository">The image repository, which stores the images</param>
         public UserImageController(
-            [WithKey(ServiceKeys.UserImageRepository)] IScalarRepository<Key, Image> userImageRepository,
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
-            [WithKey(ServiceKeys.ImageCommentsRepository)] IVectorRepository<int, List<Post>, Post> imageCommentsRepo,
+            IScalarRepository<Key, UserImage> userImageRepository,
+            IVectorRepository<int, List<Post>, Post> imageCommentsRepo,
+            IScalarRepository<string, ProfileImage> profileImageRepository,
             ImageHandleFactory imageHandleFactory)
         {
-            this.userImageRepository = userImageRepository;
             this.userDatabaseRepository = userDatabaseRepository;
-            this.imageHandleFactory = imageHandleFactory;
+            this.userImageRepository = userImageRepository;
             this.imageCommentsRepo = imageCommentsRepo;
+            this.profileImageRepository = profileImageRepository;
+            this.imageHandleFactory = imageHandleFactory;
         }
 
         /// <summary>
@@ -96,28 +99,28 @@ namespace Inuplan.WebAPI.Controllers
         [HttpPost]
         public async Task<HttpResponseMessage> Post(string username)
         {
-            if(!Request.Content.IsMimeMultipartContent())
-            {
-                logger.Error("Must be a multipart content type");
-                return Request.CreateResponse(HttpStatusCode.BadRequest, "Must be a multipart content type!");
-            }
-
             if (!AuthorizeToUsername(username))
             {
                 logger.Error("Cannot upload to another users folder");
                 return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot upload to another users folder");
             }
 
+            if(!Request.Content.IsMimeMultipartContent())
+            {
+                logger.Error("Must be a multipart content type");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Must be a multipart content type!");
+            }
+
             // Proceed - everything OK
             var provider = await Request.Content.ReadAsMultipartAsync(new MultipartMemoryStreamProvider());
-            var bag = new ConcurrentBag<Image>();
+            var bag = new ConcurrentBag<UserImage>();
 
             var tasks = provider.Contents.Select(async file =>
             {
                 // Process individual image
                 logger.Trace("Processing image...");
                 var handler = imageHandleFactory.GetImageHandler();
-                var image = await handler.ProcessImage(((InuplanPrincipal)RequestContext.Principal).User, file);
+                var image = await handler.ProcessUserImage(((InuplanPrincipal)RequestContext.Principal).User, file);
 
                 // Add images to the collection
                 bag.Add(image);
@@ -134,12 +137,12 @@ namespace Inuplan.WebAPI.Controllers
                 created.Match(
                     success =>
                     {
-                        logger.Debug("Saved image: {0}.{1}\tWith ID: {2}", success.MetaData.Filename, success.MetaData.Extension, success.MetaData.ID);
+                        logger.Debug("Saved image: {0}.{1}\tWith ID: {2}", success.Metadata.Filename, success.Metadata.Extension, success.Metadata.ID);
                         error = false;
                     },
                     () =>
                     {
-                        logger.Error("Could not save: {0}.{1}", image.MetaData.Filename, image.MetaData.Extension);
+                        logger.Error("Could not save: {0}.{1}", image.Metadata.Filename, image.Metadata.Extension);
                     });
             });
 
@@ -169,12 +172,12 @@ namespace Inuplan.WebAPI.Controllers
 
             var image = await userImageRepository.Get(new Key(username, filename, extension));
 
-            return image.Match(i =>
+            return image.Match(img =>
             {
-                var imageBlob = i.Original.Data.Value;
+                var imageBlob = img.Original.Data.Value;
                 var response = Request.CreateResponse(HttpStatusCode.OK);
                 response.Content = new ByteArrayContent(imageBlob);
-                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.MetaData.MimeType);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.Metadata.MimeType);
                 return response;
             },
             () =>
@@ -205,7 +208,7 @@ namespace Inuplan.WebAPI.Controllers
                 var imageBlob = i.Medium.Data.Value;
                 var response = Request.CreateResponse(HttpStatusCode.OK);
                 response.Content = new ByteArrayContent(imageBlob);
-                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.MetaData.MimeType);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.Metadata.MimeType);
                 return response;
             },
             () =>
@@ -236,7 +239,7 @@ namespace Inuplan.WebAPI.Controllers
                 var imageBlob = i.Thumbnail.Data.Value;
                 var response = Request.CreateResponse(HttpStatusCode.OK);
                 response.Content = new ByteArrayContent(imageBlob);
-                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.MetaData.MimeType);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.Metadata.MimeType);
                 return response;
             },
             () =>
@@ -262,7 +265,7 @@ namespace Inuplan.WebAPI.Controllers
                 var imageBlob = i.Original.Data.Value;
                 var response = Request.CreateResponse(HttpStatusCode.OK);
                 response.Content = new ByteArrayContent(imageBlob);
-                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.MetaData.MimeType);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.Metadata.MimeType);
                 return response;
             },
             () =>
@@ -284,23 +287,28 @@ namespace Inuplan.WebAPI.Controllers
         {
             // Helper method, Image -> string URL
             var baseAddress = "http://" + Request.RequestUri.Authority + Request.RequestUri.LocalPath;
-            var getOriginalUrl = new Func<Image, string>(
-                i => string.Format("{0}/{1}.{2}",
+            var getOriginalUrl = new Func<UserImage, string>(
+                img => string.Format("{0}/{1}.{2}",
                     baseAddress,
-                    i.MetaData.Filename,
-                    i.MetaData.Extension));
+                    img.Metadata.Filename,
+                    img.Metadata.Extension));
 
-            var getPreviewUrl = new Func<Image, string>(
+            var getPreviewUrl = new Func<UserImage, string>(
                 i => string.Format("{0}/preview/{1}.{2}",
                     baseAddress,
-                    i.MetaData.Filename,
-                    i.MetaData.Extension));
+                    i.Metadata.Filename,
+                    i.Metadata.Extension));
 
-            var getThumbnailUrl = new Func<Image, string>(
+            var getThumbnailUrl = new Func<UserImage, string>(
                 i => string.Format("{0}/thumbnail/{1}.{2}",
                     baseAddress,
-                    i.MetaData.Filename,
-                    i.MetaData.Extension));
+                    i.Metadata.Filename,
+                    i.Metadata.Extension));
+
+            var getProfilePictureUrl = new Func<Post, string>(
+                p => string.Format("{0}/{1}/image/profile/picture.jpg",
+                    baseAddress,
+                    p.Author.Username));
 
             // Helper method: Gets the comments for an image given the id
             var getCommentImage = new Func<int, IEnumerable<IGrouping<int, List<Post>>>, List<CommentDTO>>((int id, IEnumerable<IGrouping<int, List<Post>>> collection) =>
@@ -313,7 +321,7 @@ namespace Inuplan.WebAPI.Controllers
                        LastName = p.Author.LastName,
                        Username = p.Author.Username,
                        Email = p.Author.Email,
-//                       ProfileImageUrl = "TBD",
+                       ProfileImageUrl = getProfilePictureUrl(p),
                    },
                    Comment = p.Comment,
                    ID = p.ID,
@@ -334,14 +342,14 @@ namespace Inuplan.WebAPI.Controllers
             var allComments = await imageCommentsRepo.GetAll();
             var result = images
                                 .Where(i => 
-                                    i.MetaData.Owner
+                                    i.Metadata.Owner
                                     .Username.Equals(username, StringComparison.OrdinalIgnoreCase))
                                 .Select(img => new ImageDTO
                                 {
-                                    Extension = img.MetaData.Extension,
-                                    Filename = img.MetaData.Filename,
-                                    ImageID = img.MetaData.ID,
-                                    Username = img.MetaData.Owner.Username,
+                                    Extension = img.Metadata.Extension,
+                                    Filename = img.Metadata.Filename,
+                                    ImageID = img.Metadata.ID,
+                                    Username = img.Metadata.Owner.Username,
                                     PathOriginalUrl = getOriginalUrl(img),
                                     PathPreviewUrl = getPreviewUrl(img),
                                     PathThumbnailUrl = getThumbnailUrl(img),
@@ -356,6 +364,62 @@ namespace Inuplan.WebAPI.Controllers
                                 })
                                 .ToList();
             return result;
+        }
+
+        // GET user/image/profile/picture.jpg
+        [Route("profile/picture.jpg")]
+        [HttpGet]
+        public async Task<ImageDTO> GetProfilePicture(string username)
+        {
+
+            throw new NotImplementedException();
+        }
+
+        // POST user/image/profile/upload
+        [Route("profile/upload")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> UploadProfileImage(string username)
+        {
+            if (!AuthorizeToUsername(username))
+            {
+                logger.Error("Cannot upload to another users folder");
+                return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot upload to another users folder");
+            }
+
+            if(!Request.Content.IsMimeMultipartContent())
+            {
+                logger.Error("Must be a multipart content type");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Must be a multipart content type!");
+            }
+
+            // Extract the stream and read the file
+            var provider = await Request.Content.ReadAsMultipartAsync(new MultipartMemoryStreamProvider());
+
+            if(provider.Contents.Count != 1)
+            {
+                logger.Error("Can only upload one profile picture");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Can only upload one profile picture");
+            }
+
+            var file = provider.Contents.First();
+            var handler = imageHandleFactory.GetImageHandler();
+
+            // Construct profile image
+            var image = await handler.ProcessProfileImage(((InuplanPrincipal)RequestContext.Principal).User, file);
+
+            // Save the profile image to the database and filesystem
+            var created = await profileImageRepository.Create(image);
+
+            // Respond with success or fail
+            return created.Match(
+                p =>
+                {
+                    var response = Request.CreateResponse(HttpStatusCode.Created);
+                    var location = string.Format("{0}/image/profile/picture.jpg", username);
+                    response.Headers.Location = new Uri(location, UriKind.Relative);
+                    return response;
+                },
+                () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }
 
         /// <summary>

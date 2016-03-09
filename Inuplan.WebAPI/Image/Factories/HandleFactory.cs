@@ -41,6 +41,11 @@ namespace Inuplan.WebAPI.Image.Factories
         private readonly double mediumScaleFactor;
 
         /// <summary>
+        /// Determines the size of the profile image
+        /// </summary>
+        private readonly int profileSize;
+
+        /// <summary>
         /// Determines the root path for the images
         /// </summary>
         private readonly string root;
@@ -57,12 +62,18 @@ namespace Inuplan.WebAPI.Image.Factories
         /// <param name="thumbnailWidth">The thumbnail width</param>
         /// <param name="root">The root path directory</param>
         /// <param name="filenameLength">The filename length</param>
-        public HandleFactory([WithKey(ServiceKeys.RootPath)]string root, double mediumScaleFactor = 0.5d, int thumbnailWidth = 160, int filenameLength = 5)
+        /// <param name="profileSize">The size of the profile image in pixels</param>
+        public HandleFactory([WithKey(ServiceKeys.RootPath)]string root,
+            double mediumScaleFactor = 0.5d,
+            int thumbnailWidth = 160,
+            int filenameLength = 5,
+            int profileSize = 64)
         {
             this.mediumScaleFactor = mediumScaleFactor;
             this.thumbnailWidth = thumbnailWidth;
             this.root = root;
             this.filenameLength = filenameLength;
+            this.profileSize = profileSize;
         }
 
         /// <summary>
@@ -71,7 +82,7 @@ namespace Inuplan.WebAPI.Image.Factories
         /// <returns>A new image handler</returns>
         public override IImageHandler GetImageHandler()
         {
-            return new Handle(mediumScaleFactor, thumbnailWidth, root, filenameLength);
+            return new Handle(mediumScaleFactor, thumbnailWidth, root, filenameLength, profileSize);
         }
     }
 }

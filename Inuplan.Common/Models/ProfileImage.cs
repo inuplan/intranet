@@ -18,33 +18,27 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Interfaces
+namespace Inuplan.Common.Models
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
-    using Models;
-    using System.Net.Http;
+
     /// <summary>
-    /// Process images
+    /// Represents a single small image for a single user
     /// </summary>
-    public interface IImageHandler 
+    public class ProfileImage
     {
         /// <summary>
-        /// Begins processing.
-        /// Does not save the image to the harddrive.
+        /// Gets or sets the metadata for the profile image
         /// </summary>
-        /// <param name="user">The user who initiated the process</param>
-        /// <param name="fileContent">The http content file</param>
-        /// <returns>A processed image</returns>
-        Task<UserImage> ProcessUserImage(User user, HttpContent fileContent);
+        public FileInfo Metadata { get; set; }
 
         /// <summary>
-        /// Converts an http stream to a <see cref="ProfileImage"/>.
-        /// Does not save the image to the harddrive
+        /// Gets or sets the data for the profile image
         /// </summary>
-        /// <param name="user">The user who initiated the process</param>
-        /// <param name="fileContent">The http content</param>
-        /// <returns>A profile image</returns>
-        Task<ProfileImage> ProcessProfileImage(User user, HttpContent fileContent);
+        public FileData Data { get; set; }
     }
 }
