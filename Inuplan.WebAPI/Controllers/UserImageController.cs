@@ -37,6 +37,7 @@ namespace Inuplan.WebAPI.Controllers
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using Key = System.Tuple<string, string, string>;
 
     /// <summary>
     /// Image file controller
@@ -57,7 +58,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <summary>
         /// The image repository, which stores the images.
         /// </summary>
-        private readonly IScalarRepository<Tuple<string, string, string>, Image> imageRepository;
+        private readonly IScalarRepository<Key, Image> userImageRepository;
 
         /// <summary>
         /// The user database repository, which contains the registered users.
@@ -72,14 +73,14 @@ namespace Inuplan.WebAPI.Controllers
         /// <summary>
         /// Instantiates a new <see cref="UserImageController"/> instance.
         /// </summary>
-        /// <param name="imageRepository">The image repository, which stores the images</param>
+        /// <param name="userImageRepository">The image repository, which stores the images</param>
         public UserImageController(
-            [WithKey(ServiceKeys.UserImageRepository)] IScalarRepository<Tuple<string, string, string>, Image> imageRepository,
+            [WithKey(ServiceKeys.UserImageRepository)] IScalarRepository<Key, Image> userImageRepository,
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             [WithKey(ServiceKeys.ImageCommentsRepository)] IVectorRepository<int, List<Post>, Post> imageCommentsRepo,
             ImageHandleFactory imageHandleFactory)
         {
-            this.imageRepository = imageRepository;
+            this.userImageRepository = userImageRepository;
             this.userDatabaseRepository = userDatabaseRepository;
             this.imageHandleFactory = imageHandleFactory;
             this.imageCommentsRepo = imageCommentsRepo;
@@ -129,7 +130,7 @@ namespace Inuplan.WebAPI.Controllers
             // Save images to the repository
             var save = bag.Select(async image =>
             {
-                var created = await imageRepository.Create(image);
+                var created = await userImageRepository.Create(image);
                 created.Match(
                     success =>
                     {
@@ -166,7 +167,7 @@ namespace Inuplan.WebAPI.Controllers
             var filename = tmp.Item1;
             var extension = tmp.Item2;
 
-            var image = await imageRepository.Get(new Tuple<string, string, string>(username, filename, extension));
+            var image = await userImageRepository.Get(new Key(username, filename, extension));
 
             return image.Match(i =>
             {
@@ -197,7 +198,7 @@ namespace Inuplan.WebAPI.Controllers
             var filename = tmp.Item1;
             var extension = tmp.Item2;
 
-            var image = await imageRepository.Get(new Tuple<string, string, string>(username, filename, extension));
+            var image = await userImageRepository.Get(new Key(username, filename, extension));
 
             return image.Match(i =>
             {
@@ -228,7 +229,7 @@ namespace Inuplan.WebAPI.Controllers
             var filename = tmp.Item1;
             var extension = tmp.Item2;
 
-            var image = await imageRepository.Get(new Tuple<string, string, string>(username, filename, extension));
+            var image = await userImageRepository.Get(new Key(username, filename, extension));
 
             return image.Match(i =>
             {
@@ -255,7 +256,7 @@ namespace Inuplan.WebAPI.Controllers
         [AllowAnonymous]
         public async Task<HttpResponseMessage> GetByID(int id)
         {
-            var image = await imageRepository.GetByID(id);
+            var image = await userImageRepository.GetByID(id);
             return image.Match(i =>
             {
                 var imageBlob = i.Original.Data.Value;
@@ -329,7 +330,7 @@ namespace Inuplan.WebAPI.Controllers
             }
 
             // Filters by username, and creates an ImageDTO list
-            var images = await imageRepository.GetAll();
+            var images = await userImageRepository.GetAll();
             var allComments = await imageCommentsRepo.GetAll();
             var result = images
                                 .Where(i => 
@@ -375,7 +376,7 @@ namespace Inuplan.WebAPI.Controllers
             }
 
             var filename = Helpers.GetFilename(fullname);
-            var deleted = await imageRepository.Delete(new Tuple<string, string, string>(username, filename.Item1, filename.Item2));
+            var deleted = await userImageRepository.Delete(new Key(username, filename.Item1, filename.Item2));
 
             return deleted ?
                 Request.CreateResponse(HttpStatusCode.OK, "Image deleted") :

@@ -29,7 +29,6 @@ namespace Inuplan.WebAPI.App_Start
     using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
     using Jose;
-    using System;
     using System.Collections.Generic;
     using System.Configuration;
     using System.Data;
@@ -37,6 +36,7 @@ namespace Inuplan.WebAPI.App_Start
     using System.DirectoryServices.AccountManagement;
     using System.Security.Cryptography;
     using System.Web.Http;
+    using ImageKey = System.Tuple<string, string, string>;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -85,7 +85,7 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
 
             // Register repositories
-            builder.RegisterType<UserImageRepository>().WithAttributeFilter().Keyed<IScalarRepository<Tuple<string, string, string>, Image>>(ServiceKeys.UserImageRepository).InstancePerRequest();
+            builder.RegisterType<UserImageRepository>().WithAttributeFilter().Keyed<IScalarRepository<ImageKey, Image>>(ServiceKeys.UserImageRepository);
             builder.RegisterType<ImageCommentRepository>().Keyed<IVectorRepository<int, List<Post>, Post>>(ServiceKeys.ImageCommentsRepository);
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
             builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
