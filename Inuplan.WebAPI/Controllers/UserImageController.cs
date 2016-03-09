@@ -335,23 +335,23 @@ namespace Inuplan.WebAPI.Controllers
                                 .Where(i => 
                                     i.MetaData.Owner
                                     .Username.Equals(username, StringComparison.OrdinalIgnoreCase))
-                                .Select(i => new ImageDTO
+                                .Select(img => new ImageDTO
                                 {
-                                    Extension = i.MetaData.Extension,
-                                    Filename = i.MetaData.Filename,
-                                    ImageID = i.MetaData.ID,
-                                    Username = i.MetaData.Owner.Username,
-                                    PathOriginalUrl = getOriginalUrl(i),
-                                    PathPreviewUrl = getPreviewUrl(i),
-                                    PathThumbnailUrl = getThumbnailUrl(i),
+                                    Extension = img.MetaData.Extension,
+                                    Filename = img.MetaData.Filename,
+                                    ImageID = img.MetaData.ID,
+                                    Username = img.MetaData.Owner.Username,
+                                    PathOriginalUrl = getOriginalUrl(img),
+                                    PathPreviewUrl = getPreviewUrl(img),
+                                    PathThumbnailUrl = getThumbnailUrl(img),
                                 })
-                                .Select(i => {
+                                .Select(img => {
                                     if (comments)
                                     {
-                                        i.Comments = getCommentImage(i.ImageID, allComments);
+                                        img.Comments = getCommentImage(img.ImageID, allComments);
                                     }
 
-                                    return i;
+                                    return img;
                                 })
                                 .ToList();
             return result;
