@@ -260,12 +260,12 @@ namespace Inuplan.WebAPI.Controllers
         public async Task<HttpResponseMessage> GetByID(int id)
         {
             var image = await userImageRepository.GetByID(id);
-            return image.Match(i =>
+            return image.Match(img =>
             {
-                var imageBlob = i.Original.Data.Value;
+                var imageBlob = img.Original.Data.Value;
                 var response = Request.CreateResponse(HttpStatusCode.OK);
                 response.Content = new ByteArrayContent(imageBlob);
-                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.Metadata.MimeType);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.Metadata.MimeType);
                 return response;
             },
             () =>
@@ -278,12 +278,12 @@ namespace Inuplan.WebAPI.Controllers
         /// Retrieves all images for a single user
         /// </summary>
         /// <param name="username">The username</param>
-        /// <returns>An awaitable list of <see cref="ImageDTO"/></returns>
+        /// <returns>An awaitable list of <see cref="UserImageDTO"/></returns>
         // GET user/image?comments=true
         [HttpGet]
         [AllowAnonymous]
         [Route("")]
-        public async Task<List<ImageDTO>> GetAll(string username, [FromUri] bool comments = false)
+        public async Task<List<UserImageDTO>> GetAll(string username, [FromUri] bool comments = false)
         {
             // Helper method, Image -> string URL
             var baseAddress = "http://" + Request.RequestUri.Authority + Request.RequestUri.LocalPath;
@@ -344,7 +344,7 @@ namespace Inuplan.WebAPI.Controllers
                                 .Where(i => 
                                     i.Metadata.Owner
                                     .Username.Equals(username, StringComparison.OrdinalIgnoreCase))
-                                .Select(img => new ImageDTO
+                                .Select(img => new UserImageDTO
                                 {
                                     Extension = img.Metadata.Extension,
                                     Filename = img.Metadata.Filename,
@@ -369,10 +369,19 @@ namespace Inuplan.WebAPI.Controllers
         // GET user/image/profile/picture.jpg
         [Route("profile/picture.jpg")]
         [HttpGet]
-        public async Task<ImageDTO> GetProfilePicture(string username)
+        [AllowAnonymous]
+        public async Task<HttpResponseMessage> GetProfilePicture(string username)
         {
-
-            throw new NotImplementedException();
+            var profileImage = await profileImageRepository.Get(username);
+            return profileImage.Match(img =>
+            {
+                var blob = img.Data.Data.Value;
+                var response = Request.CreateResponse(HttpStatusCode.OK);
+                response.Content = new ByteArrayContent(blob);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.Metadata.MimeType);
+                return response;
+            },
+            () => Request.CreateResponse(HttpStatusCode.NotFound));
         }
 
         // POST user/image/profile/upload

@@ -25,7 +25,7 @@ namespace Inuplan.Common.DTOs
     /// <summary>
     /// A data transfer object for an image on the server.
     /// </summary>
-    public class ImageDTO
+    public class UserImageDTO
     {
         /// <summary>
         /// Gets or sets the ID of the image

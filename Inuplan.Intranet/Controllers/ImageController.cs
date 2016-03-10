@@ -67,11 +67,11 @@ namespace Inuplan.Intranet.Controllers
                     // TODO: Handle 404 better!
                     /* NotFound! */
                     ViewBag.Username = "Not Found";
-                    return View(new List<ImageDTO>());
+                    return View(new List<UserImageDTO>());
                 }
 
                 var content = await result.Content.ReadAsStringAsync();
-                var images = JsonConvert.DeserializeObject<List<ImageDTO>>(content);
+                var images = JsonConvert.DeserializeObject<List<UserImageDTO>>(content);
 
                 return View(images);
             }

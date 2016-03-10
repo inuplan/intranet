@@ -38,13 +38,14 @@ namespace Inuplan.DAL.Repositories
     using System.IO;
     using System.Data.SqlClient;
     using System.Data.Common;
+
     public class UserProfileImageRepository : IScalarRepository<string, ProfileImage>
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         private readonly IDbConnection connection;
 
-        private bool disposedValue = false; // To detect redundant calls
+        private bool disposedValue = false;
 
         public UserProfileImageRepository(IDbConnection connection)
         {
@@ -137,24 +138,36 @@ namespace Inuplan.DAL.Repositories
 
         public async Task<Option<ProfileImage>> Get(string key)
         {
-            var result = Option.None<ProfileImage>();
+            // Get the image id from the profile of the user
+            var sqlFileInfoID = @"SELECT FileInfoID FROM Profiles P INNER JOIN Users U ON U.ID = P.ID WHERE U.Username = @Username";
+            var fileInfoID = await connection.ExecuteScalarAsync<int>(sqlFileInfoID, new { Username = key });
 
-            // TODO: must return FileInfo & FileData so a ProfileImage can be constructed.
-            var sql = @"select B.Path from
-                        (select P.FileInfoID from Users U inner join Profiles P on U.ID = P.ID where U.Username = @Username) A
-                        inner join
-                        (select D.Path, PIM.FileInfoID from ProfileImages PIM inner join FileData D on PIM.FileDataID = D.ID) B
-                        on A.FileInfoID = B.FileInfoID;";
-            var path = await connection.ExecuteScalarAsync<string>(sql, new { Username = key });
+            // Join FileInfo and FileData
+            var sql = @"SELECT tmp1.*, FD.*
+                        FROM
+                        (SELECT
+                            FI.*,
+                            PIM.FileDataID AS did
+                            FROM FileInfo FI INNER JOIN ProfileImages PIM
+                            ON PIM.FileInfoID = FI.ID) tmp1
+                        INNER JOIN FileData FD
+                        ON FD.ID = tmp1.did
+                        WHERE tmp1.ID = @fileInfoID";
 
-            result = path.SomeNotNull().Map(p => new ProfileImage
+            // Select and extract FileInfo and FileData to ProfileImage
+            var result = (await connection.QueryAsync<Common.Models.FileInfo, FileData, ProfileImage>(sql, (info, data) =>
             {
-                Data = new FileData
+                data.Data = new Lazy<byte[]>(() => File.ReadAllBytes(data.Path));
+                return new ProfileImage
                 {
-                }
-            });
+                    Data = data,
+                    Metadata = info
+                };
+            }, new { fileInfoID })).SomeNotNull();
 
-            throw new NotImplementedException();
+            return result
+                    .Filter(imgs => imgs.Count() == 1)
+                    .Map(imgs => imgs.Single());
         }
 
         public Task<Option<ProfileImage>> GetByID(int id)
