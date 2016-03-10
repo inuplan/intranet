@@ -94,8 +94,7 @@ namespace Inuplan.WebAPI.Controllers
         /// </summary>
         /// <param name="username">The 3-letter username to upload to</param>
         /// <returns>Returns a response message to the caller</returns>
-        // POST user/image/upload
-        [Route("upload")]
+        // POST user/image
         [HttpPost]
         public async Task<HttpResponseMessage> Post(string username)
         {
@@ -366,8 +365,8 @@ namespace Inuplan.WebAPI.Controllers
             return result;
         }
 
-        // GET user/image/profile/picture.jpg
-        [Route("profile/picture.jpg")]
+        // GET user/image/profile
+        [Route("profile")]
         [HttpGet]
         [AllowAnonymous]
         public async Task<HttpResponseMessage> GetProfilePicture(string username)
@@ -384,8 +383,8 @@ namespace Inuplan.WebAPI.Controllers
             () => Request.CreateResponse(HttpStatusCode.NotFound));
         }
 
-        // POST user/image/profile/upload
-        [Route("profile/upload")]
+        // POST user/image/profile
+        [Route("profile")]
         [HttpPost]
         public async Task<HttpResponseMessage> UploadProfileImage(string username)
         {
