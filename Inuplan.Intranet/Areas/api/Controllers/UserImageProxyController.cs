@@ -135,6 +135,7 @@ namespace Inuplan.Intranet.Areas.api.Controllers
             }
         }
 
+        [Route("", Name = "UploadImage")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(string username)
         {
