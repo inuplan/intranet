@@ -9,3 +9,4 @@ GET             | {user}/image?comments={bool}                       | Get all i
 GET             | image/id/{id}                                      | Gets the image with that id
 POST            | {user}/image/profile                               | Uploads the profile image
 GET             | {user}/image/profile                               | Gets the user's image profile
+DELETE          | {user}/image/{file}                                | Deletes an image file from the users collection
