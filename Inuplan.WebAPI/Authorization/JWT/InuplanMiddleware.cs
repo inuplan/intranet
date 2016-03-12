@@ -55,7 +55,7 @@ namespace Inuplan.WebAPI.Authorization.JWT
         {
             context.Response.OnSendingHeaders(obj =>
             {
-                var bearer = context.Get<string>(Constants.JWT_BEARER).SomeNotNull();
+                var bearer = context.Get<string>(Constants.OWIN_JWT).SomeNotNull();
                 bearer.Match(b =>
                 {
                         // Add token to response, if present

@@ -20,12 +20,13 @@
 
 namespace Inuplan.WebAPI.Controllers
 {
-    using Authorization.Principal;
     using Autofac.Extras.Attributed;
     using Common.DTOs;
     using Common.Enums;
     using Common.Factories;
+    using Common.Interfaces;
     using Common.Models;
+    using Common.Principal;
     using Common.Repositories;
     using Common.Tools;
     using NLog;
@@ -35,6 +36,7 @@ namespace Inuplan.WebAPI.Controllers
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Security.Principal;
     using System.Threading.Tasks;
     using System.Web.Http;
     using Key = System.Tuple<string, string, string>;
@@ -43,7 +45,7 @@ namespace Inuplan.WebAPI.Controllers
     /// Image file controller
     /// </summary>
     [RoutePrefix("{username:alpha:length(2,6)}/image")]
-    public class UserImageController : ApiController
+    public class UserImageController : ApiController, IUserImageController
     {
         /// <summary>
         /// The logging framework
@@ -119,7 +121,8 @@ namespace Inuplan.WebAPI.Controllers
                 // Process individual image
                 logger.Trace("Processing image...");
                 var handler = imageHandleFactory.GetImageHandler();
-                var image = await handler.ProcessUserImage(((InuplanPrincipal)RequestContext.Principal).User, file);
+                var user = GetPrincipalIdentityUser(RequestContext.Principal);
+                var image = await handler.ProcessUserImage(user, file);
 
                 // Add images to the collection
                 bag.Add(image);
@@ -158,14 +161,14 @@ namespace Inuplan.WebAPI.Controllers
         /// Retrieves the original image from the database
         /// </summary>
         /// <param name="username">The username of the current user</param>
-        /// <param name="fullname">The full name of the image requested</param>
+        /// <param name="file">The full name of the image requested</param>
         /// <returns>The requested image</returns>
         // GET user/image/test.jpeg
-        [Route("{fullname}")]
+        [Route("{file}")]
         [AllowAnonymous]
-        public async Task<HttpResponseMessage> Get(string username, string fullname)
+        public async Task<HttpResponseMessage> Get(string username, string file)
         {
-            var tmp = Helpers.GetFilename(fullname);
+            var tmp = Helpers.GetFilename(file);
             var filename = tmp.Item1;
             var extension = tmp.Item2;
 
@@ -189,14 +192,14 @@ namespace Inuplan.WebAPI.Controllers
         /// Retrieves the half-sized image from the database.
         /// </summary>
         /// <param name="username">The username of the current user</param>
-        /// <param name="fullname">The full name of the image requested</param>
+        /// <param name="file">The full name of the image requested</param>
         /// <returns>The requested image</returns>
         // GET user/image/preview/test.jpeg
-        [Route("preview/{fullname}")]
+        [Route("preview/{file}")]
         [AllowAnonymous]
-        public async Task<HttpResponseMessage> GetPreview(string username, string fullname)
+        public async Task<HttpResponseMessage> GetPreview(string username, string file)
         {
-            var tmp = Helpers.GetFilename(fullname);
+            var tmp = Helpers.GetFilename(file);
             var filename = tmp.Item1;
             var extension = tmp.Item2;
 
@@ -220,14 +223,14 @@ namespace Inuplan.WebAPI.Controllers
         /// Retrieves the thumbnail image from the database.
         /// </summary>
         /// <param name="username">The username of the current user</param>
-        /// <param name="fullname">The full name of the image requested</param>
+        /// <param name="file">The full name of the image requested</param>
         /// <returns>The requested image</returns>
         // GET user/image/thumbnail/test.jpeg
-        [Route("thumbnail/{fullname}")]
+        [Route("thumbnail/{file}")]
         [AllowAnonymous]
-        public async Task<HttpResponseMessage> GetThumbnail(string username, string fullname)
+        public async Task<HttpResponseMessage> GetThumbnail(string username, string file)
         {
-            var tmp = Helpers.GetFilename(fullname);
+            var tmp = Helpers.GetFilename(file);
             var filename = tmp.Item1;
             var extension = tmp.Item2;
 
@@ -413,7 +416,8 @@ namespace Inuplan.WebAPI.Controllers
             var handler = imageHandleFactory.GetImageHandler();
 
             // Construct profile image
-            var image = await handler.ProcessProfileImage(((InuplanPrincipal)RequestContext.Principal).User, file);
+            var user = GetPrincipalIdentityUser(RequestContext.Principal);
+            var image = await handler.ProcessProfileImage(user, file);
 
             // Save the profile image to the database and filesystem
             var created = await profileImageRepository.Create(image);
@@ -434,12 +438,12 @@ namespace Inuplan.WebAPI.Controllers
         /// Deletes an image from the server and filesystem
         /// </summary>
         /// <param name="username"></param>
-        /// <param name="fullname"></param>
+        /// <param name="file"></param>
         /// <returns></returns>
         // DELETE user/image/test.jpeg
-        [Route("{fullname}")]
+        [Route("{file}")]
         [HttpDelete]
-        public async Task<HttpResponseMessage> Delete(string username, string fullname)
+        public async Task<HttpResponseMessage> Delete(string username, string file)
         {
             if(!AuthorizeToUsername(username))
             {
@@ -447,7 +451,7 @@ namespace Inuplan.WebAPI.Controllers
                 return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot delete another user's image");
             }
 
-            var filename = Helpers.GetFilename(fullname);
+            var filename = Helpers.GetFilename(file);
             var deleted = await userImageRepository.Delete(new Key(username, filename.Item1, filename.Item2));
 
             return deleted ?
@@ -463,8 +467,27 @@ namespace Inuplan.WebAPI.Controllers
         [NonAction]
         private bool AuthorizeToUsername(string username)
         {
-            var principal = (InuplanPrincipal)RequestContext.Principal;
+            var principal = RequestContext.Principal;
             return username.Equals(principal.Identity.Name, StringComparison.OrdinalIgnoreCase);
+        }
+        
+        /// <summary>
+        /// Gets the <see cref="User"/> which is stored in the <see cref="IPrincipal"/> object.
+        /// </summary>
+        /// <param name="principal">The principal object</param>
+        /// <returns>A user</returns>
+        /// <exception cref="InvalidOperationException">thrown when no user exist</exception>
+        [NonAction]
+        private User GetPrincipalIdentityUser(IPrincipal principal)
+        {
+            var user = principal as InuplanPrincipal;
+            if(user != null)
+            {
+                return user.User;
+            }
+
+            logger.Error("User has not been set by the InuplanAuthorizationAttribute object");
+            throw new InvalidOperationException();
         }
     }
 }

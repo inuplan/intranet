@@ -20,11 +20,14 @@
 
 namespace Inuplan.Intranet.App_Start
 {
+    using Areas.api.Controllers;
+    using Authorization;
     using Autofac;
     using Autofac.Extras.Attributed;
     using Autofac.Integration.Mvc;
     using Common.Enums;
     using Common.Tools;
+    using Factories;
     using System;
     using System.Configuration;
     using System.Security.Cryptography;
@@ -44,6 +47,13 @@ namespace Inuplan.Intranet.App_Start
 
             // Register controllers
             builder.RegisterControllers(typeof(MvcApplication).Assembly).WithAttributeFilter();
+            builder.Register(ctx =>
+            {
+                var r = new Uri(remote);
+                var f = ctx.Resolve<IHttpClientFactory>();
+                var a = ctx.Resolve<AuthorizationClient>();
+                return new UserImageProxyController(r, f, a);
+            });
 
             // Register dependencies in filter attributes
             builder.RegisterFilterProvider();
@@ -57,8 +67,10 @@ namespace Inuplan.Intranet.App_Start
             {
                 var k = ctx.ResolveKeyed<byte[]>(ServiceKeys.SecretKey);
                 var r = remote;
-                return new Authorization.Client(k, r, domain, TimeSpan.FromDays(3));
+                var f = ctx.Resolve<IHttpClientFactory>();
+                return new AuthorizationClient(k, r, domain, TimeSpan.FromDays(3), Jose.JwsAlgorithm.HS256, f);
             });
+            builder.Register(ctx => new HttpClientFactory(new WeakReference<System.Net.Http.HttpClient>(new System.Net.Http.HttpClient()))).As<IHttpClientFactory>();
 
             // Build container
             var container = builder.Build();
