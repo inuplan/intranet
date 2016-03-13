@@ -20,17 +20,16 @@
 
 namespace Inuplan.Intranet.Controllers
 {
+    using Common.Models;
+    using Factories;
+    using Inuplan.Intranet.Authorization;
+    using Newtonsoft.Json;
+    using Optional;
     using System;
-    using System.Collections.Generic;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using System.Web;
     using System.Web.Mvc;
-    using Common.Tools;
-    using Inuplan.Common.DTOs;
-    using Inuplan.Intranet.Authorization;
-    using Newtonsoft.Json;
+    using ViewModels;
 
     /// <summary>
     /// Image controller, which also functions as a proxy for the web api.
@@ -39,41 +38,43 @@ namespace Inuplan.Intranet.Controllers
     {
         private readonly AuthorizationClient authClient;
         private const string baseAddress = "http://localhost:9000";
+        private readonly IHttpClientFactory httpClientFactory;
+        private readonly Uri remoteBaseAddress;
 
-        public ImageController(AuthorizationClient authClient)
+        public ImageController(Uri remoteBaseAddress, AuthorizationClient authClient, IHttpClientFactory httpClientFactory)
         {
+            this.remoteBaseAddress = remoteBaseAddress;
             this.authClient = authClient;
+            this.httpClientFactory = httpClientFactory;
         }
 
-        [Route("user/{username:alpha:length(2,6)}/images", Name = "UserImages")]
         [HttpGet]
+        [Route("user/{username:alpha:length(2,6)}/images", Name = "UserImages")]
         public async Task<ActionResult> UserImages(string username)
         {
-            var token = await authClient.GetTokenIfNotExists(Request, User);
-            authClient.SetTokenIfExists(Response, token);
-
-            // Display upload form?
-            ViewBag.CanEdit = (username.Equals(Environment.UserName));
-            ViewBag.Username = username;
-
-            using (var client = new HttpClient())
+            using (var client = httpClientFactory.GetHttpClient())
             {
-                client.BaseAddress = new Uri(baseAddress);
-                var path = string.Format("/{0}/image", username);
-                var result = await client.GetAsync(path);
-                
-                if(result.StatusCode == System.Net.HttpStatusCode.NotFound)
+                client.BaseAddress = remoteBaseAddress;
+                var path = string.Format("user/{0}", username);
+                var response = await client.GetAsync(path);
+                var json = (await response.Content.ReadAsStringAsync()).SomeNotNull();
+                var owner = json.Map(j => JsonConvert.DeserializeObject<User>(j));
+
+                return owner.Match(u =>
                 {
-                    // TODO: Handle 404 better!
-                    /* NotFound! */
-                    ViewBag.Username = "Not Found";
-                    return View(new List<UserImageDTO>());
-                }
+                    var viewModel = new BaseViewModel<User>
+                    {
+                        CurrentUsername = Environment.UserName,
+                        Entity = u,
+                        CanEdit = (username.Equals(Environment.UserName, StringComparison.OrdinalIgnoreCase)),
+                    };
 
-                var content = await result.Content.ReadAsStringAsync();
-                var images = JsonConvert.DeserializeObject<List<UserImageDTO>>(content);
-
-                return View(images);
+                    return View(viewModel);
+                },
+                () => 
+                {
+                    throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
+                });
             }
         }
     }

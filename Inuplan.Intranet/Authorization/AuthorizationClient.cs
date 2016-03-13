@@ -72,6 +72,16 @@ namespace Inuplan.Intranet.Authorization
             () => { /* No need to set token */});
         }
 
+        public async Task<Option<string>> GetToken(HttpRequestBase request)
+        {
+            var cookieToken = request.Cookies.Get(Constants.TOKEN_COOKIE)
+                                .SomeNotNull()
+                                .Map(c => c.Value.SomeNotNull())
+                                .Map(c => Task.FromResult(c));
+            var token = cookieToken.ValueOr(async () => await GetTokenFromAPI());
+            return await token;
+        }
+
         public async Task<Option<string>> GetToken(HttpRequestMessage request)
         {
             var cookieToken = request.Headers
@@ -85,23 +95,6 @@ namespace Inuplan.Intranet.Authorization
 
             var token = cookieToken.ValueOr(async () => await GetTokenFromAPI());
             return await token;
-        }
-
-        public async Task<Option<string>> GetTokenIfNotExists(HttpRequestBase request, IPrincipal user)
-        {
-            // If cookie value exists, we don't need to get it
-            // otherwise we get it from the api
-            return (CookieHasToken(request)) ? Option.None<string>() : await GetTokenFromAPI();
-        }
-
-        private bool CookieHasToken(HttpRequestBase request)
-        {
-            return request
-                    .Cookies
-                    .AllKeys
-                    .Any(k => 
-                        k.Equals(Constants.TOKEN_COOKIE) &&
-                        !string.IsNullOrEmpty(k));
         }
 
         private async Task<Option<string>> GetTokenFromAPI()

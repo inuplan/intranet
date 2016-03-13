@@ -50,7 +50,7 @@ namespace Inuplan.Common.Models
         /// <summary>
         /// Gets or sets the profile info of the user
         /// </summary>
-        public virtual Profile Info { get; set; }
+        public Profile Info { get; set; }
 
         /// <summary>
         /// Gets or sets the users role

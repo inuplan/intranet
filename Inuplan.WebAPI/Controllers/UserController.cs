@@ -18,14 +18,38 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Intranet.ViewModels
+namespace Inuplan.WebAPI.Controllers
 {
+    using Autofac.Extras.Attributed;
+    using Common.Enums;
+    using Common.Models;
+    using Common.Repositories;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Web;
+    using System.Net;
+    using System.Text;
+    using System.Threading.Tasks;
+    using System.Web.Http;
 
-    public class UserImageViewModel
+    [RoutePrefix("user/{username}")]
+    public class UserController : ApiController
     {
+        private readonly IScalarRepository<string, User> userRepository;
+
+        public UserController([WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userRepository)
+        {
+            this.userRepository = userRepository;
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<User> Get(string username)
+        {
+            var user = await userRepository.Get(username);
+            return user.Match(
+                u => u,
+                () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
+        }
     }
 }
