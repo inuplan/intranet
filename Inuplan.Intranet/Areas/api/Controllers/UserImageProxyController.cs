@@ -143,13 +143,6 @@ namespace Inuplan.Intranet.Areas.api.Controllers
             {
                 client.BaseAddress = remoteBaseAddress;
                 var path = string.Format("{0}/image", username);
-
-                if (!Request.Content.IsMimeMultipartContent())
-                {
-                    logger.Error("Must be a multipart content type");
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, "Must be a multipart content type!");
-                }
-
                 return await client.PostAsync(path, Request.Content);
             }
         }
