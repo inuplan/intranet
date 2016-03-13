@@ -57,22 +57,13 @@ namespace Inuplan.Common.Tools
         /// <returns>A tuple, where the first item is the filename and the second item is the extension</returns>
         public static Tuple<string, string> GetFilename(string fullname)
         {
-            var split = fullname.Split('.');
-            var file = string.Empty;
-
-            // loop untill 2nd last item
-            for (int i = 0; i < split.Length - 1; i++)
-            {
-                // append all to string
-                file += split[i];
-            }
-
-            // last item must be the extension
-            var extension = split[split.Length - 1];
-
-            return new Tuple<string, string>(file, extension);
+            int lastIndex = fullname.LastIndexOf('.');
+            var filename = fullname.Substring(0, lastIndex);
+            var extension = fullname.Substring(lastIndex + 1);
+            return new Tuple<string, string>(filename, extension);
         }
 
+        /*
         public static string GetMIMEType(string extension)
         {
             if (extension.Length > 0 &&
@@ -275,5 +266,6 @@ namespace Inuplan.Common.Tools
             {"xyz", "chemical/x-xyz"},
             {"zip", "application/zip"}
       };
+      */
     }
 }

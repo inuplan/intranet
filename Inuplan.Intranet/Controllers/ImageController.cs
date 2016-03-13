@@ -37,10 +37,10 @@ namespace Inuplan.Intranet.Controllers
     /// </summary>
     public class ImageController : Controller
     {
-        private readonly Client authClient;
+        private readonly AuthorizationClient authClient;
         private const string baseAddress = "http://localhost:9000";
 
-        public ImageController(Client authClient)
+        public ImageController(AuthorizationClient authClient)
         {
             this.authClient = authClient;
         }
@@ -53,7 +53,7 @@ namespace Inuplan.Intranet.Controllers
             authClient.SetTokenIfExists(Response, token);
 
             // Display upload form?
-            ViewBag.CanEdit = (username.Equals(Client.GetUsername(User), StringComparison.OrdinalIgnoreCase));
+            ViewBag.CanEdit = (username.Equals(Environment.UserName));
             ViewBag.Username = username;
 
             using (var client = new HttpClient())
@@ -77,11 +77,12 @@ namespace Inuplan.Intranet.Controllers
             }
         }
 
+        /*
         [HttpPost]
         public async Task<ActionResult> Upload(IEnumerable<HttpPostedFileBase> files)
         {
-            var username = Client.GetUsername(User);
-            var token = await authClient.GetToken(Request, User);
+            var username = Environment.UserName;
+            var token = await authClient.GetToken(Request);
             if (string.IsNullOrEmpty(token))
                 return View("Forbidden");
 
@@ -114,8 +115,8 @@ namespace Inuplan.Intranet.Controllers
 
         public async Task<ActionResult> Delete(IEnumerable<string> images)
         {
-            var username = Client.GetUsername(User);
-            var token = await authClient.GetToken(Request, User);
+            var username = Environment.UserName;
+            var token = await authClient.GetToken(Request);
             if (string.IsNullOrEmpty(token))
                 return View("Forbidden");
 
@@ -133,5 +134,6 @@ namespace Inuplan.Intranet.Controllers
 
             return RedirectToRoute("UserImages", new { username });
         }
+        */
     }
 }

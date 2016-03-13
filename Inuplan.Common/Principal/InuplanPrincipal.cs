@@ -18,16 +18,16 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.WebAPI.Authorization.Principal
+namespace Inuplan.Common.Principal
 {
-    using Common.Models;
+    using Models;
     using System.Security.Principal;
 
     public class InuplanPrincipal : GenericPrincipal
     {
         public InuplanPrincipal(IIdentity identity, string[] roles, User user) : base(identity, roles)
         {
-            this.User = user;
+            User = user;
         }
 
         public User User { get; private set; }

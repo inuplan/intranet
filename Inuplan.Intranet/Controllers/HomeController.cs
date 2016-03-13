@@ -26,9 +26,9 @@ namespace Inuplan.Intranet.Controllers
 
     public class HomeController : Controller
     {
-        private readonly Client authClient;
+        private readonly AuthorizationClient authClient;
 
-        public HomeController(Client authClient)
+        public HomeController(AuthorizationClient authClient)
         {
             this.authClient = authClient;
         }
@@ -41,7 +41,7 @@ namespace Inuplan.Intranet.Controllers
 
             // Set token (if we got it)
             // authClient.SetTokenIfExists(Response, token);
-            return View();
+            return await Task.FromResult(View());
         }
     }
 }
