@@ -66,8 +66,8 @@
       <HintPath>..\packages\CommandLineParser.2.0.275-beta\lib\net45\CommandLine.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="jose-jwt, Version=1.9.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\jose-jwt.1.9.0\lib\4.0\jose-jwt.dll</HintPath>
+    <Reference Include="jose-jwt, Version=1.9.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\jose-jwt.1.9.1\lib\4.0\jose-jwt.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Owin, Version=3.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -134,8 +134,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Authorization\JWT\InuplanAuthorizationAttribute.cs" />
     <Compile Include="Authorization\JWT\InuplanMiddleware.cs" />
-    <Compile Include="Authorization\Principal\InuplanPrincipal.cs" />
-    <Compile Include="Controllers\ImageController.cs" />
+    <Compile Include="Controllers\UserImageController.cs" />
     <Compile Include="CLI\ProgramOptions.cs" />
     <Compile Include="CLI\Parser.cs" />
     <Compile Include="Controllers\TokenController.cs" />
@@ -157,7 +156,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="Inuplan.WebAPI.ruleset" />
-    <None Include="LICENSE" />
     <None Include="NLog.xsd">
       <SubType>Designer</SubType>
     </None>
@@ -165,11 +163,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Inuplan.Common\Inuplan.Common.csproj">
-      <Project>{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}</Project>
+      <Project>{00db2518-eaee-4f5d-aed6-8cf7f64e5c24}</Project>
       <Name>Inuplan.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\Inuplan.DAL\Inuplan.DAL.csproj">
-      <Project>{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}</Project>
+      <Project>{1e2fde8f-ee89-4b2a-b7c9-d84d80847c14}</Project>
       <Name>Inuplan.DAL</Name>
     </ProjectReference>
   </ItemGroup>

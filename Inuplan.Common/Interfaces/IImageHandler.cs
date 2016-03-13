@@ -30,11 +30,21 @@ namespace Inuplan.Common.Interfaces
     public interface IImageHandler 
     {
         /// <summary>
-        /// Begins processing
+        /// Begins processing.
+        /// Does not save the image to the harddrive.
         /// </summary>
         /// <param name="user">The user who initiated the process</param>
         /// <param name="fileContent">The http content file</param>
         /// <returns>A processed image</returns>
-        Task<Image> ProcessImage(User user, HttpContent fileContent);
+        Task<UserImage> ProcessUserImage(User user, HttpContent fileContent);
+
+        /// <summary>
+        /// Converts an http stream to a <see cref="ProfileImage"/>.
+        /// Does not save the image to the harddrive
+        /// </summary>
+        /// <param name="user">The user who initiated the process</param>
+        /// <param name="fileContent">The http content</param>
+        /// <returns>A profile image</returns>
+        Task<ProfileImage> ProcessProfileImage(User user, HttpContent fileContent);
     }
 }

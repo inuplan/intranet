@@ -29,7 +29,7 @@ namespace Inuplan.Common.Models
         /// <summary>
         /// Gets or sets the images for this album
         /// </summary>
-        public List<Image> Images { get; set; }
+        public List<UserImage> Images { get; set; }
 
         /// <summary>
         /// Gets or sets the comments for this album

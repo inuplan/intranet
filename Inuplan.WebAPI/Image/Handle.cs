@@ -54,27 +54,33 @@ namespace Inuplan.WebAPI.Image
         private readonly int thumbnailWidth;
 
         /// <summary>
+        /// Sets the rectangular size for the profile image
+        /// </summary>
+        private readonly int profileSize;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Handle"/> class.
         /// </summary>
         /// <param name="mediumScaleFactor">The medium scaling factor (percent)</param>
         /// <param name="thumbnailWidth">The thumbnail width (pixels)</param>
         /// <param name="root">The root directory, where the images are stored</param>
         /// <param name="filenameLength">The length of the filename</param>
-        public Handle(double mediumScaleFactor, int thumbnailWidth, string root, int filenameLength)
+        public Handle(double mediumScaleFactor, int thumbnailWidth, string root, int filenameLength, int profileSize)
         {
             this.mediumScaleFactor = mediumScaleFactor;
             this.thumbnailWidth = thumbnailWidth;
             this.root = root;
             this.filenameLength = filenameLength;
+            this.profileSize = profileSize;
         }
 
         /// <summary>
-        /// Processes the image given in the <see cref="HttpContent"/> into a <see cref="Image"/> object.
+        /// Processes the image given in the <see cref="HttpContent"/> into a <see cref="UserImage"/> object.
         /// Resizes the image according to the settings given upon instantiation.
         /// </summary>
         /// <param name="user">The user who initiated the procedure</param>
         /// <returns>A processed image file</returns>
-        public async Task<Image> ProcessImage(User user, HttpContent fileContent)
+        public async Task<UserImage> ProcessUserImage(User user, HttpContent fileContent)
         {
             using(fileContent)
             {
@@ -131,9 +137,9 @@ namespace Inuplan.WebAPI.Image
                 }
 
                 // Return the processed image file. Note it has not been saved to the database yet!
-                return new Image
+                return new UserImage
                 {
-                    MetaData = fileInfo,
+                    Metadata = fileInfo,
                     Original = original,
                     Medium = medium,
                     Thumbnail = thumbnail
@@ -141,6 +147,54 @@ namespace Inuplan.WebAPI.Image
             }
         }
 
+        public async Task<ProfileImage> ProcessProfileImage(User user, HttpContent fileContent)
+        {
+            // Maybe save picture as 64x64 image
+            using (fileContent)
+            {
+                // Get filename
+                var fullname = Helpers.GetFilename(fileContent.Headers.ContentDisposition.FileName);
+                var extension = fullname.Item2.Replace("\"", string.Empty);
+                var mime = fileContent.Headers.ContentType.MediaType;
+
+                var fileInfo = new FileInfo
+                {
+                    Extension = extension,
+                    MimeType = mime,
+                    Owner = user
+                };
+
+                var fileData = new FileData();
+
+                using (var fileStream = await fileContent.ReadAsStreamAsync())
+                {
+                    // Retrieve image
+                    var image = d.Image.FromStream(fileStream);
+                    var format = image.RawFormat;
+
+                    // Usually: 64 x 64 pixels
+                    var imageBitmap = ResizeImage(image, profileSize, profileSize);
+                    var imageByte = ConvertToByte(imageBitmap, format);
+                    var hex = GetHex(imageByte).Substring(0, 12);
+
+                    // e.g.:    c:\tmp\jdoe\profile\picture.jpg
+                    var path = string.Format("{0}\\{1}\\profile\\{2}.{3}", root, user.Username, "picture", "jpg");
+
+                    // Set fileinfo filename needs to be unique
+                    fileInfo.Filename = hex;
+
+                    // Set data values (physical location)
+                    fileData.Path = path;
+                    fileData.Data = new Lazy<byte[]>(() => imageByte);
+                }
+
+                return new ProfileImage
+                {
+                    Metadata = fileInfo,
+                    Data = fileData,
+                };
+            }
+        }
 
         /// <summary>
         /// Resize the image to the specified width and height. <br />
@@ -205,12 +259,17 @@ namespace Inuplan.WebAPI.Image
             var sb = new StringBuilder();
             sb.AppendFormat("{0}\\{1}\\{2:yyyyMMdd}\\", root, username, DateTime.Now);
 
-            var sha1 = SHA1.Create();
-            var hash = sha1.ComputeHash(data);
-            var hex = Helpers.HexStringFromBytes(hash).Substring(0, filenameLength);
-
+            var hex = GetHex(data).Substring(0, filenameLength);
             sb.AppendFormat("{0}.{1}", hex, extension);
             return sb.ToString();
         }
+
+        private string GetHex(byte[] data)
+        {
+            var sha1 = SHA1.Create();
+            var hash = sha1.ComputeHash(data);
+            return Helpers.HexStringFromBytes(hash);
+        }
+
     }
 }

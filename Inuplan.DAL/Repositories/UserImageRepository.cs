@@ -40,7 +40,7 @@ namespace Inuplan.DAL.Repositories
     /// The first item in the key tuple is the <see cref="User.Username"/> and the
     /// second item is the filename of the image, and the third is the extension of the filename
     /// </summary>
-    public class ImageRepository : IScalarRepository<Key, Image>
+    public class UserImageRepository : IScalarRepository<Key, UserImage>
     {
         /// <summary>
         /// The logging framework
@@ -58,10 +58,10 @@ namespace Inuplan.DAL.Repositories
         private bool disposedValue = false;
 
         /// <summary>
-        /// Initializes a new instance of this <see cref="ImageRepository"/> class.
+        /// Initializes a new instance of this <see cref="UserImageRepository"/> class.
         /// </summary>
         /// <param name="connection">The database connection</param>
-        public ImageRepository(IDbConnection connection)
+        public UserImageRepository(IDbConnection connection)
         {
             this.connection = connection;
         }
@@ -71,25 +71,25 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="entity">The image to create</param>
         /// <returns>An optional image with correct ID</returns>
-        public async Task<Option<Image>> Create(Image entity)
+        public async Task<Option<UserImage>> Create(UserImage entity)
         {
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 try
                 {
-                    entity.MetaData.ID = 0;
+                    entity.Metadata.ID = 0;
                     var sqlInfo = @"INSERT INTO FileInfo
                         (Filename, Extension, MimeType, OwnerID)
                         VALUES(@Filename, @Extension, @MimeType, @OwnerID);
                         SELECT ID FROM FileInfo WHERE ID = @@IDENTITY;";
 
                     // Create info file
-                    entity.MetaData.ID = await connection.ExecuteScalarAsync<int>(sqlInfo, new
+                    entity.Metadata.ID = await connection.ExecuteScalarAsync<int>(sqlInfo, new
                     {
-                        Filename = entity.MetaData.Filename,
-                        Extension = entity.MetaData.Extension,
-                        MimeType = entity.MetaData.MimeType,
-                        OwnerID = entity.MetaData.Owner.ID
+                        Filename = entity.Metadata.Filename,
+                        Extension = entity.Metadata.Extension,
+                        MimeType = entity.Metadata.MimeType,
+                        OwnerID = entity.Metadata.Owner.ID
                     });
 
                     // Create 3 images
@@ -118,13 +118,13 @@ namespace Inuplan.DAL.Repositories
                         VALUES (@FID, @TID, @MID, @OID);";
                     await connection.ExecuteAsync(sql, new
                     {
-                        FID = entity.MetaData.ID,
+                        FID = entity.Metadata.ID,
                         TID = entity.Thumbnail.ID,
                         MID = entity.Medium.ID,
                         OID = entity.Original.ID
                     });
 
-                    var success = entity.MetaData.ID > 0 &&
+                    var success = entity.Metadata.ID > 0 &&
                                     entity.Original.ID > 0 &&
                                     entity.Medium.ID > 0 &&
                                     entity.Thumbnail.ID > 0;
@@ -156,7 +156,7 @@ namespace Inuplan.DAL.Repositories
                 }
             }
 
-            return Option.None<Image>();
+            return Option.None<UserImage>();
         }
 
         /// <summary>
@@ -164,16 +164,16 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="entity">The image entity to delete</param>
         /// <returns>A boolean value indicating whether the operation was succesfull</returns>
-        public async Task<bool> Delete(Image entity)
+        public async Task<bool> Delete(UserImage entity)
         {
-            Debug.Assert(entity.MetaData.ID > 0, "The image must have an ID!");
+            Debug.Assert(entity.Metadata.ID > 0, "The image must have an ID!");
 
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var deleted = 0;
                 var imagesTable = await connection.QueryAsync(@"SELECT * FROM Images WHERE ID = @ID", new
                 {
-                    ID = entity.MetaData.ID
+                    ID = entity.Metadata.ID
                 });
 
                 // Get ID for each image
@@ -204,10 +204,10 @@ namespace Inuplan.DAL.Repositories
 
                 // We cannot know if it was successfull, because there might be no comments...
                 // Although an exception will be thrown, if unsuccesfull.
-                await connection.ExecuteAsync(deletePostsSql, new { key = entity.MetaData.ID });
+                await connection.ExecuteAsync(deletePostsSql, new { key = entity.Metadata.ID });
 
                 // Delete the data in FileInfo and Images (cascades)
-                deleted = await connection.ExecuteAsync(@"DELETE FROM FileInfo WHERE ID = @ID", new { ID = entity.MetaData.ID });
+                deleted = await connection.ExecuteAsync(@"DELETE FROM FileInfo WHERE ID = @ID", new { ID = entity.Metadata.ID });
 
                 // Delete the data in FileData
                 deleted += await connection.ExecuteAsync(@"DELETE FROM FileData WHERE ID = @ID", new[]
@@ -268,7 +268,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="key">First item is the <see cref="User.Username"/>, the second item is the <see cref="Common.Models.FileInfo.Filename"/>m
         /// the third item is the file extension <see cref="Common.Models.FileInfo.Extension"/>.</param>
         /// <returns>An optional image.</returns>
-        public async Task<Option<Image>> Get(Key key)
+        public async Task<Option<UserImage>> Get(Key key)
         {
             // Get unique user
             var sqlUserID = @"SELECT * FROM Users WHERE Username = @Username";
@@ -288,7 +288,7 @@ namespace Inuplan.DAL.Repositories
             // Did not find file information
             if (fileInfo == null)
             {
-                return Option.None<Image>();
+                return Option.None<UserImage>();
             }
 
             // Get ID for each image
@@ -306,7 +306,7 @@ namespace Inuplan.DAL.Repositories
             // The IDs are not valid
             if (!isValid)
             {
-                return Option.None<Image>();
+                return Option.None<UserImage>();
             }
 
             // Retrieve the FileData images
@@ -315,12 +315,12 @@ namespace Inuplan.DAL.Repositories
             var originalPath = connection.ExecuteScalar<string>(@"SELECT Path FROM FileData WHERE ID = @ID", new { ID = originalID });
 
             // Construct Image object
-            var image = new Image
+            var image = new UserImage
             {
                 Thumbnail = new FileData { ID = thumbnailID, Path = thumbnailPath, Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnailPath)) },
                 Medium = new FileData { ID = mediumID, Path = mediumPath, Data = new Lazy<byte[]>(() => File.ReadAllBytes(mediumPath)) },
                 Original = new FileData { ID = originalID, Path = originalPath, Data = new Lazy<byte[]>(() => File.ReadAllBytes(originalPath)) },
-                MetaData = fileInfo
+                Metadata = fileInfo
             };
 
             return image.Some();
@@ -332,7 +332,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="skip">The number of images to skip</param>
         /// <param name="take">The number of images to take</param>
         /// <returns>A list of images</returns>
-        public async Task<List<Image>> Get(int skip, int take)
+        public async Task<List<UserImage>> Get(int skip, int take)
         {
             var sql = @"SELECT ID, Filename, Extension, MimeType, UserID AS ID, FirstName, LastName, Email, Username, RoleID AS Role
                         FROM
@@ -360,7 +360,7 @@ namespace Inuplan.DAL.Repositories
         /// Retrieves all images from the database
         /// </summary>
         /// <returns>A list of images</returns>
-        public async Task<List<Image>> GetAll()
+        public async Task<List<UserImage>> GetAll()
         {
             var sql = @"SELECT f.ID, Filename, Extension, MimeType, u.ID, FirstName, LastName, Email, Username, RoleID AS Role
                         FROM FileInfo f INNER JOIN Users u ON f.OwnerID = u.ID";
@@ -379,7 +379,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="id">The id of the image</param>
         /// <returns>An optional image</returns>
-        public async Task<Option<Image>> GetByID(int id)
+        public async Task<Option<UserImage>> GetByID(int id)
         {
             var infoSql = @"SELECT F.ID, Filename, Extension, MimeType, U.ID, FirstName, LastName, Email, Username, RoleID AS Role
                             FROM FileInfo F INNER JOIN Users U ON F.OwnerID = U.ID
@@ -391,7 +391,7 @@ namespace Inuplan.DAL.Repositories
                 return i;
             }, new { ID = id })).Single();
 
-            var image = new Image();
+            var image = new UserImage();
             var thumbnailSql = @"SELECT F.ID, F.Path
                                      FROM Images I INNER JOIN FileData F ON I.ThumbnailID = F.ID
                                      WHERE I.ID = @ID;";
@@ -412,7 +412,7 @@ namespace Inuplan.DAL.Repositories
                 mediumData.Data = new Lazy<byte[]>(() => File.ReadAllBytes(mediumData.Path));
                 originalData.Data = new Lazy<byte[]>(() => File.ReadAllBytes(originalData.Path));
 
-                image.MetaData = info;
+                image.Metadata = info;
                 image.Thumbnail = thumbnailData;
                 image.Medium = mediumData;
                 image.Original = originalData;
@@ -427,7 +427,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="key">N/A</param>
         /// <param name="entity">N/A</param>
         /// <returns>N/A</returns>
-        public Task<bool> Update(Key key, Image entity)
+        public Task<bool> Update(Key key, UserImage entity)
         {
             throw new NotSupportedException("Cannot update an image! Delete then reupload.");
         }
@@ -464,13 +464,13 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="fileInfos">The file info collection</param>
         /// <returns>An awaitable list of images</returns>
-        private async Task<List<Image>> CreateImagesFromInfos(IEnumerable<Common.Models.FileInfo> fileInfos)
+        private async Task<List<UserImage>> CreateImagesFromInfos(IEnumerable<Common.Models.FileInfo> fileInfos)
         {
-            List<Image> images = new List<Image>();
+            List<UserImage> images = new List<UserImage>();
 
             foreach (var info in fileInfos)
             {
-                var image = new Image();
+                var image = new UserImage();
                 var thumbnailSql = @"SELECT F.ID, F.Path
                                      FROM Images I INNER JOIN FileData F ON I.ThumbnailID = F.ID
                                      WHERE I.ID = @ID;";
@@ -491,7 +491,7 @@ namespace Inuplan.DAL.Repositories
                     mediumData.Data = new Lazy<byte[]>(() => File.ReadAllBytes(mediumData.Path));
                     originalData.Data = new Lazy<byte[]>(() => File.ReadAllBytes(originalData.Path));
 
-                    image.MetaData = info;
+                    image.Metadata = info;
                     image.Thumbnail = thumbnailData;
                     image.Medium = mediumData;
                     image.Original = originalData;

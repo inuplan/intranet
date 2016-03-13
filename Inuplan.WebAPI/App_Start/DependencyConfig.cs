@@ -29,13 +29,14 @@ namespace Inuplan.WebAPI.App_Start
     using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
     using Jose;
-    using System;
+    using System.Collections.Generic;
     using System.Configuration;
     using System.Data;
     using System.Data.SqlClient;
     using System.DirectoryServices.AccountManagement;
     using System.Security.Cryptography;
     using System.Web.Http;
+    using ImageKey = System.Tuple<string, string, string>;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -74,21 +75,23 @@ namespace Inuplan.WebAPI.App_Start
             // Register Web API controllers
             builder.RegisterType<TestController>().InstancePerRequest();
             builder.RegisterType<ManagementPostController>().WithAttributeFilter();
-            builder.RegisterType<ImageController>().WithAttributeFilter();
+            builder.RegisterType<UserImageController>().WithAttributeFilter();
 
-            // Register classes
+            // Register classes and keys
+            builder.RegisterInstance(key).Keyed<byte[]>(ServiceKeys.SecretKey);
+            builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
             builder.RegisterType<NewtonsoftMapper>().As<IJsonMapper>();
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
-            builder.RegisterInstance(key).Keyed<byte[]>(ServiceKeys.SecretKey);
-            builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
 
             // Register repositories
-            builder.RegisterType<ImageRepository>().WithAttributeFilter().Keyed<IScalarRepository<Tuple<string, string, string>, Image>>(ServiceKeys.ImageRepository).InstancePerRequest();
+            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<ImageKey, UserImage>>();
+            builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, List<Post>, Post>>();
+            builder.RegisterType<UserProfileImageRepository>().As<IScalarRepository<string, ProfileImage>>();
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
-            builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-            //builder.RegisterType<NoADRepo>().Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-            //builder.RegisterType<NoDBRepo>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
+            //builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            builder.RegisterType<Mocks.NoADRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            //builder.RegisterType<Mocks.NoDBRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
 
             // Build container
             container = builder.Build();

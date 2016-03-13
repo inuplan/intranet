@@ -18,39 +18,15 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Models
+namespace Inuplan.Common.DTOs
 {
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
-    /// <summary>
-    /// An image that contains 3 different sizes.
-    /// A thumbnail by 150px by 150px, half-size and the original image.
-    /// </summary>
-    public class Image
+    public class ProfileImageDTO
     {
-        /// <summary>
-        /// Gets or sets the metadata for the file.
-        /// </summary>
-        public FileInfo MetaData { get; set; }
-
-        /// <summary>
-        /// Gets or sets the file for the thumbnail.
-        /// </summary>
-        public FileData Thumbnail { get; set; }
-
-        /// <summary>
-        /// Gets or sets the file for the medium sized image.
-        /// </summary>
-        public FileData Medium { get; set; }
-
-        /// <summary>
-        /// Gets or sets the file for the original image
-        /// </summary>
-        public FileData Original { get; set; }
-
-        /// <summary>
-        /// Gets or sets the comments for this image
-        /// </summary>
-        public List<Post> Comments { get; set; }
     }
 }

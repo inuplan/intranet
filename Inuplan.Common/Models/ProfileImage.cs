@@ -21,35 +21,24 @@
 namespace Inuplan.Common.Models
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
-    /// A post
+    /// Represents a single small image for a single user
     /// </summary>
-    public class Post
+    public class ProfileImage
     {
         /// <summary>
-        /// Gets or sets the post ID
+        /// Gets or sets the metadata for the profile image
         /// </summary>
-        public int ID { get; set; }
+        public FileInfo Metadata { get; set; }
 
         /// <summary>
-        /// Gets or sets the post date
+        /// Gets or sets the data for the profile image
         /// </summary>
-        public DateTime PostedOn { get; set; }
-
-        /// <summary>
-        /// Gets or sets the post comment
-        /// </summary>
-        public string Comment { get; set; }
-
-        /// <summary>
-        /// Gets or sets the post type
-        /// </summary>
-        public PostType MessageType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the post author
-        /// </summary>
-        public User Author { get; set; }
+        public FileData Data { get; set; }
     }
 }

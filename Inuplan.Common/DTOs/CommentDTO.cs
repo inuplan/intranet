@@ -18,18 +18,15 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.WebAPI.Authorization.Principal
+namespace Inuplan.Common.DTOs
 {
-    using Common.Models;
-    using System.Security.Principal;
+    using System;
 
-    public class InuplanPrincipal : GenericPrincipal
+    public class CommentDTO
     {
-        public InuplanPrincipal(IIdentity identity, string[] roles, User user) : base(identity, roles)
-        {
-            this.User = user;
-        }
-
-        public User User { get; private set; }
+        public int ID { get; set; }
+        public string Comment { get; set; }
+        public DateTime PostedOn { get; set; }
+        public UserDTO Author { get; set; }
     }
 }

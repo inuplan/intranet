@@ -20,36 +20,37 @@
 
 namespace Inuplan.Common.Models
 {
-    using System;
+    using System.Collections.Generic;
 
     /// <summary>
-    /// A post
+    /// An image that contains 3 different sizes.
+    /// A thumbnail by 150px by 150px, half-size and the original image.
     /// </summary>
-    public class Post
+    public class UserImage
     {
         /// <summary>
-        /// Gets or sets the post ID
+        /// Gets or sets the metadata for the file.
         /// </summary>
-        public int ID { get; set; }
+        public FileInfo Metadata { get; set; }
 
         /// <summary>
-        /// Gets or sets the post date
+        /// Gets or sets the file for the thumbnail.
         /// </summary>
-        public DateTime PostedOn { get; set; }
+        public FileData Thumbnail { get; set; }
 
         /// <summary>
-        /// Gets or sets the post comment
+        /// Gets or sets the file for the medium sized image.
         /// </summary>
-        public string Comment { get; set; }
+        public FileData Medium { get; set; }
 
         /// <summary>
-        /// Gets or sets the post type
+        /// Gets or sets the file for the original image
         /// </summary>
-        public PostType MessageType { get; set; }
+        public FileData Original { get; set; }
 
         /// <summary>
-        /// Gets or sets the post author
+        /// Gets or sets the comments for this image
         /// </summary>
-        public User Author { get; set; }
+        public List<Post> Comments { get; set; }
     }
 }

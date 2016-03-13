@@ -25,13 +25,13 @@ namespace Inuplan.WebAPI.Authorization.JWT
     using Common.DTOs;
     using Common.Enums;
     using Common.Models;
+    using Common.Principal;
     using Common.Repositories;
     using Common.Tools;
     using Jose;
     using NLog;
     using Optional;
     using Optional.Unsafe;
-    using Principal;
     using System.Diagnostics;
     using System.Linq;
     using System.Net;
@@ -92,7 +92,7 @@ namespace Inuplan.WebAPI.Authorization.JWT
             var header = actionContext.Request.Headers.Authorization.SomeNotNull();
             var token = header.FlatMap(h =>
             {
-                if (h.Scheme.Equals("Bearer"))
+                if (h.Scheme.Equals(Constants.JWT_SCHEME))
                 {
                     return h.Parameter.Some();
                 }
@@ -142,7 +142,7 @@ namespace Inuplan.WebAPI.Authorization.JWT
 
                 // Save token in the owin context
                 logger.Trace("Saving bearer(token) in owin context");
-                owinContext.Set(Constants.JWT_BEARER, b);
+                owinContext.Set(Constants.OWIN_JWT, b);
 
                 // Set user
                 IIdentity identity = new GenericIdentity(u.Username, "JWT");

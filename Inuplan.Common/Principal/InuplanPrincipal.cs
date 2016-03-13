@@ -18,38 +18,18 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Models
+namespace Inuplan.Common.Principal
 {
-    using System;
+    using Models;
+    using System.Security.Principal;
 
-    /// <summary>
-    /// A post
-    /// </summary>
-    public class Post
+    public class InuplanPrincipal : GenericPrincipal
     {
-        /// <summary>
-        /// Gets or sets the post ID
-        /// </summary>
-        public int ID { get; set; }
+        public InuplanPrincipal(IIdentity identity, string[] roles, User user) : base(identity, roles)
+        {
+            User = user;
+        }
 
-        /// <summary>
-        /// Gets or sets the post date
-        /// </summary>
-        public DateTime PostedOn { get; set; }
-
-        /// <summary>
-        /// Gets or sets the post comment
-        /// </summary>
-        public string Comment { get; set; }
-
-        /// <summary>
-        /// Gets or sets the post type
-        /// </summary>
-        public PostType MessageType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the post author
-        /// </summary>
-        public User Author { get; set; }
+        public User User { get; private set; }
     }
 }
