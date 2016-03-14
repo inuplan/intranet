@@ -1,81 +1,17 @@
 ﻿@model Inuplan.Common.Models.User
 
-<h2>@Model.FirstName - Billeder</h2>
+<h2>@Model.FirstName @Model.LastName - Alle Billeder</h2>
 <!-- TODO: Create ajax page by utilizing the proxy-api -->
 
-<div class="row" data-bind="foreach: images, visible: images().length > 0">
+<div class="row" data-bind="foreach: images">
     <!-- Template -->
-    <div class="col-lg-3 col-sm-4 col-xs-6">
-        <a href="#" class="thumbnail">
-            <img class="img-responsive" data-bind="attr: { src: PathThumbnailUrl }">
+    <div class="col-lg-2 col-sm-3 col-xs-4">
+        <a class="thumbnail" data-bind="attr: { href: originalUrl }">
+            <img class="img-responsive" data-bind="attr: { src: thumbnailUrl }">
         </a>
+        Antal kommentar: <span data-bind="text: comments"></span>
     </div>
 </div>
-
-<!-- 
-<div class="row">
-    <div class="col-lg-3 col-sm-4 col-xs-6">
-        <a href="#" class="thumbnail">
-            <img src="http://placehold.it/350x150" class="img-responsive">
-        </a>
-    </div>
-    <div class="col-lg-3 col-sm-4 col-xs-6">
-        <a href="#" class="thumbnail">
-            <img src="http://placehold.it/350x150" class="img-responsive">
-        </a>
-    </div>
-    <div class="col-lg-3 col-sm-4 col-xs-6">
-        <a href="#" class="thumbnail">
-            <img src="http://placehold.it/350x150" class="img-responsive">
-        </a>
-    </div>
-    <div class="col-lg-3 col-sm-4 col-xs-6">
-        <a href="#" class="thumbnail pull-left">
-            <img src="http://placehold.it/350x150" class="img-responsive">
-        </a>
-    </div>
-    <div class="col-lg-3 col-sm-4 col-xs-6">
-        <a href="#" class="thumbnail">
-            <img src="http://placehold.it/350x150" class="img-responsive">
-        </a>
-    </div>
-    <div class="col-lg-3 col-sm-4 col-xs-6">
-        <a href="#" class="thumbnail">
-            <img src="http://placehold.it/350x150" class="img-responsive">
-        </a>
-    </div>
-    <div class="col-lg-3 col-sm-4 col-xs-6">
-        <a href="#" class="thumbnail">
-            <img src="http://placehold.it/350x150" class="img-responsive">
-        </a>
-    </div>
-    <div class="col-lg-3 col-sm-4 col-xs-6">
-        <a href="#" class="thumbnail">
-            <img src="http://placehold.it/350x150" class="img-responsive">
-        </a>
-    </div>
-    <div class="col-lg-3 col-sm-4 col-xs-6">
-        <a href="#" class="thumbnail">
-            <img src="http://placehold.it/350x150" class="img-responsive">
-        </a>
-    </div>
-    <div class="col-lg-3 col-sm-4 col-xs-6">
-        <a href="#" class="thumbnail">
-            <img src="http://placehold.it/350x150" class="img-responsive">
-        </a>
-    </div>
-    <div class="col-lg-3 col-sm-4 col-xs-6">
-        <a href="#" class="thumbnail">
-            <img src="http://placehold.it/350x150" class="img-responsive">
-        </a>
-    </div>
-    <div class="col-lg-3 col-sm-4 col-xs-6">
-        <a href="#" class="thumbnail">
-            <img src="http://placehold.it/350x150" class="img-responsive">
-        </a>
-    </div>
-</div>
--->
 
 @section styles
 {
@@ -88,8 +24,9 @@
     <script src="~/Scripts/UserImages.js">
     </script>
     <script>
+        var url_path = "/api/" + '@Model.Username' + "/image";
         $(function () {
-            var vm = new UserImagesViewModel('@Model.Username');
+            var vm = new UserImagesViewModel();
             ko.applyBindings(vm);
         })
     </script>
