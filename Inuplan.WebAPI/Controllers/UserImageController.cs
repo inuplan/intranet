@@ -97,6 +97,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username">The 3-letter username to upload to</param>
         /// <returns>Returns a response message to the caller</returns>
         // POST user/image
+        [Route("")]
         [HttpPost]
         public async Task<HttpResponseMessage> Post(string username)
         {
