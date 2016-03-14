@@ -42,8 +42,9 @@ namespace Inuplan.WebAPI.Controllers
             this.userRepository = userRepository;
         }
 
-        [AllowAnonymous]
         [HttpGet]
+        [Route("")]
+        [AllowAnonymous]
         public async Task<User> Get(string username)
         {
             var user = await userRepository.Get(username);

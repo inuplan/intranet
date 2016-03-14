@@ -33,12 +33,11 @@ namespace Inuplan.Intranet.Authorization
     using Optional;
     using Common.Tools;
     using Factories;
-
     using Common.Enums;
+    using Autofac.Extras.Attributed;
     public class AuthorizationClient
     {
         private readonly byte[] key;
-        private readonly string remote;
         private readonly Uri remote;
         private readonly string domain;
         private readonly TimeSpan cookieExpiration;

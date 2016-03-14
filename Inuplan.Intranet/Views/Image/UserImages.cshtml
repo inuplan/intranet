@@ -1,4 +1,8 @@
-﻿@model Inuplan.Intranet.ViewModels.BaseViewModel<Inuplan.Common.Models.User>
+﻿@model Inuplan.Common.Models.User
 
-<h2>@Model.Entity.FirstName - Billeder</h2>
+<h2>@Model.FirstName - Billeder</h2>
 <!-- TODO: Create ajax page by utilizing the proxy-api -->
+@section scripts 
+{
+    <script src="~/Scripts/UserImages.js"></script>
+}

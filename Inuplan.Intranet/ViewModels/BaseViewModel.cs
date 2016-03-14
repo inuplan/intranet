@@ -20,10 +20,8 @@
 
 namespace Inuplan.Intranet.ViewModels
 {
-    public class BaseViewModel<T>
+    public class BaseViewModel
     {
         public string CurrentUsername { get; set; }
-        public T Entity { get; set; }
-        public bool CanEdit { get; set; }
     }
 }

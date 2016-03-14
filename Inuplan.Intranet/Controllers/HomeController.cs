@@ -23,7 +23,7 @@ namespace Inuplan.Intranet.Controllers
     using System.Web.Mvc;
     using Inuplan.Intranet.Authorization;
     using System.Threading.Tasks;
-
+    using ViewModels;
     public class HomeController : Controller
     {
         private readonly AuthorizationClient authClient;
@@ -42,6 +42,15 @@ namespace Inuplan.Intranet.Controllers
             // Set token (if we got it)
             // authClient.SetTokenIfExists(Response, token);
             return await Task.FromResult(View());
+        }
+
+        [ChildActionOnly]
+        public ActionResult Menu()
+        {
+            return PartialView("_Menu", new BaseViewModel
+            {
+                CurrentUsername = System.Environment.UserName
+            });
         }
     }
 }

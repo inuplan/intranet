@@ -20,6 +20,7 @@
 
 namespace Inuplan.Intranet.Controllers
 {
+    using Autofac.Extras.Attributed;
     using Common.Enums;
     using Common.Models;
     using Factories;
@@ -64,17 +65,7 @@ namespace Inuplan.Intranet.Controllers
                 var json = (await response.Content.ReadAsStringAsync()).SomeNotNull();
                 var owner = json.Map(j => JsonConvert.DeserializeObject<User>(j));
 
-                return owner.Match(u =>
-                {
-                    var viewModel = new BaseViewModel<User>
-                    {
-                        CurrentUsername = Environment.UserName,
-                        Entity = u,
-                        CanEdit = (username.Equals(Environment.UserName, StringComparison.OrdinalIgnoreCase)),
-                    };
-
-                    return View(viewModel);
-                },
+                return owner.Match(u => View(u),
                 () => 
                 {
                     throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
