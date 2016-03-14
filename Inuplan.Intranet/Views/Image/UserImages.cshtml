@@ -86,6 +86,11 @@
 {
     @Scripts.Render("~/bundles/knockout")
     <script src="~/Scripts/UserImages.js">
-        ko.applyBindings(UserImagesViewModel(@Model.Username));
+    </script>
+    <script>
+        $(function () {
+            var vm = new UserImagesViewModel('@Model.Username');
+            ko.applyBindings(vm);
+        })
     </script>
 }
