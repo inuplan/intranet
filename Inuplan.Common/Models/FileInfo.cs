@@ -48,6 +48,6 @@ namespace Inuplan.Common.Models
         /// <summary>
         /// Gets or sets the owner of the file
         /// </summary>
-        public virtual User Owner { get; set; }
+        public User Owner { get; set; }
     }
 }
