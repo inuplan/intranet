@@ -70,7 +70,7 @@ namespace Inuplan.Intranet.Areas.api.Controllers
             }
         }
 
-        [Route("")]
+        [Route("", Name ="GetUserImages")]
         [AllowAnonymous]
         [HttpGet]
         public async Task<List<UserImageDTO>> GetAll(string username, [FromUri] bool comments = false)
