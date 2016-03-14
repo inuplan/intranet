@@ -20,6 +20,7 @@
 
 namespace Inuplan.Intranet.Controllers
 {
+    using Common.Enums;
     using Common.Models;
     using Factories;
     using Inuplan.Intranet.Authorization;
@@ -41,7 +42,10 @@ namespace Inuplan.Intranet.Controllers
         private readonly IHttpClientFactory httpClientFactory;
         private readonly Uri remoteBaseAddress;
 
-        public ImageController(Uri remoteBaseAddress, AuthorizationClient authClient, IHttpClientFactory httpClientFactory)
+        public ImageController(
+            [WithKey(ServiceKeys.RemoteBaseAddress)] Uri remoteBaseAddress,
+            AuthorizationClient authClient,
+            IHttpClientFactory httpClientFactory)
         {
             this.remoteBaseAddress = remoteBaseAddress;
             this.authClient = authClient;

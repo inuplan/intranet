@@ -62,6 +62,11 @@ namespace Inuplan.Common.Enums
         RootPath,
 
         /// <summary>
+        /// Key for the remote base address URI
+        /// </summary>
+        RemoteBaseAddress,
+
+        /// <summary>
         /// Key for the ImageCommentsRepository
         /// </summary>
         ImageCommentsRepository,

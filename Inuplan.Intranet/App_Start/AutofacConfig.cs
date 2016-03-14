@@ -40,7 +40,6 @@ namespace Inuplan.Intranet.App_Start
             // Variables
             var secretKey = ConfigurationManager.AppSettings["secret"];
             var key = SHA256.Create().ComputeHash(Helpers.GetBytes(secretKey));
-            var remote = GetRemote();
             var domain = ConfigurationManager.AppSettings["domain"];
 
             var builder = new ContainerBuilder();
@@ -49,7 +48,7 @@ namespace Inuplan.Intranet.App_Start
             builder.RegisterControllers(typeof(MvcApplication).Assembly).WithAttributeFilter();
             builder.Register(ctx =>
             {
-                var r = new Uri(remote);
+                var r = ctx.ResolveKeyed<Uri>(ServiceKeys.RemoteBaseAddress);
                 var f = ctx.Resolve<IHttpClientFactory>();
                 var a = ctx.Resolve<AuthorizationClient>();
                 return new UserImageProxyController(r, f, a);
@@ -66,11 +65,12 @@ namespace Inuplan.Intranet.App_Start
             builder.Register(ctx =>
             {
                 var k = ctx.ResolveKeyed<byte[]>(ServiceKeys.SecretKey);
-                var r = remote;
+                var r = ctx.ResolveKeyed<Uri>(ServiceKeys.RemoteBaseAddress);
                 var f = ctx.Resolve<IHttpClientFactory>();
                 return new AuthorizationClient(k, r, domain, TimeSpan.FromDays(3), Jose.JwsAlgorithm.HS256, f);
             });
             builder.Register(ctx => new HttpClientFactory(new WeakReference<System.Net.Http.HttpClient>(new System.Net.Http.HttpClient()))).As<IHttpClientFactory>();
+            builder.RegisterInstance(new Uri(GetRemote())).Keyed<Uri>(ServiceKeys.RemoteBaseAddress);
 
             // Build container
             var container = builder.Build();

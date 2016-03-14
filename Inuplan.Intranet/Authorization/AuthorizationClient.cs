@@ -34,10 +34,12 @@ namespace Inuplan.Intranet.Authorization
     using Common.Tools;
     using Factories;
 
+    using Common.Enums;
     public class AuthorizationClient
     {
         private readonly byte[] key;
         private readonly string remote;
+        private readonly Uri remote;
         private readonly string domain;
         private readonly TimeSpan cookieExpiration;
         private readonly JwsAlgorithm algorithm;
@@ -45,7 +47,7 @@ namespace Inuplan.Intranet.Authorization
 
         public AuthorizationClient(
             byte[] key,
-            string remote,
+            [WithKey(ServiceKeys.RemoteBaseAddress)] Uri remote,
             string domain,
             TimeSpan cookieExpiration,
             JwsAlgorithm algorithm,
@@ -113,7 +115,7 @@ namespace Inuplan.Intranet.Authorization
             // Send request token to remote api: GET /api/v1/token
             using(var client = httpClientFactory.GetHttpClient())
             {
-                client.BaseAddress = new Uri(remote);
+                client.BaseAddress = remote;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.JWT_SCHEME, requestToken);
                 var response = await client.GetAsync(@"api/v1/token");
 
