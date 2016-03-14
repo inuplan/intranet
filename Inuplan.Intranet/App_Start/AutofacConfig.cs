@@ -31,12 +31,22 @@ namespace Inuplan.Intranet.App_Start
     using System;
     using System.Configuration;
     using System.Security.Cryptography;
+    using System.Threading;
     using System.Web.Mvc;
 
     public static class AutofacConfig
     {
+        private static int first = 1;
+        private static IContainer container;
+
         public static void RegisterContainer()
         {
+            if(1 != Interlocked.Exchange(ref first, 0))
+            {
+                // Is not the first time
+                return;
+            }
+
             // Variables
             var secretKey = ConfigurationManager.AppSettings["secret"];
             var key = SHA256.Create().ComputeHash(Helpers.GetBytes(secretKey));
@@ -73,10 +83,22 @@ namespace Inuplan.Intranet.App_Start
             builder.RegisterInstance(new Uri(GetRemote())).Keyed<Uri>(ServiceKeys.RemoteBaseAddress);
 
             // Build container
-            var container = builder.Build();
+            container = builder.Build();
+            Container = container;
  
             // Set MVC DI resolver to use our Autofac container
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
+        }
+
+        public static IContainer Container { get
+            {
+                RegisterContainer();
+                return container;
+            }
+            private set
+            {
+                container = value;
+            }
         }
 
         private static string GetRemote()

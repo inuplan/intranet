@@ -14,6 +14,8 @@ using Inuplan.Intranet.Authorization;
 using Optional;
 using NLog;
 using Newtonsoft.Json;
+using Autofac.Extras.Attributed;
+using Inuplan.Common.Enums;
 
 namespace Inuplan.Intranet.Areas.api.Controllers
 {
@@ -25,7 +27,10 @@ namespace Inuplan.Intranet.Areas.api.Controllers
         private readonly IHttpClientFactory httpClientFactory;
         private readonly AuthorizationClient authClient;
 
-        public UserImageProxyController(Uri remoteBaseAddress, IHttpClientFactory httpClientFactory, AuthorizationClient authClient)
+        public UserImageProxyController(
+            [WithKey(ServiceKeys.RemoteBaseAddress)] Uri remoteBaseAddress,
+            IHttpClientFactory httpClientFactory,
+            AuthorizationClient authClient)
         {
             this.httpClientFactory = httpClientFactory;
             this.remoteBaseAddress = remoteBaseAddress;
