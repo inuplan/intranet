@@ -28,10 +28,11 @@
 
 <!-- ko with: vm -->
 <div class="row" data-bind="foreach: images">
-    <div class="col-lg-4 col-sm-6 col-xs-12">
-        <a data-toggle="modal" data-target="#myModal">
-            <img class="thumbnail img-responsive" data-bind="attr: { src: previewUrl }">
-        </a>Antal kommentar: <span data-bind="text: numberOfComments"></span>
+    <div class="col-lg-6 col-sm-6 col-xs-12" data-bind="attr: { id: imageId }">
+        <a>
+            <img class="thumbnail img-responsive" data-bind="attr: { src: previewUrl }" />
+            <span class="label label-primary">Antal kommentar: <span data-bind="text: numberOfComments"></span></span>
+        </a>
     </div>
 </div>
 <!-- /ko -->

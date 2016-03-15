@@ -9,7 +9,6 @@ function UserImagesViewModel(parent) {
 
     // Data
     self.images = ko.observableArray([]);
-    var thumbnail = ko.observable();
 
     // Functions
     $.getJSON(parent.api, function (allData) {
