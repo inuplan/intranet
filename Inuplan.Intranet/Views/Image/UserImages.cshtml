@@ -5,34 +5,57 @@
 
 <h2>@Model.FirstName @Model.LastName - Alle Billeder</h2>
 
-<!-- Modal -->
-<div class="modal fade" id="myModal" role="dialog">
-    <div class="modal-dialog">
-
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title">Modal Header</h4>
-            </div>
-            <div class="modal-body">
-                <p>Some text in the modal.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
+<!-- ko with: vm -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" data-bind="checked: withComments" /> 
+                Vis kommentarer?
+            </label>
         </div>
-
     </div>
 </div>
-
-<!-- ko with: vm -->
 <div class="row" data-bind="foreach: images">
-    <div class="col-lg-6 col-sm-6 col-xs-12" data-bind="attr: { id: imageId }">
-        <a>
-            <img class="thumbnail img-responsive" data-bind="attr: { src: previewUrl }" />
-            <span class="label label-primary">Antal kommentar: <span data-bind="text: numberOfComments"></span></span>
+    <div class="col-lg-2 col-sm-3 col-xs-12" data-bind="attr: { id: imageId }">
+        <a data-bind="click: function(){ showModal(true) }">
+            <img class="thumbnail img-responsive" data-bind="attr: { src: thumbnailUrl }" />
         </a>
+        <div data-bind="if: $parent.withComments">
+            <span class="label label-primary">Antal kommentar: <span data-bind="text: numberOfComments"></span></span>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" role="dialog" data-bind="modal: showModal ,attr: { id: modalId }">
+        <div class="modal-dialog modal-lg">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title text-center">Filnavn: <span data-bind="text: fullname"></span></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <a data-bind="attr: {href: originalUrl}" target="_blank">
+                                <img class="img-responsive center-block img-rounded" data-bind="attr: {src: previewUrl }" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="row" data-bind="if: $parent.withComments">
+                        <div class="col-lg-12 text-left">
+                            <h5><strong>Kommentar</strong></h5>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Luk</button>
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
 <!-- /ko -->

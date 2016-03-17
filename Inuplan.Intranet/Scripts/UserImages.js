@@ -9,9 +9,11 @@ function UserImagesViewModel(parent) {
 
     // Data
     self.images = ko.observableArray([]);
+    self.withComments = ko.observable(true);
+    var data = { comments: ko.unwrap(self.withComments()) };
 
     // Functions
-    $.getJSON(parent.api, function (allData) {
+    $.getJSON(parent.api, data, function (allData) {
         var images = $.map(allData, function (item) {
             return new ImageViewModel(item);
         });
@@ -28,6 +30,10 @@ function ImageViewModel(data) {
     self.filename = ko.observable(data.Filename);
     self.extension = ko.observable(data.Extension);
     self.imageId = ko.observable(data.ImageID);
+    self.modalId = ko.observable('modal' + data.ImageID);
+    self.modalTarget = ko.observable('#modal' + data.ImageID);
+    self.showModal = ko.observable(false);
+    self.fullname = ko.observable(data.Filename + "." + data.Extension);
 }
 
 function PostViewModel(data) {
@@ -54,4 +60,31 @@ var numberOfComments = function (data) {
     }
 
     return 0;
+}
+
+ ko.bindingHandlers.modal = {
+    init: function (element, valueAccessor) {
+        $(element).modal({
+            show: false
+        });
+        
+        var value = valueAccessor();
+        if (typeof value === 'function') {
+            $(element).on('hide.bs.modal', function() {
+               value(false);
+            });
+        }
+        ko.utils.domNodeDisposal.addDisposeCallback(element, function () {
+           $(element).modal("destroy");
+        });
+        
+    },
+    update: function (element, valueAccessor) {
+        var value = valueAccessor();
+        if (ko.utils.unwrapObservable(value)) {
+            $(element).modal('show');
+        } else {
+            $(element).modal('hide');
+        }
+    }
 }
