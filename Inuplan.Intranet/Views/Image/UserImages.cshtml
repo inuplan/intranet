@@ -1,9 +1,10 @@
 ﻿@model Inuplan.Common.Models.User
 @{ 
-    ViewBag.Title = string.Format("{0} {1} Billeder", Model.FirstName, Model.LastName);
+    var FullName = string.Format("{0} {1}", Model.FirstName, Model.LastName);
+    ViewBag.Title = string.Format("{0} Billeder", FullName);
 }
 
-<h2>@Model.FirstName @Model.LastName - Alle Billeder</h2>
+<h2>@FullName - Alle Billeder</h2>
 
 <!-- ko with: vm -->
 <div class="row">
@@ -48,7 +49,7 @@
                 <div class="modal-footer">
                     <div class="row" data-bind="if: $parent.withComments">
                         <div class="col-lg-12 text-left">
-                            <h5><strong>Kommentar</strong></h5>
+                            <h5><strong>Kommentarer</strong></h5>
                         </div>
                     </div>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Luk</button>
