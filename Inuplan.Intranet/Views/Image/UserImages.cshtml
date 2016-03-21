@@ -1,72 +1,83 @@
-﻿@model IEnumerable<Inuplan.Common.DTOs.UserImageDTO>
-
-@{
-    ViewBag.Title = "UserImages";
-    bool CanEdit = ViewBag.CanEdit;
-    var fullname = new Func<int, string>(id =>
-    {
-        var entity = Model.SingleOrDefault(e => e.ImageID == id);
-        return string.Format("{0}.{1}", entity.Filename, entity.Extension);
-    });
+﻿@model Inuplan.Common.Models.User
+@{ 
+    var FullName = string.Format("{0} {1}", Model.FirstName, Model.LastName);
+    ViewBag.Title = string.Format("{0} Billeder", FullName);
 }
 
-<div class="container">
-    <div class="row"><div class="col-md-12"><p></p></div></div>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="jumbotron">
-                <h1>@ViewBag.Username's images</h1>
-            </div>
+<h2>@FullName - Alle Billeder</h2>
+
+<!-- ko with: vm -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" data-bind="checked: with_comments" /> 
+                Vis kommentarer?
+            </label>
         </div>
     </div>
-    
-    <div class="row">
-        <div class="col-lg-12">
-            @for (int i = 0; i < Model.Count(); i++)
-            {
-                var item = Model.ElementAt(i);
-                var isRow = (i+1 % 7) == 0;
+</div>
+<div class="row" data-bind="foreach: images" id="images">
+    <div class="col-lg-2 col-sm-3 col-xs-12" data-bind="attr: { id: image_id }">
+        <a data-bind="click: function(){ show_modal(true) }">
+            <img class="thumbnail img-responsive" data-bind="attr: { src: thumbnail_url }" />
+        </a>
+        <div data-bind="if: with_comments">
+            <span class="label label-primary">Antal kommentar: <span data-bind="text: number_of_comments"></span></span>
+        </div>
+    </div>
+    <div data-bind="template: { name: 'view-image', data: $data }" ></div>
+</div>
+<!-- /ko -->
 
-                if(isRow)
-                {
-                    @Html.Raw("<div class=\"row\"");
-                }
+@section styles
+{
+    @Styles.Render("~/Content/userimage")
+}
 
-                <div class="col-md-2">
-                    <a href="@item.PathOriginalUrl">
-                        <img src="@item.PathThumbnailUrl" alt="@item.Filename" id="@item.ImageID" />
-                    </a>
+@section scripts 
+{
+    @Scripts.Render("~/bundles/knockout")
+    <script src="~/Scripts/UserImages.js">
+    </script>
+    <script>
+        $(function () {
+            var app = new appViewModel('@string.Format("/api/{0}/image", Model.Username)');
+            ko.applyBindings(app);
 
-                    @if (CanEdit)
-                    {
-                        var filename = fullname(item.ImageID);
-                        <p class="text-center">
-                            <input type="checkbox" form="form-delete" name="images" class="checkbox" value="@filename" />
-                        </p>
-                    }
+        });
+    </script>
+    <script type="text/html" id="view-image">
+        <!-- Modal -->
+        <div class="modal fade" role="dialog" data-bind="modal: show_modal ,attr: { id: modal_id }">
+            <div class="modal-dialog modal-lg">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title text-center">Filnavn: <span data-bind="text: fullname"></span></h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <a data-bind="attr: {href: original_url, target: '_blank'}">
+                                    <img class="img-responsive center-block img-rounded" data-bind="attr: {src: preview_url }" />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="row" data-bind="if: with_comments">
+                            <div class="col-lg-12 text-left">
+                                <h5><strong>Kommentarer</strong></h5>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Luk</button>
+                    </div>
                 </div>
 
-                if (isRow)
-                {
-                    @Html.Raw("</div>");
-                }
-            }
-        </div>
-    </div>
-    
-    @if (CanEdit)
-    {
-        <div class="row">
-            <div class="col-md-4 col-md-offset-4">
-                <form class="form-inline"
-                      id="form-upload"
-                      action="@Url.HttpRouteUrl("UploadImage", new { username = ViewBag.Username })"
-                      method="post"
-                      enctype="multipart/form-data">
-                    <input type="file" class="form-control" id="files" name="files" multiple />
-                    <input type="submit" class="btn btn-primary" id="upload" value="Upload" />
-                </form>
             </div>
         </div>
-    }
-</div>
+    </script>
+}

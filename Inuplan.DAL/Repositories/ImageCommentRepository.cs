@@ -247,7 +247,6 @@ namespace Inuplan.DAL.Repositories
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects).
                     connection.Dispose();
                 }
 

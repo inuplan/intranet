@@ -14,6 +14,8 @@ using Inuplan.Intranet.Authorization;
 using Optional;
 using NLog;
 using Newtonsoft.Json;
+using Autofac.Extras.Attributed;
+using Inuplan.Common.Enums;
 
 namespace Inuplan.Intranet.Areas.api.Controllers
 {
@@ -25,7 +27,10 @@ namespace Inuplan.Intranet.Areas.api.Controllers
         private readonly IHttpClientFactory httpClientFactory;
         private readonly AuthorizationClient authClient;
 
-        public UserImageProxyController(Uri remoteBaseAddress, IHttpClientFactory httpClientFactory, AuthorizationClient authClient)
+        public UserImageProxyController(
+            [WithKey(ServiceKeys.RemoteBaseAddress)] Uri remoteBaseAddress,
+            IHttpClientFactory httpClientFactory,
+            AuthorizationClient authClient)
         {
             this.httpClientFactory = httpClientFactory;
             this.remoteBaseAddress = remoteBaseAddress;
@@ -70,7 +75,7 @@ namespace Inuplan.Intranet.Areas.api.Controllers
             }
         }
 
-        [Route("")]
+        [Route("", Name ="GetUserImages")]
         [AllowAnonymous]
         [HttpGet]
         public async Task<List<UserImageDTO>> GetAll(string username, [FromUri] bool comments = false)
@@ -143,13 +148,6 @@ namespace Inuplan.Intranet.Areas.api.Controllers
             {
                 client.BaseAddress = remoteBaseAddress;
                 var path = string.Format("{0}/image", username);
-
-                if (!Request.Content.IsMimeMultipartContent())
-                {
-                    logger.Error("Must be a multipart content type");
-                    return Request.CreateResponse(HttpStatusCode.BadRequest, "Must be a multipart content type!");
-                }
-
                 return await client.PostAsync(path, Request.Content);
             }
         }

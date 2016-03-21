@@ -20,17 +20,18 @@
 
 namespace Inuplan.Intranet.Controllers
 {
+    using Autofac.Extras.Attributed;
+    using Common.Enums;
+    using Common.Models;
+    using Factories;
+    using Inuplan.Intranet.Authorization;
+    using Newtonsoft.Json;
+    using Optional;
     using System;
-    using System.Collections.Generic;
-    using System.Net.Http;
-    using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using System.Web;
     using System.Web.Mvc;
-    using Common.Tools;
-    using Inuplan.Common.DTOs;
-    using Inuplan.Intranet.Authorization;
-    using Newtonsoft.Json;
+    using ViewModels;
 
     /// <summary>
     /// Image controller, which also functions as a proxy for the web api.
@@ -39,101 +40,37 @@ namespace Inuplan.Intranet.Controllers
     {
         private readonly AuthorizationClient authClient;
         private const string baseAddress = "http://localhost:9000";
+        private readonly IHttpClientFactory httpClientFactory;
+        private readonly Uri remoteBaseAddress;
 
-        public ImageController(AuthorizationClient authClient)
+        public ImageController(
+            [WithKey(ServiceKeys.RemoteBaseAddress)] Uri remoteBaseAddress,
+            AuthorizationClient authClient,
+            IHttpClientFactory httpClientFactory)
         {
+            this.remoteBaseAddress = remoteBaseAddress;
             this.authClient = authClient;
+            this.httpClientFactory = httpClientFactory;
         }
 
-        [Route("user/{username:alpha:length(2,6)}/images", Name = "UserImages")]
         [HttpGet]
+        [Route("user/{username:alpha:length(2,6)}/images", Name = "UserImages")]
         public async Task<ActionResult> UserImages(string username)
         {
-            var token = await authClient.GetTokenIfNotExists(Request, User);
-            authClient.SetTokenIfExists(Response, token);
-
-            // Display upload form?
-            ViewBag.CanEdit = (username.Equals(Environment.UserName));
-            ViewBag.Username = username;
-
-            using (var client = new HttpClient())
+            using (var client = httpClientFactory.GetHttpClient())
             {
-                client.BaseAddress = new Uri(baseAddress);
-                var path = string.Format("/{0}/image", username);
-                var result = await client.GetAsync(path);
-                
-                if(result.StatusCode == System.Net.HttpStatusCode.NotFound)
+                client.BaseAddress = remoteBaseAddress;
+                var path = string.Format("user/{0}", username);
+                var response = await client.GetAsync(path);
+                var json = (await response.Content.ReadAsStringAsync()).SomeNotNull();
+                var owner = json.Map(j => JsonConvert.DeserializeObject<User>(j));
+
+                return owner.Match(u => View(u),
+                () => 
                 {
-                    // TODO: Handle 404 better!
-                    /* NotFound! */
-                    ViewBag.Username = "Not Found";
-                    return View(new List<UserImageDTO>());
-                }
-
-                var content = await result.Content.ReadAsStringAsync();
-                var images = JsonConvert.DeserializeObject<List<UserImageDTO>>(content);
-
-                return View(images);
+                    throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
+                });
             }
         }
-
-        /*
-        [HttpPost]
-        public async Task<ActionResult> Upload(IEnumerable<HttpPostedFileBase> files)
-        {
-            var username = Environment.UserName;
-            var token = await authClient.GetToken(Request);
-            if (string.IsNullOrEmpty(token))
-                return View("Forbidden");
-
-            using (var client = new HttpClient())
-            {
-                client.BaseAddress = new Uri(baseAddress);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.JWT_SCHEME, token);
-
-                var path = string.Format("{0}/image/upload", username);
-                var content = new MultipartContent();
-
-                foreach(HttpPostedFileBase file in files)
-                {
-                    var streamContent = new StreamContent(file.InputStream);
-
-                    // header values: https://www.iana.org/assignments/cont-disp/cont-disp.xhtml#cont-disp-1
-                    // RFC: 7578
-                    streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
-                    streamContent.Headers.ContentDisposition.FileName = file.FileName;
-                    streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
-                    streamContent.Headers.ContentLength = file.ContentLength;
-                    content.Add(streamContent);
-                }
-
-                var result = await client.PostAsync(path, content);
-            }
-
-            return RedirectToRoute("UserImages", new { username });
-        }
-
-        public async Task<ActionResult> Delete(IEnumerable<string> images)
-        {
-            var username = Environment.UserName;
-            var token = await authClient.GetToken(Request);
-            if (string.IsNullOrEmpty(token))
-                return View("Forbidden");
-
-            using (var client = new HttpClient())
-            {
-                client.BaseAddress = new Uri(baseAddress);
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.JWT_SCHEME, token);
-
-                foreach (var image in images)
-                {
-                    var path = string.Format("{0}/image/{1}", username, image);
-                    var result = await client.DeleteAsync(path);
-                }
-            }
-
-            return RedirectToRoute("UserImages", new { username });
-        }
-        */
     }
 }

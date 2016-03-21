@@ -31,16 +31,25 @@ namespace Inuplan.Intranet.App_Start
     using System;
     using System.Configuration;
     using System.Security.Cryptography;
+    using System.Threading;
     using System.Web.Mvc;
 
     public static class AutofacConfig
     {
+        private static int first = 1;
+        private static IContainer container;
+
         public static void RegisterContainer()
         {
+            if(1 != Interlocked.Exchange(ref first, 0))
+            {
+                // Is not the first time
+                return;
+            }
+
             // Variables
             var secretKey = ConfigurationManager.AppSettings["secret"];
             var key = SHA256.Create().ComputeHash(Helpers.GetBytes(secretKey));
-            var remote = GetRemote();
             var domain = ConfigurationManager.AppSettings["domain"];
 
             var builder = new ContainerBuilder();
@@ -49,7 +58,7 @@ namespace Inuplan.Intranet.App_Start
             builder.RegisterControllers(typeof(MvcApplication).Assembly).WithAttributeFilter();
             builder.Register(ctx =>
             {
-                var r = new Uri(remote);
+                var r = ctx.ResolveKeyed<Uri>(ServiceKeys.RemoteBaseAddress);
                 var f = ctx.Resolve<IHttpClientFactory>();
                 var a = ctx.Resolve<AuthorizationClient>();
                 return new UserImageProxyController(r, f, a);
@@ -66,17 +75,30 @@ namespace Inuplan.Intranet.App_Start
             builder.Register(ctx =>
             {
                 var k = ctx.ResolveKeyed<byte[]>(ServiceKeys.SecretKey);
-                var r = remote;
+                var r = ctx.ResolveKeyed<Uri>(ServiceKeys.RemoteBaseAddress);
                 var f = ctx.Resolve<IHttpClientFactory>();
                 return new AuthorizationClient(k, r, domain, TimeSpan.FromDays(3), Jose.JwsAlgorithm.HS256, f);
             });
             builder.Register(ctx => new HttpClientFactory(new WeakReference<System.Net.Http.HttpClient>(new System.Net.Http.HttpClient()))).As<IHttpClientFactory>();
+            builder.RegisterInstance(new Uri(GetRemote())).Keyed<Uri>(ServiceKeys.RemoteBaseAddress);
 
             // Build container
-            var container = builder.Build();
+            container = builder.Build();
+            Container = container;
  
             // Set MVC DI resolver to use our Autofac container
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
+        }
+
+        public static IContainer Container { get
+            {
+                RegisterContainer();
+                return container;
+            }
+            private set
+            {
+                container = value;
+            }
         }
 
         private static string GetRemote()

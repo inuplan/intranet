@@ -362,8 +362,18 @@ namespace Inuplan.DAL.Repositories
         /// <returns>A list of images</returns>
         public async Task<List<UserImage>> GetAll()
         {
-            var sql = @"SELECT f.ID, Filename, Extension, MimeType, u.ID, FirstName, LastName, Email, Username, RoleID AS Role
-                        FROM FileInfo f INNER JOIN Users u ON f.OwnerID = u.ID";
+            var sql = @"(SELECT
+                            FID AS ID, Filename, Extension, MimeType, /* FileInfo */
+                            UserID AS ID, FirstName, LastName, Email, Username, RoleID AS Role /* User */
+                        FROM
+                            (SELECT
+                                F.ID AS FID, Filename, Extension, MimeType,
+                                U.ID AS UserID, FirstName, LastName, Email, Username, RoleID
+                            FROM
+                                FileInfo F INNER JOIN Users U
+                                ON F.OwnerID = U.ID) AS FileUsers
+                        INNER JOIN Images I
+                        ON I.ID = FileUsers.FID)";
 
             var fileInfos = await connection.QueryAsync<Common.Models.FileInfo, User, Common.Models.FileInfo>(sql, (info, user) =>
             {

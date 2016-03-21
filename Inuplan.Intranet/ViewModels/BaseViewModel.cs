@@ -18,39 +18,10 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Intranet.Controllers
+namespace Inuplan.Intranet.ViewModels
 {
-    using System.Web.Mvc;
-    using Inuplan.Intranet.Authorization;
-    using System.Threading.Tasks;
-    using ViewModels;
-    public class HomeController : Controller
+    public class BaseViewModel
     {
-        private readonly AuthorizationClient authClient;
-
-        public HomeController(AuthorizationClient authClient)
-        {
-            this.authClient = authClient;
-        }
-
-        // GET: Home
-        public async Task<ActionResult> Index()
-        {
-            // Get token (if its does not exist)
-            //var token = await authClient.GetTokenIfNotExists(Request, User);
-
-            // Set token (if we got it)
-            // authClient.SetTokenIfExists(Response, token);
-            return await Task.FromResult(View());
-        }
-
-        [ChildActionOnly]
-        public ActionResult Menu()
-        {
-            return PartialView("_Menu", new BaseViewModel
-            {
-                CurrentUsername = System.Environment.UserName
-            });
-        }
+        public string CurrentUsername { get; set; }
     }
 }

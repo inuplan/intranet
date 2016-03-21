@@ -76,6 +76,7 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<TestController>().InstancePerRequest();
             builder.RegisterType<ManagementPostController>().WithAttributeFilter();
             builder.RegisterType<UserImageController>().WithAttributeFilter();
+            builder.RegisterType<UserController>().WithAttributeFilter();
 
             // Register classes and keys
             builder.RegisterInstance(key).Keyed<byte[]>(ServiceKeys.SecretKey);

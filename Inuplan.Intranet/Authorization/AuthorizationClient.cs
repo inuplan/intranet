@@ -33,11 +33,12 @@ namespace Inuplan.Intranet.Authorization
     using Optional;
     using Common.Tools;
     using Factories;
-
+    using Common.Enums;
+    using Autofac.Extras.Attributed;
     public class AuthorizationClient
     {
         private readonly byte[] key;
-        private readonly string remote;
+        private readonly Uri remote;
         private readonly string domain;
         private readonly TimeSpan cookieExpiration;
         private readonly JwsAlgorithm algorithm;
@@ -45,7 +46,7 @@ namespace Inuplan.Intranet.Authorization
 
         public AuthorizationClient(
             byte[] key,
-            string remote,
+            [WithKey(ServiceKeys.RemoteBaseAddress)] Uri remote,
             string domain,
             TimeSpan cookieExpiration,
             JwsAlgorithm algorithm,
@@ -72,6 +73,16 @@ namespace Inuplan.Intranet.Authorization
             () => { /* No need to set token */});
         }
 
+        public async Task<Option<string>> GetToken(HttpRequestBase request)
+        {
+            var cookieToken = request.Cookies.Get(Constants.TOKEN_COOKIE)
+                                .SomeNotNull()
+                                .Map(c => c.Value.SomeNotNull())
+                                .Map(c => Task.FromResult(c));
+            var token = cookieToken.ValueOr(async () => await GetTokenFromAPI());
+            return await token;
+        }
+
         public async Task<Option<string>> GetToken(HttpRequestMessage request)
         {
             var cookieToken = request.Headers
@@ -85,23 +96,6 @@ namespace Inuplan.Intranet.Authorization
 
             var token = cookieToken.ValueOr(async () => await GetTokenFromAPI());
             return await token;
-        }
-
-        public async Task<Option<string>> GetTokenIfNotExists(HttpRequestBase request, IPrincipal user)
-        {
-            // If cookie value exists, we don't need to get it
-            // otherwise we get it from the api
-            return (CookieHasToken(request)) ? Option.None<string>() : await GetTokenFromAPI();
-        }
-
-        private bool CookieHasToken(HttpRequestBase request)
-        {
-            return request
-                    .Cookies
-                    .AllKeys
-                    .Any(k => 
-                        k.Equals(Constants.TOKEN_COOKIE) &&
-                        !string.IsNullOrEmpty(k));
         }
 
         private async Task<Option<string>> GetTokenFromAPI()
@@ -120,7 +114,7 @@ namespace Inuplan.Intranet.Authorization
             // Send request token to remote api: GET /api/v1/token
             using(var client = httpClientFactory.GetHttpClient())
             {
-                client.BaseAddress = new Uri(remote);
+                client.BaseAddress = remote;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.JWT_SCHEME, requestToken);
                 var response = await client.GetAsync(@"api/v1/token");
 

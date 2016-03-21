@@ -18,39 +18,28 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Intranet.Controllers
+namespace Inuplan.Intranet.Extensions
 {
-    using System.Web.Mvc;
-    using Inuplan.Intranet.Authorization;
-    using System.Threading.Tasks;
-    using ViewModels;
-    public class HomeController : Controller
+    using Common.Tools;
+    using Optional;
+    using System.Net.Http;
+    using System.Net.Http.Headers;
+
+    public static class HttpClientExtensions
     {
-        private readonly AuthorizationClient authClient;
-
-        public HomeController(AuthorizationClient authClient)
+        public static bool SetHttpHeaderToken(this HttpClient client, Option<string> token)
         {
-            this.authClient = authClient;
-        }
-
-        // GET: Home
-        public async Task<ActionResult> Index()
-        {
-            // Get token (if its does not exist)
-            //var token = await authClient.GetTokenIfNotExists(Request, User);
-
-            // Set token (if we got it)
-            // authClient.SetTokenIfExists(Response, token);
-            return await Task.FromResult(View());
-        }
-
-        [ChildActionOnly]
-        public ActionResult Menu()
-        {
-            return PartialView("_Menu", new BaseViewModel
+            return token.Match(t =>
             {
-                CurrentUsername = System.Environment.UserName
-            });
+                if(client.DefaultRequestHeaders != null && client.DefaultRequestHeaders.Authorization != null)
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.JWT_SCHEME, t);
+                    return true;
+                }
+
+                return false;
+            },
+            () => false);
         }
     }
 }

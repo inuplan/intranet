@@ -18,39 +18,39 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Intranet.Controllers
+namespace Inuplan.WebAPI.Controllers
 {
-    using System.Web.Mvc;
-    using Inuplan.Intranet.Authorization;
+    using Autofac.Extras.Attributed;
+    using Common.Enums;
+    using Common.Models;
+    using Common.Repositories;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net;
+    using System.Text;
     using System.Threading.Tasks;
-    using ViewModels;
-    public class HomeController : Controller
+    using System.Web.Http;
+
+    [RoutePrefix("user/{username}")]
+    public class UserController : ApiController
     {
-        private readonly AuthorizationClient authClient;
+        private readonly IScalarRepository<string, User> userRepository;
 
-        public HomeController(AuthorizationClient authClient)
+        public UserController([WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userRepository)
         {
-            this.authClient = authClient;
+            this.userRepository = userRepository;
         }
 
-        // GET: Home
-        public async Task<ActionResult> Index()
+        [HttpGet]
+        [Route("")]
+        [AllowAnonymous]
+        public async Task<User> Get(string username)
         {
-            // Get token (if its does not exist)
-            //var token = await authClient.GetTokenIfNotExists(Request, User);
-
-            // Set token (if we got it)
-            // authClient.SetTokenIfExists(Response, token);
-            return await Task.FromResult(View());
-        }
-
-        [ChildActionOnly]
-        public ActionResult Menu()
-        {
-            return PartialView("_Menu", new BaseViewModel
-            {
-                CurrentUsername = System.Environment.UserName
-            });
+            var user = await userRepository.Get(username);
+            return user.Match(
+                u => u,
+                () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
     }
 }
