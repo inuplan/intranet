@@ -9,31 +9,36 @@ function UserImagesViewModel(parent) {
 
     // Data
     self.images = ko.observableArray([]);
-    self.withComments = ko.observable(true);
-    var data = { comments: ko.unwrap(self.withComments()) };
+    self.with_comments = ko.observable(true);
+    var data = { comments: ko.unwrap(self.with_comments()) };
 
     // Functions
     $.getJSON(parent.api, data, function (allData) {
         var images = $.map(allData, function (item) {
-            return new ImageViewModel(item);
+            return new ImageViewModel(item, self);
         });
         self.images(images);
     });
 }
 
-function ImageViewModel(data) {
+function ImageViewModel(data, parent) {
     var self = this;
-    self.thumbnailUrl = ko.observable(data.PathThumbnailUrl);
-    self.originalUrl = ko.observable(data.PathOriginalUrl);
-    self.previewUrl = ko.observable(data.PathPreviewUrl);
-    self.numberOfComments = ko.observable(numberOfComments(data.Comments));
+    self.thumbnail_url = ko.observable(data.PathThumbnailUrl);
+    self.original_url = ko.observable(data.PathOriginalUrl);
+    self.preview_url = ko.observable(data.PathPreviewUrl);
+    self.number_of_comments = ko.observable(numberOfComments(data.Comments));
     self.filename = ko.observable(data.Filename);
     self.extension = ko.observable(data.Extension);
-    self.imageId = ko.observable(data.ImageID);
-    self.modalId = ko.observable('modal' + data.ImageID);
-    self.modalTarget = ko.observable('#modal' + data.ImageID);
-    self.showModal = ko.observable(false);
+    self.modal_id = ko.observable('modal' + data.ImageID);
+    self.modal_target = ko.observable('#modal' + data.ImageID);
+    self.show_modal = ko.observable(false);
     self.fullname = ko.observable(data.Filename + "." + data.Extension);
+    self.image_id = ko.computed(function () {
+        return 'img' + data.ImageID;
+    });
+    self.with_comments = ko.computed(function () {
+        return ko.unwrap(parent.with_comments());
+    });
 }
 
 function PostViewModel(data) {
@@ -46,12 +51,12 @@ function PostViewModel(data) {
 
 function UserViewModel(data) {
     var self = this;
-    self.userId = ko.observable(data.ID);
+    self.user_id = ko.observable(data.ID);
     self.username = ko.observable(data.Username);
     self.firstname = ko.observable(data.FirstName);
     self.lastname = ko.observable(data.LastName);
     self.email = ko.observable(data.Email);
-    self.profileImage = ko.observable(data.ProfileImageUrl);
+    self.profile_image = ko.observable(data.ProfileImageUrl);
 }
 
 var numberOfComments = function (data) {
