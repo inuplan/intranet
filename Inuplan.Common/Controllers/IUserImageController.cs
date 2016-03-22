@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Inuplan.Common.DTOs;
 
-namespace Inuplan.Common.Interfaces
+namespace Inuplan.Common.Controllers
 {
     public interface IUserImageController
     {

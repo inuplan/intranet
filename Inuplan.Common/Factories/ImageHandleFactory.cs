@@ -20,7 +20,7 @@
 
 namespace Inuplan.Common.Factories
 {
-    using Interfaces;
+    using Handlers;
 
     /// <summary>
     /// An image handle factory

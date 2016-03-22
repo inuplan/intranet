@@ -27,7 +27,7 @@ namespace Inuplan.WebAPI.Image
     using System.Text;
     using System.Threading.Tasks;
     using d = System.Drawing;
-    using Common.Interfaces;
+    using Common.Handlers;
     using Common.Models;
     using Common.Tools;
 

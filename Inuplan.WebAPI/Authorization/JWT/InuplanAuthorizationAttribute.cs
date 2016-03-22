@@ -25,7 +25,7 @@ namespace Inuplan.WebAPI.Authorization.JWT
     using Common.DTOs;
     using Common.Enums;
     using Common.Models;
-    using Common.Principal;
+    using Common.Principals;
     using Common.Repositories;
     using Common.Tools;
     using Jose;

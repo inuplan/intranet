@@ -23,7 +23,7 @@ namespace Inuplan.WebAPI.Image.Factories
     using Autofac.Extras.Attributed;
     using Common.Enums;
     using Common.Factories;
-    using Common.Interfaces;
+    using Common.Handlers;
 
     /// <summary>
     /// Concrete handle factory implementation

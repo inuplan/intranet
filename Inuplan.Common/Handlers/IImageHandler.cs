@@ -18,18 +18,34 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Principal
+namespace Inuplan.Common.Handlers
 {
+    using System;
+    using System.Threading.Tasks;
     using Models;
-    using System.Security.Principal;
+    using System.Net.Http;
 
-    public class InuplanPrincipal : GenericPrincipal
+    /// <summary>
+    /// Process images
+    /// </summary>
+    public interface IImageHandler 
     {
-        public InuplanPrincipal(IIdentity identity, string[] roles, User user) : base(identity, roles)
-        {
-            User = user;
-        }
+        /// <summary>
+        /// Begins processing.
+        /// Does not save the image to the harddrive.
+        /// </summary>
+        /// <param name="user">The user who initiated the process</param>
+        /// <param name="fileContent">The http content file</param>
+        /// <returns>A processed image</returns>
+        Task<UserImage> ProcessUserImage(User user, HttpContent fileContent);
 
-        public User User { get; private set; }
+        /// <summary>
+        /// Converts an http stream to a <see cref="ProfileImage"/>.
+        /// Does not save the image to the harddrive
+        /// </summary>
+        /// <param name="user">The user who initiated the process</param>
+        /// <param name="fileContent">The http content</param>
+        /// <returns>A profile image</returns>
+        Task<ProfileImage> ProcessProfileImage(User user, HttpContent fileContent);
     }
 }
