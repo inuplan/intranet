@@ -26,7 +26,6 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Enums;
     using Common.Factories;
     using Common.Models;
-    using Common.Principals;
     using Common.Repositories;
     using Common.Tools;
     using NLog;
@@ -481,14 +480,15 @@ namespace Inuplan.WebAPI.Controllers
         [NonAction]
         private User GetPrincipalIdentityUser(IPrincipal principal)
         {
-            var user = principal as InuplanPrincipal;
-            if(user != null)
-            {
-                return user.User;
-            }
-
-            logger.Error("User has not been set by the InuplanAuthorizationAttribute object");
-            throw new InvalidOperationException();
+            var user = principal.TryGetUser();
+            return user.Match(
+                // Return the user
+                u => u,
+                () =>
+                {
+                    logger.Error("User has not been set by the InuplanAuthorizationAttribute object");
+                    throw new InvalidOperationException();
+                });
         }
     }
 }

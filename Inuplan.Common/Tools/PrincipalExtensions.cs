@@ -18,30 +18,29 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Principals
+namespace Inuplan.Common.Tools
 {
     using Models;
+    using Optional;
+    using Principals;
     using System.Security.Principal;
 
-    /// <summary>
-    /// A custom principal object which is attached to a specific <see cref="Inuplan.Common.Models.User"/>
-    /// </summary>
-    public class InuplanPrincipal : GenericPrincipal
+    public static class PrincipalExtensions
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="InuplanPrincipal"/> class.
+        /// Tries to retrieve the <see cref="User"/> from the principal object.
         /// </summary>
-        /// <param name="identity">The identity of the user</param>
-        /// <param name="roles">The roles for the user</param>
-        /// <param name="user">The <see cref="Inuplan.Common.Models.User"/></param>
-        public InuplanPrincipal(IIdentity identity, string[] roles, User user) : base(identity, roles)
+        /// <param name="principal">The principal object</param>
+        /// <returns>An optional value of user</returns>
+        public static Option<User> TryGetUser(this IPrincipal principal)
         {
-            User = user;
+            var user = principal
+                        .Some()
+                        .Map(p => p as InuplanPrincipal)
+                        .SomeNotNull()
+                        .FlatMap(p => p)
+                        .Map(p => p.User);
+            return user;
         }
-
-        /// <summary>
-        /// Gets the user for this principal
-        /// </summary>
-        public User User { get; private set; }
     }
 }
