@@ -51,10 +51,21 @@ namespace Inuplan.WebAPI.App_Start
         public static void RegisterContainer(HttpConfiguration config)
         {
             // Setup variables
-            var secretKey = ConfigurationManager.AppSettings["secret"];
             var root = ConfigurationManager.AppSettings["root"];
             var connectionString = GetConnectionString();
             var domain = ConfigurationManager.AppSettings["domain"];
+            var mockUsers = new List<User>
+            {
+                new User
+                {
+                    Email = "jdoe@corp.com",
+                    FirstName = "Johnny",
+                    LastName = "Doe",
+                    Username = "Johnny",
+                    ID = 1,
+                    Role = RoleType.User
+                }
+            };
 
             // Create builder
             var builder = new ContainerBuilder();
@@ -86,7 +97,8 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserProfileImageRepository>().As<IScalarRepository<string, ProfileImage>>();
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
             //builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-            builder.RegisterType<Mocks.NoADRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            builder.Register(ctx => new Mocks.NoADRepo(mockUsers)).Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            builder.Register(ctx => new Mocks.NoDBRepo(mockUsers)).Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
             //builder.RegisterType<Mocks.NoDBRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
 
             // Use autofac owin pipeline
