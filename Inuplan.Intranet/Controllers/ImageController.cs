@@ -72,7 +72,7 @@ namespace Inuplan.Intranet.Controllers
 
                     return View(vm);
                 },
-                () => 
+                () =>
                 {
                     throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
                 });
