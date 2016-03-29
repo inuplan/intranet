@@ -87,17 +87,17 @@ namespace Inuplan.WebAPI.Middlewares
                     {
                         // Error, couldn't create user in DB
                         logger.Error("Could not create user {0} in the database!", username);
-                        return false;
+                        return true;
                     }
 
                     logger.Info("Created user {0} in the database!", username);
-                    return true;
+                    return false;
                 },
                 () =>
                 {
                     // Error user, does not exist in AD
                     logger.Error("No user information for {0} in Active Directory!", username);
-                    return Task.FromResult(false);
+                    return Task.FromResult(true);
                 });
 
             }
