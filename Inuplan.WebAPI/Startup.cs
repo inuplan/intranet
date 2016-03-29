@@ -36,6 +36,9 @@ namespace Inuplan.WebAPI
             // Configure Web API for self-host.
             var config = new HttpConfiguration();
 
+            // Enable Cross-Origin Resource Sharing (CORS)
+            config.EnableCors();
+
             // Enable windows authentication
             HttpListener listener = (HttpListener)app.Properties["System.Net.HttpListener"];
             listener.AuthenticationSchemes = AuthenticationSchemes.IntegratedWindowsAuthentication;

@@ -38,11 +38,13 @@ namespace Inuplan.WebAPI.Controllers
     using System.Security.Principal;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using System.Web.Http.Cors;
     using Key = System.Tuple<string, string, string>;
 
     /// <summary>
     /// Image file controller
     /// </summary>
+    [EnableCors(origins: "*", headers: "*", methods: "*")]
     [RoutePrefix("{username:alpha:length(2,6)}/image")]
     public class UserImageController : ApiController, IUserImageController
     {
