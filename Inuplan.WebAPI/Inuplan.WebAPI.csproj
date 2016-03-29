@@ -132,8 +132,6 @@
   <ItemGroup>
     <Compile Include="App_Start\DependencyConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="Authorization\JWT\InuplanAuthorizationAttribute.cs" />
-    <Compile Include="Authorization\JWT\InuplanMiddleware.cs" />
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Controllers\UserImageController.cs" />
     <Compile Include="CLI\ProgramOptions.cs" />

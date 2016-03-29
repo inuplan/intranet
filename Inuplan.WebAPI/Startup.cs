@@ -16,7 +16,6 @@
 
 namespace Inuplan.WebAPI
 {
-    using Authorization.JWT;
     using Inuplan.WebAPI.App_Start;
     using Owin;
     using System.Web.Http;
@@ -38,12 +37,6 @@ namespace Inuplan.WebAPI
             // Register components
             RouteConfig.RegisterRoutes(config);
             DependencyConfig.RegisterContainer(config);
-
-            // Register global filters (after IoC)
-            config.Filters.Add(new InuplanAuthorizationAttribute());
-
-            // Owin middleware pipeline
-            app.Use<InuplanMiddleware>();
 
             // Controllers
             app.UseWebApi(config);
