@@ -24,7 +24,6 @@ namespace Inuplan.Intranet.Controllers
     using Common.Enums;
     using Common.Models;
     using Factories;
-    using Inuplan.Intranet.Authorization;
     using Newtonsoft.Json;
     using Optional;
     using System;
@@ -38,18 +37,15 @@ namespace Inuplan.Intranet.Controllers
     /// </summary>
     public class ImageController : Controller
     {
-        private readonly AuthorizationClient authClient;
         private const string baseAddress = "http://localhost:9000";
         private readonly IHttpClientFactory httpClientFactory;
         private readonly Uri remoteBaseAddress;
 
         public ImageController(
             [WithKey(ServiceKeys.RemoteBaseAddress)] Uri remoteBaseAddress,
-            AuthorizationClient authClient,
             IHttpClientFactory httpClientFactory)
         {
             this.remoteBaseAddress = remoteBaseAddress;
-            this.authClient = authClient;
             this.httpClientFactory = httpClientFactory;
         }
 

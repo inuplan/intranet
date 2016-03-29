@@ -21,18 +21,11 @@
 namespace Inuplan.Intranet.Controllers
 {
     using System.Web.Mvc;
-    using Inuplan.Intranet.Authorization;
     using System.Threading.Tasks;
     using ViewModels;
     using Common.Models;
     public class HomeController : Controller
     {
-        private readonly AuthorizationClient authClient;
-
-        public HomeController(AuthorizationClient authClient)
-        {
-            this.authClient = authClient;
-        }
 
         // GET: Home
         public async Task<ActionResult> Index()

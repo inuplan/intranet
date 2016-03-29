@@ -197,8 +197,6 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Areas\api\apiAreaRegistration.cs" />
-    <Compile Include="Areas\api\Controllers\UserImageProxyController.cs" />
-    <Compile Include="Authorization\AuthorizationClient.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ImageController.cs" />
     <Compile Include="Extensions\HttpClientExtensions.cs" />
@@ -269,6 +267,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Areas\api\Controllers\" />
     <Folder Include="Areas\api\Models\" />
     <Folder Include="Areas\api\Views\Shared\" />
     <Folder Include="Models\" />

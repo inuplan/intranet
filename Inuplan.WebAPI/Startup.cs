@@ -16,6 +16,7 @@
 
 namespace Inuplan.WebAPI
 {
+    using Autofac.Integration.WebApi;
     using Inuplan.WebAPI.App_Start;
     using Owin;
     using System.Net;
@@ -42,6 +43,10 @@ namespace Inuplan.WebAPI
             // Register components
             RouteConfig.RegisterRoutes(config);
             DependencyConfig.RegisterContainer(config);
+            var autofac = (AutofacWebApiDependencyResolver)config.DependencyResolver;
+
+            // Owin middleware pipeline
+            app.UseAutofacMiddleware(autofac.Container);
 
             // Controllers
             app.UseWebApi(config);

@@ -29,6 +29,7 @@ namespace Inuplan.WebAPI.App_Start
     using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
     using Jose;
+    using Middlewares;
     using System.Collections.Generic;
     using System.Configuration;
     using System.Data;
@@ -44,11 +45,6 @@ namespace Inuplan.WebAPI.App_Start
     public static class DependencyConfig
     {
         /// <summary>
-        /// The autofac IoC container
-        /// </summary>
-        private static IContainer container;
-
-        /// <summary>
         /// Registers types and instances used in the <code>OWIN</code> application
         /// </summary>
         /// <param name="config">The <see cref="HttpConfiguration"/></param>
@@ -56,7 +52,6 @@ namespace Inuplan.WebAPI.App_Start
         {
             // Setup variables
             var secretKey = ConfigurationManager.AppSettings["secret"];
-            var key = SHA256.Create().ComputeHash(Helpers.GetBytes(secretKey));
             var root = ConfigurationManager.AppSettings["root"];
             var connectionString = GetConnectionString();
             var domain = ConfigurationManager.AppSettings["domain"];
@@ -80,7 +75,6 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<TokenController>().WithAttributeFilter();
 
             // Register classes and keys
-            builder.RegisterInstance(key).Keyed<byte[]>(ServiceKeys.SecretKey);
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
             builder.RegisterType<NewtonsoftMapper>().As<IJsonMapper>();
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
@@ -95,20 +89,20 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<Mocks.NoADRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
             //builder.RegisterType<Mocks.NoDBRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
 
+            // Use autofac owin pipeline
+            OwinPipeline(builder);
+
             // Build container
-            container = builder.Build();
+            var container = builder.Build();
 
             // Set the dependency resolver
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
         }
-        
-        /// <summary>
-        /// Exposes the dependency injection container
-        /// </summary>
-        /// <returns>An autofac IoC container</returns>
-        public static IContainer Container()
+
+        private static void OwinPipeline(ContainerBuilder builder)
         {
-            return container;
+            // Owin middleware pipeline
+            builder.RegisterType<ManageUserMiddleware>().WithAttributeFilter();
         }
 
         /// <summary>
