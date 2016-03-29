@@ -52,11 +52,6 @@ namespace Inuplan.Common.Enums
         UserImageRepository,
 
         /// <summary>
-        /// Key for the signing key
-        /// </summary>
-        SecretKey,
-
-        /// <summary>
         /// Key for the web api root folder
         /// </summary>
         RootPath,
