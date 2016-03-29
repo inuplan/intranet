@@ -54,18 +54,7 @@ namespace Inuplan.WebAPI.App_Start
             var root = ConfigurationManager.AppSettings["root"];
             var connectionString = GetConnectionString();
             var domain = ConfigurationManager.AppSettings["domain"];
-            var mockUsers = new List<User>
-            {
-                new User
-                {
-                    Email = "jdoe@corp.com",
-                    FirstName = "Johnny",
-                    LastName = "Doe",
-                    Username = "Johnny",
-                    ID = 1,
-                    Role = RoleType.User
-                }
-            };
+            var mockUsers = MockUsers();
 
             // Create builder
             var builder = new ContainerBuilder();
@@ -129,6 +118,35 @@ namespace Inuplan.WebAPI.App_Start
             var connectionString = ConfigurationManager.AppSettings["connectionString"];
 #endif
             return connectionString;
+        }
+
+        /// <summary>
+        /// Creates a mock of users
+        /// </summary>
+        /// <returns>A list of mocked users</returns>
+        private static List<User> MockUsers()
+        {
+            return new List<User>
+            {
+                new User
+                {
+                    Email = "jdoe@corp.com",
+                    FirstName = "John",
+                    LastName = "Doe",
+                    Username = "jdoe",
+                    ID = 1,
+                    Role = RoleType.User
+                },
+                new User
+                {
+                    Email = "my@mail.com",
+                    FirstName = "Johnny",
+                    LastName = "Cash",
+                    Username = "Johnny",
+                    ID = 2,
+                    Role = RoleType.User
+                }
+            };
         }
     }
 }
