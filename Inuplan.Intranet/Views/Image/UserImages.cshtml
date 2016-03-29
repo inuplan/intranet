@@ -1,6 +1,6 @@
-﻿@model Inuplan.Common.Models.User
+﻿@model Inuplan.Intranet.ViewModels.BaseViewModel<Inuplan.Common.Models.User>
 @{ 
-    var FullName = string.Format("{0} {1}", Model.FirstName, Model.LastName);
+    var FullName = string.Format("{0} {1}", Model.Entity.FirstName, Model.Entity.LastName);
     ViewBag.Title = string.Format("{0} Billeder", FullName);
 }
 
@@ -42,11 +42,18 @@
     </script>
     <script>
         $(function () {
-            var app = new appViewModel('@string.Format("/api/{0}/image", Model.Username)');
+            var app = new appViewModel('@Model.Entity.Username');
             ko.applyBindings(app);
 
         });
     </script>
+    @if (Model.IsEditable)
+    {
+        <script type="text/html" id="delete-image">
+            <!-- TODO: Create a template for deleting images -->
+            <button type="button" class="btn btn-danger" data-bind="click: delete_image">Slet billede</button>
+        </script>
+    }
     <script type="text/html" id="view-image">
         <!-- Modal -->
         <div class="modal fade" role="dialog" data-bind="modal: show_modal ,attr: { id: modal_id }">
@@ -73,6 +80,10 @@
                                 <h5><strong>Kommentarer</strong></h5>
                             </div>
                         </div>
+                        @if (Model.IsEditable)
+                        {
+                            <div data-bind="template: { name: 'delete-image', data: $data }" />
+                        }
                         <button type="button" class="btn btn-default" data-dismiss="modal">Luk</button>
                     </div>
                 </div>

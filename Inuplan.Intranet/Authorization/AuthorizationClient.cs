@@ -92,10 +92,15 @@ namespace Inuplan.Intranet.Authorization
                                 .Map(c => c[Constants.TOKEN_COOKIE])
                                 .Map(c => c.Value)
                                 .SomeNotNull()
-                                .Map(c => Task.FromResult(c));
+                                .FlatMap(c => c);
 
-            var token = cookieToken.ValueOr(async () => await GetTokenFromAPI());
-            return await token;
+            var result = Task.FromResult(cookieToken);
+            if(!cookieToken.HasValue)
+            {
+                return await GetTokenFromAPI();
+            }
+
+            return await result;
         }
 
         private async Task<Option<string>> GetTokenFromAPI()
@@ -116,7 +121,8 @@ namespace Inuplan.Intranet.Authorization
             {
                 client.BaseAddress = remote;
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(Constants.JWT_SCHEME, requestToken);
-                var response = await client.GetAsync(@"api/v1/token");
+                var path = string.Format("api/v1/token/{0}", username);
+                var response = await client.GetAsync(path);
 
                 var content = await response.Content.ReadAsStringAsync();
                 var jsonObject = JObject.Parse(content);

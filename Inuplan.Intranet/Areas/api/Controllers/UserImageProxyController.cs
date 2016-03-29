@@ -58,6 +58,7 @@ namespace Inuplan.Intranet.Areas.api.Controllers
         // DELETE api/{username}/image/{file}
         [Route("{file}")]
         [HttpDelete]
+        [AllowAnonymous]
         public async Task<HttpResponseMessage> Delete(string username, string file)
         {
             var token = await authClient.GetToken(Request);

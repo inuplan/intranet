@@ -65,7 +65,17 @@ namespace Inuplan.Intranet.Controllers
                 var json = (await response.Content.ReadAsStringAsync()).SomeNotNull();
                 var owner = json.Map(j => JsonConvert.DeserializeObject<User>(j));
 
-                return owner.Match(u => View(u),
+                return owner.Match(u =>
+                {
+                    var vm = new BaseViewModel<User>
+                    {
+                        CurrentUsername = Environment.UserName,
+                        Entity = u,
+                        IsEditable = true,
+                    };
+
+                    return View(vm);
+                },
                 () => 
                 {
                     throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
