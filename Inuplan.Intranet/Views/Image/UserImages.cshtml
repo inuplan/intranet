@@ -42,7 +42,7 @@
     </script>
     <script>
         $(function () {
-            var app = new appViewModel('@Model.Entity.Username');
+            var app = new appViewModel('@ViewBag.API', '@Model.Entity.Username');
             ko.applyBindings(app);
 
         });

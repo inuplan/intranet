@@ -1,16 +1,16 @@
-﻿function appViewModel(username) {
+﻿function appViewModel(api, username) {
     var self = this;
     self.username = username;
-    self.vm = new UserImagesViewModel(self);
+    self.vm = new UserImagesViewModel(api, self);
 }
 
-function UserImagesViewModel(parent) {
+function UserImagesViewModel(api, parent) {
     var self = this;
 
     // Helper functions
-    self.get_api = '/api/' + parent.username + '/image';
+    self.get_api = api + parent.username + '/image';
     self.delete_api = function (filename) {
-        return '/api/' + parent.username + '/image/' + filename;
+        return api + parent.username + '/image/' + filename;
     };
 
     // Data

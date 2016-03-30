@@ -68,7 +68,7 @@ namespace Inuplan.Intranet.Controllers
                     {
                         CurrentUsername = Environment.UserName,
                         Entity = u,
-                        IsEditable = true,
+                        IsEditable = u.Username.Equals(Environment.UserName, StringComparison.OrdinalIgnoreCase),
                     };
 
                     return View(vm);
