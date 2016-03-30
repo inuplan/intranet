@@ -198,7 +198,6 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ImageController.cs" />
-    <Compile Include="Extensions\HttpClientExtensions.cs" />
     <Compile Include="Factories\HttpClientFactory.cs" />
     <Compile Include="Factories\IHttpClientFactory.cs" />
     <Compile Include="Global.asax.cs">
