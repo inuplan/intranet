@@ -24,32 +24,20 @@ namespace Inuplan.Intranet.App_Start
     using Autofac.Extras.Attributed;
     using Autofac.Integration.Mvc;
     using Common.Enums;
-    using Common.Tools;
     using Factories;
     using System;
     using System.Configuration;
-    using System.Security.Cryptography;
-    using System.Threading;
     using System.Web.Mvc;
 
     public static class AutofacConfig
     {
-        private static int first = 1;
-        private static IContainer container;
-
+        /// <summary>
+        /// Registers all dependencies with <code>Autofac</code> IoC container.
+        /// </summary>
         public static void RegisterContainer()
         {
-            if(1 != Interlocked.Exchange(ref first, 0))
-            {
-                // Is not the first time
-                return;
-            }
-
             // Variables
-            var secretKey = ConfigurationManager.AppSettings["secret"];
-            var key = SHA256.Create().ComputeHash(Helpers.GetBytes(secretKey));
             var domain = ConfigurationManager.AppSettings["domain"];
-
             var builder = new ContainerBuilder();
 
             // Register controllers
@@ -63,27 +51,19 @@ namespace Inuplan.Intranet.App_Start
 
             // Register 
             builder.Register(ctx => new HttpClientFactory(new WeakReference<System.Net.Http.HttpClient>(new System.Net.Http.HttpClient()))).As<IHttpClientFactory>();
-            builder.RegisterInstance(new Uri(GetRemote())).Keyed<Uri>(ServiceKeys.RemoteBaseAddress);
+            builder.RegisterInstance(new Uri(GetRemote())).Keyed<Uri>(ServiceKeys.RemoteBaseAddress).SingleInstance();
 
             // Build container
-            container = builder.Build();
-            Container = container;
+            var container = builder.Build();
  
             // Set MVC DI resolver to use our Autofac container
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
         }
 
-        public static IContainer Container { get
-            {
-                RegisterContainer();
-                return container;
-            }
-            private set
-            {
-                container = value;
-            }
-        }
-
+        /// <summary>
+        /// Retrieves the remote api endpoint url
+        /// </summary>
+        /// <returns></returns>
         private static string GetRemote()
         {
 #if DEBUG
