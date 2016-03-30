@@ -50,7 +50,7 @@ namespace Inuplan.Intranet.App_Start
             builder.RegisterSource(new ViewRegistrationSource());
 
             // Register 
-            builder.Register(ctx => new HttpClientFactory(new WeakReference<System.Net.Http.HttpClient>(new System.Net.Http.HttpClient()))).As<IHttpClientFactory>();
+            builder.RegisterType<HttpClientFactory>().As<IHttpClientFactory>();
             builder.RegisterInstance(new Uri(GetRemote())).Keyed<Uri>(ServiceKeys.RemoteBaseAddress).SingleInstance();
 
             // Build container

@@ -63,6 +63,7 @@ namespace Inuplan.Intranet.Controllers
 
                 return owner.Match(u =>
                 {
+                    ViewBag.API = remoteBaseAddress.ToString();
                     var vm = new BaseViewModel<User>
                     {
                         CurrentUsername = Environment.UserName,
