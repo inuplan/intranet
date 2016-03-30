@@ -16,9 +16,10 @@
 
 namespace Inuplan.WebAPI
 {
-    using Authorization.JWT;
+    using Autofac.Integration.WebApi;
     using Inuplan.WebAPI.App_Start;
     using Owin;
+    using System.Net;
     using System.Web.Http;
 
     /// <summary>
@@ -35,15 +36,20 @@ namespace Inuplan.WebAPI
             // Configure Web API for self-host.
             var config = new HttpConfiguration();
 
+            // Enable Cross-Origin Resource Sharing (CORS)
+            config.EnableCors();
+
+            // Enable windows authentication
+            HttpListener listener = (HttpListener)app.Properties["System.Net.HttpListener"];
+            listener.AuthenticationSchemes = AuthenticationSchemes.IntegratedWindowsAuthentication;
+
             // Register components
             RouteConfig.RegisterRoutes(config);
             DependencyConfig.RegisterContainer(config);
-
-            // Register global filters (after IoC)
-            config.Filters.Add(new InuplanAuthorizationAttribute());
+            var autofac = (AutofacWebApiDependencyResolver)config.DependencyResolver;
 
             // Owin middleware pipeline
-            app.Use<InuplanMiddleware>();
+            app.UseAutofacMiddleware(autofac.Container);
 
             // Controllers
             app.UseWebApi(config);

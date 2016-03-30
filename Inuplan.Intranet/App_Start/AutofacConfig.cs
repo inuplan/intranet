@@ -20,8 +20,6 @@
 
 namespace Inuplan.Intranet.App_Start
 {
-    using Areas.api.Controllers;
-    using Authorization;
     using Autofac;
     using Autofac.Extras.Attributed;
     using Autofac.Integration.Mvc;
@@ -56,13 +54,6 @@ namespace Inuplan.Intranet.App_Start
 
             // Register controllers
             builder.RegisterControllers(typeof(MvcApplication).Assembly).WithAttributeFilter();
-            builder.Register(ctx =>
-            {
-                var r = ctx.ResolveKeyed<Uri>(ServiceKeys.RemoteBaseAddress);
-                var f = ctx.Resolve<IHttpClientFactory>();
-                var a = ctx.Resolve<AuthorizationClient>();
-                return new UserImageProxyController(r, f, a);
-            });
 
             // Register dependencies in filter attributes
             builder.RegisterFilterProvider();
@@ -71,14 +62,6 @@ namespace Inuplan.Intranet.App_Start
             builder.RegisterSource(new ViewRegistrationSource());
 
             // Register 
-            builder.RegisterInstance(key).Keyed<byte[]>(ServiceKeys.SecretKey);
-            builder.Register(ctx =>
-            {
-                var k = ctx.ResolveKeyed<byte[]>(ServiceKeys.SecretKey);
-                var r = ctx.ResolveKeyed<Uri>(ServiceKeys.RemoteBaseAddress);
-                var f = ctx.Resolve<IHttpClientFactory>();
-                return new AuthorizationClient(k, r, domain, TimeSpan.FromDays(3), Jose.JwsAlgorithm.HS256, f);
-            });
             builder.Register(ctx => new HttpClientFactory(new WeakReference<System.Net.Http.HttpClient>(new System.Net.Http.HttpClient()))).As<IHttpClientFactory>();
             builder.RegisterInstance(new Uri(GetRemote())).Keyed<Uri>(ServiceKeys.RemoteBaseAddress);
 

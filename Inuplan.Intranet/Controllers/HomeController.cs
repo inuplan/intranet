@@ -21,17 +21,11 @@
 namespace Inuplan.Intranet.Controllers
 {
     using System.Web.Mvc;
-    using Inuplan.Intranet.Authorization;
     using System.Threading.Tasks;
     using ViewModels;
+    using Common.Models;
     public class HomeController : Controller
     {
-        private readonly AuthorizationClient authClient;
-
-        public HomeController(AuthorizationClient authClient)
-        {
-            this.authClient = authClient;
-        }
 
         // GET: Home
         public async Task<ActionResult> Index()
@@ -47,9 +41,9 @@ namespace Inuplan.Intranet.Controllers
         [ChildActionOnly]
         public ActionResult Menu()
         {
-            return PartialView("_Menu", new BaseViewModel
+            return PartialView("_Menu", new BaseViewModel<User>
             {
-                CurrentUsername = System.Environment.UserName
+                CurrentUsername = System.Environment.UserName,
             });
         }
     }

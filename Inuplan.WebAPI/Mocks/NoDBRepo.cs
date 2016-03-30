@@ -11,32 +11,55 @@ namespace Inuplan.WebAPI.Mocks
 {
     public class NoDBRepo : IScalarRepository<string, User>
     {
+        private bool disposedValue = false; // To detect redundant calls
+        private readonly List<User> users;
+        private int nextId;
+
+        public NoDBRepo(List<User> users)
+        {
+            this.users = users;
+        }
+
         public Task<Option<User>> Create(User entity)
         {
-            throw new NotImplementedException();
+            var id = nextId + 1;
+            nextId++;
+
+            entity.ID = id;
+            users.Add(entity);
+
+            return Task.FromResult(entity.SomeNotNull());
         }
 
         public Task<bool> Delete(User entity)
         {
-            throw new NotImplementedException();
+            var user = users.SingleOrDefault(u => u.ID == entity.ID)
+                            .SomeNotNull();
+
+            var result = user.Match(
+                u => users.Remove(u),
+                () => false);
+
+            return Task.FromResult(result);
         }
 
         public Task<bool> Delete(string key)
         {
-            throw new NotImplementedException();
+            var user = users
+                            .SingleOrDefault(u => u.Username.Equals(key, StringComparison.OrdinalIgnoreCase))
+                            .SomeNotNull();
+
+            var result = user.Match(
+                u => users.Remove(u),
+                () => false);
+
+            return Task.FromResult(result);
         }
 
         public Task<Option<User>> Get(string key)
         {
-            return Task.FromResult(new User
-            {
-                Email = "jdoe@corp.com",
-                ID = 1,
-                FirstName = "John",
-                LastName = "Doe",
-                Role = RoleType.User,
-                Username = "jdoe"
-            }.Some());
+            var user = users.SingleOrDefault(u => u.Username.Equals(key, StringComparison.OrdinalIgnoreCase)).SomeNotNull();
+            return Task.FromResult(user);
         }
 
         public Task<List<User>> Get(int skip, int take)
@@ -46,21 +69,26 @@ namespace Inuplan.WebAPI.Mocks
 
         public Task<List<User>> GetAll()
         {
-            throw new NotImplementedException();
+            return Task.FromResult(users);
         }
 
         public Task<Option<User>> GetByID(int id)
         {
-            throw new NotImplementedException();
+            var user = users.SingleOrDefault(u => u.ID == id).SomeNotNull();
+            return Task.FromResult(user);
         }
 
         public Task<bool> Update(string key, User entity)
         {
-            throw new NotImplementedException();
-        }
+            var user = users.SingleOrDefault(u => u.Username.Equals(key, StringComparison.OrdinalIgnoreCase)).SomeNotNull();
+            var removed = user.Match(u => users.Remove(u), () => false);
+            if(removed)
+            {
+                users.Add(entity);
+            }
 
-        #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+            return Task.FromResult(removed);
+        }
 
         protected virtual void Dispose(bool disposing)
         {
@@ -80,6 +108,5 @@ namespace Inuplan.WebAPI.Mocks
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
         }
-        #endregion
     }
 }

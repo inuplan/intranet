@@ -31,6 +31,14 @@ namespace Inuplan.WebAPI.Mocks
 
     public class NoADRepo : IScalarRepository<string, User>
     {
+        private bool disposedValue = false;
+        private readonly List<User> users;
+
+        public NoADRepo(List<User> users)
+        {
+            this.users = users;
+        }
+
         public Task<Option<User>> Create(User entity)
         {
             throw new NotImplementedException();
@@ -48,15 +56,10 @@ namespace Inuplan.WebAPI.Mocks
 
         public Task<Option<User>> Get(string key)
         {
-            return Task.FromResult(new User
-            {
-                Email = "jdoe@corp.com",
-                FirstName = "John",
-                LastName = "Doe",
-                ID = 1,
-                Role = RoleType.User,
-                Username = "jdoe"
-            }.Some());
+            var user = users
+                        .SingleOrDefault(u => u.Username.Equals(key, StringComparison.OrdinalIgnoreCase))
+                        .SomeNotNull();
+            return Task.FromResult(user);
         }
 
         public Task<List<User>> Get(int skip, int take)
@@ -79,9 +82,6 @@ namespace Inuplan.WebAPI.Mocks
             throw new NotImplementedException();
         }
 
-        #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
-
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
@@ -100,6 +100,5 @@ namespace Inuplan.WebAPI.Mocks
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
         }
-        #endregion
     }
 }

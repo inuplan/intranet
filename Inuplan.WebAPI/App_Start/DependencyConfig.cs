@@ -29,6 +29,7 @@ namespace Inuplan.WebAPI.App_Start
     using Inuplan.Common.Models;
     using Inuplan.Common.Repositories;
     using Jose;
+    using Middlewares;
     using System.Collections.Generic;
     using System.Configuration;
     using System.Data;
@@ -44,22 +45,16 @@ namespace Inuplan.WebAPI.App_Start
     public static class DependencyConfig
     {
         /// <summary>
-        /// The autofac IoC container
-        /// </summary>
-        private static IContainer container;
-
-        /// <summary>
         /// Registers types and instances used in the <code>OWIN</code> application
         /// </summary>
         /// <param name="config">The <see cref="HttpConfiguration"/></param>
         public static void RegisterContainer(HttpConfiguration config)
         {
             // Setup variables
-            var secretKey = ConfigurationManager.AppSettings["secret"];
-            var key = SHA256.Create().ComputeHash(Helpers.GetBytes(secretKey));
             var root = ConfigurationManager.AppSettings["root"];
             var connectionString = GetConnectionString();
             var domain = ConfigurationManager.AppSettings["domain"];
+            var mockUsers = MockUsers();
 
             // Create builder
             var builder = new ContainerBuilder();
@@ -77,9 +72,9 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<ManagementPostController>().WithAttributeFilter();
             builder.RegisterType<UserImageController>().WithAttributeFilter();
             builder.RegisterType<UserController>().WithAttributeFilter();
+            builder.RegisterType<TokenController>().WithAttributeFilter();
 
             // Register classes and keys
-            builder.RegisterInstance(key).Keyed<byte[]>(ServiceKeys.SecretKey);
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
             builder.RegisterType<NewtonsoftMapper>().As<IJsonMapper>();
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
@@ -91,23 +86,24 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserProfileImageRepository>().As<IScalarRepository<string, ProfileImage>>();
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
             //builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-            builder.RegisterType<Mocks.NoADRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            builder.Register(ctx => new Mocks.NoADRepo(mockUsers)).Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            builder.Register(ctx => new Mocks.NoDBRepo(mockUsers)).Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
             //builder.RegisterType<Mocks.NoDBRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
 
+            // Use autofac owin pipeline
+            OwinPipeline(builder);
+
             // Build container
-            container = builder.Build();
+            var container = builder.Build();
 
             // Set the dependency resolver
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
         }
-        
-        /// <summary>
-        /// Exposes the dependency injection container
-        /// </summary>
-        /// <returns>An autofac IoC container</returns>
-        public static IContainer Container()
+
+        private static void OwinPipeline(ContainerBuilder builder)
         {
-            return container;
+            // Owin middleware pipeline
+            builder.RegisterType<ManageUserMiddleware>().WithAttributeFilter();
         }
 
         /// <summary>
@@ -122,6 +118,35 @@ namespace Inuplan.WebAPI.App_Start
             var connectionString = ConfigurationManager.AppSettings["connectionString"];
 #endif
             return connectionString;
+        }
+
+        /// <summary>
+        /// Creates a mock of users
+        /// </summary>
+        /// <returns>A list of mocked users</returns>
+        private static List<User> MockUsers()
+        {
+            return new List<User>
+            {
+                new User
+                {
+                    Email = "jdoe@corp.com",
+                    FirstName = "John",
+                    LastName = "Doe",
+                    Username = "jdoe",
+                    ID = 1,
+                    Role = RoleType.User
+                },
+                new User
+                {
+                    Email = "my@mail.com",
+                    FirstName = "Johnny",
+                    LastName = "Cash",
+                    Username = "Johnny",
+                    ID = 2,
+                    Role = RoleType.User
+                }
+            };
         }
     }
 }

@@ -13,6 +13,7 @@ namespace Inuplan.WebAPI.Controllers
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
+        // GET api/v1/token/jdoe
         [Route("token/{username}")]
         public async Task<HttpResponseMessage> Get(string username)
         {

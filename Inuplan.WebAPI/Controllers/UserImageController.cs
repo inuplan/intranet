@@ -38,11 +38,13 @@ namespace Inuplan.WebAPI.Controllers
     using System.Security.Principal;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using System.Web.Http.Cors;
     using Key = System.Tuple<string, string, string>;
 
     /// <summary>
     /// Image file controller
     /// </summary>
+    [EnableCors(origins: "*", headers: "*", methods: "*")]
     [RoutePrefix("{username:alpha:length(2,6)}/image")]
     public class UserImageController : ApiController, IUserImageController
     {
@@ -165,7 +167,6 @@ namespace Inuplan.WebAPI.Controllers
         /// <returns>The requested image</returns>
         // GET user/image/test.jpeg
         [Route("{file}")]
-        [AllowAnonymous]
         public async Task<HttpResponseMessage> Get(string username, string file)
         {
             var tmp = Helpers.GetFilename(file);
@@ -196,7 +197,6 @@ namespace Inuplan.WebAPI.Controllers
         /// <returns>The requested image</returns>
         // GET user/image/preview/test.jpeg
         [Route("preview/{file}")]
-        [AllowAnonymous]
         public async Task<HttpResponseMessage> GetPreview(string username, string file)
         {
             var tmp = Helpers.GetFilename(file);
@@ -227,7 +227,6 @@ namespace Inuplan.WebAPI.Controllers
         /// <returns>The requested image</returns>
         // GET user/image/thumbnail/test.jpeg
         [Route("thumbnail/{file}")]
-        [AllowAnonymous]
         public async Task<HttpResponseMessage> GetThumbnail(string username, string file)
         {
             var tmp = Helpers.GetFilename(file);
@@ -258,7 +257,6 @@ namespace Inuplan.WebAPI.Controllers
         /// <returns></returns>
         // GET image/2
         [Route("~/image/id/{id:int}")]
-        [AllowAnonymous]
         public async Task<HttpResponseMessage> GetByID(int id)
         {
             var image = await userImageRepository.GetByID(id);
@@ -283,7 +281,6 @@ namespace Inuplan.WebAPI.Controllers
         /// <returns>An awaitable list of <see cref="UserImageDTO"/></returns>
         // GET user/image?comments=true
         [HttpGet]
-        [AllowAnonymous]
         [Route("")]
         public async Task<List<UserImageDTO>> GetAll(string username, [FromUri] bool comments = false)
         {
@@ -371,7 +368,6 @@ namespace Inuplan.WebAPI.Controllers
         // GET user/image/profile
         [Route("profile")]
         [HttpGet]
-        [AllowAnonymous]
         public async Task<HttpResponseMessage> GetProfilePicture(string username)
         {
             var profileImage = await profileImageRepository.Get(username);
