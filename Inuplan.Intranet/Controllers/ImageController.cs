@@ -63,11 +63,12 @@ namespace Inuplan.Intranet.Controllers
 
                 return owner.Match(u =>
                 {
+                    ViewBag.API = remoteBaseAddress.ToString();
                     var vm = new BaseViewModel<User>
                     {
                         CurrentUsername = Environment.UserName,
                         Entity = u,
-                        IsEditable = true,
+                        IsEditable = u.Username.Equals(Environment.UserName, StringComparison.OrdinalIgnoreCase),
                     };
 
                     return View(vm);

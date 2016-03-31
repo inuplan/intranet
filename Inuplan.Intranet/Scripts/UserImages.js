@@ -1,16 +1,16 @@
-﻿function appViewModel(username) {
+﻿function appViewModel(api, username) {
     var self = this;
     self.username = username;
-    self.vm = new UserImagesViewModel(self);
+    self.vm = new UserImagesViewModel(api, self);
 }
 
-function UserImagesViewModel(parent) {
+function UserImagesViewModel(api, parent) {
     var self = this;
 
     // Helper functions
-    self.get_api = '/api/' + parent.username + '/image';
+    self.get_api = api + parent.username + '/image';
     self.delete_api = function (filename) {
-        return '/api/' + parent.username + '/image/' + filename;
+        return api + parent.username + '/image/' + filename;
     };
 
     // Data
@@ -19,12 +19,24 @@ function UserImagesViewModel(parent) {
     var data = { comments: ko.unwrap(self.with_comments()) };
 
     // Functions
-    $.getJSON(self.get_api, data, function (allData) {
-        var images = $.map(allData, function (item) {
-            return new ImageViewModel(item, self);
-        });
-        self.images(images);
-    });
+    $.ajax(self.get_api, {
+        dataType: 'json',
+        xhrFields: {
+            withCredentials: true
+        },
+        success: function (result, status, jqXhr) {
+            var images = $.map(result, function (item) {
+                return new ImageViewModel(item, self);
+            });
+            self.images(images);
+        }
+    })
+    //$.getJSON(self.get_api, data, function (allData) {
+    //    var images = $.map(allData, function (item) {
+    //        return new ImageViewModel(item, self);
+    //    });
+    //    self.images(images);
+    //});
 }
 
 function ImageViewModel(data, parent) {
