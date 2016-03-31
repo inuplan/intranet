@@ -44,7 +44,7 @@ namespace Inuplan.WebAPI.Controllers
     /// <summary>
     /// Image file controller
     /// </summary>
-    [EnableCors(origins: "*", headers: "*", methods: "*")]
+    [EnableCors(origins: @"http://localhost:59382", headers: "", methods: "*", SupportsCredentials = true)]
     [RoutePrefix("{username:alpha:length(2,6)}/image")]
     public class UserImageController : ApiController, IUserImageController
     {
