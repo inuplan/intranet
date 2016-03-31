@@ -81,7 +81,7 @@ namespace Inuplan.WebAPI.App_Start
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
 
             // Register repositories
-            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<ImageKey, UserImage>>();
+            builder.RegisterType<ImageRepository>().WithAttributeFilter().As<IScalarRepository<ImageKey, UserImage>>();
             builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, List<Post>, Post>>();
             builder.RegisterType<UserProfileImageRepository>().As<IScalarRepository<string, ProfileImage>>();
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
@@ -135,7 +135,7 @@ namespace Inuplan.WebAPI.App_Start
                     LastName = "Doe",
                     Username = "jdoe",
                     ID = 1,
-                    Role = RoleType.User
+                    Roles = new List<string> { "User" }
                 },
                 new User
                 {
@@ -144,7 +144,7 @@ namespace Inuplan.WebAPI.App_Start
                     LastName = "Cash",
                     Username = "Johnny",
                     ID = 2,
-                    Role = RoleType.User
+                    Roles = new List<string> { "User" }
                 }
             };
         }

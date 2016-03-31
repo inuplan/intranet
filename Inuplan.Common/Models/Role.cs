@@ -20,36 +20,19 @@
 
 namespace Inuplan.Common.Models
 {
-    using System;
-
     /// <summary>
-    /// A post
+    /// The role information
     /// </summary>
-    public class Post
+    public class Role
     {
         /// <summary>
-        /// Gets or sets the post ID
+        /// Gets or sets the ID for this role
         /// </summary>
         public int ID { get; set; }
 
         /// <summary>
-        /// Gets or sets the post date
+        /// Gets or sets the name for this role
         /// </summary>
-        public DateTime PostedOn { get; set; }
-
-        /// <summary>
-        /// Gets or sets the post comment
-        /// </summary>
-        public string Comment { get; set; }
-
-        /// <summary>
-        /// Gets or sets the post type
-        /// </summary>
-        public PostType MessageType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the post author
-        /// </summary>
-        public User Author { get; set; }
+        public string Name { get; set; }
     }
 }

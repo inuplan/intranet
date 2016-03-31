@@ -1,4 +1,4 @@
-// Copyright © 2015 Inuplan
+﻿// Copyright © 2015 Inuplan
 // 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -20,34 +20,51 @@
 
 namespace Inuplan.Common.Models
 {
-    /// <summary>
-    /// An enumeration of role types
-    /// </summary>
-    public enum RoleType
+    public class Image
     {
         /// <summary>
-        /// Users with none, have no access rights
+        /// Gets or sets the id
         /// </summary>
-        None = 0,
+        public int ID { get; set; }
 
         /// <summary>
-        /// Management role
+        /// Gets or sets the filename
         /// </summary>
-        Management = 1,
+        public string Filename { get; set; }
 
         /// <summary>
-        /// Editor role
+        /// Gets or sets the extension
         /// </summary>
-        Editor = 2,
+        public string Extension { get; set; }
 
         /// <summary>
-        /// User role
+        /// Gets or sets the mime type
         /// </summary>
-        User = 3,
+        public string MimeType { get; set; }
 
         /// <summary>
-        /// Administrator role
+        /// Gets or sets the preview file information
         /// </summary>
-        Administrator = 4,
+        public FileInfo Preview { get; set; }
+
+        /// <summary>
+        /// Gets or sets the original file information
+        /// </summary>
+        public FileInfo Original { get; set; }
+
+        /// <summary>
+        /// Gets or sets the thumbnail file information
+        /// </summary>
+        public FileInfo Thumbnail { get; set; }
+
+        /// <summary>
+        /// Gets or sets the description
+        /// </summary>
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Gets or sets the owner
+        /// </summary>
+        public User Owner { get; set; }
     }
 }

@@ -18,10 +18,12 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+using System;
+
 namespace Inuplan.Common.Models
 {
     /// <summary>
-    /// Meta data about a file.
+    /// File information class
     /// </summary>
     public class FileInfo
     {
@@ -31,23 +33,13 @@ namespace Inuplan.Common.Models
         public int ID { get; set; }
 
         /// <summary>
-        /// Gets or sets the filename of the file
+        /// Gets or sets the file path
         /// </summary>
-        public string Filename { get; set; }
+        public string Path { get; set; }
 
         /// <summary>
-        /// Gets or sets the extension for the file
+        /// Gets or sets the binary data
         /// </summary>
-        public string Extension { get; set; }
-
-        /// <summary>
-        /// Gets or sets the file mime type
-        /// </summary>
-        public string MimeType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the owner of the file
-        /// </summary>
-        public User Owner { get; set; }
+        public Lazy<byte[]> Data { get; set; }
     }
 }

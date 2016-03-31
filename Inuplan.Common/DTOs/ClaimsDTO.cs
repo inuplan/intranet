@@ -20,10 +20,8 @@
 
 namespace Inuplan.Common.DTOs
 {
-    using Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
-    using System.Text;
 
     /// <summary>
     /// The json claim that is sent between client and server
@@ -61,11 +59,5 @@ namespace Inuplan.Common.DTOs
         /// Gets or sets the email address for this claim
         /// </summary>
         public string Email { get; set; }
-
-        /// <summary>
-        /// Gets or sets the role for the user in this claim
-        /// </summary>
-        [JsonConverter(typeof(StringEnumConverter))]
-        public RoleType Role { get; set; }
     }
 }
