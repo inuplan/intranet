@@ -19,12 +19,24 @@ function UserImagesViewModel(api, parent) {
     var data = { comments: ko.unwrap(self.with_comments()) };
 
     // Functions
-    $.getJSON(self.get_api, data, function (allData) {
-        var images = $.map(allData, function (item) {
-            return new ImageViewModel(item, self);
-        });
-        self.images(images);
-    });
+    $.ajax(self.get_api, {
+        dataType: 'json',
+        xhrFields: {
+            withCredentials: true
+        },
+        success: function (result, status, jqXhr) {
+            var images = $.map(result, function (item) {
+                return new ImageViewModel(item, self);
+            });
+            self.images(images);
+        }
+    })
+    //$.getJSON(self.get_api, data, function (allData) {
+    //    var images = $.map(allData, function (item) {
+    //        return new ImageViewModel(item, self);
+    //    });
+    //    self.images(images);
+    //});
 }
 
 function ImageViewModel(data, parent) {
