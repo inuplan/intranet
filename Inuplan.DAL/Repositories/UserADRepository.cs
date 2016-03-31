@@ -104,15 +104,14 @@ namespace Inuplan.DAL.Repositories
             var adUser = UserPrincipal.FindByIdentity(ctx, key).SomeNotNull();
 
             var user = adUser.Map(u =>
-            {
-                return new User
+                new User
                 {
                     Email = u.EmailAddress,
                     FirstName = u.GivenName,
                     LastName = u.Surname,
                     Username = u.SamAccountName
-                };
-            });
+                }
+            );
 
             return Task.FromResult(user);
         }
