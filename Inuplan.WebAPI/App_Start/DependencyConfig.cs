@@ -135,7 +135,7 @@ namespace Inuplan.WebAPI.App_Start
                     LastName = "Doe",
                     Username = "jdoe",
                     ID = 1,
-                    Role = RoleType.User
+                    Roles = new List<string> { "User" }
                 },
                 new User
                 {
@@ -144,7 +144,7 @@ namespace Inuplan.WebAPI.App_Start
                     LastName = "Cash",
                     Username = "Johnny",
                     ID = 2,
-                    Role = RoleType.User
+                    Roles = new List<string> { "User" }
                 }
             };
         }
