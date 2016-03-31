@@ -273,6 +273,9 @@ namespace Inuplan.DAL.Repositories
             // Get unique user
             var sqlUserID = @"SELECT * FROM Users WHERE Username = @Username";
             var owner = (await connection.QueryAsync<User>(sqlUserID, new { Username = key.Item1 })).Single();
+            // TODO: Clean up the database.
+            // When deleting a user, the constraints are NOT set to NULL because of NO ACTION
+            // Must set the rule to: SET NULL where it applies!
 
             // Get unique file info
             var sqlImage = @"SELECT ID, Filename, Extension, MimeType, OwnerID
