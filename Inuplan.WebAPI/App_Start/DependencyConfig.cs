@@ -30,12 +30,14 @@ namespace Inuplan.WebAPI.App_Start
     using Inuplan.Common.Repositories;
     using Jose;
     using Middlewares;
+    using Optional;
     using System.Collections.Generic;
     using System.Configuration;
     using System.Data;
     using System.Data.SqlClient;
     using System.DirectoryServices.AccountManagement;
     using System.Security.Cryptography;
+    using System.Threading.Tasks;
     using System.Web.Http;
     using ImageKey = System.Tuple<string, string, string>;
 
@@ -68,11 +70,8 @@ namespace Inuplan.WebAPI.App_Start
             }).As<IDbConnection>().InstancePerDependency();
 
             // Register Web API controllers
-            builder.RegisterType<TestController>().InstancePerRequest();
-            builder.RegisterType<ManagementPostController>().WithAttributeFilter();
             builder.RegisterType<UserImageController>().WithAttributeFilter();
             builder.RegisterType<UserController>().WithAttributeFilter();
-            builder.RegisterType<TokenController>().WithAttributeFilter();
 
             // Register classes and keys
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
@@ -81,13 +80,12 @@ namespace Inuplan.WebAPI.App_Start
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
 
             // Register repositories
-            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IRepository<ImageKey, UserImage>>();
-            builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, List<Post>, Post>>();
-            builder.RegisterType<UserProfileImageRepository>().As<IRepository<string, ProfileImage>>();
-            builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
+            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IRepository<string, object, User, Task<Option<User>>>>();
+            builder.RegisterType<ImageCommentRepository>().As<IRepository<int, object[], Comment, Task<List<Comment>>>>();
+            builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, object, User, Task<Option<User>>>>(ServiceKeys.UserDatabase);
             //builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-            builder.Register(ctx => new Mocks.NoADRepo(mockUsers)).Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-            builder.Register(ctx => new Mocks.NoDBRepo(mockUsers)).Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
+            builder.Register(ctx => new Mocks.NoADRepo(mockUsers)).Keyed<IRepository<string, object, User, Task<Option<User>>>>(ServiceKeys.UserActiveDirectory);
+            builder.Register(ctx => new Mocks.NoDBRepo(mockUsers)).Keyed<IRepository<string, object, User, Task<Option<User>>>>(ServiceKeys.UserDatabase);
             //builder.RegisterType<Mocks.NoDBRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
 
             // Use autofac owin pipeline
@@ -126,6 +124,7 @@ namespace Inuplan.WebAPI.App_Start
         /// <returns>A list of mocked users</returns>
         private static List<User> MockUsers()
         {
+            var roles = new List<Role> { new Role { ID = 1, Name = "User" } };
             return new List<User>
             {
                 new User
@@ -135,7 +134,7 @@ namespace Inuplan.WebAPI.App_Start
                     LastName = "Doe",
                     Username = "jdoe",
                     ID = 1,
-                    Roles = new List<string> { "User" }
+                    Roles = roles,
                 },
                 new User
                 {
@@ -144,7 +143,7 @@ namespace Inuplan.WebAPI.App_Start
                     LastName = "Cash",
                     Username = "Johnny",
                     ID = 2,
-                    Roles = new List<string> { "User" }
+                    Roles = roles,
                 }
             };
         }

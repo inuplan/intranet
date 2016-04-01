@@ -24,6 +24,7 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Enums;
     using Common.Models;
     using Common.Repositories;
+    using Optional;
     using System.Net;
     using System.Threading.Tasks;
     using System.Web.Http;
@@ -31,9 +32,9 @@ namespace Inuplan.WebAPI.Controllers
     [RoutePrefix("user/{username}")]
     public class UserController : ApiController
     {
-        private readonly IRepository<string, User> userRepository;
+        private readonly IRepository<string, object, User, Task<Option<User>>> userRepository;
 
-        public UserController([WithKey(ServiceKeys.UserDatabase)] IRepository<string, User> userRepository)
+        public UserController([WithKey(ServiceKeys.UserDatabase)] IRepository<string, object, User, Task<Option<User>>> userRepository)
         {
             this.userRepository = userRepository;
         }

@@ -29,7 +29,7 @@ namespace Inuplan.WebAPI.Mocks
     using System.Threading.Tasks;
     using Optional;
 
-    public class NoADRepo : IRepository<string, User>
+    public class NoADRepo : IRepository<string, object, User, Task<Option<User>>>
     {
         private bool disposedValue = false;
         private readonly List<User> users;
@@ -39,12 +39,7 @@ namespace Inuplan.WebAPI.Mocks
             this.users = users;
         }
 
-        public Task<Option<User>> Create(User entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> Delete(User entity)
+        public Task<Option<User>> Create(User entity, object identifiers = null)
         {
             throw new NotImplementedException();
         }
@@ -62,12 +57,12 @@ namespace Inuplan.WebAPI.Mocks
             return Task.FromResult(user);
         }
 
-        public Task<List<User>> Get(int skip, int take)
+        public Task<Pagination<User>> Get(int skip, int take, object identifiers = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<User>> GetAll()
+        public Task<List<User>> GetAll(object identifiers = null)
         {
             throw new NotImplementedException();
         }

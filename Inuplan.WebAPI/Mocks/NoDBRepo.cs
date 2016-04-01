@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Inuplan.WebAPI.Mocks
 {
-    public class NoDBRepo : IRepository<string, User>
+    public class NoDBRepo : IRepository<string, object, User, Task<Option<User>>>
     {
         private bool disposedValue = false; // To detect redundant calls
         private readonly List<User> users;
@@ -20,7 +20,7 @@ namespace Inuplan.WebAPI.Mocks
             this.users = users;
         }
 
-        public Task<Option<User>> Create(User entity)
+        public Task<Option<User>> Create(User entity, object identifiers = null)
         {
             var id = nextId + 1;
             nextId++;
@@ -29,18 +29,6 @@ namespace Inuplan.WebAPI.Mocks
             users.Add(entity);
 
             return Task.FromResult(entity.SomeNotNull());
-        }
-
-        public Task<bool> Delete(User entity)
-        {
-            var user = users.SingleOrDefault(u => u.ID == entity.ID)
-                            .SomeNotNull();
-
-            var result = user.Match(
-                u => users.Remove(u),
-                () => false);
-
-            return Task.FromResult(result);
         }
 
         public Task<bool> Delete(string key)
@@ -62,12 +50,12 @@ namespace Inuplan.WebAPI.Mocks
             return Task.FromResult(user);
         }
 
-        public Task<List<User>> Get(int skip, int take)
+        public Task<Pagination<User>> Get(int skip, int take, object identifiers = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<User>> GetAll()
+        public Task<List<User>> GetAll(object identifiers = null)
         {
             return Task.FromResult(users);
         }

@@ -80,7 +80,7 @@ namespace Inuplan.WebAPI.Image
         /// </summary>
         /// <param name="user">The user who initiated the procedure</param>
         /// <returns>A processed image file</returns>
-        public async Task<UserImage> ProcessUserImage(User user, HttpContent fileContent)
+        public async Task<Image> ProcessUserImage(User user, HttpContent fileContent, string description)
         {
             using(fileContent)
             {
@@ -90,109 +90,55 @@ namespace Inuplan.WebAPI.Image
                 var extension = fullname.Item2.Replace("\"", string.Empty);
                 var mime = fileContent.Headers.ContentType.MediaType;
 
-                // Result container
-                FileData original = new FileData();
-                FileData medium = new FileData();
-                FileData thumbnail = new FileData();
-
-                // File info
-                var fileInfo = new FileInfo
-                {
-                    Filename = filename,
-                    Extension = extension,
-                    MimeType = mime,
-                    Owner = user
-                };
-
                 using (var fileStream = await fileContent.ReadAsStreamAsync())
                 {
                     // Retrieve image
-                    var image = d.Image.FromStream(fileStream);
-                    var format = image.RawFormat;
+                    var originalImage = d.Image.FromStream(fileStream);
+                    var format = originalImage.RawFormat;
 
                     // Convert image to byte array and set file path
-                    var oData = ConvertToByte(image, format);
-                    original.Data = new Lazy<byte[]>(() => oData);
-                    original.Path = GetPath(user.Username, oData, extension);
+                    var originalData = ConvertToByte(originalImage, format);
+                    var origData = new Lazy<byte[]>(() => originalData);
+                    var origPath = GetPath(user.Username, originalData, extension);
 
                     // Calculate medium size
-                    var mediumWidth = (int)(image.Width * mediumScaleFactor);
-                    var mediumHeight = (int)(image.Height * mediumScaleFactor);
+                    var mediumWidth = (int)(originalImage.Width * mediumScaleFactor);
+                    var mediumHeight = (int)(originalImage.Height * mediumScaleFactor);
 
                     // Resize image and set file path
-                    var mediumImage = ResizeImage(image, mediumWidth, mediumHeight);
-                    var mData = ConvertToByte(mediumImage, format);
-                    medium.Data = new Lazy<byte[]>(() => mData);
-                    medium.Path = GetPath(user.Username, mData, extension);
+                    var previewImage = ResizeImage(originalImage, mediumWidth, mediumHeight);
+                    var previewData = ConvertToByte(previewImage, format);
+                    var prevData = new Lazy<byte[]>(() => previewData);
+                    var prevPath = GetPath(user.Username, previewData, extension);
 
                     // Calculate height factor & thumbnail height
-                    var thumbnailHeightFactor = ((double)(image.Height) / (double)(image.Width));
+                    var thumbnailHeightFactor = ((double)(originalImage.Height) / (double)(originalImage.Width));
                     var thumbnailHeight = (int)(thumbnailWidth * thumbnailHeightFactor);
 
                     // Resize thumbnail and set file path
-                    var thumbnailImage = ResizeImage(image, thumbnailWidth, thumbnailHeight);
-                    var tData = ConvertToByte(thumbnailImage, format);
-                    thumbnail.Data = new Lazy<byte[]>(() => tData);
-                    thumbnail.Path = GetPath(user.Username, tData, extension);
+                    var thumbnailImage = ResizeImage(originalImage, thumbnailWidth, thumbnailHeight);
+                    var thumbnailData = ConvertToByte(thumbnailImage, format);
+                    var thumbData = new Lazy<byte[]>(() => thumbnailData);
+                    var thumbPath = GetPath(user.Username, thumbnailData, extension);
+
+                    // FileInfos
+                    var original = new FileInfo { Data = origData, Path = origPath };
+                    var preview = new FileInfo { Data = prevData, Path = prevPath };
+                    var thumbnail = new FileInfo { Data = thumbData, Path = thumbPath };
+
+                    // Return the processed image file. Note it has not been saved to the database yet!
+                    return new Image
+                    {
+                        Filename = filename,
+                        Extension = extension,
+                        MimeType = mime,
+                        Description = description,
+                        Original = original,
+                        Preview = preview,
+                        Thumbnail = thumbnail,
+                        Owner = user,
+                    };
                 }
-
-                // Return the processed image file. Note it has not been saved to the database yet!
-                return new UserImage
-                {
-                    Metadata = fileInfo,
-                    Original = original,
-                    Medium = medium,
-                    Thumbnail = thumbnail
-                };
-            }
-        }
-
-        public async Task<ProfileImage> ProcessProfileImage(User user, HttpContent fileContent)
-        {
-            // Maybe save picture as 64x64 image
-            using (fileContent)
-            {
-                // Get filename
-                var fullname = Helpers.GetFilename(fileContent.Headers.ContentDisposition.FileName);
-                var extension = fullname.Item2.Replace("\"", string.Empty);
-                var mime = fileContent.Headers.ContentType.MediaType;
-
-                var fileInfo = new FileInfo
-                {
-                    Extension = extension,
-                    MimeType = mime,
-                    Owner = user
-                };
-
-                var fileData = new FileData();
-
-                using (var fileStream = await fileContent.ReadAsStreamAsync())
-                {
-                    // Retrieve image
-                    var image = d.Image.FromStream(fileStream);
-                    var format = image.RawFormat;
-
-                    // Usually: 64 x 64 pixels
-                    var imageBitmap = ResizeImage(image, profileSize, profileSize);
-                    var imageByte = ConvertToByte(imageBitmap, format);
-                    var hex = GetHex(imageByte).Substring(0, 12);
-
-                    // e.g.:    c:\tmp\jdoe\profile\picture.jpg
-                    var path = string.Format("{0}\\{1}\\profile\\{2}.{3}", root, user.Username, "picture", "jpg");
-
-                    // Set fileinfo filename needs to be unique
-                    fileInfo.Filename = hex;
-
-                    // Set data values (physical location)
-                    fileData.Path = path;
-                    fileData.Data = new Lazy<byte[]>(() => imageByte);
-                }
-
-                return new ProfileImage
-                {
-                    Metadata = fileInfo,
-                    Data = fileData,
-                };
             }
         }
 
@@ -255,9 +201,9 @@ namespace Inuplan.WebAPI.Image
         /// <returns>A path to where the image should be stored</returns>
         private string GetPath(string username, byte[] data, string extension)
         {
-            // Return %root%/username/date{yyyymmdd}/{sha1:length(5)}.extension
+            // Return %root%/username/images/{sha1:length(5)}.extension
             var sb = new StringBuilder();
-            sb.AppendFormat("{0}\\{1}\\{2:yyyyMMdd}\\", root, username, DateTime.Now);
+            sb.AppendFormat("{0}\\{1}\\images\\", root, username, DateTime.Now);
 
             var hex = GetHex(data).Substring(0, filenameLength);
             sb.AppendFormat("{0}.{1}", hex, extension);

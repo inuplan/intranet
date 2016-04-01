@@ -68,10 +68,5 @@ namespace Inuplan.Common.Models
         /// Gets or sets the owner
         /// </summary>
         public User Owner { get; set; }
-
-        /// <summary>
-        /// Gets or sets the list of comments
-        /// </summary>
-        public List<Comment> Comments { get; set; }
     }
 }
