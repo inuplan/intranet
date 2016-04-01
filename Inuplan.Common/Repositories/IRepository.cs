@@ -20,7 +20,7 @@ namespace Inuplan.Common.Repositories
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Optional;
-
+    using Models;
     /// <summary>
     /// A generic repository interface, with standard <code>CRUD</code> operations defined.
     /// This repository operates on a single entity value.
@@ -29,14 +29,14 @@ namespace Inuplan.Common.Repositories
     /// <typeparam name="I">The extra type identifier</typeparam>
     /// <typeparam name="E">The type of entity</typeparam>
     /// <typeparam name="R">The return type</typeparam>
-    public interface IRepository<in K, in I, E, out R> : IDisposable where I : class
+    public interface IRepository<in K, in I, E, out R> : IDisposable
     {
         /// <summary>
         /// Create an entity in the repository.
         /// </summary>
         /// <param name="entity">The entity to create</param>
         /// <returns>A task of the created entity or <see cref="Option.None"/></returns>
-        Task<Option<E>> Create(E entity, I identifiers = null);
+        Task<Option<E>> Create(E entity, I identifiers = default(I));
 
         /// <summary>
         /// Retrieves an entity with the key K
@@ -59,13 +59,13 @@ namespace Inuplan.Common.Repositories
         /// <param name="skip">The number of entities to skip</param>
         /// <param name="take">The number of entities to retrieve</param>
         /// <returns>A list of entities</returns>
-        Task<List<E>> Get(int skip, int take, I identifiers = null);
+        Task<Pagination<E>> Get(int skip, int take, I identifiers = default(I));
 
         /// <summary>
         /// Retrieves every entity in the repository
         /// </summary>
         /// <returns>A list of entities</returns>
-        Task<List<E>> GetAll(I identifiers = null);
+        Task<List<E>> GetAll(I identifiers = default(I));
 
         /// <summary>
         /// Update an entity T with the key K

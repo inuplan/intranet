@@ -32,7 +32,7 @@ namespace Inuplan.DAL.Repositories
     /// Retrieves user information from Active Directory
     /// Only GET method is supported.
     /// </summary>
-    public class UserADRepository : IRepository<string, User>
+    public class UserADRepository : IRepository<string, object, User, Task<Option<User>>>
     {
         /// <summary>
         /// The principal context from which every query is run against
@@ -66,7 +66,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="entity">N/A</param>
         /// <exception cref="NotSupportedException">Not supported operation</exception>
         /// <returns>N/A</returns>
-        public Task<Option<User>> Create(User entity)
+        public Task<Option<User>> Create(User entity, object identifiers = null)
         {
             throw new NotSupportedException("Not supported operation!");
         }
@@ -123,7 +123,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="take">N/A</param>
         /// <exception cref="NotSupportedException">Not supported operation</exception>
         /// <returns>N/A</returns>
-        public Task<List<User>> Get(int skip, int take)
+        public Task<Pagination<User>> Get(int skip, int take, object identifiers = null)
         {
             throw new NotSupportedException("Not supported operation!");
         }
@@ -133,7 +133,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <exception cref="NotSupportedException">Not supported operation</exception>
         /// <returns>N/A</returns>
-        public Task<List<User>> GetAll()
+        public Task<List<User>> GetAll(object identifiers = null)
         {
             throw new NotSupportedException("Not supported operation!");
         }

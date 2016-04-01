@@ -81,7 +81,7 @@ namespace Inuplan.WebAPI.App_Start
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
 
             // Register repositories
-            builder.RegisterType<ImageRepository>().WithAttributeFilter().As<IRepository<ImageKey, UserImage>>();
+            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IRepository<ImageKey, UserImage>>();
             builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, List<Post>, Post>>();
             builder.RegisterType<UserProfileImageRepository>().As<IRepository<string, ProfileImage>>();
             builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);

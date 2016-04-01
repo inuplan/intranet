@@ -34,12 +34,18 @@ namespace Inuplan.DAL.Repositories
     using Optional;
     using System.Data.SqlClient;
     using NLog;
+    using Common.Tools;
+    using ImageID = System.Int32;
+    using UserID = System.Int32;
 
     /// <summary>
-    /// The first item in the key tuple is the <see cref="User.Username"/> and the
-    /// second item is the filename of the image, and the third is the extension of the filename
+    /// A repository for the images a user has.
+    /// The first is the key for the image.
+    /// The second is the user id to which the image belongs.
+    /// The third is the image.
+    /// The fourth is the return type.
     /// </summary>
-    public class ImageRepository : IRepository<int, object, Image, Task<Option<Image>>>
+    public class UserImageRepository : IRepository<ImageID, UserID, Image, Task<Option<Image>>>
     {
         /// <summary>
         /// The logging framework
@@ -57,10 +63,10 @@ namespace Inuplan.DAL.Repositories
         private bool disposedValue = false;
 
         /// <summary>
-        /// Initializes a new instance of this <see cref="ImageRepository"/> class.
+        /// Initializes a new instance of this <see cref="UserImageRepository"/> class.
         /// </summary>
         /// <param name="connection">The database connection</param>
-        public ImageRepository(IDbConnection connection)
+        public UserImageRepository(IDbConnection connection)
         {
             this.connection = connection;
         }
@@ -69,9 +75,11 @@ namespace Inuplan.DAL.Repositories
         /// Creates a new image in the database as well as the filesystem
         /// </summary>
         /// <param name="entity">The image to create</param>
+        /// <param name="identifiers">The user ID, to which the image belongs</param>
         /// <returns>An optional image with correct ID</returns>
-        public async Task<Option<Image>> Create(Image entity, object identifiers = null)
+        public async Task<Option<Image>> Create(Image entity, UserID identifiers)
         {
+            Debug.Assert(identifiers > 0, "Must have a valid user id");
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 try
@@ -103,7 +111,7 @@ namespace Inuplan.DAL.Repositories
                         Preview = entity.Preview.ID,
                         Thumbnail = entity.Thumbnail.ID,
                         Original = entity.Original.ID,
-                        Owner = entity.Owner.ID,
+                        Owner = identifiers,
                         entity.Description,
                         entity.Filename,
                         entity.Extension,
@@ -199,8 +207,7 @@ namespace Inuplan.DAL.Repositories
         /// <summary>
         /// Retrieves an image from the database with the give key.
         /// </summary>
-        /// <param name="key">First item is the <see cref="User.Username"/>, the second item is the <see cref="Common.Models.FileInfo.Filename"/>m
-        /// the third item is the file extension <see cref="Common.Models.FileInfo.Extension"/>.</param>
+        /// <param name="key">The ID of the image</param>
         /// <returns>An optional image.</returns>
         public async Task<Option<Image>> Get(int key)
         {
@@ -249,8 +256,9 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="skip">The number of images to skip</param>
         /// <param name="take">The number of images to take</param>
+        /// <param name="identifiers">The user ID to which the image belongs</param>
         /// <returns>A list of images</returns>
-        public async Task<List<Image>> Get(int skip, int take, object identifiers = null)
+        public async Task<Pagination<Image>> Get(int skip, int take, int identifiers)
         {
             var sql = @"SELECT
                             imgID AS ID, Description, Filename, Extension, MimeType,
@@ -278,6 +286,8 @@ namespace Inuplan.DAL.Repositories
 
                         INNER JOIN FileInfo thumb
                         ON img.Thumbnail = thumb.ID
+                        
+                        WHERE img.Owner = @Owner
                         ) AS seq
                         WHERE seq.RowNumber BETWEEN @From AND @To;";
 
@@ -299,19 +309,26 @@ namespace Inuplan.DAL.Repositories
                                 return img;
                             }, new
                             {
+                                Owner = identifiers,
                                 From = skip + 1,
                                 To = skip + take,
                             });
 
-            return result.ToList();
+            var totalImagesSql = @"SELECT COUNT(*) FROM Images WHERE Owner = @Owner;";
+            var total = await connection.ExecuteScalarAsync<int>(totalImagesSql, new { Owner = identifiers });
+
+            var currentPage = Helpers.Pageify(skip, take, total, result.ToList());
+            return currentPage;
         }
 
         /// <summary>
         /// Retrieves all images from the database
         /// </summary>
+        /// <param name="identifiers">The user ID to which the images belong</param>
         /// <returns>A list of images</returns>
-        public async Task<List<Image>> GetAll(object identifiers = null)
+        public async Task<List<Image>> GetAll(int identifiers)
         {
+            Debug.Assert(identifiers > 0, "Must have a valid user ID!");
             var sql = @"SELECT
                         img.ID, Description, Filename, Extension, MimeType,     /* Image */
                         u.ID, FirstName, LastName, Username, Email,             /* User */
@@ -328,7 +345,8 @@ namespace Inuplan.DAL.Repositories
                     ON img.Original = orig.ID
 
                     INNER JOIN FileInfo thumb
-                    ON img.Thumbnail = thumb.ID;";
+                    ON img.Thumbnail = thumb.ID
+                    WHERE img.Owner = @Owner;";
 
             var result = await connection.QueryAsync
                             <Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
@@ -346,7 +364,7 @@ namespace Inuplan.DAL.Repositories
                                 img.Thumbnail = thumbnail;
 
                                 return img;
-                            });
+                            }, new { Owner = identifiers });
 
             return result.ToList();
         }

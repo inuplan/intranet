@@ -30,11 +30,12 @@ namespace Inuplan.DAL.Repositories
     using Optional;
     using System.Transactions;
     using System.Diagnostics;
+    using Common.Tools;
     /// <summary>
     /// Repository for <see cref="User"/>s in the database.
     /// Can do CRUD operations.
     /// </summary>
-    public class UserDatabaseRepository : IRepository<string, User>
+    public class UserDatabaseRepository : IRepository<string, object, User, Task<Option<User>>>
     {
         /// <summary>
         /// The database connection
@@ -67,7 +68,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="entity">The user entity</param>
         /// <returns>Returns an awaitable optional user</returns>
-        public async Task<Option<User>> Create(User entity)
+        public async Task<Option<User>> Create(User entity, object identifiers = null)
         {
             Debug.Assert(entity.Roles != null && entity.Roles.Any(), "Must define an existing role for this user!");
             entity.ID = 0;
@@ -175,7 +176,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="skip">The number of users to skip</param>
         /// <param name="take">The number of users to take</param>
         /// <returns>An awaitable list of users</returns>
-        public async Task<List<User>> Get(int skip, int take)
+        public async Task<Pagination<User>> Get(int skip, int take, object identifiers = null)
         {
             var sql = @"SELECT ID, FirstName, LastName, Email, Username
                         FROM
@@ -191,7 +192,11 @@ namespace Inuplan.DAL.Repositories
                 Take = (skip + take)
             });
 
-            return result.ToList();
+            var totalSql = @"SELECT COUNT(*) FROM Users";
+            var total = await connection.ExecuteScalarAsync<int>(totalSql);
+
+            var page = Helpers.Pageify(skip, take, total, result.ToList());
+            return page;
         }
 
         /// <summary>
@@ -199,7 +204,7 @@ namespace Inuplan.DAL.Repositories
         /// Does not retrieve the roles.
         /// </summary>
         /// <returns>An awaitable list of users.</returns>
-        public async Task<List<User>> GetAll()
+        public async Task<List<User>> GetAll(object identifiers = null)
         {
             var sql = @"SELECT ID, FirstName, LastName, Email, Username
                         FROM Users";

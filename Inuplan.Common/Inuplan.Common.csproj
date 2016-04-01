@@ -68,6 +68,7 @@
     <Compile Include="Models\Comment.cs" />
     <Compile Include="Models\FileInfo.cs" />
     <Compile Include="Models\Image.cs" />
+    <Compile Include="Models\Pagination.cs" />
     <Compile Include="Models\Role.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Principals\InuplanPrincipal.cs" />
