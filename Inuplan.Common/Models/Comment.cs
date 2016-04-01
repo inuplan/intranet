@@ -18,35 +18,20 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.WebAPI.Controllers
+namespace Inuplan.Common.Models
 {
-    using Autofac.Extras.Attributed;
-    using Common.Enums;
-    using Common.Models;
-    using Common.Repositories;
-    using System.Net;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
-    using System.Web.Http;
 
-    [RoutePrefix("user/{username}")]
-    public class UserController : ApiController
+    public class Comment
     {
-        private readonly IRepository<string, User> userRepository;
-
-        public UserController([WithKey(ServiceKeys.UserDatabase)] IRepository<string, User> userRepository)
-        {
-            this.userRepository = userRepository;
-        }
-
-        [HttpGet]
-        [Route("")]
-        [AllowAnonymous]
-        public async Task<User> Get(string username)
-        {
-            var user = await userRepository.Get(username);
-            return user.Match(
-                u => u,
-                () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
-        }
+        public int ID { get; set; }
+        public DateTime PostedOn { get; set; }
+        public User Owner { get; set; }
+        public string Remark { get; set; }
+        public List<Comment> Replies { get; set; }
     }
 }

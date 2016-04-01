@@ -34,7 +34,7 @@ namespace Inuplan.DAL.Repositories
     /// Repository for <see cref="User"/>s in the database.
     /// Can do CRUD operations.
     /// </summary>
-    public class UserDatabaseRepository : IScalarRepository<string, User>
+    public class UserDatabaseRepository : IRepository<string, User>
     {
         /// <summary>
         /// The database connection

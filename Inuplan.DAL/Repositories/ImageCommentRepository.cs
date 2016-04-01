@@ -20,248 +20,189 @@
 
 namespace Inuplan.DAL.Repositories
 {
+    using Common.Models;
+    using Common.Repositories;
     using Dapper;
-    using Inuplan.Common.Models;
-    using Inuplan.Common.Repositories;
     using Optional;
     using System;
     using System.Collections.Generic;
     using System.Data;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
     using System.Transactions;
+    using Ident = System.Tuple<int, int?>;
 
     /// <summary>
-    /// A repository for a collection of comments for a single image.
-    /// The key references <seealso cref="FileInfo.ID"/>.
-    /// The value is a collection of comments.
-    /// The singular entity is a <see cref="Post"/>.
+    /// The <seealso cref="Entity"/> first item is the <seealso cref="Image.ID"/>
+    /// the second item is the <see cref="Comment"/> and
+    /// the third item is the <seealso cref="Comment.ID"/> to which the reply is made (if null the comment
+    /// is not a reply.
     /// </summary>
-    public class ImageCommentRepository : IVectorRepository<int, List<Post>, Post>
+    public class ImageCommentRepository : IRepository<int, Ident, Comment, Task<List<Comment>>>
     {
-        /// <summary>
-        /// The database connection
-        /// </summary>
         private readonly IDbConnection connection;
 
-        /// <summary>
-        /// Determines whether this resource has been disposed
-        /// </summary>
         private bool disposedValue = false;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ImageCommentRepository"/> class.
-        /// </summary>
-        /// <param name="connection">The database connection</param>
         public ImageCommentRepository(IDbConnection connection)
         {
             this.connection = connection;
         }
 
-        /// <summary>
-        /// Creates a single entity and wires it up to the collective key.
-        /// </summary>
-        /// <param name="key">The collective key</param>
-        /// <param name="entity">The entity</param>
-        /// <returns>The created entity with the local key set</returns>
-        public async Task<Option<Post>> CreateSingle(int key, Post entity)
+        public async Task<Option<Comment>> Create(Comment entity, Ident identifiers)
         {
-            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                // Insert the comment
-                var commentSql = @"INSERT INTO Posts(PostedOn, Comment, PostTypeID, UserID)
-                                   VALUES(@PostedOn, @Comment, @MessageType, @UserID);
-                                   SELECT ID FROM Posts WHERE ID = @@IDENTITY;";
+                var imageID = identifiers.Item1;
+                var replyID = identifiers.Item2;
 
-                entity.ID = await connection.ExecuteScalarAsync<int>(commentSql, new
+                var sqlComment = @"INSERT INTO Comments (PostedOn, Owner, Remark, Reply)
+                                VALUES (@PostedOn, @Owner, @Remark, @Reply);
+                                SELECT ID FROM Comments WHERE ID = @@IDENTITY;";
+
+                entity.ID = await connection.ExecuteScalarAsync<int>(sqlComment, new
                 {
+                    Owner = entity.Owner.ID,
+                    Reply = replyID,
                     entity.PostedOn,
-                    entity.Comment,
-                    entity.MessageType,
-                    UserID = entity.Author.ID
+                    entity.Remark,
                 });
 
-                // Connect the comment to the image
-                var imagePostSql = @"INSERT INTO ImagePosts(FileInfoID, PostID)
-                                    VALUES(@key, @PostID)";
+                var success = entity.ID > 0;
 
-                var rows = await connection.ExecuteAsync(imagePostSql, new
+                if (!replyID.HasValue)
                 {
-                    key,
-                    PostID = entity.ID
-                });
-
-                // Test for success
-                var success = (rows == 1 && entity.ID > 0);
+                    // It is a top comment
+                    var sqlImageComment = @"INSERT INTO ImageComments (ImageID, CommentID) VALUES (@ImageID, @CommentID)";
+                    success = (await connection.ExecuteAsync(sqlImageComment, new
+                    {
+                        ImageID = imageID,
+                        CommentID = entity.ID,
+                    })).Equals(1);
+                }
 
                 if(success)
                 {
-                    // Commit and return result
                     transactionScope.Complete();
-                    return entity.Some();
                 }
-            }
 
-            // Return none (failed)
-            return Option.None<Post>();
+                return entity.SomeWhen(c => success);
+            }
         }
 
-        /// <summary>
-        /// Deletes a collection of entities from the database, which has the given key.
-        /// </summary>
-        /// <param name="key">The key</param>
-        /// <returns>True if deleted otherwise false</returns>
         public async Task<bool> Delete(int key)
         {
             using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                var deleteSql = @"DELETE P
-                    FROM Posts P INNER JOIN ImagePosts I
-                    ON P.ID = I.PostID
-                    WHERE I.FileInfoID = @key";
-                var rows = await connection.ExecuteAsync(deleteSql, new { key });
+                // Note: only removes identifying marks so that any child-branches aren't left hanging 
+                var sqlDelete = @"UPDATE Comments SET Owner=NULL, Remark=@Comment, Deleted=@Deleted WHERE ID=@ID";
+                var deleted = (await connection.ExecuteAsync(sqlDelete, new
+                {
+                    Comment = "",
+                    Deleted = true,
+                    ID = key,
+                })).Equals(1);
 
-                var success = (rows > 0);
-                if(success)
+                if(deleted)
                 {
                     transactionScope.Complete();
-                    return true;
                 }
-            }
 
-            return false;
+                return deleted;
+            }
         }
 
-        /// <summary>
-        /// Deletes a single entity, is the same as the scalar delete.
-        /// </summary>
-        /// <param name="entity">Deletes a single entity</param>
-        /// <returns>True if deleted otherwise false</returns>
-        public async Task<bool> DeleteSingle(Post entity)
+        public async Task<List<Comment>> Get(int key)
         {
-            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                var deleteSql = @"DELETE P
-                    FROM Posts P
-                    WHERE P.ID = @id";
-                var rows = await connection.ExecuteAsync(deleteSql, new { id = entity.ID });
+            var repliesTo = new List<Tuple<int?, Comment>>();
 
-                var success = rows == 1;
-                if(success)
+            var sqlTopId = @"SELECT CommentID FROM ImageComments WHERE ImageID = @key";
+            var topIds = await connection.QueryAsync<int>(sqlTopId, new { key });
+
+            // SQL - CTE where first projection (select) is the anchor
+            // the 2nd projection is the recursion
+            var sqlComments = @"WITH CommentChain AS (
+                                SELECT Reply, ID, PostedOn, Owner, Remark, Deleted
+                                FROM Comments
+                                WHERE ID = @ID
+
+                                UNION ALL
+
+                                SELECT Reply.Reply, Reply.ID, Reply.PostedOn, Reply.Owner, Reply.Remark, Reply.Deleted
+                                FROM Comments AS Reply JOIN CommentChain ON Reply.Reply = CommentChain.ID
+                                WHERE Reply.Reply IS NOT NULL)
+                                SELECT * FROM CommentChain
+                                INNER JOIN Users ON CommentChain.Owner = Users.ID;";
+
+            var ids = topIds.Select(i => new { ID = i }).ToArray();
+            var allComments = await connection.QueryAsync<int?, Comment, User, Comment>(sqlComments, (parent, comment, user) =>
+            {
+                comment.Owner = user;
+                if(parent.HasValue)
                 {
-                    transactionScope.Complete();
-                    return true;
+                    // Is a reply to a comment
+                    var reply = new Tuple<int?, Comment>(parent, comment);
+                    repliesTo.Add(reply);
                 }
+
+                return comment;
+            }, ids);
+
+            var group = repliesTo.GroupBy(g => g.Item1);
+            var result = new List<Comment>();
+
+            foreach(var item in group)
+            {
+                var replies = item.Select(r => r.Item2);
+                var parent = allComments.Single(p => p.ID == item.Key);
+                parent.Replies = replies.ToList();
+                result.Add(parent);
             }
 
-            return false;
-        }
-
-        /// <summary>
-        /// Retrieves a list of entities with the given key.
-        /// </summary>
-        /// <param name="key">The key</param>
-        /// <returns>A list of posts</returns>
-        public async Task<List<Post>> Get(int key)
-        {
-            // Join Posts and Users, then select the posts which belongs to the image (key)
-            var sql = @"SELECT T.PID AS ID, * FROM
-                            (SELECT P.ID AS PID, PostedOn, Comment, PostTypeID AS MessageType,     /* Posts */
-                            U.ID, FirstName, LastName, Email, Username, RoleID AS Role             /* Users */
-                            FROM Posts P INNER JOIN Users U
-                            ON U.ID = P.UserID) T
-                        INNER JOIN ImagePosts I
-                        ON T.PID = I.PostID
-                        WHERE I.FileInfoID = @key;";
-            var posts = await connection.QueryAsync<Post, User, Post>(sql, (p, u) =>
-            {
-                p.Author = u;
-                return p;
-            }, new { key });
-
-            return posts.ToList();
-        }
-
-        /// <summary>
-        /// Retrieves all entities grouped by their key <see cref="FileInfo.ID"/>
-        /// </summary>
-        /// <returns>A group of entities</returns>
-        public async Task<IEnumerable<IGrouping<int, List<Post>>>> GetAll()
-        {
-            // Reason for right join: because we first collect all comments, then match them
-            // with a particular image.
-            var sql = @"SELECT FileInfoID, T.PID AS ID, * FROM                                              /* id */
-                            (SELECT P.ID AS PID, PostedOn, Comment, PostTypeID AS MessageType,              /* Posts */
-                            U.ID, FirstName, LastName, Email, Username, RoleID AS Role                      /* Users */
-                            FROM Posts P INNER JOIN Users U
-                            ON P.UserID = U.ID) T
-                        RIGHT JOIN ImagePosts I
-                        ON T.PID = I.PostID";
-            var posts = await connection.QueryAsync<int, Post, User, Tuple<int, Post>>(sql, (id, p, u) =>
-            {
-                p.Author = u;
-                return new Tuple<int, Post>(id, p);
-            });
-
-            var result = posts
-                            .GroupBy(t => t.Item1)                      /* Generate groups by id */
-                            .GroupBy(
-                                g => g.Key,                             /* Keep key */
-                                t => t.Select(p => p.Item2).ToList());  /* Convert tuple to list */
             return result;
         }
 
-        /// <summary>
-        /// Updates a single entity, is identical to the scalar opposition.
-        /// </summary>
-        /// <param name="entity">The entity</param>
-        /// <returns>True if updated otherwise false</returns>
-        public async Task<bool> UpdateSingle(Post entity)
+        public Task<List<Comment>> Get(int skip, int take, Ident identifiers)
         {
-            var sql = @"UPDATE Posts SET
-                        PostedOn = @PostedOn,
-                        Comment = @Comment,
-                        PostTypeID = @MessageType,
-                        UserID = @UserID
-                        WHERE ID = @ID";
-            var row = await connection.ExecuteAsync(sql, new
-            {
-                entity.PostedOn,
-                entity.Comment,
-                entity.MessageType,
-                UserID = entity.Author.ID,
-                entity.ID
-            });
-
-            // Success: if 1 updated!
-            return row == 1;
+            // TODO: Row_Number function for the top comments
+            // then using CTE to get child comments for all selected top comments
+            throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Disposes of the managed resources
-        /// </summary>
-        /// <param name="disposing">Whether to dispose or not</param>
-        protected virtual void Dispose(bool disposing)
+        public Task<List<Comment>> GetAll(Ident identifiers)
         {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    connection.Dispose();
-                }
-
-                disposedValue = true;
-            }
+            throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Dispose pattern implementation
-        /// </summary>
+        public Task<Option<Comment>> GetByID(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> Update(int key, Comment entity)
+        {
+            throw new NotImplementedException();
+        }
+
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                    connection.Dispose();
+                }
+
+                disposedValue = true;
+            }
+        }
     }
 }

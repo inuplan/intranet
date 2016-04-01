@@ -26,29 +26,31 @@ namespace Inuplan.Common.Repositories
     /// This repository operates on a single entity value.
     /// </summary>
     /// <typeparam name="K">The type of key</typeparam>
-    /// <typeparam name="T">The type of entity</typeparam>
-    public interface IScalarRepository<K, T> : IDisposable
+    /// <typeparam name="I">The extra type identifier</typeparam>
+    /// <typeparam name="E">The type of entity</typeparam>
+    /// <typeparam name="R">The return type</typeparam>
+    public interface IRepository<in K, in I, E, out R> : IDisposable where I : class
     {
         /// <summary>
         /// Create an entity in the repository.
         /// </summary>
         /// <param name="entity">The entity to create</param>
         /// <returns>A task of the created entity or <see cref="Option.None"/></returns>
-        Task<Option<T>> Create(T entity);
+        Task<Option<E>> Create(E entity, I identifiers = null);
 
         /// <summary>
         /// Retrieves an entity with the key K
         /// </summary>
         /// <param name="key">The key K</param>
-        /// <returns>A task of an entity or <see cref="Option.None"/></returns>
-        Task<Option<T>> Get(K key);
+        /// <returns>An object of <see cref="S"/></returns>
+        R Get(K key);
 
         /// <summary>
         /// Retrieves an entity by the given id
         /// </summary>
         /// <param name="id">The id of the entity</param>
         /// <returns>A task of an entity or <see cref="Option.None"/></returns>
-        Task<Option<T>> GetByID(int id);
+        Task<Option<E>> GetByID(int id);
 
         /// <summary>
         /// Paging function, which skips a number of entities, then <br />
@@ -57,13 +59,13 @@ namespace Inuplan.Common.Repositories
         /// <param name="skip">The number of entities to skip</param>
         /// <param name="take">The number of entities to retrieve</param>
         /// <returns>A list of entities</returns>
-        Task<List<T>> Get(int skip, int take);
+        Task<List<E>> Get(int skip, int take, I identifiers = null);
 
         /// <summary>
         /// Retrieves every entity in the repository
         /// </summary>
         /// <returns>A list of entities</returns>
-        Task<List<T>> GetAll();
+        Task<List<E>> GetAll(I identifiers = null);
 
         /// <summary>
         /// Update an entity T with the key K
@@ -71,20 +73,13 @@ namespace Inuplan.Common.Repositories
         /// <param name="key">The key k</param>
         /// <param name="entity">The updated entity T</param>
         /// <returns>True if successful otherwise false</returns>
-        Task<bool> Update(K key, T entity);
+        Task<bool> Update(K key, E entity);
 
         /// <summary>
-        /// Deletes an entity <see cref="T"/> with the key K
+        /// Deletes an entity <see cref="E"/> with the key K
         /// </summary>
         /// <param name="key">The key K</param>
         /// <returns>True if successful otherwise false</returns>
         Task<bool> Delete(K key);
-
-        /// <summary>
-        /// Deletes an entity <see cref="T"/>
-        /// </summary>
-        /// <param name="entity">The entity <see cref="T"/></param>
-        /// <returns>True if successful otherwise false</returns>
-        Task<bool> Delete(T entity);
     }
 }

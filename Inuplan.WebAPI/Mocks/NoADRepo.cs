@@ -29,7 +29,7 @@ namespace Inuplan.WebAPI.Mocks
     using System.Threading.Tasks;
     using Optional;
 
-    public class NoADRepo : IScalarRepository<string, User>
+    public class NoADRepo : IRepository<string, User>
     {
         private bool disposedValue = false;
         private readonly List<User> users;

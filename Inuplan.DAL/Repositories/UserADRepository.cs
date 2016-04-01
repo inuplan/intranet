@@ -32,7 +32,7 @@ namespace Inuplan.DAL.Repositories
     /// Retrieves user information from Active Directory
     /// Only GET method is supported.
     /// </summary>
-    public class UserADRepository : IScalarRepository<string, User>
+    public class UserADRepository : IRepository<string, User>
     {
         /// <summary>
         /// The principal context from which every query is run against

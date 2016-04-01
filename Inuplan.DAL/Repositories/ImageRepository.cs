@@ -39,7 +39,7 @@ namespace Inuplan.DAL.Repositories
     /// The first item in the key tuple is the <see cref="User.Username"/> and the
     /// second item is the filename of the image, and the third is the extension of the filename
     /// </summary>
-    public class ImageRepository : IScalarRepository<int, Image>
+    public class ImageRepository : IRepository<int, object, Image, Task<Option<Image>>>
     {
         /// <summary>
         /// The logging framework
@@ -70,7 +70,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="entity">The image to create</param>
         /// <returns>An optional image with correct ID</returns>
-        public async Task<Option<Image>> Create(Image entity)
+        public async Task<Option<Image>> Create(Image entity, object identifiers = null)
         {
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
@@ -143,17 +143,6 @@ namespace Inuplan.DAL.Repositories
             }
 
             return Option.None<Image>();
-        }
-
-        /// <summary>
-        /// Deletes an image entity from the database as well as the filesystem
-        /// </summary>
-        /// <param name="entity">The image entity to delete</param>
-        /// <returns>A boolean value indicating whether the operation was succesfull</returns>
-        public async Task<bool> Delete(Image entity)
-        {
-            Debug.Assert(entity.ID > 0, "The image must have an ID!");
-            return await Delete(entity.ID);
         }
 
         /// <summary>
@@ -261,7 +250,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="skip">The number of images to skip</param>
         /// <param name="take">The number of images to take</param>
         /// <returns>A list of images</returns>
-        public async Task<List<Image>> Get(int skip, int take)
+        public async Task<List<Image>> Get(int skip, int take, object identifiers = null)
         {
             var sql = @"SELECT
                             imgID AS ID, Description, Filename, Extension, MimeType,
@@ -321,7 +310,7 @@ namespace Inuplan.DAL.Repositories
         /// Retrieves all images from the database
         /// </summary>
         /// <returns>A list of images</returns>
-        public async Task<List<Image>> GetAll()
+        public async Task<List<Image>> GetAll(object identifiers = null)
         {
             var sql = @"SELECT
                         img.ID, Description, Filename, Extension, MimeType,     /* Image */

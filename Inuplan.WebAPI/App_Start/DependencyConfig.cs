@@ -81,13 +81,13 @@ namespace Inuplan.WebAPI.App_Start
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
 
             // Register repositories
-            builder.RegisterType<ImageRepository>().WithAttributeFilter().As<IScalarRepository<ImageKey, UserImage>>();
+            builder.RegisterType<ImageRepository>().WithAttributeFilter().As<IRepository<ImageKey, UserImage>>();
             builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, List<Post>, Post>>();
-            builder.RegisterType<UserProfileImageRepository>().As<IScalarRepository<string, ProfileImage>>();
-            builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
+            builder.RegisterType<UserProfileImageRepository>().As<IRepository<string, ProfileImage>>();
+            builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
             //builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-            builder.Register(ctx => new Mocks.NoADRepo(mockUsers)).Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-            builder.Register(ctx => new Mocks.NoDBRepo(mockUsers)).Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
+            builder.Register(ctx => new Mocks.NoADRepo(mockUsers)).Keyed<IRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            builder.Register(ctx => new Mocks.NoDBRepo(mockUsers)).Keyed<IRepository<string, User>>(ServiceKeys.UserDatabase);
             //builder.RegisterType<Mocks.NoDBRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
 
             // Use autofac owin pipeline

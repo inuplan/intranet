@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Inuplan.WebAPI.Mocks
 {
-    public class NoDBRepo : IScalarRepository<string, User>
+    public class NoDBRepo : IRepository<string, User>
     {
         private bool disposedValue = false; // To detect redundant calls
         private readonly List<User> users;
