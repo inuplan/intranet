@@ -80,13 +80,12 @@ namespace Inuplan.WebAPI.App_Start
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
 
             // Register repositories
-            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IRepository<string, object, User, Task<Option<User>>>>();
+            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IRepository<int, int, Image, Task<Option<Image>>>>();
             builder.RegisterType<ImageCommentRepository>().As<IRepository<int, object[], Comment, Task<List<Comment>>>>();
-            builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, object, User, Task<Option<User>>>>(ServiceKeys.UserDatabase);
-            //builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            //builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, object, User, Task<Option<User>>>>(ServiceKeys.UserDatabase);
+            //builder.RegisterType<UserADRepository>().Keyed<IRepository<string, object, User, Task<Option<User>>>>(ServiceKeys.UserActiveDirectory);
             builder.Register(ctx => new Mocks.NoADRepo(mockUsers)).Keyed<IRepository<string, object, User, Task<Option<User>>>>(ServiceKeys.UserActiveDirectory);
             builder.Register(ctx => new Mocks.NoDBRepo(mockUsers)).Keyed<IRepository<string, object, User, Task<Option<User>>>>(ServiceKeys.UserDatabase);
-            //builder.RegisterType<Mocks.NoDBRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
 
             // Use autofac owin pipeline
             OwinPipeline(builder);
@@ -98,9 +97,13 @@ namespace Inuplan.WebAPI.App_Start
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
         }
 
+        /// <summary>
+        /// Constructs the owin pipeline, from the <see cref="Microsoft.Owin.OwinMiddleware"/> objects.
+        /// </summary>
+        /// <param name="builder">The autofac container builder</param>
         private static void OwinPipeline(ContainerBuilder builder)
         {
-            // Owin middleware pipeline
+            // Owin middleware pipeline - order matters
             builder.RegisterType<ManageUserMiddleware>().WithAttributeFilter();
         }
 
