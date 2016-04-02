@@ -108,20 +108,6 @@ namespace Inuplan.DAL.Repositories
         }
 
         /// <summary>
-        /// Deletes a <see cref="User"/> from the database, with the given ID.
-        /// Entity must contain a valid ID.
-        /// </summary>
-        /// <param name="entity">The user entity</param>
-        /// <returns>An awaitable optional boolean value indicating whether the operation was succesfull</returns>
-        public async Task<bool> Delete(User entity)
-        {
-            Debug.Assert(entity.ID > 0, "Must have a valid ID");
-            var sql = @"DELETE FROM Users WHERE ID = @key";
-            var rows = await connection.ExecuteAsync(sql, new { key = entity.ID });
-            return rows > 0;
-        }
-
-        /// <summary>
         /// Deletes a <see cref="User"/> from the database with the given key.
         /// </summary>
         /// <param name="key">The ID of the user</param>
