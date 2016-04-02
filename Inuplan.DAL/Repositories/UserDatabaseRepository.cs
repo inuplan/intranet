@@ -35,7 +35,7 @@ namespace Inuplan.DAL.Repositories
     /// Repository for <see cref="User"/>s in the database.
     /// Can do CRUD operations.
     /// </summary>
-    public class UserDatabaseRepository : IRepository<string, object, User, Task<Option<User>>>
+    public class UserDatabaseRepository : IScalarRepository<string, User>
     {
         /// <summary>
         /// The database connection
@@ -68,7 +68,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="entity">The user entity</param>
         /// <returns>Returns an awaitable optional user</returns>
-        public async Task<Option<User>> Create(User entity, object identifiers = null)
+        public async Task<Option<User>> Create(User entity, params object[] identifiers)
         {
             Debug.Assert(entity.Roles != null && entity.Roles.Any(), "Must define an existing role for this user!");
             entity.ID = 0;
@@ -162,7 +162,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="skip">The number of users to skip</param>
         /// <param name="take">The number of users to take</param>
         /// <returns>An awaitable list of users</returns>
-        public async Task<Pagination<User>> Get(int skip, int take, object identifiers = null)
+        public async Task<Pagination<User>> GetPage(int skip, int take, params object[] identifiers)
         {
             var sql = @"SELECT ID, FirstName, LastName, Email, Username
                         FROM
@@ -190,7 +190,7 @@ namespace Inuplan.DAL.Repositories
         /// Does not retrieve the roles.
         /// </summary>
         /// <returns>An awaitable list of users.</returns>
-        public async Task<List<User>> GetAll(object identifiers = null)
+        public async Task<List<User>> GetAll(params object[] identifiers)
         {
             var sql = @"SELECT ID, FirstName, LastName, Email, Username
                         FROM Users";

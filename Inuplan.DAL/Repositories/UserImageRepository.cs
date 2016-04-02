@@ -259,7 +259,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="take">The number of images to take</param>
         /// <param name="identifiers">The user ID to which the image belongs</param>
         /// <returns>A list of images</returns>
-        public async Task<Pagination<Image>> Get(int skip, int take, params object[] identifiers)
+        public async Task<Pagination<Image>> GetPage(int skip, int take, params object[] identifiers)
         {
             var sql = @"SELECT
                             imgID AS ID, Description, Filename, Extension, MimeType,
