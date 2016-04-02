@@ -27,7 +27,7 @@ namespace Inuplan.Common.Repositories
     /// </summary>
     /// <typeparam name="K">The type of key</typeparam>
     /// <typeparam name="E">The type of entity</typeparam>
-    public interface IRepository<K, E> : IDisposable
+    public interface IScalarRepository<K, E> : IDisposable
     {
         /// <summary>
         /// Create an entity in the repository.

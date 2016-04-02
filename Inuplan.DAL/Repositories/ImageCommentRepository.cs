@@ -38,7 +38,7 @@ namespace Inuplan.DAL.Repositories
     /// <summary>
     /// A repository which handles the Comments for a related Image.
     /// </summary>
-    public class ImageCommentRepository : IRepository<CommentID, object[], Comment, Task<List<Comment>>>
+    public class ImageCommentRepository : IScalarRepository<int, List<Comment>>
     {
         /// <summary>
         /// The database connection

@@ -45,7 +45,7 @@ namespace Inuplan.DAL.Repositories
     /// The third is the image.
     /// The fourth is the return type.
     /// </summary>
-    public class UserImageRepository : IRepository<int, Image>
+    public class UserImageRepository : IScalarRepository<int, Image>
     {
         /// <summary>
         /// The logging framework
