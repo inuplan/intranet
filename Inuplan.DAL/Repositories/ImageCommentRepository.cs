@@ -32,13 +32,11 @@ namespace Inuplan.DAL.Repositories
     using System.Linq;
     using System.Threading.Tasks;
     using System.Transactions;
-    using CommentID = System.Int32;
-    using ImageID = System.Int32;
 
     /// <summary>
     /// A repository which handles the Comments for a related Image.
     /// </summary>
-    public class ImageCommentRepository : IScalarRepository<int, List<Comment>>
+    public class ImageCommentRepository : IVectorRepository<int, Comment>
     {
         /// <summary>
         /// The database connection
@@ -65,7 +63,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="entity">The comment to create</param>
         /// <param name="identifiers">An array where the first item is the id of the image, the second item is the id of the parent comment id</param>
         /// <returns>An optional comment, with the updated id if it has been created</returns>
-        public async Task<Option<Comment>> Create(Comment entity, params object[] identifiers)
+        public async Task<Option<Comment>> CreateSingle(Comment entity, params object[] identifiers)
         {
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
@@ -107,40 +105,11 @@ namespace Inuplan.DAL.Repositories
         }
 
         /// <summary>
-        /// Deletes a comment, with the given id.
-        /// Note: Only identifying markers are cleaned, such as User and Remark.
-        /// Anything else is left as-is.
-        /// </summary>
-        /// <param name="key">The id of the comment</param>
-        /// <returns>True if deleted, false otherwise</returns>
-        public async Task<bool> Delete(CommentID key)
-        {
-            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                // Note: only removes identifying marks so that any child-branches aren't left hanging 
-                var sqlDelete = @"UPDATE Comments SET Owner=NULL, Remark=@Comment, Deleted=@Deleted WHERE ID=@ID";
-                var deleted = (await connection.ExecuteAsync(sqlDelete, new
-                {
-                    Comment = "",
-                    Deleted = true,
-                    ID = key,
-                })).Equals(1);
-
-                if(deleted)
-                {
-                    transactionScope.Complete();
-                }
-
-                return deleted;
-            }
-        }
-
-        /// <summary>
         /// Retrieves a list of comments for a given image.
         /// </summary>
         /// <param name="key">The image id</param>
         /// <returns>An awaitable list of comments</returns>
-        public async Task<List<Comment>> Get(ImageID key)
+        public async Task<List<Comment>> Get(int key)
         {
             var repliesTo = new List<Tuple<int?, Comment>>();
 
@@ -188,13 +157,28 @@ namespace Inuplan.DAL.Repositories
         }
 
         /// <summary>
+        /// Retrieves a single comment by its comment id.
+        /// </summary>
+        /// <param name="id">The id of the comment</param>
+        /// <returns>An optional comment. Some if comment exists, otherwise None</returns>
+        public async Task<Option<Comment>> GetSingleByID(int id)
+        {
+            var sql = @"SELECT * FROM Comments c INNER JOIN Users u ON c.Owner = u.ID WHERE c.ID = @id";
+
+            var comment = await connection.ExecuteScalarAsync<Comment>(sql, new { id });
+            var result = comment.SomeWhen(c => c != null && c.ID > 0);
+
+            return result;
+        }
+
+        /// <summary>
         /// A paginated result of comments, for a given image.
         /// </summary>
         /// <param name="skip">The number of top comments to skip.</param>
         /// <param name="take">The number of top comments to take.</param>
         /// <param name="identifiers">The image id to which the comments belong.</param>
         /// <returns>A paginated result of comments</returns>
-        public async Task<Pagination<Comment>> Get(int skip, int take, params object[] identifiers)
+        public async Task<Pagination<Comment>> GetPage(int skip, int take, params object[] identifiers)
         {
             var imageID = (int)identifiers[0];
             Debug.Assert(imageID > 0, "Must have a valid image identifier!");
@@ -258,39 +242,13 @@ namespace Inuplan.DAL.Repositories
         }
 
         /// <summary>
-        /// Not supported
-        /// </summary>
-        /// <param name="identifiers">N/A</param>
-        /// <exception cref="NotSupportedException">Not supported</exception>
-        /// <returns>N/A</returns>
-        public Task<List<Comment>> GetAll(params object[] identifiers)
-        {
-            throw new NotSupportedException();
-        }
-
-        /// <summary>
-        /// Retrieves a single comment by its comment id.
-        /// </summary>
-        /// <param name="id">The id of the comment</param>
-        /// <returns>An optional comment. Some if comment exists, otherwise None</returns>
-        public async Task<Option<Comment>> GetByID(int id)
-        {
-            var sql = @"SELECT * FROM Comments c INNER JOIN Users u ON c.Owner = u.ID WHERE c.ID = @id";
-
-            var comment = await connection.ExecuteScalarAsync<Comment>(sql, new { id });
-            var result = comment.SomeWhen(c => c != null && c.ID > 0);
-
-            return result;
-        }
-
-        /// <summary>
         /// Updates an existing comment, with the given id.
         /// Note: the PostedOn and Remark are update-able.
         /// </summary>
         /// <param name="key">The id of the comment</param>
         /// <param name="entity">The updated comment</param>
         /// <returns>True if updated otherwise false.</returns>
-        public async Task<bool> Update(int key, Comment entity)
+        public async Task<bool> UpdateSingle(int key, Comment entity, params object[] identifiers)
         {
             using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
@@ -304,6 +262,35 @@ namespace Inuplan.DAL.Repositories
                 }
 
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Deletes a comment, with the given id.
+        /// Note: Only identifying markers are cleaned, such as User and Remark.
+        /// Anything else is left as-is.
+        /// </summary>
+        /// <param name="key">The id of the comment</param>
+        /// <returns>True if deleted, false otherwise</returns>
+        public async Task<bool> DeleteSingle(int key)
+        {
+            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                // Note: only removes identifying marks so that any child-branches aren't left hanging 
+                var sqlDelete = @"UPDATE Comments SET Owner=NULL, Remark=@Comment, Deleted=@Deleted WHERE ID=@ID";
+                var deleted = (await connection.ExecuteAsync(sqlDelete, new
+                {
+                    Comment = "",
+                    Deleted = true,
+                    ID = key,
+                })).Equals(1);
+
+                if(deleted)
+                {
+                    transactionScope.Complete();
+                }
+
+                return deleted;
             }
         }
 
