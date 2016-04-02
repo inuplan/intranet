@@ -22,7 +22,6 @@ namespace Inuplan.WebAPI.App_Start
     using Common.Enums;
     using Common.Factories;
     using Common.Mappers;
-    using Common.Tools;
     using Controllers;
     using DAL.Repositories;
     using Image.Factories;
@@ -30,16 +29,12 @@ namespace Inuplan.WebAPI.App_Start
     using Inuplan.Common.Repositories;
     using Jose;
     using Middlewares;
-    using Optional;
     using System.Collections.Generic;
     using System.Configuration;
     using System.Data;
     using System.Data.SqlClient;
     using System.DirectoryServices.AccountManagement;
-    using System.Security.Cryptography;
-    using System.Threading.Tasks;
     using System.Web.Http;
-    using ImageKey = System.Tuple<string, string, string>;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -80,12 +75,12 @@ namespace Inuplan.WebAPI.App_Start
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
 
             // Register repositories
-            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IRepository<int, int, Image, Task<Option<Image>>>>();
-            builder.RegisterType<ImageCommentRepository>().As<IRepository<int, object[], Comment, Task<List<Comment>>>>();
-            //builder.RegisterType<UserDatabaseRepository>().Keyed<IRepository<string, object, User, Task<Option<User>>>>(ServiceKeys.UserDatabase);
-            //builder.RegisterType<UserADRepository>().Keyed<IRepository<string, object, User, Task<Option<User>>>>(ServiceKeys.UserActiveDirectory);
-            builder.Register(ctx => new Mocks.NoADRepo(mockUsers)).Keyed<IRepository<string, object, User, Task<Option<User>>>>(ServiceKeys.UserActiveDirectory);
-            builder.Register(ctx => new Mocks.NoDBRepo(mockUsers)).Keyed<IRepository<string, object, User, Task<Option<User>>>>(ServiceKeys.UserDatabase);
+            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<int, Image>>();
+            builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, Comment>>();
+            //builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
+            //builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            builder.Register(ctx => new Mocks.NoADRepo(mockUsers)).Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            builder.Register(ctx => new Mocks.NoDBRepo(mockUsers)).Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
 
             // Use autofac owin pipeline
             OwinPipeline(builder);

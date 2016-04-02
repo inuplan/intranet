@@ -32,9 +32,9 @@ namespace Inuplan.WebAPI.Controllers
     [RoutePrefix("user/{username}")]
     public class UserController : ApiController
     {
-        private readonly IRepository<string, object, User, Task<Option<User>>> userRepository;
+        private readonly IScalarRepository<string, User> userRepository;
 
-        public UserController([WithKey(ServiceKeys.UserDatabase)] IRepository<string, object, User, Task<Option<User>>> userRepository)
+        public UserController([WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userRepository)
         {
             this.userRepository = userRepository;
         }
