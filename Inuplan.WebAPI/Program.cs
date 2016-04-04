@@ -58,6 +58,5 @@ namespace Inuplan.WebAPI
                 parser.StartConsole(baseAddress);
             }
         }
-
     }
 }
