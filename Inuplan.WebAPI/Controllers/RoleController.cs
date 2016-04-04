@@ -27,11 +27,13 @@ namespace Inuplan.WebAPI.Controllers
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using System.Web.Http.Cors;
 
     /// <summary>
     /// Manages the roles for the system
     /// </summary>
     [Authorize(Roles = "Admin")]
+    [EnableCors(origins: @"http://localhost:59382", headers: "", methods: "*", SupportsCredentials = true)]
     public class RoleController : ApiController
     {
         private readonly IScalarRepository<int, Role> roleRepository;

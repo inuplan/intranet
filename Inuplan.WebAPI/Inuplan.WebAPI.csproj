@@ -149,7 +149,6 @@
     <Compile Include="Image\Handle.cs" />
     <Compile Include="Middlewares\ManageUserMiddleware.cs" />
     <Compile Include="Mocks\NoADRepo.cs" />
-    <Compile Include="Mocks\NoDBRepo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />

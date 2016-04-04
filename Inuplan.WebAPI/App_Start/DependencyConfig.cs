@@ -29,6 +29,7 @@ namespace Inuplan.WebAPI.App_Start
     using Inuplan.Common.Repositories;
     using Jose;
     using Middlewares;
+    using Mocks;
     using System.Collections.Generic;
     using System.Configuration;
     using System.Data;
@@ -51,7 +52,6 @@ namespace Inuplan.WebAPI.App_Start
             var root = ConfigurationManager.AppSettings["root"];
             var connectionString = GetConnectionString();
             var domain = ConfigurationManager.AppSettings["domain"];
-            var mockUsers = MockUsers();
 
             // Create builder
             var builder = new ContainerBuilder();
@@ -79,10 +79,9 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<RoleRepository>().As<IScalarRepository<int, Role>>();
             builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<int, Image>>();
             builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, Comment>>();
-            //builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
+            builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
             //builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-            builder.Register(ctx => new Mocks.NoADRepo(mockUsers)).Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-            builder.Register(ctx => new Mocks.NoDBRepo(mockUsers)).Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
+            builder.RegisterType<NoADRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
 
             // Use autofac owin pipeline
             OwinPipeline(builder);
@@ -116,36 +115,6 @@ namespace Inuplan.WebAPI.App_Start
             var connectionString = ConfigurationManager.AppSettings["connectionString"];
 #endif
             return connectionString;
-        }
-
-        /// <summary>
-        /// Creates a mock of users
-        /// </summary>
-        /// <returns>A list of mocked users</returns>
-        private static List<User> MockUsers()
-        {
-            var roles = new List<Role> { new Role { ID = 1, Name = "User" } };
-            return new List<User>
-            {
-                new User
-                {
-                    Email = "jdoe@corp.com",
-                    FirstName = "John",
-                    LastName = "Doe",
-                    Username = "jdoe",
-                    ID = 1,
-                    Roles = roles,
-                },
-                new User
-                {
-                    Email = "my@mail.com",
-                    FirstName = "Johnny",
-                    LastName = "Cash",
-                    Username = "Johnny",
-                    ID = 2,
-                    Roles = roles,
-                }
-            };
         }
     }
 }

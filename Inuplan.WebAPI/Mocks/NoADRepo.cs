@@ -34,9 +34,9 @@ namespace Inuplan.WebAPI.Mocks
         private bool disposedValue = false;
         private readonly List<User> users;
 
-        public NoADRepo(List<User> users)
+        public NoADRepo()
         {
-            this.users = users;
+            users = MockUsers();
         }
 
         public Task<Option<User>> Create(User entity, params object[] identifiers)
@@ -54,7 +54,15 @@ namespace Inuplan.WebAPI.Mocks
             var user = users
                         .SingleOrDefault(u => u.Username.Equals(key, StringComparison.OrdinalIgnoreCase))
                         .SomeNotNull();
-            return Task.FromResult(user);
+            var result = user.Or(new User
+            {
+                Email = string.Format("{0}@corp.com", key),
+                FirstName = string.Format("F{0}", key),
+                LastName = string.Format("L{0}", key),
+                Username = key
+            });
+
+            return Task.FromResult(result);
         }
 
         public Task<Pagination<User>> GetPage(int skip, int take, params object[] identifiers)
@@ -89,11 +97,40 @@ namespace Inuplan.WebAPI.Mocks
             }
         }
 
-        // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
+        }
+
+        /// <summary>
+        /// Creates a mock of users
+        /// </summary>
+        /// <returns>A list of mocked users</returns>
+        private static List<User> MockUsers()
+        {
+            var roles = new List<Role> { new Role { ID = 1, Name = "User" } };
+            return new List<User>
+            {
+                new User
+                {
+                    Email = "jdoe@corp.com",
+                    FirstName = "John",
+                    LastName = "Doe",
+                    Username = "jdoe",
+                    ID = 1,
+                    Roles = roles,
+                },
+                new User
+                {
+                    Email = "my@mail.com",
+                    FirstName = "Johnny",
+                    LastName = "Cash",
+                    Username = "Johnny",
+                    ID = 2,
+                    Roles = roles,
+                }
+            };
         }
     }
 }
