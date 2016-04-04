@@ -22,20 +22,32 @@ namespace Inuplan.Tests.IntegrationTests
             var connectionString = ConfigurationManager.AppSettings["localConnection"];
             using (IDbConnection connection = new SqlConnection(connectionString))
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            using(var repository = new UserDatabaseRepository(connection))
+            using(var userRepository = new UserDatabaseRepository(connection))
+            using (var roleRepository = new RoleRepository(connection))
             {
                 // To create a USER you MUST first have already created a ROLE!
-                var user = new User
-                {
-                    Email = "jdoe@corp.com",
-                    FirstName = "John",
-                    LastName = "Doe",
-                    Roles = new List<Role> { new Role { Name = "User" } },
-                    Username = "jdoe"
-                };
+                var role = new Role { Name = "User" };
+                var createdRole = roleRepository.Create(role).Result;
 
-                var created = repository.Create(user).Result;
-                Assert.True(created.HasValue);
+                createdRole.Match(r =>
+                {
+                    var user = new User
+                    {
+                        Email = "jdoe@corp.com",
+                        FirstName = "John",
+                        LastName = "Doe",
+                        Roles = new List<Role> { r },
+                        Username = "jdoe"
+                    };
+
+                    var created = userRepository.Create(user).Result;
+                    Assert.True(created.HasValue);
+                },
+                () =>
+                {
+                    Assert.True(false, "Role has not been created!");
+                });
+
             }
         }
     }
