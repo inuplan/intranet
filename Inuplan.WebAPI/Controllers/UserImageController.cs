@@ -98,7 +98,7 @@ namespace Inuplan.WebAPI.Controllers
         // POST user/image
         [Route("")]
         [HttpPost]
-        public async Task<HttpResponseMessage> Post(string username, [FromBody] string description = "")
+        public async Task<HttpResponseMessage> Post(string username)
         {
             if (!AuthorizeToUsername(username))
             {
@@ -122,7 +122,7 @@ namespace Inuplan.WebAPI.Controllers
                 logger.Trace("Processing image...");
                 var handler = imageHandleFactory.GetImageHandler();
                 var user = GetPrincipalIdentityUser(RequestContext.Principal);
-                var image = await handler.ProcessUserImage(user, file, description);
+                var image = await handler.ProcessUserImage(user, file, "");
 
                 // Add images to the collection
                 bag.Add(image);
@@ -155,6 +155,22 @@ namespace Inuplan.WebAPI.Controllers
                 Request.CreateResponse(HttpStatusCode.Created, response) :
                 Request.CreateResponse(HttpStatusCode.InternalServerError,
                    "Could not save file. Possible reasons: File already exists or database error. See log files for more information.");
+        }
+
+        [HttpPut]
+        [Route("{id:int}/image/{file}")]
+        public async Task<HttpResponseMessage> Put(string username, int id, string file, [FromBody] string description)
+        {
+            // Only update the description for the image
+            var image = new Image
+            {
+                Description = description
+            };
+
+            var updated = await userImageRepository.Update(id, image);
+            return updated ? 
+                Request.CreateResponse(HttpStatusCode.OK) :
+                Request.CreateResponse(HttpStatusCode.InternalServerError, "Possible error: could not locate the specified file.");
         }
 
         /// <summary>

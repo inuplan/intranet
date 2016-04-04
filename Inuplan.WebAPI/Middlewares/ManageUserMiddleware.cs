@@ -23,10 +23,13 @@ namespace Inuplan.WebAPI.Middlewares
     using Autofac.Extras.Attributed;
     using Common.Enums;
     using Common.Models;
+    using Common.Principals;
     using Common.Repositories;
+    using Common.Tools;
     using Microsoft.Owin;
     using NLog;
     using Optional;
+    using Optional.Unsafe;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
@@ -115,6 +118,7 @@ namespace Inuplan.WebAPI.Middlewares
                     }
 
                     logger.Info("Created user {0} in the database!", username);
+                    user = created;
                     return false;
                 },
                 () =>
@@ -135,11 +139,11 @@ namespace Inuplan.WebAPI.Middlewares
 
             // Set principal roles
             logger.Trace("Setting roles for user");
-            roles = user.Map(u => u.Roles).ValueOr(new List<Role>());
+            var actualUser = user.ValueOrFailure();
 
             // Note: .NET Framework 1.1 and onwards IsInRole is case-insensitive!
             // source: https://msdn.microsoft.com/en-us/library/fs485fwh(v=vs.110).aspx
-            var principal = new GenericPrincipal(context.Request.User.Identity, roles.Select(r => r.Name).ToArray());
+            var principal = new InuplanPrincipal(context.Request.User.Identity, actualUser.Roles.Select(r => r.Name).ToArray(), actualUser);
             context.Request.User = principal;
             Thread.CurrentPrincipal = principal;
 

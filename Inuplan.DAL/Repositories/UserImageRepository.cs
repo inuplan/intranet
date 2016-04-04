@@ -386,9 +386,12 @@ namespace Inuplan.DAL.Repositories
         /// <param name="key">N/A</param>
         /// <param name="entity">N/A</param>
         /// <returns>N/A</returns>
-        public Task<bool> Update(int key, Image entity)
+        public async Task<bool> Update(int key, Image entity)
         {
-            throw new NotSupportedException("Cannot update an image! Delete then reupload.");
+            // Only update the description!
+            var sql = @"UPDATE Images SET Description = @Description WHERE ID=@key;";
+            var updated = await connection.ExecuteAsync(sql, new { key, Description = entity.Description });
+            return updated == 1;
         }
 
         /// <summary>
