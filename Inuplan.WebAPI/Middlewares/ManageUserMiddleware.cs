@@ -31,8 +31,10 @@ namespace Inuplan.WebAPI.Middlewares
     using System.Diagnostics;
     using System.Linq;
     using System.Net;
+    using System.Security.Principal;
+    using System.Threading;
     using System.Threading.Tasks;
-
+    using System.Web;
     /// <summary>
     /// If it is a user's first time, then the user is created and saved to the database.
     /// If the user exists, then nothing is done.
@@ -86,6 +88,7 @@ namespace Inuplan.WebAPI.Middlewares
             var username = identity.Name.Substring(identity.Name.LastIndexOf(@"\") + 1);
             var user = await userDatabaseRepository.Get(username);
             var error = false;
+            var roles = new List<Role>();
 
             if (!user.HasValue)
             {
@@ -94,6 +97,7 @@ namespace Inuplan.WebAPI.Middlewares
                     .FirstOrDefault(r => r.Name.Equals("User", System.StringComparison.OrdinalIgnoreCase));
 
                 // Assume that a "User" role exists!
+                roles.Add(role);
                 Debug.Assert(role != null, "Must have a predefined role: \"User\"");
 
                 // We need to create the user in the database
@@ -101,7 +105,7 @@ namespace Inuplan.WebAPI.Middlewares
                 error = await adUser.Match(async u =>
                 {
                     // Set role to "User"
-                    u.Roles = new List<Role> { role };
+                    u.Roles = roles;
                     var created = await userDatabaseRepository.Create(u);
                     if(!created.HasValue)
                     {
@@ -128,6 +132,17 @@ namespace Inuplan.WebAPI.Middlewares
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 return;
             }
+
+            // Set principal roles
+            logger.Trace("Setting roles for user");
+            roles = user.Map(u => u.Roles).ValueOr(new List<Role>());
+
+            // Note: .NET Framework 1.1 and onwards IsInRole is case-insensitive!
+            // source: https://msdn.microsoft.com/en-us/library/fs485fwh(v=vs.110).aspx
+            var principal = new GenericPrincipal(context.Request.User.Identity, roles.Select(r => r.Name).ToArray());
+            context.Request.User = principal;
+            Thread.CurrentPrincipal = principal;
+            HttpContext.Current.User = principal;
 
             logger.Trace("Proceeding with the owin middleware pipeline");
             await Next.Invoke(context);
