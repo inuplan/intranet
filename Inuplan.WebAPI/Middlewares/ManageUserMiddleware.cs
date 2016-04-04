@@ -44,12 +44,12 @@ namespace Inuplan.WebAPI.Middlewares
         /// <summary>
         /// The user database repository
         /// </summary>
-        private readonly IRepository<string, object, User, Task<Option<User>>> userDatabaseRepository;
+        private readonly IScalarRepository<string, User> userDatabaseRepository;
 
         /// <summary>
         /// The user active directory repository
         /// </summary>
-        private readonly IRepository<string, object, User, Task<Option<User>>> userActiveDirectoryRepository;
+        private readonly IScalarRepository<string ,User> userActiveDirectoryRepository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ManageUserMiddleware"/> class.
@@ -57,8 +57,8 @@ namespace Inuplan.WebAPI.Middlewares
         /// <param name="next">The next owin middleware</param>
         public ManageUserMiddleware(
             OwinMiddleware next,
-            [WithKey(ServiceKeys.UserDatabase)] IRepository<string, object, User, Task<Option<User>>> userDatabaseRepository,
-            [WithKey(ServiceKeys.UserActiveDirectory)] IRepository<string, object, User, Task<Option<User>>> userActiveDirectoryRepository)
+            [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
+            [WithKey(ServiceKeys.UserActiveDirectory)] IScalarRepository<string, User> userActiveDirectoryRepository)
             : base(next)
         {
             this.userDatabaseRepository = userDatabaseRepository;

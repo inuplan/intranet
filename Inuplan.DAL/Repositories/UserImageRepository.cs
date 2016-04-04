@@ -45,7 +45,7 @@ namespace Inuplan.DAL.Repositories
     /// The third is the image.
     /// The fourth is the return type.
     /// </summary>
-    public class UserImageRepository : IRepository<ImageID, UserID, Image, Task<Option<Image>>>
+    public class UserImageRepository : IScalarRepository<int, Image>
     {
         /// <summary>
         /// The logging framework
@@ -77,9 +77,10 @@ namespace Inuplan.DAL.Repositories
         /// <param name="entity">The image to create</param>
         /// <param name="identifiers">The user ID, to which the image belongs</param>
         /// <returns>An optional image with correct ID</returns>
-        public async Task<Option<Image>> Create(Image entity, UserID identifiers)
+        public async Task<Option<Image>> Create(Image entity, params object[] identifiers)
         {
-            Debug.Assert(identifiers > 0, "Must have a valid user id");
+            Debug.Assert(identifiers.Length == 1, "Must have a valid user id");
+            var userID = identifiers[0];
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 try
@@ -111,7 +112,7 @@ namespace Inuplan.DAL.Repositories
                         Preview = entity.Preview.ID,
                         Thumbnail = entity.Thumbnail.ID,
                         Original = entity.Original.ID,
-                        Owner = identifiers,
+                        Owner = userID,
                         entity.Description,
                         entity.Filename,
                         entity.Extension,
@@ -258,7 +259,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="take">The number of images to take</param>
         /// <param name="identifiers">The user ID to which the image belongs</param>
         /// <returns>A list of images</returns>
-        public async Task<Pagination<Image>> Get(int skip, int take, int identifiers)
+        public async Task<Pagination<Image>> GetPage(int skip, int take, params object[] identifiers)
         {
             var sql = @"SELECT
                             imgID AS ID, Description, Filename, Extension, MimeType,
@@ -309,7 +310,7 @@ namespace Inuplan.DAL.Repositories
                                 return img;
                             }, new
                             {
-                                Owner = identifiers,
+                                Owner = identifiers[0],
                                 From = skip + 1,
                                 To = skip + take,
                             });
@@ -326,9 +327,9 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="identifiers">The user ID to which the images belong</param>
         /// <returns>A list of images</returns>
-        public async Task<List<Image>> GetAll(int identifiers)
+        public async Task<List<Image>> GetAll(params object[] identifiers)
         {
-            Debug.Assert(identifiers > 0, "Must have a valid user ID!");
+            Debug.Assert(identifiers.Length == 1, "Must have a valid user ID!");
             var sql = @"SELECT
                         img.ID, Description, Filename, Extension, MimeType,     /* Image */
                         u.ID, FirstName, LastName, Username, Email,             /* User */
@@ -364,7 +365,7 @@ namespace Inuplan.DAL.Repositories
                                 img.Thumbnail = thumbnail;
 
                                 return img;
-                            }, new { Owner = identifiers });
+                            }, new { Owner = identifiers[0] });
 
             return result.ToList();
         }
