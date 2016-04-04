@@ -18,32 +18,20 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Tests.WebAPI.JWT
+namespace Inuplan.Common.Models
 {
-    using Common.DTOs;
-    using Common.Models;
-    using Common.Tools;
-    using Jose;
-    using System.Diagnostics;
-    using System.Security.Cryptography;
-    using Xunit;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
-    public class JWTGenerator
+    public class Comment
     {
-        [Fact]
-        public void Test_JWTS()
-        {
-
-            var key = SHA256.Create().ComputeHash(Helpers.GetBytes("b6Y34qVqNTHYX32EQhPUqABzqygZ6VhetKepspRpA3yrARXzjF4tr2CEuMgu"));
-            var claims = new ClaimsDTO
-            {
-                Verified = false,
-                Username = "jdoe",
-                Role = RoleType.User,
-            };
-
-            var token = JWT.Encode(claims, key, JwsAlgorithm.HS256);
-            var bearer = (string.Format("Bearer {0}", token));
-        }
+        public int ID { get; set; }
+        public DateTime PostedOn { get; set; }
+        public User Owner { get; set; }
+        public string Remark { get; set; }
+        public List<Comment> Replies { get; set; }
     }
 }

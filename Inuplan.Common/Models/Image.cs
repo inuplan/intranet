@@ -20,36 +20,53 @@
 
 namespace Inuplan.Common.Models
 {
-    using System;
+    using System.Collections.Generic;
 
-    /// <summary>
-    /// A post
-    /// </summary>
-    public class Post
+    public class Image
     {
         /// <summary>
-        /// Gets or sets the post ID
+        /// Gets or sets the id
         /// </summary>
         public int ID { get; set; }
 
         /// <summary>
-        /// Gets or sets the post date
+        /// Gets or sets the filename
         /// </summary>
-        public DateTime PostedOn { get; set; }
+        public string Filename { get; set; }
 
         /// <summary>
-        /// Gets or sets the post comment
+        /// Gets or sets the extension
         /// </summary>
-        public string Comment { get; set; }
+        public string Extension { get; set; }
 
         /// <summary>
-        /// Gets or sets the post type
+        /// Gets or sets the mime type
         /// </summary>
-        public PostType MessageType { get; set; }
+        public string MimeType { get; set; }
 
         /// <summary>
-        /// Gets or sets the post author
+        /// Gets or sets the preview file information
         /// </summary>
-        public User Author { get; set; }
+        public FileInfo Preview { get; set; }
+
+        /// <summary>
+        /// Gets or sets the original file information
+        /// </summary>
+        public FileInfo Original { get; set; }
+
+        /// <summary>
+        /// Gets or sets the thumbnail file information
+        /// </summary>
+        public FileInfo Thumbnail { get; set; }
+
+        /// <summary>
+        /// Gets or sets the description
+        /// </summary>
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Gets or sets the owner
+        /// </summary>
+        public User Owner { get; set; }
     }
 }

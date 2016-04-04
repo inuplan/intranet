@@ -20,6 +20,7 @@
 
 namespace Inuplan.Common.Tools
 {
+    using Models;
     using System;
     using System.Collections.Generic;
     using System.Text;
@@ -63,6 +64,17 @@ namespace Inuplan.Common.Tools
             return new Tuple<string, string>(filename, extension);
         }
 
+        public static Pagination<T> Pageify<T>(int skip, int take, int total, List<T> currentItems)
+        {
+            var totalPages = (int)Math.Ceiling(total / (double)take);
+            var currentPage = (skip / take) + 1;
+            return new Pagination<T>
+            {
+                CurrentItems = currentItems,
+                CurrentPage = currentPage,
+                TotalPages = totalPages
+            };
+        }
         /*
         public static string GetMIMEType(string extension)
         {

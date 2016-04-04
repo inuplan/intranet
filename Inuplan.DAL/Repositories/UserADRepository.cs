@@ -66,7 +66,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="entity">N/A</param>
         /// <exception cref="NotSupportedException">Not supported operation</exception>
         /// <returns>N/A</returns>
-        public Task<Option<User>> Create(User entity)
+        public Task<Option<User>> Create(User entity, params object[] identifiers)
         {
             throw new NotSupportedException("Not supported operation!");
         }
@@ -104,15 +104,14 @@ namespace Inuplan.DAL.Repositories
             var adUser = UserPrincipal.FindByIdentity(ctx, key).SomeNotNull();
 
             var user = adUser.Map(u =>
-            {
-                return new User
+                new User
                 {
                     Email = u.EmailAddress,
                     FirstName = u.GivenName,
                     LastName = u.Surname,
                     Username = u.SamAccountName
-                };
-            });
+                }
+            );
 
             return Task.FromResult(user);
         }
@@ -124,7 +123,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="take">N/A</param>
         /// <exception cref="NotSupportedException">Not supported operation</exception>
         /// <returns>N/A</returns>
-        public Task<List<User>> Get(int skip, int take)
+        public Task<Pagination<User>> GetPage(int skip, int take, params object[] identifiers)
         {
             throw new NotSupportedException("Not supported operation!");
         }
@@ -134,7 +133,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <exception cref="NotSupportedException">Not supported operation</exception>
         /// <returns>N/A</returns>
-        public Task<List<User>> GetAll()
+        public Task<List<User>> GetAll(params object[] identifiers)
         {
             throw new NotSupportedException("Not supported operation!");
         }

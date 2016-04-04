@@ -20,62 +20,56 @@
 
 namespace Inuplan.Common.Repositories
 {
+    using Models;
     using Optional;
-    using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
 
-    /// <summary>
-    /// A repository which naturally contains multiple entities.
-    /// </summary>
-    /// <typeparam name="K">The key for the collection <seealso cref="T"/></typeparam>
-    /// <typeparam name="T">The enumerable entities of <seealso cref="E"/></typeparam>
-    /// <typeparam name="E">The scalar entity</typeparam>
-    public interface IVectorRepository<K, T, E> : IDisposable
-        where T : IEnumerable<E>
+    public interface IVectorRepository<K, E>
     {
         /// <summary>
-        /// Creates a scalar entity
+        /// Create an entity in the repository.
         /// </summary>
-        /// <param name="key">The key</param>
-        /// <param name="entity">The single entity</param>
-        /// <returns>The created entity</returns>
-        Task<Option<E>> CreateSingle(K key, E entity);
+        /// <param name="entity">The entity to create</param>
+        /// <returns>A task of the created entity or <see cref="Option.None"/></returns>
+        Task<Option<E>> CreateSingle(E entity, params object[] identifiers);
 
         /// <summary>
-        /// Retrieves the collection of entities
+        /// Retrieves an entity with the key K
         /// </summary>
-        /// <param name="key">The key</param>
-        /// <returns>An enumerable collection of type <seealso cref="E"/></returns>
-        Task<T> Get(K key);
+        /// <param name="key">The key K</param>
+        /// <returns>An object of <see cref="S"/></returns>
+        Task<List<E>> Get(K key);
 
         /// <summary>
-        /// Retrieves a grouped collection of <seealso cref="T"/>,
-        /// which are grouped by their key <seealso cref="K"/>.
+        /// Retrieves a snippet collection of entities that are ordered by some criteria.
         /// </summary>
-        /// <returns>A collection of grouped <seealso cref="T"/></returns>
-        Task<IEnumerable<IGrouping<K, T>>> GetAll();
+        /// <param name="skip">The number of items to skip</param>
+        /// <param name="take">The number of items to take</param>
+        /// <param name="identifiers">Extra identifiers necessary to select the entities</param>
+        /// <returns></returns>
+        Task<Pagination<Comment>> GetPage(int skip, int take, params object[] identifiers);
 
         /// <summary>
-        /// Updates a scalar entity <seealso cref="E"/>.
+        /// Retrieves an entity by the given id
         /// </summary>
-        /// <param name="entity">The single entity to update</param>
-        /// <returns>True if updated otherwise false</returns>
-        Task<bool> UpdateSingle(E entity);
+        /// <param name="id">The id of the entity</param>
+        /// <returns>A task of an entity or <see cref="Option.None"/></returns>
+        Task<Option<E>> GetSingleByID(int id);
 
         /// <summary>
-        /// Deletes a collection of entities with the key <seealso cref="K"/>
+        /// Update an entity T with the key K
         /// </summary>
-        /// <param name="key">The key</param>
-        /// <returns>True if deleted otherwise false</returns>
-        Task<bool> Delete(K key);
+        /// <param name="key">The key k</param>
+        /// <param name="entity">The updated entity T</param>
+        /// <returns>True if successful otherwise false</returns>
+        Task<bool> UpdateSingle(K key, E entity, params object[] identifiers);
 
         /// <summary>
-        /// Deletes a single entity
+        /// Deletes an entity <see cref="E"/> with the key K
         /// </summary>
-        /// <param name="entity">The single entity to update</param>
-        /// <returns>True if deleted otherwise false</returns>
-        Task<bool> DeleteSingle(E entity);
+        /// <param name="key">The key K</param>
+        /// <returns>True if successful otherwise false</returns>
+        Task<bool> DeleteSingle(K key);
     }
 }

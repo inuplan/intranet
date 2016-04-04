@@ -1,4 +1,4 @@
-// Copyright © 2015 Inuplan
+﻿// Copyright © 2015 Inuplan
 // 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -20,21 +20,16 @@
 
 namespace Inuplan.Common.Models
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
-    /// <summary>
-    /// An enumeration that, defines the post type
-    /// </summary>
-    public enum PostType
+    public class Pagination<T>
     {
-        /// <summary>
-        /// General posts from anybody
-        /// </summary>
-        General = 1,
-
-        /// <summary>
-        /// Posts from Management, which are site-wide information
-        /// that cannot contain replies.
-        /// </summary>
-        Management = 2,
+        public int CurrentPage { get; set; }
+        public List<T> CurrentItems { get; set; }
+        public int TotalPages { get; set; }
     }
 }

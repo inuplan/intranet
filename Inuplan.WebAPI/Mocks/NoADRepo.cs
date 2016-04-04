@@ -39,12 +39,7 @@ namespace Inuplan.WebAPI.Mocks
             this.users = users;
         }
 
-        public Task<Option<User>> Create(User entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> Delete(User entity)
+        public Task<Option<User>> Create(User entity, params object[] identifiers)
         {
             throw new NotImplementedException();
         }
@@ -62,12 +57,12 @@ namespace Inuplan.WebAPI.Mocks
             return Task.FromResult(user);
         }
 
-        public Task<List<User>> Get(int skip, int take)
+        public Task<Pagination<User>> GetPage(int skip, int take, params object[] identifiers)
         {
             throw new NotImplementedException();
         }
 
-        public Task<List<User>> GetAll()
+        public Task<List<User>> GetAll(params object[] identifiers)
         {
             throw new NotImplementedException();
         }

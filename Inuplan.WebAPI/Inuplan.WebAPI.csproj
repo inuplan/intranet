@@ -144,7 +144,6 @@
     <Compile Include="Controllers\UserImageController.cs" />
     <Compile Include="CLI\ProgramOptions.cs" />
     <Compile Include="CLI\Parser.cs" />
-    <Compile Include="Controllers\TokenController.cs" />
     <Compile Include="Image\Factories\HandleFactory.cs" />
     <Compile Include="Image\Handle.cs" />
     <Compile Include="Middlewares\ManageUserMiddleware.cs" />
@@ -153,8 +152,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup.cs" />
-    <Compile Include="Controllers\TestController.cs" />
-    <Compile Include="Controllers\ManagementPostController.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

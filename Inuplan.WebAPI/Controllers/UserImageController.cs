@@ -29,6 +29,7 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Repositories;
     using Common.Tools;
     using NLog;
+    using Optional;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -46,7 +47,7 @@ namespace Inuplan.WebAPI.Controllers
     /// </summary>
     [EnableCors(origins: @"http://localhost:59382", headers: "", methods: "*", SupportsCredentials = true)]
     [RoutePrefix("{username:alpha:length(2,6)}/image")]
-    public class UserImageController : ApiController, IUserImageController
+    public class UserImageController : ApiController
     {
         /// <summary>
         /// The logging framework
@@ -61,7 +62,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <summary>
         /// The image repository, which stores the images.
         /// </summary>
-        private readonly IScalarRepository<Key, UserImage> userImageRepository;
+        private readonly IScalarRepository<int, Image> userImageRepository;
 
         /// <summary>
         /// The user database repository, which contains the registered users.
@@ -71,8 +72,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <summary>
         /// The repository comments for an image.
         /// </summary>
-        private readonly IVectorRepository<int, List<Post>, Post> imageCommentsRepo;
-        private readonly IScalarRepository<string, ProfileImage> profileImageRepository;
+        private readonly IVectorRepository<int, Comment> imageCommentsRepo;
 
         /// <summary>
         /// Instantiates a new <see cref="UserImageController"/> instance.
@@ -80,15 +80,13 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="userImageRepository">The image repository, which stores the images</param>
         public UserImageController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
-            IScalarRepository<Key, UserImage> userImageRepository,
-            IVectorRepository<int, List<Post>, Post> imageCommentsRepo,
-            IScalarRepository<string, ProfileImage> profileImageRepository,
+            IScalarRepository<int, Image> userImageRepository,
+            IVectorRepository<int, Comment> imageCommentsRepo,
             ImageHandleFactory imageHandleFactory)
         {
             this.userDatabaseRepository = userDatabaseRepository;
             this.userImageRepository = userImageRepository;
             this.imageCommentsRepo = imageCommentsRepo;
-            this.profileImageRepository = profileImageRepository;
             this.imageHandleFactory = imageHandleFactory;
         }
 
@@ -100,7 +98,7 @@ namespace Inuplan.WebAPI.Controllers
         // POST user/image
         [Route("")]
         [HttpPost]
-        public async Task<HttpResponseMessage> Post(string username)
+        public async Task<HttpResponseMessage> Post(string username, [FromBody] string description = "")
         {
             if (!AuthorizeToUsername(username))
             {
@@ -116,7 +114,7 @@ namespace Inuplan.WebAPI.Controllers
 
             // Proceed - everything OK
             var provider = await Request.Content.ReadAsMultipartAsync(new MultipartMemoryStreamProvider());
-            var bag = new ConcurrentBag<UserImage>();
+            var bag = new ConcurrentBag<Image>();
 
             var tasks = provider.Contents.Select(async file =>
             {
@@ -124,7 +122,7 @@ namespace Inuplan.WebAPI.Controllers
                 logger.Trace("Processing image...");
                 var handler = imageHandleFactory.GetImageHandler();
                 var user = GetPrincipalIdentityUser(RequestContext.Principal);
-                var image = await handler.ProcessUserImage(user, file);
+                var image = await handler.ProcessUserImage(user, file, description);
 
                 // Add images to the collection
                 bag.Add(image);
@@ -139,14 +137,14 @@ namespace Inuplan.WebAPI.Controllers
             {
                 var created = await userImageRepository.Create(image);
                 created.Match(
-                    success =>
+                    img =>
                     {
-                        logger.Debug("Saved image: {0}.{1}\tWith ID: {2}", success.Metadata.Filename, success.Metadata.Extension, success.Metadata.ID);
+                        logger.Debug("Saved image: {0}.{1}\tWith ID: {2}", img.Filename, img.Extension, img.ID);
                         error = false;
                     },
                     () =>
                     {
-                        logger.Error("Could not save: {0}.{1}", image.Metadata.Filename, image.Metadata.Extension);
+                        logger.Error("Could not save: {0}.{1}", image.Filename, image.Extension);
                     });
             });
 
@@ -165,22 +163,22 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username">The username of the current user</param>
         /// <param name="file">The full name of the image requested</param>
         /// <returns>The requested image</returns>
-        // GET user/image/test.jpeg
-        [Route("{file}")]
-        public async Task<HttpResponseMessage> Get(string username, string file)
+        // GET user/image/1/test.jpeg
+        [Route("{id:int}/{file}")]
+        public async Task<HttpResponseMessage> Get(string username, int id, string file)
         {
             var tmp = Helpers.GetFilename(file);
             var filename = tmp.Item1;
             var extension = tmp.Item2;
 
-            var image = await userImageRepository.Get(new Key(username, filename, extension));
+            var image = await userImageRepository.Get(id);
 
             return image.Match(img =>
             {
                 var imageBlob = img.Original.Data.Value;
                 var response = Request.CreateResponse(HttpStatusCode.OK);
                 response.Content = new ByteArrayContent(imageBlob);
-                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.Metadata.MimeType);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.MimeType);
                 return response;
             },
             () =>
@@ -195,22 +193,22 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username">The username of the current user</param>
         /// <param name="file">The full name of the image requested</param>
         /// <returns>The requested image</returns>
-        // GET user/image/preview/test.jpeg
-        [Route("preview/{file}")]
-        public async Task<HttpResponseMessage> GetPreview(string username, string file)
+        // GET user/image/1/preview/test.jpeg
+        [Route("{id:int}/preview/{file}")]
+        public async Task<HttpResponseMessage> GetPreview(string username, int id, string file)
         {
             var tmp = Helpers.GetFilename(file);
             var filename = tmp.Item1;
             var extension = tmp.Item2;
 
-            var image = await userImageRepository.Get(new Key(username, filename, extension));
+            var image = await userImageRepository.Get(id);
 
-            return image.Match(i =>
+            return image.Match(img =>
             {
-                var imageBlob = i.Medium.Data.Value;
+                var imageBlob = img.Preview.Data.Value;
                 var response = Request.CreateResponse(HttpStatusCode.OK);
                 response.Content = new ByteArrayContent(imageBlob);
-                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.Metadata.MimeType);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.MimeType);
                 return response;
             },
             () =>
@@ -225,22 +223,22 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username">The username of the current user</param>
         /// <param name="file">The full name of the image requested</param>
         /// <returns>The requested image</returns>
-        // GET user/image/thumbnail/test.jpeg
-        [Route("thumbnail/{file}")]
-        public async Task<HttpResponseMessage> GetThumbnail(string username, string file)
+        // GET user/image/1/thumbnail/test.jpeg
+        [Route("{id:int}/thumbnail/{file}")]
+        public async Task<HttpResponseMessage> GetThumbnail(string username, int id, string file)
         {
             var tmp = Helpers.GetFilename(file);
             var filename = tmp.Item1;
             var extension = tmp.Item2;
 
-            var image = await userImageRepository.Get(new Key(username, filename, extension));
+            var image = await userImageRepository.Get(id);
 
-            return image.Match(i =>
+            return image.Match(img =>
             {
-                var imageBlob = i.Thumbnail.Data.Value;
+                var imageBlob = img.Thumbnail.Data.Value;
                 var response = Request.CreateResponse(HttpStatusCode.OK);
                 response.Content = new ByteArrayContent(imageBlob);
-                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(i.Metadata.MimeType);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.MimeType);
                 return response;
             },
             () =>
@@ -265,7 +263,7 @@ namespace Inuplan.WebAPI.Controllers
                 var imageBlob = img.Original.Data.Value;
                 var response = Request.CreateResponse(HttpStatusCode.OK);
                 response.Content = new ByteArrayContent(imageBlob);
-                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.Metadata.MimeType);
+                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.MimeType);
                 return response;
             },
             () =>
@@ -279,155 +277,32 @@ namespace Inuplan.WebAPI.Controllers
         /// </summary>
         /// <param name="username">The username</param>
         /// <returns>An awaitable list of <see cref="UserImageDTO"/></returns>
-        // GET user/image?comments=true
+        // GET user/image
         [HttpGet]
         [Route("")]
-        public async Task<List<UserImageDTO>> GetAll(string username, [FromUri] bool comments = false)
+        public async Task<List<UserImageDTO>> GetAll(string username)
         {
-            // Helper method, Image -> string URL
-            var baseAddress = "http://" + Request.RequestUri.Authority + Request.RequestUri.LocalPath;
-            var getOriginalUrl = new Func<UserImage, string>(
-                img => string.Format("{0}/{1}.{2}",
-                    baseAddress,
-                    img.Metadata.Filename,
-                    img.Metadata.Extension));
+            // Get user
+            var userID = await userDatabaseRepository.Get(username);
 
-            var getPreviewUrl = new Func<UserImage, string>(
-                i => string.Format("{0}/preview/{1}.{2}",
-                    baseAddress,
-                    i.Metadata.Filename,
-                    i.Metadata.Extension));
-
-            var getThumbnailUrl = new Func<UserImage, string>(
-                i => string.Format("{0}/thumbnail/{1}.{2}",
-                    baseAddress,
-                    i.Metadata.Filename,
-                    i.Metadata.Extension));
-
-            var getProfilePictureUrl = new Func<Post, string>(
-                p => string.Format("{0}/{1}/image/profile/picture.jpg",
-                    baseAddress,
-                    p.Author.Username));
-
-            // Helper method: Gets the comments for an image given the id
-            var getCommentImage = new Func<int, IEnumerable<IGrouping<int, List<Post>>>, List<CommentDTO>>((int id, IEnumerable<IGrouping<int, List<Post>>> collection) =>
-               collection.Where(g => g.Key == id).SelectMany(g => g.SelectMany(t => t.Select(p => new CommentDTO
-               {
-                   Author = new UserDTO
-                   {
-                       ID = p.Author.ID,
-                       FirstName = p.Author.FirstName,
-                       LastName = p.Author.LastName,
-                       Username = p.Author.Username,
-                       Email = p.Author.Email,
-                       ProfileImageUrl = getProfilePictureUrl(p),
-                   },
-                   Comment = p.Comment,
-                   ID = p.ID,
-                   PostedOn = p.PostedOn
-               }))).ToList());
-
-            // Get all images from DB
-            var user = await userDatabaseRepository.Get(username);
-            if(!user.HasValue)
+            // Get all images for the user
+            var images = userID.Map(u =>
             {
-                // User does not exists!
-                logger.Error("User: {0}, does not exists!", username);
-                throw new HttpResponseException(HttpStatusCode.NotFound);
-            }
+                // Transform image to DTOs
+                var imgs = userImageRepository.GetAll(u.ID).Result;
+                var dtos = imgs.Select(img => Convert(img));
+                return dtos.ToList();
+            });
 
-            // Filters by username, and creates an ImageDTO list
-            var images = await userImageRepository.GetAll();
-            var allComments = await imageCommentsRepo.GetAll();
-            var result = images
-                                .Where(i => 
-                                    i.Metadata.Owner
-                                    .Username.Equals(username, StringComparison.OrdinalIgnoreCase))
-                                .Select(img => new UserImageDTO
-                                {
-                                    Extension = img.Metadata.Extension,
-                                    Filename = img.Metadata.Filename,
-                                    ImageID = img.Metadata.ID,
-                                    Username = img.Metadata.Owner.Username,
-                                    PathOriginalUrl = getOriginalUrl(img),
-                                    PathPreviewUrl = getPreviewUrl(img),
-                                    PathThumbnailUrl = getThumbnailUrl(img),
-                                })
-                                .Select(img => {
-                                    if (comments)
-                                    {
-                                        img.Comments = getCommentImage(img.ImageID, allComments);
-                                    }
-
-                                    return img;
-                                })
-                                .ToList();
-            return result;
-        }
-
-        // GET user/image/profile
-        [Route("profile")]
-        [HttpGet]
-        public async Task<HttpResponseMessage> GetProfilePicture(string username)
-        {
-            var profileImage = await profileImageRepository.Get(username);
-            return profileImage.Match(img =>
+            return images.Match(imgs =>
             {
-                var blob = img.Data.Data.Value;
-                var response = Request.CreateResponse(HttpStatusCode.OK);
-                response.Content = new ByteArrayContent(blob);
-                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.Metadata.MimeType);
-                return response;
+                return imgs;
             },
-            () => Request.CreateResponse(HttpStatusCode.NotFound));
-        }
-
-        // POST user/image/profile
-        [Route("profile")]
-        [HttpPost]
-        public async Task<HttpResponseMessage> UploadProfileImage(string username)
-        {
-            if (!AuthorizeToUsername(username))
+            () =>
             {
-                logger.Error("Cannot upload to another users folder");
-                return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot upload to another users folder");
-            }
-
-            if(!Request.Content.IsMimeMultipartContent())
-            {
-                logger.Error("Must be a multipart content type");
-                return Request.CreateResponse(HttpStatusCode.BadRequest, "Must be a multipart content type!");
-            }
-
-            // Extract the stream and read the file
-            var provider = await Request.Content.ReadAsMultipartAsync(new MultipartMemoryStreamProvider());
-
-            if(provider.Contents.Count != 1)
-            {
-                logger.Error("Can only upload one profile picture");
-                return Request.CreateResponse(HttpStatusCode.BadRequest, "Can only upload one profile picture");
-            }
-
-            var file = provider.Contents.First();
-            var handler = imageHandleFactory.GetImageHandler();
-
-            // Construct profile image
-            var user = GetPrincipalIdentityUser(RequestContext.Principal);
-            var image = await handler.ProcessProfileImage(user, file);
-
-            // Save the profile image to the database and filesystem
-            var created = await profileImageRepository.Create(image);
-
-            // Respond with success or fail
-            return created.Match(
-                p =>
-                {
-                    var response = Request.CreateResponse(HttpStatusCode.Created);
-                    var location = string.Format("{0}/image/profile/picture.jpg", username);
-                    response.Headers.Location = new Uri(location, UriKind.Relative);
-                    return response;
-                },
-                () => Request.CreateResponse(HttpStatusCode.InternalServerError));
+                logger.Error("User: {0} not found", username);
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+            });
         }
 
         /// <summary>
@@ -436,10 +311,10 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username"></param>
         /// <param name="file"></param>
         /// <returns></returns>
-        // DELETE user/image/test.jpeg
-        [Route("{file}")]
+        // DELETE user/image/1/test.jpeg
+        [Route("{id:int}/{file}")]
         [HttpDelete]
-        public async Task<HttpResponseMessage> Delete(string username, string file)
+        public async Task<HttpResponseMessage> Delete(string username, int id, string file)
         {
             if(!AuthorizeToUsername(username))
             {
@@ -448,11 +323,27 @@ namespace Inuplan.WebAPI.Controllers
             }
 
             var filename = Helpers.GetFilename(file);
-            var deleted = await userImageRepository.Delete(new Key(username, filename.Item1, filename.Item2));
+            var deleted = await userImageRepository.Delete(id);
 
             return deleted ?
                 Request.CreateResponse(HttpStatusCode.OK, "Image deleted") :
                 Request.CreateResponse(HttpStatusCode.InternalServerError, "Failed to delete image");
+        }
+
+        [NonAction]
+        private UserImageDTO Convert(Image image)
+        {
+            // Construct image DTO
+            return new UserImageDTO
+            {
+                Extension = image.Extension,
+                Filename = image.Filename,
+                ImageID = image.ID,
+                PathOriginalUrl = string.Format("{0}/image/{1}/{2}.{3}", image.Owner.Username, image.ID, image.Filename, image.Extension),
+                PathPreviewUrl = string.Format("{0}/image/{1}/preview/{2}.{3}", image.Owner.Username, image.ID, image.Filename, image.Extension),
+                PathThumbnailUrl = string.Format("{0}/image/{1}/thumbnail/{2}.{3}", image.Owner.Username, image.ID, image.Filename, image.Extension),
+                Username = image.Owner.Username,
+            };
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-// Copyright © 2015 Inuplan
+﻿// Copyright © 2015 Inuplan
 // 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -21,33 +21,18 @@
 namespace Inuplan.Common.Models
 {
     /// <summary>
-    /// An enumeration of role types
+    /// The role information
     /// </summary>
-    public enum RoleType
+    public class Role
     {
         /// <summary>
-        /// Users with none, have no access rights
+        /// Gets or sets the ID for this role
         /// </summary>
-        None = 0,
+        public int ID { get; set; }
 
         /// <summary>
-        /// Management role
+        /// Gets or sets the name for this role
         /// </summary>
-        Management = 1,
-
-        /// <summary>
-        /// Editor role
-        /// </summary>
-        Editor = 2,
-
-        /// <summary>
-        /// User role
-        /// </summary>
-        User = 3,
-
-        /// <summary>
-        /// Administrator role
-        /// </summary>
-        Administrator = 4,
+        public string Name { get; set; }
     }
 }

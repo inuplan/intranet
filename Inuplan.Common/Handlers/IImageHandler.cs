@@ -37,7 +37,7 @@ namespace Inuplan.Common.Handlers
         /// <param name="user">The user who initiated the process</param>
         /// <param name="fileContent">The http content file</param>
         /// <returns>A processed image</returns>
-        Task<UserImage> ProcessUserImage(User user, HttpContent fileContent);
+        Task<Image> ProcessUserImage(User user, HttpContent fileContent, string description);
 
         /// <summary>
         /// Converts an http stream to a <see cref="ProfileImage"/>.
@@ -46,6 +46,6 @@ namespace Inuplan.Common.Handlers
         /// <param name="user">The user who initiated the process</param>
         /// <param name="fileContent">The http content</param>
         /// <returns>A profile image</returns>
-        Task<ProfileImage> ProcessProfileImage(User user, HttpContent fileContent);
+        //Task<ProfileImage> ProcessProfileImage(User user, HttpContent fileContent);
     }
 }

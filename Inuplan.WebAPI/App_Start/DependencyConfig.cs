@@ -22,7 +22,6 @@ namespace Inuplan.WebAPI.App_Start
     using Common.Enums;
     using Common.Factories;
     using Common.Mappers;
-    using Common.Tools;
     using Controllers;
     using DAL.Repositories;
     using Image.Factories;
@@ -35,9 +34,7 @@ namespace Inuplan.WebAPI.App_Start
     using System.Data;
     using System.Data.SqlClient;
     using System.DirectoryServices.AccountManagement;
-    using System.Security.Cryptography;
     using System.Web.Http;
-    using ImageKey = System.Tuple<string, string, string>;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -68,11 +65,8 @@ namespace Inuplan.WebAPI.App_Start
             }).As<IDbConnection>().InstancePerDependency();
 
             // Register Web API controllers
-            builder.RegisterType<TestController>().InstancePerRequest();
-            builder.RegisterType<ManagementPostController>().WithAttributeFilter();
             builder.RegisterType<UserImageController>().WithAttributeFilter();
             builder.RegisterType<UserController>().WithAttributeFilter();
-            builder.RegisterType<TokenController>().WithAttributeFilter();
 
             // Register classes and keys
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
@@ -81,14 +75,13 @@ namespace Inuplan.WebAPI.App_Start
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
 
             // Register repositories
-            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<ImageKey, UserImage>>();
-            builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, List<Post>, Post>>();
-            builder.RegisterType<UserProfileImageRepository>().As<IScalarRepository<string, ProfileImage>>();
-            builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
+            builder.RegisterType<RoleRepository>().As<IScalarRepository<int, Role>>();
+            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<int, Image>>();
+            builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, Comment>>();
+            //builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
             //builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
             builder.Register(ctx => new Mocks.NoADRepo(mockUsers)).Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
             builder.Register(ctx => new Mocks.NoDBRepo(mockUsers)).Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
-            //builder.RegisterType<Mocks.NoDBRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
 
             // Use autofac owin pipeline
             OwinPipeline(builder);
@@ -100,9 +93,13 @@ namespace Inuplan.WebAPI.App_Start
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
         }
 
+        /// <summary>
+        /// Constructs the owin pipeline, from the <see cref="Microsoft.Owin.OwinMiddleware"/> objects.
+        /// </summary>
+        /// <param name="builder">The autofac container builder</param>
         private static void OwinPipeline(ContainerBuilder builder)
         {
-            // Owin middleware pipeline
+            // Owin middleware pipeline - order matters
             builder.RegisterType<ManageUserMiddleware>().WithAttributeFilter();
         }
 
@@ -126,6 +123,7 @@ namespace Inuplan.WebAPI.App_Start
         /// <returns>A list of mocked users</returns>
         private static List<User> MockUsers()
         {
+            var roles = new List<Role> { new Role { ID = 1, Name = "User" } };
             return new List<User>
             {
                 new User
@@ -135,7 +133,7 @@ namespace Inuplan.WebAPI.App_Start
                     LastName = "Doe",
                     Username = "jdoe",
                     ID = 1,
-                    Role = RoleType.User
+                    Roles = roles,
                 },
                 new User
                 {
@@ -144,7 +142,7 @@ namespace Inuplan.WebAPI.App_Start
                     LastName = "Cash",
                     Username = "Johnny",
                     ID = 2,
-                    Role = RoleType.User
+                    Roles = roles,
                 }
             };
         }
