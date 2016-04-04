@@ -59,6 +59,7 @@ namespace Inuplan.DAL.Repositories
 
         /// <summary>
         /// Creates a new comment. Required: an int identifier, which determines the image the comment relates to!
+        /// Optional: int identifier, which determines the comment which is replied to.
         /// </summary>
         /// <param name="entity">The comment to create</param>
         /// <param name="identifiers">An array where the first item is the id of the image, the second item is the id of the parent comment id</param>
