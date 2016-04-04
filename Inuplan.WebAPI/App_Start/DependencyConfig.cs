@@ -65,6 +65,7 @@ namespace Inuplan.WebAPI.App_Start
             }).As<IDbConnection>().InstancePerDependency();
 
             // Register Web API controllers
+            builder.RegisterType<RoleController>().WithAttributeFilter();
             builder.RegisterType<UserImageController>().WithAttributeFilter();
             builder.RegisterType<UserController>().WithAttributeFilter();
 
