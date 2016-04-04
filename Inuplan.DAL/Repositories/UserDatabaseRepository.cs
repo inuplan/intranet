@@ -71,6 +71,7 @@ namespace Inuplan.DAL.Repositories
         public async Task<Option<User>> Create(User entity, params object[] identifiers)
         {
             Debug.Assert(entity.Roles != null && entity.Roles.Any(), "Must define an existing role for this user!");
+            Debug.Assert(entity.Roles.All(r => r.ID > 0), "A role must already be created in the database before creating the user");
             entity.ID = 0;
 
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
