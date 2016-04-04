@@ -187,3 +187,4 @@ packages/
 **/web.debug.config
 **/web.release.config
 *.pdb
+docs/rest_api.pdf

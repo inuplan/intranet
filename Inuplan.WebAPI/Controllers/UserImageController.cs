@@ -158,7 +158,7 @@ namespace Inuplan.WebAPI.Controllers
         }
 
         [HttpPut]
-        [Route("{id:int}/image/{file}")]
+        [Route("{id:int}/{file}")]
         public async Task<HttpResponseMessage> Put(string username, int id, string file, [FromBody] string description)
         {
             // Only update the description for the image
