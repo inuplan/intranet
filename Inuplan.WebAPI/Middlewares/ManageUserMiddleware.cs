@@ -27,6 +27,9 @@ namespace Inuplan.WebAPI.Middlewares
     using Microsoft.Owin;
     using NLog;
     using Optional;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
 
@@ -52,15 +55,22 @@ namespace Inuplan.WebAPI.Middlewares
         private readonly IScalarRepository<string ,User> userActiveDirectoryRepository;
 
         /// <summary>
+        /// The repository for roles
+        /// </summary>
+        private readonly IScalarRepository<int, Role> roleRepository;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ManageUserMiddleware"/> class.
         /// </summary>
         /// <param name="next">The next owin middleware</param>
         public ManageUserMiddleware(
             OwinMiddleware next,
+            IScalarRepository<int, Role> roleRepository,
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             [WithKey(ServiceKeys.UserActiveDirectory)] IScalarRepository<string, User> userActiveDirectoryRepository)
             : base(next)
         {
+            this.roleRepository = roleRepository;
             this.userDatabaseRepository = userDatabaseRepository;
             this.userActiveDirectoryRepository = userActiveDirectoryRepository;
         }
@@ -79,10 +89,19 @@ namespace Inuplan.WebAPI.Middlewares
 
             if (!user.HasValue)
             {
+                // Get existing "normal role"
+                var role = (await roleRepository.GetAll())
+                    .FirstOrDefault(r => r.Name.Equals("User", System.StringComparison.OrdinalIgnoreCase));
+
+                // Assume that a "User" role exists!
+                Debug.Assert(role != null, "Must have a predefined role: \"User\"");
+
                 // We need to create the user in the database
                 var adUser = await userActiveDirectoryRepository.Get(username);
                 error = await adUser.Match(async u =>
                 {
+                    // Set role to "User"
+                    u.Roles = new List<Role> { role };
                     var created = await userDatabaseRepository.Create(u);
                     if(!created.HasValue)
                     {
