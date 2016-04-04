@@ -1,5 +1,6 @@
 ﻿using Inuplan.Common.Models;
 using Inuplan.Common.Repositories;
+using Inuplan.Common.Tools;
 using Optional;
 using System;
 using System.Collections.Generic;
@@ -52,7 +53,9 @@ namespace Inuplan.WebAPI.Mocks
 
         public Task<Pagination<User>> GetPage(int skip, int take, params object[] identifiers)
         {
-            throw new NotImplementedException();
+            var items = users.Skip(skip).Take(take).ToList();
+            var page = Helpers.Pageify(skip, take, users.Count, items);
+            return Task.FromResult(page);
         }
 
         public Task<List<User>> GetAll(params object[] identifiers)
