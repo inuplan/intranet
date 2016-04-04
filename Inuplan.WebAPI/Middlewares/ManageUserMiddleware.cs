@@ -142,7 +142,6 @@ namespace Inuplan.WebAPI.Middlewares
             var principal = new GenericPrincipal(context.Request.User.Identity, roles.Select(r => r.Name).ToArray());
             context.Request.User = principal;
             Thread.CurrentPrincipal = principal;
-            HttpContext.Current.User = principal;
 
             logger.Trace("Proceeding with the owin middleware pipeline");
             await Next.Invoke(context);
