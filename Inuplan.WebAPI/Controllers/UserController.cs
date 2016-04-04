@@ -26,10 +26,10 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Repositories;
     using Optional;
     using System.Net;
+    using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
 
-    [RoutePrefix("user/{username}")]
     public class UserController : ApiController
     {
         private readonly IScalarRepository<string, User> userRepository;
@@ -39,14 +39,26 @@ namespace Inuplan.WebAPI.Controllers
             this.userRepository = userRepository;
         }
 
-        [HttpGet]
-        [Route("")]
         public async Task<User> Get(string username)
         {
             var user = await userRepository.Get(username);
             return user.Match(
                 u => u,
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<HttpResponseMessage> Post(User user)
+        {
+            var created = await userRepository.Create(user);
+            return created.Match(u => Request.CreateResponse(HttpStatusCode.Created),
+                () => Request.CreateResponse(HttpStatusCode.InternalServerError));
+        }
+
+        public async Task<Pagination<User>> Get(int skip, int take)
+        {
+            var page = await userRepository.GetPage(skip, take);
+            return page;
         }
     }
 }
