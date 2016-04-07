@@ -65,6 +65,7 @@
     <Compile Include="Handlers\IImageHandler.cs" />
     <Compile Include="Controllers\IUserImageController.cs" />
     <Compile Include="Mappers\NewtonsoftMapper.cs" />
+    <Compile Include="Models\Album.cs" />
     <Compile Include="Models\Comment.cs" />
     <Compile Include="Models\FileInfo.cs" />
     <Compile Include="Models\Image.cs" />
