@@ -11,7 +11,7 @@
     using System.Web.Http.Cors;
 
     [EnableCors(origins: @"http://beta.intranet", headers: "", methods: "*", SupportsCredentials = true)]
-    public class UserAlbumController : ApiController
+    public class UserAlbumController : DefaultController
     {
         private readonly IScalarRepository<int, Album> albumRepository;
 

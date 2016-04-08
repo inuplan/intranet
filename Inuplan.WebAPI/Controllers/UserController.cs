@@ -31,7 +31,7 @@ namespace Inuplan.WebAPI.Controllers
     using System.Web.Http.Cors;
 
     [EnableCors(origins: @"http://beta.intranet", headers: "", methods: "*", SupportsCredentials = true)]
-    public class UserController : ApiController
+    public class UserController : DefaultController
     {
         private readonly IScalarRepository<string, User> userRepository;
 
