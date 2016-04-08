@@ -33,6 +33,8 @@ namespace Inuplan.DAL.Repositories
     using System.Transactions;
     using System.IO;
     using Optional.Unsafe;
+    using Common.Tools;
+
     public class UserAlbumRepository : IScalarRepository<int, Album>
     {
         private readonly IDbConnection connection;
@@ -187,14 +189,60 @@ namespace Inuplan.DAL.Repositories
 
         public async Task<Pagination<Album>> GetPage(int skip, int take, params object[] identifiers)
         {
-            var sql = @"SELECT *, Row_Number() OVER(ORDER BY ID) AS rn FROM Albums
-                        WHERE rn BETWEEN @From AND @To";
-            throw new NotImplementedException();
+            var userID = (int)identifiers[0];
+            Debug.Assert(userID > 0, "Must have a valid user ID!");
+            var sql = @"SELECT ID, Description, Owner, Name FROM
+                            (SELECT *, Row_Number() OVER (ORDER BY ID) AS rn
+                            FROM Albums WHERE Owner = @Owner) as seq
+                        WHERE seq.rn BETWEEN @From AND @To;";
+
+            // Album info without images
+            var items = await connection.QueryAsync<Album>(sql, new
+            {
+                Owner = userID,
+                From = skip + 1,
+                Take = skip + take,
+            });
+
+            var total = await connection.ExecuteScalarAsync<int>(@"SELECT COUNT(*) FROM Albums WHERE Owner = @Owner", new
+            {
+                Owner = userID
+            });
+
+            return Helpers.Pageify(skip, take, total, items.ToList());
         }
 
         public async Task<bool> Update(int key, Album entity)
         {
-            throw new NotImplementedException();
+            Debug.Assert(entity.Images.All(img => img.ID > 0), "Images must pre-exist!");
+            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                var sql = @"UPDATE Album SET Description=@Description, Name=@Name WHERE ID=@ID";
+                var update = (await connection.ExecuteAsync(sql, new
+                {
+                    Description = entity.Description,
+                    Name = entity.Name,
+                    ID = entity.ID
+                })).Equals(1);
+
+                var deleteSql = @"DELETE FROM AlbumImages WHERE AlbumID=@AlbumID";
+                var deleted = (await connection.ExecuteAsync(deleteSql, new
+                {
+                    AlbumID = entity.ID
+                })).Equals(entity.Images.Count);
+
+                var imgs = entity.Images.Select(img => new { AlbumID = entity.ID, ImageID = img.ID }).ToArray();
+                var insertSql = @"INSERT INTO AlbumImages (AlbumID, ImageID) VALUES(@AlbumID, @ImageID);";
+                var inserted = (await connection.ExecuteAsync(insertSql, imgs)).Equals(imgs.Count());
+
+                var success = update && deleted && inserted;
+                if(success)
+                {
+                    transactionScope.Complete();
+                }
+
+                return success;
+            }
         }
 
         protected virtual void Dispose(bool disposing)
@@ -204,6 +252,7 @@ namespace Inuplan.DAL.Repositories
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
+                    connection.Dispose();
                 }
 
                 disposedValue = true;
