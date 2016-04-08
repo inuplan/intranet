@@ -30,7 +30,7 @@ namespace Inuplan.WebAPI.Controllers
     using System.Web.Http;
     using System.Web.Http.Cors;
 
-    [EnableCors(origins: @"http://localhost:59382", headers: "", methods: "*", SupportsCredentials = true)]
+    [EnableCors(origins: @"http://beta.intranet", headers: "", methods: "*", SupportsCredentials = true)]
     public class ImageCommentController : ApiController
     {
         private readonly IVectorRepository<int, Comment> imageCommentRepository;

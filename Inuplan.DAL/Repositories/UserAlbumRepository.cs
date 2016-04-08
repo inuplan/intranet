@@ -222,7 +222,7 @@ namespace Inuplan.DAL.Repositories
                 {
                     Description = entity.Description,
                     Name = entity.Name,
-                    ID = entity.ID
+                    ID = key
                 })).Equals(1);
 
                 var deleteSql = @"DELETE FROM AlbumImages WHERE AlbumID=@AlbumID";
