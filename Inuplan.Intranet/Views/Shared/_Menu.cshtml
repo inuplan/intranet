@@ -1,5 +1,5 @@
 ﻿@model Inuplan.Intranet.ViewModels.BaseViewModel<Inuplan.Common.Models.User>
-<div class="navbar navbar-inverse navbar-fixed-top">
+<div class="navbar navbar-default navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -7,15 +7,13 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+            @Html.ActionLink("beta intranet", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
-                <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                <li>@Html.ActionLink("About", "About", "Home")</li>
-                <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
+                <li>@Html.ActionLink("Forside", "Index", "Home")</li>
             </ul>
-            <p class="nav navbar-text navbar-right">Hello, @Model.CurrentUsername!</p>
+            <p class="nav navbar-text navbar-right">Hej, @Model.CurrentUsername!</p>
         </div>
     </div>
 </div>
