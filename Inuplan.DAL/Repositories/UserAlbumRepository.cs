@@ -52,7 +52,7 @@ namespace Inuplan.DAL.Repositories
                             identifiers.Cast<Image>().ToList() :
                             new List<Image>();
 
-            Debug.Assert(entity.Owner != null, "Must have a valid owner!");
+            Debug.Assert(entity.Owner != null && entity.Owner.ID > 0, "Must have a valid owner!");
             Debug.Assert(images.All(img => img.ID > 0), "All images must have existing ID's");
 
             using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))

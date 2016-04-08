@@ -2,6 +2,7 @@
 {
     using Common.Models;
     using Common.Repositories;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -37,6 +38,17 @@
 
         public async Task<HttpResponseMessage> Delete(int albumId)
         {
+            var user = GetPrincipalIdentityUser(RequestContext.Principal);
+            var album = await albumRepository.Get(albumId);
+            var isOwner = album
+                .Map(a => a.Owner.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase))
+                .ValueOr(false);
+
+            if(!isOwner && !RequestContext.Principal.IsInRole("Admin"))
+            {
+                Request.CreateResponse(HttpStatusCode.Forbidden);
+            }
+
             var deleted = await albumRepository.Delete(albumId);
             return deleted ?
                 Request.CreateResponse(HttpStatusCode.NoContent) :
@@ -45,6 +57,11 @@
 
         public async Task<HttpResponseMessage> Post(Album album, List<int> imageIds)
         {
+            // Set owner to current  user
+            var owner = GetPrincipalIdentityUser(RequestContext.Principal);
+            album.Owner = owner;
+
+            // Convert ids to shallow images
             var images = imageIds
                 .Where(imgID => imgID > 0)
                 .Select(imgID => new Image
@@ -52,7 +69,10 @@
                     ID = imgID
                 });
 
+            // Create album
             var created = await albumRepository.Create(album, images);
+
+            // Return result
             return created.Match(
                 a => Request.CreateResponse(HttpStatusCode.OK, a),
                 () => Request.CreateResponse(HttpStatusCode.InternalServerError));
