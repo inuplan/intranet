@@ -197,7 +197,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="Inuplan.WebAPI.ruleset" />
-    <None Include="Inuplan.WebAPI_TemporaryKey.pfx" />
     <None Include="NLog.xsd">
       <SubType>Designer</SubType>
     </None>
