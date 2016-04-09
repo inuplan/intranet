@@ -74,6 +74,7 @@
     <Compile Include="Repositories\UserImageRepository.cs" />
     <Compile Include="Repositories\UserADRepository.cs" />
     <Compile Include="Repositories\UserDatabaseRepository.cs" />
+    <Compile Include="Repositories\UserRoleRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <!-- <None Include="App.config" /> -->
