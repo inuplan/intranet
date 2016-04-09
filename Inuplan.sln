@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Tests", "Inuplan.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Intranet", "Inuplan.Intranet\Inuplan.Intranet.csproj", "{4333C7BF-7DA2-4F33-B13E-1A22458DE153}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Service", "Inuplan.Service\Inuplan.Service.csproj", "{15198106-85DE-4F81-A1B5-952EE39FC9FB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{4333C7BF-7DA2-4F33-B13E-1A22458DE153}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4333C7BF-7DA2-4F33-B13E-1A22458DE153}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4333C7BF-7DA2-4F33-B13E-1A22458DE153}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15198106-85DE-4F81-A1B5-952EE39FC9FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15198106-85DE-4F81-A1B5-952EE39FC9FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15198106-85DE-4F81-A1B5-952EE39FC9FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15198106-85DE-4F81-A1B5-952EE39FC9FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
