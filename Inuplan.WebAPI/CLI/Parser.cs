@@ -16,10 +16,10 @@
 
 namespace Inuplan.WebAPI.CLI
 {
-    using System;
     using Optional;
     using CommandLine;
     using NLog;
+
     /// <summary>
     /// Command-line interface parser
     /// </summary>
