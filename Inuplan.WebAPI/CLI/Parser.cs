@@ -65,60 +65,11 @@ namespace Inuplan.WebAPI.CLI
             {
                 var address = !(string.IsNullOrEmpty(opt.BaseAddress)) ? opt.BaseAddress : defaultAddress;
                 var port = (opt.ListenOnPort > 0) ? opt.ListenOnPort : defaultPort;
+
                 return address + ":" + port;
             });
 
             return result;
-        }
-
-        /// <summary>
-        /// Starts the console
-        /// </summary>
-        /// <param name="address">The address of the <code>Web API</code></param>
-        public void StartConsole(string address)
-        {
-            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
-            AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
-            Console.WriteLine("Inuplan A/S Web API listening on: {0}\n", address);
-
-            var loop = true;
-
-            while (loop)
-            {
-                Console.Write(@"API:\> ");
-                var input = Console.ReadLine().ToLower();
-                
-                switch (input)
-                {
-                    case "info":
-                        Console.WriteLine("API address: {0}", address);
-                        break;
-                    case "cls":
-                    case "clear":
-                        Console.Clear();
-                        break;
-                    case "?":
-                    case "help":
-                        Console.WriteLine("Type 'exit' or 'quit' to end the program.");
-                        Console.WriteLine("Accepted commands: 'info', 'cls' or 'clear', '?' or 'help'.");
-                        break;
-                    case "quit":
-                    case "exit":
-                        Console.WriteLine("Exiting...");
-                        loop = false;
-                        break;
-                }
-            }            
-        }
-
-        private static void CurrentDomain_FirstChanceException(object sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
-        {
-            logger.Error("First chance", e);
-        }
-
-        private static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
-        {
-            logger.Error("Unhandled exception", e);
         }
     }
 }

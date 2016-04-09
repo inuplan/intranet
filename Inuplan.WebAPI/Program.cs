@@ -16,10 +16,12 @@
 
 namespace Inuplan.WebAPI
 {
-    using System;
     using Inuplan.WebAPI.CLI;
     using Microsoft.Owin.Hosting;
     using NLog;
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// The web API server class
@@ -42,10 +44,30 @@ namespace Inuplan.WebAPI
         private const int defaultPort = 9000;
 
         /// <summary>
+        /// The cancellation token source, which can stop the current web api.
+        /// </summary>
+        private CancellationTokenSource src;
+
+        /// <summary>
         /// The main function
         /// </summary>
         /// <param name="args">Arguments provided through the command-line interface</param>
         public static void Main(string[] args)
+        {
+            var program = new Program();
+            program.Start(args);
+        }
+
+        /// <summary>
+        /// Starts the owin web api with the given arguments.
+        /// <code>
+        /// Usage:
+        /// -a http://localhost  'defines the host on which to accept incoming requests'
+        /// -p 9000              'defines the port on which to listen for incoming requests'
+        /// </code>
+        /// </summary>
+        /// <param name="args">The arguments</param>
+        public void Start(string[] args)
         {
             logger.Trace("Starting program with args: {0}", args);
             var parser = new Parser(defaultAddress, defaultPort);
@@ -55,8 +77,33 @@ namespace Inuplan.WebAPI
             // Start OWIN host 
             using (WebApp.Start<Startup>(url: baseAddress))
             {
-                parser.StartConsole(baseAddress);
+                Headless();
             }
+        }
+
+        /// <summary>
+        /// Stops the program
+        /// </summary>
+        public void Stop()
+        {
+            src.Cancel();
+        }
+
+        /// <summary>
+        /// The headless console
+        /// </summary>
+        private void Headless()
+        {
+            src = new CancellationTokenSource();
+            var token = src.Token;
+
+            Task.WaitAny(Task.Run(() =>
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                }
+            }));
         }
     }
 }
