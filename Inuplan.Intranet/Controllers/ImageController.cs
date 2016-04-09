@@ -37,7 +37,6 @@ namespace Inuplan.Intranet.Controllers
     /// </summary>
     public class ImageController : Controller
     {
-        private const string baseAddress = "http://localhost:9000";
         private readonly IHttpClientFactory httpClientFactory;
         private readonly Uri remoteBaseAddress;
 
@@ -50,7 +49,7 @@ namespace Inuplan.Intranet.Controllers
         }
 
         [HttpGet]
-        [Route("user/{username:alpha:length(2,6)}/images", Name = "UserImages")]
+        [Route("user/{username:alpha}/images", Name = "UserImages")]
         public async Task<ActionResult> UserImages(string username)
         {
             using (var client = httpClientFactory.GetHttpClient())

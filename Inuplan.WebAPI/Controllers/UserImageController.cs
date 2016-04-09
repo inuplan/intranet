@@ -45,15 +45,10 @@ namespace Inuplan.WebAPI.Controllers
     /// <summary>
     /// Image file controller
     /// </summary>
-    [EnableCors(origins: @"http://localhost:59382", headers: "", methods: "*", SupportsCredentials = true)]
+    [EnableCors(origins: @"http://beta.intranet", headers: "", methods: "*", SupportsCredentials = true)]
     [RoutePrefix("{username:alpha:length(2,6)}/image")]
-    public class UserImageController : ApiController
+    public class UserImageController : DefaultController
     {
-        /// <summary>
-        /// The logging framework
-        /// </summary>
-        private static Logger logger = LogManager.GetCurrentClassLogger();
-
         /// <summary>
         /// Image handle factory
         /// </summary>
@@ -360,38 +355,6 @@ namespace Inuplan.WebAPI.Controllers
                 PathThumbnailUrl = string.Format("{0}/image/{1}/thumbnail/{2}.{3}", image.Owner.Username, image.ID, image.Filename, image.Extension),
                 Username = image.Owner.Username,
             };
-        }
-
-        /// <summary>
-        /// Checks if the username matches the principal name
-        /// </summary>
-        /// <param name="username">The username to check</param>
-        /// <returns>True if the same, otherwise false</returns>
-        [NonAction]
-        private bool AuthorizeToUsername(string username)
-        {
-            var principal = RequestContext.Principal;
-            return username.Equals(principal.Identity.Name, StringComparison.OrdinalIgnoreCase);
-        }
-        
-        /// <summary>
-        /// Gets the <see cref="User"/> which is stored in the <see cref="IPrincipal"/> object.
-        /// </summary>
-        /// <param name="principal">The principal object</param>
-        /// <returns>A user</returns>
-        /// <exception cref="InvalidOperationException">thrown when no user exist</exception>
-        [NonAction]
-        private User GetPrincipalIdentityUser(IPrincipal principal)
-        {
-            var user = principal.TryGetUser();
-            return user.Match(
-                // Return the user
-                u => u,
-                () =>
-                {
-                    logger.Error("User has not been set by the InuplanAuthorizationAttribute object");
-                    throw new InvalidOperationException();
-                });
         }
     }
 }
