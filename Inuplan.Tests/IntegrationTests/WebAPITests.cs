@@ -29,7 +29,9 @@ namespace Inuplan.Tests.IntegrationTests
             }
             catch (Exception)
             {
-
+                // Result so far: No stackoverflow
+                // No memory leaks
+                // And program stops without exceptions.
                 throw;
             }
         }
