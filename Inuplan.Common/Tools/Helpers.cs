@@ -68,6 +68,7 @@ namespace Inuplan.Common.Tools
         {
             var totalPages = (int)Math.Ceiling(total / (double)take);
             var currentPage = (skip / take) + 1;
+
             return new Pagination<T>
             {
                 CurrentItems = currentItems,

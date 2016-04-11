@@ -45,7 +45,7 @@ namespace Inuplan.WebAPI.Controllers
     /// <summary>
     /// Image file controller
     /// </summary>
-    [EnableCors(origins: @"http://beta.intranet", headers: "", methods: "*", SupportsCredentials = true)]
+    [EnableCors(origins: Constants.Origin, headers: "", methods: "*", SupportsCredentials = true)]
     [RoutePrefix("{username:alpha:length(2,6)}/image")]
     public class UserImageController : DefaultController
     {

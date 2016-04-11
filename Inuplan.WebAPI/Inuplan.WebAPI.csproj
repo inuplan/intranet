@@ -188,6 +188,7 @@
     <Compile Include="Controllers\UserImageController.cs" />
     <Compile Include="CLI\ProgramOptions.cs" />
     <Compile Include="CLI\Parser.cs" />
+    <Compile Include="Controllers\UserRolesController.cs" />
     <Compile Include="Image\Factories\HandleFactory.cs" />
     <Compile Include="Image\Handle.cs" />
     <Compile Include="Middlewares\ManageUserMiddleware.cs" />
