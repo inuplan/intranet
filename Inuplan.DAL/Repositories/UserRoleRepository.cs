@@ -22,14 +22,15 @@ namespace Inuplan.DAL.Repositories
 {
     using Common.Models;
     using Common.Repositories;
+    using Dapper;
+    using Optional;
     using System;
     using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using Optional;
     using System.Data;
-    using System.Linq;
-    using Dapper;
     using System.Diagnostics;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Transactions;
 
     public class UserRoleRepository : IScalarRepository<int, User>
     {
@@ -44,6 +45,7 @@ namespace Inuplan.DAL.Repositories
 
         public async Task<Option<User>> Create(User entity, params object[] identifiers)
         {
+            // Identifiers are a list of IDs for the role
             var args = identifiers.Cast<int>().Select(roleID => new
             {
                 UserID = entity.ID,
@@ -54,41 +56,91 @@ namespace Inuplan.DAL.Repositories
             // Create users roles
             var sql = @"INSERT INTO UserRoles (UserID, RoleID) VALUES(@UserID, @RoleID);";
             var rows = await connection.ExecuteAsync(sql, args);
+            var createdRoles = rows == args.Length;
 
             // Construct object with the roles
+            var roleSql = @"SELECT ID, Name FROM Roles WHERE ID=@RoleID";
+            var roles = await connection.QueryAsync<Role>(roleSql);
+            entity.Roles = roles.ToList();
 
             // Return constructed object
-            throw new NotImplementedException();
+            return entity.SomeWhen(u => createdRoles);
         }
 
-        public Task<bool> Delete(int key)
+        public async Task<bool> Delete(int key)
         {
-            throw new NotImplementedException();
+            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                var sql = @"DELETE FROM UserRoles WHERE UserID = @key;";
+                var rows = await connection.ExecuteAsync(sql, new { key });
+                var done = rows == 1;
+                if(done)
+                {
+                    transactionScope.Complete();
+                }
+
+                return done;
+            }
         }
 
-        public Task<Option<User>> Get(int key)
+        public async Task<Option<User>> Get(int key)
         {
-            throw new NotImplementedException();
+            var sql = @"SELECT ID, Name
+                        FROM Roles r INNER JOIN UserRoles u
+                        ON u.RoleID=r.ID
+                        WHERE u.UserID=@key;";
+
+            var userSql = @"SELECT ID, Name, FirstName, LastName, Email
+                            FROM Users
+                            WHERE ID=@key;";
+
+            var roles = await connection.QueryAsync<Role>(sql, new { key });
+            var user = await connection.ExecuteScalarAsync<User>(userSql, new { key });
+
+            var result = user
+                            .SomeNotNull()
+                            .Map(u =>
+                            {
+                                u.Roles = roles.ToList();
+                                return u;
+                            });
+            return result;
         }
 
         public Task<List<User>> GetAll(params object[] identifiers)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException("Use UserRepository perhaps OR RoleRepository!");
         }
 
         public Task<Option<User>> GetByID(int id)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException("Use UserRepository OR RoleRepository!");
         }
 
         public Task<Pagination<User>> GetPage(int skip, int take, params object[] identifiers)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException("User UserRepository OR RoleRepository!");
         }
 
-        public Task<bool> Update(int key, User entity)
+        public async Task<bool> Update(int key, User entity)
         {
-            throw new NotImplementedException();
+            Debug.Assert(entity.Roles.All(r => r.ID > 0), "Must have valid roles to update!");
+            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                var roleIds = entity.Roles.Select(r => r.ID).ToArray();
+
+                // An update is essentially a delete with create!
+                var delete = await Delete(key);
+                var create = await Create(entity, roleIds);
+                var success = delete && create.HasValue;
+
+                if(success)
+                {
+                    transactionScope.Complete();
+                }
+
+                return success;
+            }
         }
 
         protected virtual void Dispose(bool disposing)
