@@ -80,10 +80,12 @@ namespace Inuplan.WebAPI.Controllers
         /// <summary>
         /// Delete all associated roles for the user!
         /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        public async Task<HttpResponseMessage> Delete(int userId)
+        /// <param name="username">The username</param>
+        /// <returns>A http response indicating the resulting operation</returns>
+        public async Task<HttpResponseMessage> Delete(string username)
         {
+            var user = await userRepository.Get(username);
+            var userId = user.Map(u => u.ID).ValueOr(-1);
             var deleted = await userRolesRepository.Delete(userId);
             return deleted ?
                 Request.CreateResponse(HttpStatusCode.OK) :
