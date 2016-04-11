@@ -37,6 +37,11 @@ namespace Inuplan.Common.Enums
         UserDatabase,
 
         /// <summary>
+        /// Key for retrieving a users roles
+        /// </summary>
+        UserRoleRepository,
+
+        /// <summary>
         /// Key for retrieving posts from management in the SQL database
         /// </summary>
         ManagementPosts,
