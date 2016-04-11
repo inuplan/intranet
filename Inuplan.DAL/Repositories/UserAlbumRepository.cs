@@ -201,7 +201,7 @@ namespace Inuplan.DAL.Repositories
             {
                 Owner = userID,
                 From = skip + 1,
-                Take = skip + take,
+                To = skip + take,
             });
 
             var total = await connection.ExecuteScalarAsync<int>(@"SELECT COUNT(*) FROM Albums WHERE Owner = @Owner", new
