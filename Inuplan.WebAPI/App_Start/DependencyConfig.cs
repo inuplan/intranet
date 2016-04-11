@@ -68,6 +68,7 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<RoleController>().WithAttributeFilter();
             builder.RegisterType<UserImageController>().WithAttributeFilter();
             builder.RegisterType<UserController>().WithAttributeFilter();
+            builder.RegisterType<UserRolesController>().WithAttributeFilter();
 
             // Register classes and keys
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
@@ -80,9 +81,9 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<int, Image>>();
             builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, Comment>>();
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
-            builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            //builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
             builder.RegisterType<UserRoleRepository>().Keyed<IScalarRepository<int, User>>(ServiceKeys.UserRoleRepository);
-            //builder.RegisterType<NoADRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            builder.RegisterType<NoADRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
 
             // Use autofac owin pipeline
             OwinPipeline(builder);

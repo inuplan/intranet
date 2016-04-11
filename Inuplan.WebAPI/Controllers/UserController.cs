@@ -24,13 +24,14 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Enums;
     using Common.Models;
     using Common.Repositories;
+    using Common.Tools;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Cors;
 
-    [EnableCors(origins: @"http://beta.intranet", headers: "", methods: "*", SupportsCredentials = true)]
+    [EnableCors(origins: Constants.Origin, headers: "", methods: "*", SupportsCredentials = true)]
     public class UserController : DefaultController
     {
         private readonly IScalarRepository<string, User> userRepository;

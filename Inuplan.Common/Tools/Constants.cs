@@ -33,5 +33,7 @@ namespace Inuplan.Common.Tools
         public static readonly string TOKEN_COOKIE = "inuplan.token";
 
         public static readonly string JWT_SCHEME = "Bearer";
+
+        public const string Origin = @"http://beta.intranet";
     }
 }

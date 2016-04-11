@@ -2,6 +2,7 @@
 {
     using Common.Models;
     using Common.Repositories;
+    using Common.Tools;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -11,7 +12,7 @@
     using System.Web.Http;
     using System.Web.Http.Cors;
 
-    [EnableCors(origins: @"http://beta.intranet", headers: "", methods: "*", SupportsCredentials = true)]
+    [EnableCors(origins: Constants.Origin, headers: "", methods: "*", SupportsCredentials = true)]
     public class UserAlbumController : DefaultController
     {
         private readonly IScalarRepository<int, Album> albumRepository;

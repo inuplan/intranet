@@ -21,6 +21,7 @@
 namespace Inuplan.WebAPI.Controllers
 {
     using Common.Repositories;
+    using Common.Tools;
     using Inuplan.Common.Models;
     using System;
     using System.Collections.Generic;
@@ -30,7 +31,7 @@ namespace Inuplan.WebAPI.Controllers
     using System.Web.Http;
     using System.Web.Http.Cors;
 
-    [EnableCors(origins: @"http://beta.intranet", headers: "", methods: "*", SupportsCredentials = true)]
+    [EnableCors(origins: Constants.Origin, headers: "", methods: "*", SupportsCredentials = true)]
     public class ImageCommentController : DefaultController
     {
         private readonly IVectorRepository<int, Comment> imageCommentRepository;
