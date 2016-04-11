@@ -176,7 +176,7 @@ namespace Inuplan.DAL.Repositories
             var result = await connection.QueryAsync<User>(sql, new
             {
                 From = skip + 1,
-                Take = (skip + take)
+                To = (skip + take)
             });
 
             var totalSql = @"SELECT COUNT(*) FROM Users";
