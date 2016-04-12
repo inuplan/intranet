@@ -34,6 +34,10 @@ namespace Inuplan.Common.Tools
 
         public static readonly string JWT_SCHEME = "Bearer";
 
-        public const string Origin = @"http://beta.intranet";
+#if DEBUG
+        public const string Origin = @"http://localhost:59382";
+#else
+        public const string Origin = @"http://beta.intranet"; 
+#endif
     }
 }
