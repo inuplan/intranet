@@ -20,7 +20,11 @@
 
 namespace Inuplan.WebAPI.Controllers
 {
+    using Autofac.Extras.Attributed;
+    using Common.DTOs;
+    using Common.Enums;
     using Common.Models;
+    using Common.Repositories;
     using Common.Tools;
     using NLog;
     using System;
@@ -33,6 +37,13 @@ namespace Inuplan.WebAPI.Controllers
         /// The logging framework
         /// </summary>
         protected static Logger logger = LogManager.GetCurrentClassLogger();
+
+        protected readonly IScalarRepository<string, User> userDatabaseRepository;
+
+        public DefaultController([WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository)
+        {
+            this.userDatabaseRepository = userDatabaseRepository;
+        }
 
         /// <summary>
         /// Checks if the username matches the principal name
@@ -53,8 +64,9 @@ namespace Inuplan.WebAPI.Controllers
         /// <returns>A user</returns>
         /// <exception cref="InvalidOperationException">thrown when no user exist</exception>
         [NonAction]
-        protected User GetPrincipalIdentityUser(IPrincipal principal)
+        protected User GetPrincipalIdentityUser()
         {
+            var principal = RequestContext.Principal;
             var user = principal.TryGetUser();
             return user.Match(
                 // Return the user
@@ -64,6 +76,26 @@ namespace Inuplan.WebAPI.Controllers
                     logger.Error("User has not been set by the InuplanAuthorizationAttribute object");
                     throw new InvalidOperationException();
                 });
+        }
+
+        /// <summary>
+        /// Constructs a <see cref="UserDTO"/> instance for the current user
+        /// </summary>
+        /// <returns></returns>
+        [NonAction]
+        protected UserDTO ConstructUserDTO()
+        {
+            var user = GetPrincipalIdentityUser();
+            return new UserDTO
+            {
+                ID = user.ID,
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                IsAdmin = RequestContext.Principal.IsInRole("Admin"),
+                Username = user.Username,
+                ProfileImageUrl = string.Empty,
+            };
         }
     }
 }

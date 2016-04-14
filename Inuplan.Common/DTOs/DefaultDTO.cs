@@ -18,30 +18,15 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.WebAPI.Controllers
+namespace Inuplan.Common.DTOs
 {
-    using Autofac.Extras.Attributed;
-    using Common.Enums;
-    using Common.Models;
-    using Common.Repositories;
-    using System.Net;
-    using System.Net.Http;
-    using System.Web.Http;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
-    [RoutePrefix("api")]
-    public class DiagnosticController : DefaultController
+    public class DefaultDTO<T> : BaseDTO<T>
     {
-        public DiagnosticController([WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository)
-            : base(userDatabaseRepository)
-        {
-        }
-
-        // GET api/diagnostic/ping
-        [Route("diagnostic/ping")]
-        public HttpResponseMessage Get()
-        {
-            logger.Trace("Received GET request from: {0}", System.Environment.UserName);
-            return Request.CreateResponse(HttpStatusCode.OK);
-        }
     }
 }

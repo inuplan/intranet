@@ -60,11 +60,6 @@ namespace Inuplan.WebAPI.Controllers
         private readonly IScalarRepository<int, Image> userImageRepository;
 
         /// <summary>
-        /// The user database repository, which contains the registered users.
-        /// </summary>
-        private readonly IScalarRepository<string, User> userDatabaseRepository;
-
-        /// <summary>
         /// The repository comments for an image.
         /// </summary>
         private readonly IVectorRepository<int, Comment> imageCommentsRepo;
@@ -78,8 +73,8 @@ namespace Inuplan.WebAPI.Controllers
             IScalarRepository<int, Image> userImageRepository,
             IVectorRepository<int, Comment> imageCommentsRepo,
             ImageHandleFactory imageHandleFactory)
+            :base(userDatabaseRepository)
         {
-            this.userDatabaseRepository = userDatabaseRepository;
             this.userImageRepository = userImageRepository;
             this.imageCommentsRepo = imageCommentsRepo;
             this.imageHandleFactory = imageHandleFactory;
@@ -116,7 +111,7 @@ namespace Inuplan.WebAPI.Controllers
                 // Process individual image
                 logger.Trace("Processing image...");
                 var handler = imageHandleFactory.GetImageHandler();
-                var user = GetPrincipalIdentityUser(RequestContext.Principal);
+                var user = GetPrincipalIdentityUser();
                 var image = await handler.ProcessUserImage(user, file, "");
 
                 // Add images to the collection
@@ -291,7 +286,7 @@ namespace Inuplan.WebAPI.Controllers
         // GET user/image
         [HttpGet]
         [Route("")]
-        public async Task<List<UserImageDTO>> GetAll(string username)
+        public async Task<BaseDTO<List<UserImageDTO>>> GetAll(string username)
         {
             // Get user
             var userID = await userDatabaseRepository.Get(username);
@@ -305,15 +300,17 @@ namespace Inuplan.WebAPI.Controllers
                 return dtos.ToList();
             });
 
-            return images.Match(imgs =>
-            {
-                return imgs;
-            },
-            () =>
-            {
-                logger.Error("User: {0} not found", username);
-                throw new HttpResponseException(HttpStatusCode.NotFound);
-            });
+            return images.Match(
+                imgs => new DefaultDTO<List<UserImageDTO>>
+                {
+                    User = ConstructUserDTO(),
+                    Item = imgs
+                },
+                () =>
+                {
+                    logger.Error("User: {0} not found", username);
+                    throw new HttpResponseException(HttpStatusCode.NotFound);
+                });
         }
 
         /// <summary>

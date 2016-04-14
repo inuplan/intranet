@@ -37,15 +37,14 @@ namespace Inuplan.WebAPI.Controllers
     [EnableCors(origins: Constants.Origin, headers: "", methods: "*", SupportsCredentials = true)]
     public class UserRolesController : DefaultController
     {
-        private readonly IScalarRepository<string, User> userRepository;
         private readonly IScalarRepository<int, User> userRolesRepository;
 
         public UserRolesController(
             [WithKey(ServiceKeys.UserRoleRepository)] IScalarRepository<int, User> userRolesRepository,
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userRepository)
+            :base(userRepository)
         {
             this.userRolesRepository = userRolesRepository;
-            this.userRepository = userRepository;
         }
 
         /// <summary>
@@ -56,7 +55,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <returns>A response message indicating the resulting operation.</returns>
         public async Task<HttpResponseMessage> Post([FromUri] string username, List<int> roleIds)
         {
-            var user = await userRepository.Get(username);
+            var user = await userDatabaseRepository.Get(username);
 
             var done = user.Map(async u =>
             {
@@ -84,7 +83,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <returns>A http response indicating the resulting operation</returns>
         public async Task<HttpResponseMessage> Delete(string username)
         {
-            var user = await userRepository.Get(username);
+            var user = await userDatabaseRepository.Get(username);
             var userId = user.Map(u => u.ID).ValueOr(-1);
             var deleted = await userRolesRepository.Delete(userId);
             return deleted ?
@@ -101,7 +100,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <returns>A response message indicating the resulting operation</returns>
         public async Task<HttpResponseMessage> Put([FromUri] string username, List<int> roleIds)
         {
-            var user = await userRepository.Get(username);
+            var user = await userDatabaseRepository.Get(username);
             var updated = user.Map(async u =>
             {
                 u.Roles = roleIds.Select(r => new Role { ID = r, }).ToList();

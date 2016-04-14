@@ -55,8 +55,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DTOs\BaseDTO.cs" />
     <Compile Include="DTOs\ClaimsDTO.cs" />
     <Compile Include="DTOs\CommentDTO.cs" />
+    <Compile Include="DTOs\DefaultDTO.cs" />
     <Compile Include="DTOs\UserImageDTO.cs" />
     <Compile Include="DTOs\ProfileImageDTO.cs" />
     <Compile Include="DTOs\UserDTO.cs" />

@@ -20,6 +20,9 @@
 
 namespace Inuplan.WebAPI.Controllers
 {
+    using Autofac.Extras.Attributed;
+    using Common.DTOs;
+    using Common.Enums;
     using Common.Repositories;
     using Common.Tools;
     using Inuplan.Common.Models;
@@ -36,22 +39,33 @@ namespace Inuplan.WebAPI.Controllers
     {
         private readonly IVectorRepository<int, Comment> imageCommentRepository;
 
-        public ImageCommentController(IVectorRepository<int, Comment> imageCommentRepository)
+        public ImageCommentController(
+            [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
+            IVectorRepository<int, Comment> imageCommentRepository)
+            : base(userDatabaseRepository)
         {
             this.imageCommentRepository = imageCommentRepository;
         }
 
         [Route(Name = "GetComment")]
-        public async Task<List<Comment>> Get(int imageId)
+        public async Task<BaseDTO<List<Comment>>> Get(int imageId)
         {
             var comments = await imageCommentRepository.Get(imageId);
-            return comments;
+            return new DefaultDTO<List<Comment>>
+            {
+                User = ConstructUserDTO(),
+                Item = comments
+            };
         }
 
-        public async Task<Pagination<Comment>> Get(int skip, int take, int imageId)
+        public async Task<BaseDTO<Pagination<Comment>>> Get(int skip, int take, int imageId)
         {
             var page = await imageCommentRepository.GetPage(skip, take, imageId);
-            return page;
+            return new DefaultDTO<Pagination<Comment>>
+            {
+                User = ConstructUserDTO(),
+                Item = page
+            };
         }
 
         public async Task<HttpResponseMessage> Post(Comment comment, [FromUri] int imageId, [FromUri] int? replyId = null)

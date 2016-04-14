@@ -1,5 +1,8 @@
 ﻿namespace Inuplan.WebAPI.Controllers
 {
+    using Autofac.Extras.Attributed;
+    using Common.DTOs;
+    using Common.Enums;
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
@@ -17,15 +20,23 @@
     {
         private readonly IScalarRepository<int, Album> albumRepository;
 
-        public UserAlbumController(IScalarRepository<int, Album> albumRepository)
+        public UserAlbumController(
+             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
+             IScalarRepository<int, Album> albumRepository)
+            :base(userDatabaseRepository)
         {
             this.albumRepository = albumRepository;
         }
 
-        public async Task<Album> Get(int albumId)
+        public async Task<BaseDTO<Album>> Get(int albumId)
         {
             var album = await albumRepository.Get(albumId);
-            return album.Match(a => a,
+            return album.Match(
+                a => new DefaultDTO<Album>
+                {
+                    User = ConstructUserDTO(),
+                    Item = a
+                },
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
@@ -39,7 +50,7 @@
 
         public async Task<HttpResponseMessage> Delete(int albumId)
         {
-            var user = GetPrincipalIdentityUser(RequestContext.Principal);
+            var user = GetPrincipalIdentityUser();
             var album = await albumRepository.Get(albumId);
             var isOwner = album
                 .Map(a => a.Owner.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase))
@@ -59,7 +70,7 @@
         public async Task<HttpResponseMessage> Post(Album album, List<int> imageIds)
         {
             // Set owner to current  user
-            var owner = GetPrincipalIdentityUser(RequestContext.Principal);
+            var owner = GetPrincipalIdentityUser();
             album.Owner = owner;
 
             // Convert ids to shallow images
@@ -79,16 +90,24 @@
                 () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }
 
-        public async Task<Pagination<Album>> Get(int skip, int take, int userID)
+        public async Task<BaseDTO<Pagination<Album>>> Get(int skip, int take, int userID)
         {
             var page = await albumRepository.GetPage(skip, take, userID);
-            return page;
+            return new DefaultDTO<Pagination<Album>>
+            {
+                User = ConstructUserDTO(),
+                Item = page,
+            };
         }
 
-        public async Task<List<Album>> GetAll(int userId)
+        public async Task<BaseDTO<List<Album>>> GetAll(int userId)
         {
             var albums = await albumRepository.GetAll(userId);
-            return albums;
+            return new DefaultDTO<List<Album>>
+            {
+                User = ConstructUserDTO(),
+                Item = albums
+            };
         }
     }
 }

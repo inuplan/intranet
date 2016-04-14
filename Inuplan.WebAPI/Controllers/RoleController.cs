@@ -20,6 +20,9 @@
 
 namespace Inuplan.WebAPI.Controllers
 {
+    using Autofac.Extras.Attributed;
+    using Common.DTOs;
+    using Common.Enums;
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
@@ -39,22 +42,34 @@ namespace Inuplan.WebAPI.Controllers
     {
         private readonly IScalarRepository<int, Role> roleRepository;
 
-        public RoleController(IScalarRepository<int, Role> roleRepository)
+        public RoleController(
+            [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
+            IScalarRepository<int, Role> roleRepository)
+            : base(userDatabaseRepository)
         {
             this.roleRepository = roleRepository;
         }
 
-        public async Task<Role> Get(int id)
+        public async Task<BaseDTO<Role>> Get(int id)
         {
             var role = await roleRepository.Get(id);
-            return role.Match(r => r,
+            return role.Match(
+                r => new DefaultDTO<Role>
+                {
+                    User = ConstructUserDTO(),
+                    Item = r
+                },
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
-        
-        public async Task<List<Role>> Get()
+
+        public async Task<BaseDTO<List<Role>>> Get()
         {
             var roles = await roleRepository.GetAll();
-            return roles;
+            return new DefaultDTO<List<Role>>
+            {
+                User = ConstructUserDTO(),
+                Item = roles
+            };
         }
 
         public async Task<HttpResponseMessage> Post(string name)

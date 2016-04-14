@@ -14,5 +14,6 @@ namespace Inuplan.Common.DTOs
         public string LastName { get; set; }
         public string Email { get; set; }
         public string ProfileImageUrl { get; set; }
+        public bool IsAdmin { get; set; }
     }
 }

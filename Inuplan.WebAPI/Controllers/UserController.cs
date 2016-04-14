@@ -21,6 +21,7 @@
 namespace Inuplan.WebAPI.Controllers
 {
     using Autofac.Extras.Attributed;
+    using Common.DTOs;
     using Common.Enums;
     using Common.Models;
     using Common.Repositories;
@@ -34,34 +35,40 @@ namespace Inuplan.WebAPI.Controllers
     [EnableCors(origins: Constants.Origin, headers: "", methods: "*", SupportsCredentials = true)]
     public class UserController : DefaultController
     {
-        private readonly IScalarRepository<string, User> userRepository;
-
         public UserController([WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userRepository)
+            :base(userRepository)
         {
-            this.userRepository = userRepository;
         }
 
         [AllowAnonymous]
-        public async Task<User> Get([FromUri] string username)
+        public async Task<BaseDTO<User>> Get([FromUri] string username)
         {
-            var user = await userRepository.Get(username);
+            var user = await userDatabaseRepository.Get(username);
             return user.Match(
-                u => u,
+                u => new DefaultDTO<User>
+                {
+                    User = ConstructUserDTO(),
+                    Item = u,
+                },
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
         [Authorize(Roles = "Admin")]
         public async Task<HttpResponseMessage> Post(User user)
         {
-            var created = await userRepository.Create(user);
+            var created = await userDatabaseRepository.Create(user);
             return created.Match(u => Request.CreateResponse(HttpStatusCode.Created),
                 () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }
 
-        public async Task<Pagination<User>> Get(int skip, int take)
+        public async Task<BaseDTO<Pagination<User>>> Get(int skip, int take)
         {
-            var page = await userRepository.GetPage(skip, take);
-            return page;
+            var page = await userDatabaseRepository.GetPage(skip, take);
+            return new DefaultDTO<Pagination<User>>
+            {
+                User = ConstructUserDTO(),
+                Item = page,
+            };
         }
     }
 }
