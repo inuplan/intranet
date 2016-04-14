@@ -14,12 +14,13 @@
             withCredentials: true
         },
         success: function (result, status, jqXhr) {
-            var user_arr = $.map(result.CurrentItems, function (user_obj) {
+            var dto = result.Item;
+            var user_arr = $.map(dto.CurrentItems, function (user_obj) {
                 return new UserViewModel(user_obj);
             });
             self.users(user_arr);
-            self.current_page(result.CurrentPage);
-            self.total_pages(result.TotalPages);
+            self.current_page(dto.CurrentPage);
+            self.total_pages(dto.TotalPages);
         },
     });
 }
