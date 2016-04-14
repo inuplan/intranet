@@ -37,7 +37,7 @@ namespace Inuplan.Common.Tools
 #if DEBUG
         public const string Origin = @"http://localhost:59382";
 #else
-        public const string Origin = @"http://beta.intranet"; 
+        public const string Origin = @"http://beta-intranet"; 
 #endif
     }
 }

@@ -169,20 +169,39 @@ namespace Inuplan.DAL.Repositories
                         FROM
                         (
                             SELECT tmp.*, ROW_NUMBER() OVER (ORDER BY Username ASC) AS 'RowNumber'
-                            FROM Users as tmp
+                            FROM Users AS tmp
                         ) AS seq
                         WHERE seq.RowNumber BETWEEN @From AND @To";
 
-            var result = await connection.QueryAsync<User>(sql, new
+            var result = (await connection.QueryAsync<User>(sql, new
             {
                 From = skip + 1,
                 To = (skip + take)
+            }))
+            .Select(u =>
+            {
+                u.Roles = new List<Role>();
+                return u;
+            });
+
+            var roleSql = @"SELECT u.ID, r.ID, Name FROM Roles r
+                            INNER JOIN UserRoles ur
+                            ON r.ID = ur.RoleID
+                            INNER JOIN Users u
+                            ON u.ID = ur.UserID";
+
+
+            var users = await connection.QueryAsync<int, Role, User>(roleSql, (id, role) =>
+            {
+                var user = result.Single(u => u.ID == id);
+                user.Roles.Add(role);
+                return user;
             });
 
             var totalSql = @"SELECT COUNT(*) FROM Users";
             var total = await connection.ExecuteScalarAsync<int>(totalSql);
 
-            var page = Helpers.Pageify(skip, take, total, result.ToList());
+            var page = Helpers.Pageify(skip, take, total, users.ToList());
             return page;
         }
 
