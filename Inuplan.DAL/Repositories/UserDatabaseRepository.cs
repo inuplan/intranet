@@ -31,10 +31,11 @@ namespace Inuplan.DAL.Repositories
     using System.Transactions;
     using System.Diagnostics;
     using Common.Tools;
-    /// <summary>
-    /// Repository for <see cref="User"/>s in the database.
-    /// Can do CRUD operations.
-    /// </summary>
+    using System.Collections.Concurrent;
+    using System;/// <summary>
+                 /// Repository for <see cref="User"/>s in the database.
+                 /// Can do CRUD operations.
+                 /// </summary>
     public class UserDatabaseRepository : IScalarRepository<string, User>
     {
         /// <summary>
@@ -177,12 +178,7 @@ namespace Inuplan.DAL.Repositories
             {
                 From = skip + 1,
                 To = (skip + take)
-            }))
-            .Select(u =>
-            {
-                u.Roles = new List<Role>();
-                return u;
-            });
+            }));
 
             var roleSql = @"SELECT u.ID, r.ID, Name FROM Roles r
                             INNER JOIN UserRoles ur
@@ -191,17 +187,23 @@ namespace Inuplan.DAL.Repositories
                             ON u.ID = ur.UserID";
 
 
-            var users = await connection.QueryAsync<int, Role, User>(roleSql, (id, role) =>
+            var roles = await connection.QueryAsync<int, Role, Tuple<int, Role>>(
+                roleSql,
+                (id, role) => new Tuple<int, Role>(id, role));
+
+            var group = roles.GroupBy(t => t.Item1);
+            foreach(var g in group)
             {
-                var user = result.Single(u => u.ID == id);
-                user.Roles.Add(role);
-                return user;
-            });
+                var userRoles = g.Select(r => r.Item2);
+                var user = result.Single(u => u.ID == g.Key);
+                user.Roles = userRoles.ToList();
+            }
+
 
             var totalSql = @"SELECT COUNT(*) FROM Users";
             var total = await connection.ExecuteScalarAsync<int>(totalSql);
 
-            var page = Helpers.Pageify(skip, take, total, users.ToList());
+            var page = Helpers.Pageify(skip, take, total, result.ToList());
             return page;
         }
 

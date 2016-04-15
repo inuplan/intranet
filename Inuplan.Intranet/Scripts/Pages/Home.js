@@ -1,15 +1,17 @@
-﻿function AppViewModel(remote, skip, take) {
+﻿function AppViewModel(url, skip, take) {
     var self = this;
-    var url = userUrl(remote, skip, take);
-    self.remote = remote;
 
     self.current_page = ko.observable(0);
-    self.total_pages = ko.observable(0);
+    self.total_pages = ko.observableArray([]);
     self.users = ko.observableArray([]);
 
     $.ajax(url, {
         type: 'GET',
         dataType: 'json',
+        data: {
+            skip: skip,
+            take: take
+        },
         xhrFields: {
             withCredentials: true
         },
@@ -19,8 +21,12 @@
                 return new UserViewModel(user_obj);
             });
             self.users(user_arr);
+            var pages = new Array();
+            for (var i = 1; i <= dto.CurrentPage; i++) {
+                pages.push(i);
+            }
             self.current_page(dto.CurrentPage);
-            self.total_pages(dto.TotalPages);
+            self.total_pages(pages);
         },
     });
 }
@@ -43,8 +49,4 @@ function RoleViewModel(data) {
     var self = this;
     self.id = ko.observable(data.ID);
     self.name = ko.observable(data.Name);
-}
-
-function userUrl(remote, skip, take) {
-    return remote + "api/user?" + "skip=" + skip + "&take=" + take;
 }

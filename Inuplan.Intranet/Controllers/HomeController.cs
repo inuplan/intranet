@@ -41,16 +41,16 @@ namespace Inuplan.Intranet.Controllers
         // GET: Home
         public async Task<ActionResult> Index()
         {
-            ViewBag.Remote = remoteBaseAddress.ToString();
+            ViewBag.Remote = RemoteUserApi();
             ViewBag.Skip = 0;
             ViewBag.Take = 10;
-            // Get token (if its does not exist)
-            //var token = await authClient.GetTokenIfNotExists(Request, User);
-
-            // Set token (if we got it)
-            // authClient.SetTokenIfExists(Response, token);
-
             return await Task.FromResult(View());
+        }
+
+        [NonAction]
+        private string RemoteUserApi()
+        {
+            return remoteBaseAddress.ToString() + "api/user";
         }
 
         [ChildActionOnly]

@@ -206,47 +206,48 @@
     <Compile Include="ViewModels\BaseViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\bootstrap-theme.css" />
-    <Content Include="Content\bootstrap-theme.min.css" />
-    <Content Include="Content\bootstrap.css" />
-    <Content Include="Content\bootstrap.min.css" />
-    <Content Include="Content\userimage.css" />
+    <Content Include="Content\Libraries\bootstrap-theme.css" />
+    <Content Include="Content\Libraries\bootstrap-theme.min.css" />
+    <Content Include="Content\Libraries\bootstrap.css" />
+    <Content Include="Content\Libraries\bootstrap.min.css" />
+    <Content Include="Content\Pages\Home.css" />
+    <Content Include="Content\Pages\userimage.css" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
-    <Content Include="Content\Site.css" />
+    <Content Include="Content\Libraries\Site.css" />
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Scripts\ai.0.15.0-build58334.js" />
-    <Content Include="Scripts\ai.0.15.0-build58334.min.js" />
-    <Content Include="Scripts\bootstrap.js" />
-    <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\Libraries\ai.0.15.0-build58334.js" />
+    <Content Include="Scripts\Libraries\ai.0.15.0-build58334.min.js" />
+    <Content Include="Scripts\Libraries\bootstrap.js" />
+    <Content Include="Scripts\Libraries\bootstrap.min.js" />
     <Content Include="NLog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="NLog.xsd">
       <SubType>Designer</SubType>
     </None>
-    <None Include="Scripts\jquery-2.2.2.intellisense.js" />
-    <Content Include="Scripts\Home.js" />
-    <Content Include="Scripts\jquery-2.2.2.js" />
-    <Content Include="Scripts\jquery-2.2.2.min.js" />
-    <Content Include="Scripts\jquery-2.2.2.min.map" />
-    <None Include="Scripts\jquery.validate-vsdoc.js" />
-    <Content Include="Scripts\jquery.validate.js" />
-    <Content Include="Scripts\jquery.validate.min.js" />
-    <Content Include="Scripts\jquery.validate.unobtrusive.js" />
-    <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
-    <Content Include="Scripts\knockout-3.4.0.debug.js" />
-    <Content Include="Scripts\knockout-3.4.0.js" />
-    <Content Include="Scripts\modernizr-2.6.2.js" />
-    <Content Include="Scripts\modernizr-2.8.3.js" />
-    <Content Include="Scripts\respond.js" />
-    <Content Include="Scripts\respond.matchmedia.addListener.js" />
-    <Content Include="Scripts\respond.matchmedia.addListener.min.js" />
-    <Content Include="Scripts\respond.min.js" />
-    <Content Include="Scripts\UserImages.js" />
+    <None Include="Scripts\Libraries\jquery-2.2.2.intellisense.js" />
+    <Content Include="Scripts\Pages\Home.js" />
+    <Content Include="Scripts\Libraries\jquery-2.2.2.js" />
+    <Content Include="Scripts\Libraries\jquery-2.2.2.min.js" />
+    <Content Include="Scripts\Libraries\jquery-2.2.2.min.map" />
+    <None Include="Scripts\Libraries\jquery.validate-vsdoc.js" />
+    <Content Include="Scripts\Libraries\jquery.validate.js" />
+    <Content Include="Scripts\Libraries\jquery.validate.min.js" />
+    <Content Include="Scripts\Libraries\jquery.validate.unobtrusive.js" />
+    <Content Include="Scripts\Libraries\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\Libraries\knockout-3.4.0.debug.js" />
+    <Content Include="Scripts\Libraries\knockout-3.4.0.js" />
+    <Content Include="Scripts\Libraries\modernizr-2.6.2.js" />
+    <Content Include="Scripts\Libraries\modernizr-2.8.3.js" />
+    <Content Include="Scripts\Libraries\respond.js" />
+    <Content Include="Scripts\Libraries\respond.matchmedia.addListener.js" />
+    <Content Include="Scripts\Libraries\respond.matchmedia.addListener.min.js" />
+    <Content Include="Scripts\Libraries\respond.min.js" />
+    <Content Include="Scripts\Pages\UserImages.js" />
     <Content Include="Scripts\_references.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
@@ -274,10 +275,10 @@
     <Content Include="fonts\glyphicons-halflings-regular.woff" />
     <Content Include="fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
-    <Content Include="Content\bootstrap.min.css.map" />
-    <Content Include="Content\bootstrap.css.map" />
-    <Content Include="Content\bootstrap-theme.min.css.map" />
-    <Content Include="Content\bootstrap-theme.css.map" />
+    <Content Include="Content\Libraries\bootstrap.min.css.map" />
+    <Content Include="Content\Libraries\bootstrap.css.map" />
+    <Content Include="Content\Libraries\bootstrap-theme.min.css.map" />
+    <Content Include="Content\Libraries\bootstrap-theme.css.map" />
     <None Include="Project_Readme.html" />
   </ItemGroup>
   <ItemGroup>
