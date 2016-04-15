@@ -21,28 +21,33 @@
 namespace Inuplan.Intranet.Controllers
 {
     using Autofac.Extras.Attributed;
-    using Common.Enums;
-    using Common.Models;
-    using Factories;
+    using Inuplan.Common.Enums;
     using System;
     using System.Threading.Tasks;
     using System.Web.Mvc;
-    using ViewModels;
 
-    public class HomeController : Controller
+    public class UserController : Controller
     {
+        private Uri remoteBaseApi;
+
+        public UserController([WithKey(ServiceKeys.RemoteBaseAddress)] Uri remoteBaseApi)
+        {
+            this.remoteBaseApi = remoteBaseApi;
+        }
+
+        // GET: User
         public async Task<ActionResult> Index()
         {
+            ViewBag.Remote = RemoteUserApi();
+            ViewBag.Skip = 0;
+            ViewBag.Take = 10;
             return await Task.FromResult(View());
         }
 
-        [ChildActionOnly]
-        public ActionResult Menu()
+        [NonAction]
+        private string RemoteUserApi()
         {
-            return PartialView("_Menu", new BaseViewModel<User>
-            {
-                CurrentUsername = System.Environment.UserName,
-            });
+            return remoteBaseApi.ToString() + "api/user";
         }
     }
 }

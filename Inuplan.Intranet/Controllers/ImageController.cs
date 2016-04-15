@@ -32,12 +32,10 @@ namespace Inuplan.Intranet.Controllers
     using System.Web.Mvc;
     using ViewModels;
 
-    /// <summary>
-    /// Image controller, which also functions as a proxy for the web api.
-    /// </summary>
     public class ImageController : Controller
     {
         private readonly IHttpClientFactory httpClientFactory;
+
         private readonly Uri remoteBaseAddress;
 
         public ImageController(
