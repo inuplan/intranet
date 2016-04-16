@@ -41,7 +41,7 @@ namespace Inuplan.Intranet.Controllers
         {
             return PartialView("_Menu", new BaseViewModel<User>
             {
-                CurrentUsername = System.Environment.UserName,
+                DisplayName = System.Environment.UserName,
             });
         }
     }

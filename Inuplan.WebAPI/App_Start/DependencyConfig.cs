@@ -21,16 +21,13 @@ namespace Inuplan.WebAPI.App_Start
     using Autofac.Integration.WebApi;
     using Common.Enums;
     using Common.Factories;
-    using Common.Mappers;
+    using Common.Models;
+    using Common.Repositories;
     using Controllers;
     using DAL.Repositories;
     using Image.Factories;
-    using Inuplan.Common.Models;
-    using Inuplan.Common.Repositories;
-    using Jose;
     using Middlewares;
     using Mocks;
-    using System.Collections.Generic;
     using System.Configuration;
     using System.Data;
     using System.Data.SqlClient;
@@ -72,7 +69,6 @@ namespace Inuplan.WebAPI.App_Start
 
             // Register classes and keys
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
-            builder.RegisterType<NewtonsoftMapper>().As<IJsonMapper>();
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
 

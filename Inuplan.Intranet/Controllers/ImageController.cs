@@ -34,47 +34,16 @@ namespace Inuplan.Intranet.Controllers
 
     public class ImageController : Controller
     {
-        private readonly IHttpClientFactory httpClientFactory;
-
-        private readonly Uri remoteBaseAddress;
-
-        public ImageController(
-            [WithKey(ServiceKeys.RemoteBaseAddress)] Uri remoteBaseAddress,
-            IHttpClientFactory httpClientFactory)
+        public async Task<ActionResult> Index()
         {
-            this.remoteBaseAddress = remoteBaseAddress;
-            this.httpClientFactory = httpClientFactory;
+            return await Task.FromResult(View());
         }
 
         [HttpGet]
         [Route("user/{username:alpha}/images", Name = "UserImages")]
         public async Task<ActionResult> UserImages(string username)
         {
-            using (var client = httpClientFactory.GetHttpClient())
-            {
-                client.BaseAddress = remoteBaseAddress;
-                var path = string.Format("user/{0}", username);
-                var response = await client.GetAsync(path);
-                var json = (await response.Content.ReadAsStringAsync()).SomeNotNull();
-                var owner = json.Map(j => JsonConvert.DeserializeObject<User>(j));
-
-                return owner.Match(u =>
-                {
-                    ViewBag.API = remoteBaseAddress.ToString();
-                    var vm = new BaseViewModel<User>
-                    {
-                        CurrentUsername = Environment.UserName,
-                        Entity = u,
-                        IsEditable = u.Username.Equals(Environment.UserName, StringComparison.OrdinalIgnoreCase),
-                    };
-
-                    return View(vm);
-                },
-                () =>
-                {
-                    throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
-                });
-            }
+            return await Task.FromResult(View());
         }
     }
 }
