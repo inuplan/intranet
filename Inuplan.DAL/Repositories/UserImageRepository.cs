@@ -75,12 +75,11 @@ namespace Inuplan.DAL.Repositories
         /// Creates a new image in the database as well as the filesystem
         /// </summary>
         /// <param name="entity">The image to create</param>
-        /// <param name="identifiers">The user ID, to which the image belongs</param>
+        /// <param name="identifiers">N/A</param>
         /// <returns>An optional image with correct ID</returns>
         public async Task<Option<Image>> Create(Image entity, params object[] identifiers)
         {
-            Debug.Assert(identifiers.Length == 1, "Must have a valid user id");
-            var userID = identifiers[0];
+            Debug.Assert(entity.Owner != null && entity.Owner.ID > 0, "Must have a valid user id");
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 try
@@ -112,7 +111,7 @@ namespace Inuplan.DAL.Repositories
                         Preview = entity.Preview.ID,
                         Thumbnail = entity.Thumbnail.ID,
                         Original = entity.Original.ID,
-                        Owner = userID,
+                        Owner = entity.Owner.ID,
                         entity.Description,
                         entity.Filename,
                         entity.Extension,

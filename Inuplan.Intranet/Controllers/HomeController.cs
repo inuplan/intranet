@@ -20,10 +20,7 @@
 
 namespace Inuplan.Intranet.Controllers
 {
-    using Autofac.Extras.Attributed;
-    using Common.Enums;
     using Common.Models;
-    using Factories;
     using System;
     using System.Threading.Tasks;
     using System.Web.Mvc;
@@ -41,7 +38,7 @@ namespace Inuplan.Intranet.Controllers
         {
             return PartialView("_Menu", new BaseViewModel<User>
             {
-                DisplayName = System.Environment.UserName,
+                DisplayName = Environment.UserName,
             });
         }
     }

@@ -34,6 +34,13 @@ namespace Inuplan.Intranet.Controllers
 
     public class ImageController : Controller
     {
+        private Uri RemoteBaseApi;
+
+        public ImageController([WithKey(ServiceKeys.RemoteBaseAddress)] Uri RemoteBaseApi)
+        {
+            this.RemoteBaseApi = RemoteBaseApi;
+        }
+
         public async Task<ActionResult> Index()
         {
             return await Task.FromResult(View());
@@ -41,9 +48,18 @@ namespace Inuplan.Intranet.Controllers
 
         [HttpGet]
         [Route("user/{username:alpha}/images", Name = "UserImages")]
-        public async Task<ActionResult> UserImages(string username)
+        public async Task<ActionResult> Images(string username)
         {
-            return await Task.FromResult(View());
+            var api = string.Format("{0}{1}/image", RemoteBaseApi.ToString(), username);
+            ViewBag.Title = username + " billeder";
+            ViewBag.Upload = string.Format("{0}{1}/image", RemoteBaseApi.ToString(), Environment.UserName);
+            var model = new BaseViewModel<string>
+            {
+                DisplayName = Environment.UserName,
+                Entity = api,
+                IsEditable = username.Equals(Environment.UserName, StringComparison.OrdinalIgnoreCase),
+            };
+            return await Task.FromResult(View(model));
         }
     }
 }

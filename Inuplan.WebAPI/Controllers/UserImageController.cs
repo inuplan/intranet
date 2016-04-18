@@ -289,10 +289,10 @@ namespace Inuplan.WebAPI.Controllers
         public async Task<BaseDTO<List<UserImageDTO>>> GetAll(string username)
         {
             // Get user
-            var userID = await userDatabaseRepository.Get(username);
+            var user = await userDatabaseRepository.Get(username);
 
             // Get all images for the user
-            var images = userID.Map(u =>
+            var images = user.Map(u =>
             {
                 // Transform image to DTOs
                 var imgs = userImageRepository.GetAll(u.ID).Result;
@@ -302,10 +302,10 @@ namespace Inuplan.WebAPI.Controllers
 
             return images.Match(
                 imgs => new DefaultDTO<List<UserImageDTO>>
-                {
-                    User = ConstructUserDTO(),
-                    Item = imgs
-                },
+                        {
+                            User = ConstructUserDTO(),
+                            Item = imgs
+                        },
                 () =>
                 {
                     logger.Error("User: {0} not found", username);
@@ -342,14 +342,15 @@ namespace Inuplan.WebAPI.Controllers
         private UserImageDTO Convert(Image image)
         {
             // Construct image DTO
+            var baseUri = new Uri(Request.RequestUri, RequestContext.VirtualPathRoot).ToString();
             return new UserImageDTO
             {
                 Extension = image.Extension,
                 Filename = image.Filename,
                 ImageID = image.ID,
-                PathOriginalUrl = string.Format("{0}/image/{1}/{2}.{3}", image.Owner.Username, image.ID, image.Filename, image.Extension),
-                PathPreviewUrl = string.Format("{0}/image/{1}/preview/{2}.{3}", image.Owner.Username, image.ID, image.Filename, image.Extension),
-                PathThumbnailUrl = string.Format("{0}/image/{1}/thumbnail/{2}.{3}", image.Owner.Username, image.ID, image.Filename, image.Extension),
+                PathOriginalUrl = string.Format("{0}{1}/image/{2}/{3}.{4}", baseUri, image.Owner.Username, image.ID, image.Filename, image.Extension),
+                PathPreviewUrl = string.Format("{0}{1}/image/{2}/preview/{3}.{4}", baseUri, image.Owner.Username, image.ID, image.Filename, image.Extension),
+                PathThumbnailUrl = string.Format("{0}{1}/image/{2}/thumbnail/{3}.{4}", baseUri, image.Owner.Username, image.ID, image.Filename, image.Extension),
                 Username = image.Owner.Username,
             };
         }
