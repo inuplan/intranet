@@ -45,7 +45,7 @@ namespace Inuplan.WebAPI.Controllers
     /// <summary>
     /// Image file controller
     /// </summary>
-    [EnableCors(origins: Constants.Origin, headers: "", methods: "*", SupportsCredentials = true)]
+    [EnableCors(origins: Constants.Origin, headers: "accept, *", methods: "*", SupportsCredentials = true)]
     [RoutePrefix("{username:alpha:length(2,6)}/image")]
     public class UserImageController : DefaultController
     {
@@ -319,10 +319,10 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username"></param>
         /// <param name="file"></param>
         /// <returns></returns>
-        // DELETE user/image/1/test.jpeg
-        [Route("{id:int}/{file}")]
+        // DELETE user/image/1
+        [Route("{id:int}")]
         [HttpDelete]
-        public async Task<HttpResponseMessage> Delete(string username, int id, string file)
+        public async Task<HttpResponseMessage> Delete(string username, int id)
         {
             if(!AuthorizeToUsername(username))
             {
@@ -330,7 +330,6 @@ namespace Inuplan.WebAPI.Controllers
                 return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot delete another user's image");
             }
 
-            var filename = Helpers.GetFilename(file);
             var deleted = await userImageRepository.Delete(id);
 
             return deleted ?

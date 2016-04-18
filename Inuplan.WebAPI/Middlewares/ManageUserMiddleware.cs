@@ -25,19 +25,17 @@ namespace Inuplan.WebAPI.Middlewares
     using Common.Models;
     using Common.Principals;
     using Common.Repositories;
-    using Common.Tools;
     using Microsoft.Owin;
     using NLog;
-    using Optional;
     using Optional.Unsafe;
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Net;
-    using System.Security.Principal;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Web;
+
     /// <summary>
     /// If it is a user's first time, then the user is created and saved to the database.
     /// If the user exists, then nothing is done.
@@ -87,6 +85,13 @@ namespace Inuplan.WebAPI.Middlewares
         /// <returns>An awaitable task</returns>
         public async override Task Invoke(IOwinContext context)
         {
+            if (context.Request.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.Trace("Http method: POST - Request is probably a preflight request, must allow anonymous pass-through");
+                await Next.Invoke(context);
+                return;
+            }
+
             var identity = context.Request.User.Identity;
             var username = identity.Name.Substring(identity.Name.LastIndexOf(@"\") + 1);
             var user = await userDatabaseRepository.Get(username);

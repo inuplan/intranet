@@ -162,45 +162,63 @@ namespace Inuplan.DAL.Repositories
         {
             Debug.Assert(key > 0, "The image must have a valid ID!");
 
-            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                var sqlImage = @"SELECT * FROM Images WHERE ID = @ID";
-                var imageRow = (await connection.QueryAsync(sqlImage, new { ID = key }))
-                                .SingleOrDefault();
-
-                var ids = new[]
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
+                    var sqlImage = @"SELECT * FROM Images WHERE ID = @ID";
+                    var imageRow = (await connection.QueryAsync(sqlImage, new { ID = key }))
+                                    .SingleOrDefault();
+
+                    var ids = new[]
+                    {
                     new { ID = imageRow.Preview },
                     new { ID = imageRow.Original },
                     new { ID = imageRow.Thumbnail }
                 };
 
-                var sqlInfos = @"SELECT * FROM FileInfo WHERE ID = @ID;";
-                var infos = (await connection.QueryAsync(sqlInfos, ids)).ToList();
+                    var sqlInfos = @"SELECT * FROM FileInfo WHERE ID = @ID;";
 
-                var sqlDeleteInfo = @"DELETE FROM FileInfo WHERE ID = @ID";
-                var deleted = (await connection.ExecuteAsync(sqlDeleteInfo, ids)).Equals(3);
-
-                var sqlDeleteImage = @"DELETE FROM Images WHERE ID = @ID;";
-                deleted = deleted && (await connection.ExecuteAsync(sqlDeleteImage, new { ID = key })).Equals(1);
-
-                if(deleted && infos.Count() == 3)
-                {
-                    transactionScope.Complete();
-
-                    //Delete files from filesystem
-                    foreach(var info in infos)
+                    var filePaths = new List<string>();
+                    foreach (var id in ids)
                     {
-                        if(File.Exists(info.Path))
-                        {
-                            File.Delete(info.Path);
-                        }
+                        var info = (await connection.QueryAsync<Common.Models.FileInfo>(sqlInfos, id)).Single();
+                        filePaths.Add(info.Path);
                     }
 
-                    return true;
-                }
+                    var nullFields = (await connection.ExecuteAsync(
+                        @"UPDATE Images SET Preview=NULL, Thumbnail=NULL, Original=NULL WHERE ID=@key;",
+                        new { key })).Equals(1);
 
-                return false;
+                    var sqlDeleteInfo = @"DELETE FROM FileInfo WHERE ID = @ID";
+                    var deleted = (await connection.ExecuteAsync(sqlDeleteInfo, ids)).Equals(3);
+
+                    var sqlDeleteImage = @"DELETE FROM Images WHERE ID = @ID;";
+                    deleted = deleted && (await connection.ExecuteAsync(sqlDeleteImage, new { ID = key })).Equals(1);
+
+                    if (nullFields && deleted && filePaths.Count() == 3)
+                    {
+                        transactionScope.Complete();
+
+                        //Delete files from filesystem
+                        foreach (var path in filePaths)
+                        {
+                            if (File.Exists(path))
+                            {
+                                File.Delete(path);
+                            }
+                        }
+
+                        return true;
+                    }
+
+                    return false;
+                }
+            }
+            catch (SqlException ex)
+            {
+                logger.Error(ex);
+                throw;
             }
         }
 

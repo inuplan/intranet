@@ -1,5 +1,8 @@
-﻿function AppViewModel(api) {
+﻿var api_url;
+
+function AppViewModel(api) {
     var self = this;
+    api_url = api;
     self.vm = new UserImagesViewModel(api);
 }
 
@@ -20,7 +23,8 @@ function UserImagesViewModel(api) {
             self.images(images);
         },
         error: error_handler
-    })
+    });
+
 }
 
 function ImageViewModel(data) {
@@ -37,7 +41,25 @@ function ImageViewModel(data) {
     // Computed observables
     self.fullname = ko.computed(function () {
         return data.Filename + "." + data.Extension;
-    })
+    });
+
+    // Click function
+    self.delete = function () {
+        var id = ko.unwrap(self.image_id());
+        var filename = ko.unwrap(self.fullname());
+        var api = api_url + "/" + id;
+        $.ajax(api, {
+            xhrFields: {
+                withCredentials: true,
+            },
+            processData: false,
+            type: 'DELETE',
+            success: function (result, status, jqXhr) {
+                window.location.reload();
+            },
+            error: error_handler
+        });
+    };
 }
 
 ko.bindingHandlers.modal = {

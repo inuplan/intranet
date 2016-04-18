@@ -1,5 +1,7 @@
 ﻿@model Inuplan.Intranet.ViewModels.BaseViewModel<string>
-<h2>Billeder</h2>
+<h2>@ViewBag.Username Billeder</h2>
+<hr />
+
 <div class="alert alert-danger" role="alert" id="error_container" >
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
         <span aria-hidden="true">&times;</span>
@@ -33,11 +35,15 @@
         </div>
     </div>
 }
-
+@section styles
+{
+    <link href="~/Content/Pages/ImageUser.css" rel="stylesheet" />
+}
 @section scripts 
 {
     @Scripts.Render("~/bundles/knockout")
     <script src="~/Scripts/Pages/ImageUser.js">
+
     </script>
     <script>
         $(function () {
@@ -87,7 +93,13 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Luk</button>
+                        <div>
+                        @if (Model.IsEditable)
+                        {
+                            <button type="button" class="btn btn-danger" data-bind="click: $data.delete">Slet</button>
+                        }
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Luk</button>
+                        </div>
                     </div>
                 </div>
 

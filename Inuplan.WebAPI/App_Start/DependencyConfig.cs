@@ -46,7 +46,7 @@ namespace Inuplan.WebAPI.App_Start
         public static void RegisterContainer(HttpConfiguration config)
         {
             // Setup variables
-            var root = ConfigurationManager.AppSettings["root"];
+            var root = GetRoot();
             var connectionString = GetConnectionString();
             var domain = ConfigurationManager.AppSettings["domain"];
 
@@ -66,6 +66,7 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserImageController>().WithAttributeFilter();
             builder.RegisterType<UserController>().WithAttributeFilter();
             builder.RegisterType<UserRolesController>().WithAttributeFilter();
+            builder.RegisterType<DiagnosticController>().WithAttributeFilter();
 
             // Register classes and keys
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
@@ -77,9 +78,9 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<int, Image>>();
             builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, Comment>>();
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
-            //builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
             builder.RegisterType<UserRoleRepository>().Keyed<IScalarRepository<int, User>>(ServiceKeys.UserRoleRepository);
-            builder.RegisterType<NoADRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+            //builder.RegisterType<NoADRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
 
             // Use autofac owin pipeline
             OwinPipeline(builder);
@@ -113,6 +114,16 @@ namespace Inuplan.WebAPI.App_Start
             var connectionString = ConfigurationManager.AppSettings["connectionString"];
 #endif
             return connectionString;
+        }
+
+        private static string GetRoot()
+        {
+#if DEBUG
+            var root = ConfigurationManager.AppSettings["rootDebug"];
+#else
+            var root = ConfigurationManager.AppSettings["root"];
+#endif
+            return root;
         }
     }
 }

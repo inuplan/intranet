@@ -38,9 +38,12 @@ namespace Inuplan.WebAPI.Controllers
 
         // GET api/diagnostic/ping
         [Route("diagnostic/ping")]
+        [HttpGet]
+        [HttpDelete]
+        [HttpOptions]
         public HttpResponseMessage Get()
         {
-            logger.Trace("Received GET request from: {0}", System.Environment.UserName);
+            logger.Trace("Received request from: {0}", System.Environment.UserName);
             return Request.CreateResponse(HttpStatusCode.OK);
         }
     }

@@ -51,6 +51,7 @@ namespace Inuplan.Intranet.Controllers
         public async Task<ActionResult> Images(string username)
         {
             var api = string.Format("{0}{1}/image", RemoteBaseApi.ToString(), username);
+            ViewBag.Username = username;
             ViewBag.Title = username + " billeder";
             ViewBag.Upload = string.Format("{0}{1}/image", RemoteBaseApi.ToString(), Environment.UserName);
             var model = new BaseViewModel<string>

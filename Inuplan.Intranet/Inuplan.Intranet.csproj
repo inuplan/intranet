@@ -207,6 +207,7 @@
     <Content Include="Content\Libraries\bootstrap-theme.min.css" />
     <Content Include="Content\Libraries\bootstrap.css" />
     <Content Include="Content\Libraries\bootstrap.min.css" />
+    <Content Include="Content\Pages\ImageUser.css" />
     <Content Include="Content\Pages\UserIndex.css" />
     <Content Include="Content\Pages\userimage.css" />
     <Content Include="favicon.ico" />
@@ -222,6 +223,7 @@
     <None Include="NLog.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Properties\PublishProfiles\remote.pubxml" />
     <None Include="Scripts\Libraries\jquery-2.2.3.intellisense.js" />
     <Content Include="Scripts\Libraries\jquery-2.2.3.js" />
     <Content Include="Scripts\Libraries\jquery-2.2.3.min.js" />
