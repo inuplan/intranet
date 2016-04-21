@@ -1,5 +1,5 @@
 ﻿/* add a little bottom space under the images */
-.col-lg-6 {
+#images.col-lg-6 {
     min-height: 400px;
 	margin-bottom:7px;
 }

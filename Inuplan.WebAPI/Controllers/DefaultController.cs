@@ -53,8 +53,8 @@ namespace Inuplan.WebAPI.Controllers
         [NonAction]
         protected bool AuthorizeToUsername(string username)
         {
-            var principal = RequestContext.Principal;
-            return username.Equals(principal.Identity.Name, StringComparison.OrdinalIgnoreCase);
+            var user = GetPrincipalIdentityUser();
+            return username.Equals(user.Username, StringComparison.OrdinalIgnoreCase);
         }
         
         /// <summary>

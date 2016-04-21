@@ -21,16 +21,13 @@ namespace Inuplan.WebAPI.App_Start
     using Autofac.Integration.WebApi;
     using Common.Enums;
     using Common.Factories;
-    using Common.Mappers;
+    using Common.Models;
+    using Common.Repositories;
     using Controllers;
     using DAL.Repositories;
     using Image.Factories;
-    using Inuplan.Common.Models;
-    using Inuplan.Common.Repositories;
-    using Jose;
     using Middlewares;
     using Mocks;
-    using System.Collections.Generic;
     using System.Configuration;
     using System.Data;
     using System.Data.SqlClient;
@@ -49,7 +46,7 @@ namespace Inuplan.WebAPI.App_Start
         public static void RegisterContainer(HttpConfiguration config)
         {
             // Setup variables
-            var root = ConfigurationManager.AppSettings["root"];
+            var root = GetRoot();
             var connectionString = GetConnectionString();
             var domain = ConfigurationManager.AppSettings["domain"];
 
@@ -69,10 +66,10 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserImageController>().WithAttributeFilter();
             builder.RegisterType<UserController>().WithAttributeFilter();
             builder.RegisterType<UserRolesController>().WithAttributeFilter();
+            builder.RegisterType<DiagnosticController>().WithAttributeFilter();
 
             // Register classes and keys
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
-            builder.RegisterType<NewtonsoftMapper>().As<IJsonMapper>();
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
 
@@ -117,6 +114,16 @@ namespace Inuplan.WebAPI.App_Start
             var connectionString = ConfigurationManager.AppSettings["connectionString"];
 #endif
             return connectionString;
+        }
+
+        private static string GetRoot()
+        {
+#if DEBUG
+            var root = ConfigurationManager.AppSettings["rootDebug"];
+#else
+            var root = ConfigurationManager.AppSettings["root"];
+#endif
+            return root;
         }
     }
 }

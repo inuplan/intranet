@@ -17,7 +17,7 @@
 namespace Inuplan.WebAPI
 {
     using Autofac.Integration.WebApi;
-    using Inuplan.WebAPI.App_Start;
+    using App_Start;
     using Owin;
     using System.Net;
     using System.Web.Http;
@@ -36,12 +36,8 @@ namespace Inuplan.WebAPI
             // Configure Web API for self-host.
             var config = new HttpConfiguration();
 
-            // Enable Cross-Origin Resource Sharing (CORS)
-            config.EnableCors();
-
-            // Enable windows authentication
-            HttpListener listener = (HttpListener)app.Properties["System.Net.HttpListener"];
-            listener.AuthenticationSchemes = AuthenticationSchemes.IntegratedWindowsAuthentication;
+            // Enable win-auth except when using OPTIONS method
+            EnableWindowsAuthenticationWithCorsOptions(app, config);
 
             // Register components
             RouteConfig.RegisterRoutes(config);
@@ -53,6 +49,34 @@ namespace Inuplan.WebAPI
 
             // Controllers
             app.UseWebApi(config);
+        }
+
+        /// <summary>
+        /// Enables windows authentication for all requests except if method is <code>OPTIONS</code>.
+        /// </summary>
+        /// <param name="app">The application builder</param>
+        private static void EnableWindowsAuthenticationWithCorsOptions(IAppBuilder app, HttpConfiguration config)
+        {
+            // Enable Cross-Origin Resource Sharing (CORS)
+            config.EnableCors();
+
+            // Enable windows authentication and allow http method OPTIONS through
+            // Reason: CORS preflight request sends an OPTIONS request for non-idempotent request
+            // (PUT, POST, DELETE, etc.) and browsers cannot respond to a 401 challenge.
+            // Therefore anonymous pass-through must be allowed for preflight requests!
+            var listener = app.Properties["System.Net.HttpListener"] as HttpListener;
+            listener.AuthenticationSchemeSelectorDelegate = (request) =>
+            {
+                if (request.HttpMethod.Equals("OPTIONS", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return AuthenticationSchemes.Anonymous;
+                }
+                else
+                {
+                    return AuthenticationSchemes.IntegratedWindowsAuthentication;
+                }
+            };
+
         }
     }
 }

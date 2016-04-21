@@ -34,47 +34,33 @@ namespace Inuplan.Intranet.Controllers
 
     public class ImageController : Controller
     {
-        private readonly IHttpClientFactory httpClientFactory;
+        private Uri RemoteBaseApi;
 
-        private readonly Uri remoteBaseAddress;
-
-        public ImageController(
-            [WithKey(ServiceKeys.RemoteBaseAddress)] Uri remoteBaseAddress,
-            IHttpClientFactory httpClientFactory)
+        public ImageController([WithKey(ServiceKeys.RemoteBaseAddress)] Uri RemoteBaseApi)
         {
-            this.remoteBaseAddress = remoteBaseAddress;
-            this.httpClientFactory = httpClientFactory;
+            this.RemoteBaseApi = RemoteBaseApi;
+        }
+
+        public async Task<ActionResult> Index()
+        {
+            return await Task.FromResult(View());
         }
 
         [HttpGet]
         [Route("user/{username:alpha}/images", Name = "UserImages")]
-        public async Task<ActionResult> UserImages(string username)
+        public async Task<ActionResult> Images(string username)
         {
-            using (var client = httpClientFactory.GetHttpClient())
+            var api = string.Format("{0}{1}/image", RemoteBaseApi.ToString(), username);
+            ViewBag.Username = username;
+            ViewBag.Title = username + " billeder";
+            ViewBag.Upload = string.Format("{0}{1}/image", RemoteBaseApi.ToString(), Environment.UserName);
+            var model = new BaseViewModel<string>
             {
-                client.BaseAddress = remoteBaseAddress;
-                var path = string.Format("user/{0}", username);
-                var response = await client.GetAsync(path);
-                var json = (await response.Content.ReadAsStringAsync()).SomeNotNull();
-                var owner = json.Map(j => JsonConvert.DeserializeObject<User>(j));
-
-                return owner.Match(u =>
-                {
-                    ViewBag.API = remoteBaseAddress.ToString();
-                    var vm = new BaseViewModel<User>
-                    {
-                        CurrentUsername = Environment.UserName,
-                        Entity = u,
-                        IsEditable = u.Username.Equals(Environment.UserName, StringComparison.OrdinalIgnoreCase),
-                    };
-
-                    return View(vm);
-                },
-                () =>
-                {
-                    throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
-                });
-            }
+                DisplayName = Environment.UserName,
+                Entity = api,
+                IsEditable = username.Equals(Environment.UserName, StringComparison.OrdinalIgnoreCase),
+            };
+            return await Task.FromResult(View(model));
         }
     }
 }

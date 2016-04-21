@@ -57,13 +57,13 @@
 </nav>
 @section styles
 {
-    <link rel="stylesheet" href="@Url.Content("~/Content/Pages/Home.css")" />
+    <link rel="stylesheet" href="@Url.Content("~/Content/Pages/UserIndex.css")" />
 }
 
 @section scripts
 {
     @Scripts.Render("~/bundles/knockout")
-    <script src="~/Scripts/Pages/Home.js"></script>
+    <script src="~/Scripts/Pages/UserIndex.js"></script>
     <script>
         $(function() {
             var app = new AppViewModel('@ViewBag.Remote', @ViewBag.Skip, @ViewBag.Take);
