@@ -20,24 +20,32 @@
 
 namespace Inuplan.DAL.Repositories
 {
-    using System.Collections.Generic;
-    using System.Data;
-    using System.Linq;
-    using System.Threading.Tasks;
     using Common.Models;
     using Common.Repositories;
-    using Dapper;
-    using Optional;
-    using System.Transactions;
-    using System.Diagnostics;
     using Common.Tools;
-    using System.Collections.Concurrent;
-    using System;/// <summary>
-                 /// Repository for <see cref="User"/>s in the database.
-                 /// Can do CRUD operations.
-                 /// </summary>
+    using Dapper;
+    using NLog;
+    using Optional;
+    using System;
+    using System.Collections.Generic;
+    using System.Data;
+    using System.Data.SqlClient;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Transactions;
+
+    /// <summary>
+    /// Repository for <see cref="User"/>s in the database.
+    /// Can do CRUD operations.
+    /// </summary>
     public class UserDatabaseRepository : IScalarRepository<string, User>
     {
+        /// <summary>
+        /// The logging framework
+        /// </summary>
+        private static Logger Logger = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// The database connection
         /// </summary>
@@ -71,41 +79,49 @@ namespace Inuplan.DAL.Repositories
         /// <returns>Returns an awaitable optional user</returns>
         public async Task<Option<User>> Create(User entity, params object[] identifiers)
         {
-            Debug.Assert(entity.Roles != null && entity.Roles.Any(), "Must define an existing role for this user!");
-            Debug.Assert(entity.Roles.All(r => r.ID > 0), "A role must already be created in the database before creating the user");
-            entity.ID = 0;
-
-            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                // Create user
-                var sqlUser = @"INSERT INTO Users (Username, FirstName, LastName, Email)
+                Debug.Assert(entity.Roles != null && entity.Roles.Any(), "Must define an existing role for this user!");
+                Debug.Assert(entity.Roles.All(r => r.ID > 0), "A role must already be created in the database before creating the user");
+                entity.ID = 0;
+
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    // Create user
+                    var sqlUser = @"INSERT INTO Users (Username, FirstName, LastName, Email)
                         VALUES (@Username, @FirstName, @LastName, @Email);
                         SELECT ID FROM Users WHERE ID = @@IDENTITY";
 
-                entity.ID = await connection.ExecuteScalarAsync<int>(sqlUser, new
-                {
-                    Username = entity.Username,
-                    FirstName = entity.FirstName,
-                    LastName = entity.LastName,
-                    Email = entity.Email,
-                    RoleID = entity.Roles
-                });
+                    entity.ID = await connection.ExecuteScalarAsync<int>(sqlUser, new
+                    {
+                        Username = entity.Username,
+                        FirstName = entity.FirstName,
+                        LastName = entity.LastName,
+                        Email = entity.Email,
+                        RoleID = entity.Roles
+                    });
 
-                // Set role for user
-                var sqlRole = @"INSERT INTO UserRoles (UserID, RoleID)
+                    // Set role for user
+                    var sqlRole = @"INSERT INTO UserRoles (UserID, RoleID)
                                 VALUES(@UserID, @RoleID);";
-                var roles = entity.Roles.Select(r => new { UserID = entity.ID, RoleID = r.ID }).ToArray();
-                var created = await connection.ExecuteAsync(sqlRole, roles);
+                    var roles = entity.Roles.Select(r => new { UserID = entity.ID, RoleID = r.ID }).ToArray();
+                    var created = await connection.ExecuteAsync(sqlRole, roles);
 
-                var result = entity.SomeWhen(u => u.ID > 0 && created > 0);
+                    var result = entity.SomeWhen(u => u.ID > 0 && created > 0);
 
-                // On success commit
-                if (result.HasValue)
-                {
-                    transactionScope.Complete();
+                    // On success commit
+                    if (result.HasValue)
+                    {
+                        transactionScope.Complete();
+                    }
+
+                    return result;
                 }
-
-                return result;
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
             }
         }
 
@@ -116,10 +132,18 @@ namespace Inuplan.DAL.Repositories
         /// <returns>An awaitable optional boolean value, indicating whether the operation was succesfull</returns>
         public async Task<bool> Delete(string key)
         {
-            Debug.Assert(!string.IsNullOrEmpty(key), "Must have a valid username");
-            var sql = @"DELETE FROM Users WHERE Username = @key";
-            var rows = await connection.ExecuteAsync(sql, new { key });
-            return rows == 1;
+            try
+            {
+                Debug.Assert(!string.IsNullOrEmpty(key), "Must have a valid username");
+                var sql = @"DELETE FROM Users WHERE Username = @key";
+                var rows = await connection.ExecuteAsync(sql, new { key });
+                return rows == 1;
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -129,32 +153,40 @@ namespace Inuplan.DAL.Repositories
         /// <returns>An awaitable optional user</returns>
         public async Task<Option<User>> Get(string key)
         {
-            var sqlUser = @"SELECT ID, FirstName, LastName, Email, Username
+            try
+            {
+                var sqlUser = @"SELECT ID, FirstName, LastName, Email, Username
                         FROM Users
                         WHERE Username = @key";
 
-            var entity = (await connection.QueryAsync<User>(sqlUser, new { key }))
-                        .SingleOrDefault();
+                var entity = (await connection.QueryAsync<User>(sqlUser, new { key }))
+                            .SingleOrDefault();
 
-            var result = Option.None<User>();
+                var result = Option.None<User>();
 
-            if(entity != null)
-            {
-                var sqlRoles = @"SELECT role.ID, role.Name
+                if (entity != null)
+                {
+                    var sqlRoles = @"SELECT role.ID, role.Name
                             FROM Roles role INNER JOIN UserRoles u
                             ON role.ID = u.RoleID
                             WHERE UserID = @ID";
 
-                var roles = await connection.QueryAsync<Role>(sqlRoles, new
-                {
-                    ID = entity.ID
-                });
+                    var roles = await connection.QueryAsync<Role>(sqlRoles, new
+                    {
+                        ID = entity.ID
+                    });
 
-                entity.Roles = roles.ToList();
-                result = entity.Some();
+                    entity.Roles = roles.ToList();
+                    result = entity.Some();
+                }
+
+                return result;
             }
-
-            return result;
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -166,7 +198,9 @@ namespace Inuplan.DAL.Repositories
         /// <returns>An awaitable list of users</returns>
         public async Task<Pagination<User>> GetPage(int skip, int take, params object[] identifiers)
         {
-            var sql = @"SELECT ID, FirstName, LastName, Email, Username
+            try
+            {
+                var sql = @"SELECT ID, FirstName, LastName, Email, Username
                         FROM
                         (
                             SELECT tmp.*, ROW_NUMBER() OVER (ORDER BY Username ASC) AS 'RowNumber'
@@ -174,37 +208,43 @@ namespace Inuplan.DAL.Repositories
                         ) AS seq
                         WHERE seq.RowNumber BETWEEN @From AND @To";
 
-            var result = (await connection.QueryAsync<User>(sql, new
-            {
-                From = skip + 1,
-                To = (skip + take)
-            }));
+                var result = (await connection.QueryAsync<User>(sql, new
+                {
+                    From = skip + 1,
+                    To = (skip + take)
+                }));
 
-            var roleSql = @"SELECT u.ID, r.ID, Name FROM Roles r
+                var roleSql = @"SELECT u.ID, r.ID, Name FROM Roles r
                             INNER JOIN UserRoles ur
                             ON r.ID = ur.RoleID
                             INNER JOIN Users u
                             ON u.ID = ur.UserID";
 
 
-            var roles = await connection.QueryAsync<int, Role, Tuple<int, Role>>(
-                roleSql,
-                (id, role) => new Tuple<int, Role>(id, role));
+                var roles = await connection.QueryAsync<int, Role, Tuple<int, Role>>(
+                    roleSql,
+                    (id, role) => new Tuple<int, Role>(id, role));
 
-            var group = roles.GroupBy(t => t.Item1);
-            foreach(var g in group)
-            {
-                var userRoles = g.Select(r => r.Item2);
-                var user = result.Single(u => u.ID == g.Key);
-                user.Roles = userRoles.ToList();
+                var group = roles.GroupBy(t => t.Item1);
+                foreach (var g in group)
+                {
+                    var userRoles = g.Select(r => r.Item2);
+                    var user = result.Single(u => u.ID == g.Key);
+                    user.Roles = userRoles.ToList();
+                }
+
+
+                var totalSql = @"SELECT COUNT(*) FROM Users";
+                var total = await connection.ExecuteScalarAsync<int>(totalSql);
+
+                var page = Helpers.Pageify(skip, take, total, result.ToList());
+                return page;
             }
-
-
-            var totalSql = @"SELECT COUNT(*) FROM Users";
-            var total = await connection.ExecuteScalarAsync<int>(totalSql);
-
-            var page = Helpers.Pageify(skip, take, total, result.ToList());
-            return page;
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -214,11 +254,19 @@ namespace Inuplan.DAL.Repositories
         /// <returns>An awaitable list of users.</returns>
         public async Task<List<User>> GetAll(params object[] identifiers)
         {
-            var sql = @"SELECT ID, FirstName, LastName, Email, Username
+            try
+            {
+                var sql = @"SELECT ID, FirstName, LastName, Email, Username
                         FROM Users";
 
-            var result = await connection.QueryAsync<User>(sql);
-            return result.ToList();
+                var result = await connection.QueryAsync<User>(sql);
+                return result.ToList();
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -228,27 +276,35 @@ namespace Inuplan.DAL.Repositories
         /// <returns>An awaitable optional user</returns>
         public async Task<Option<User>> GetByID(int id)
         {
-            var sql = @"SELECT ID, FirstName, LastName, Email, Username
+            try
+            {
+                var sql = @"SELECT ID, FirstName, LastName, Email, Username
                         FROM Users
                         WHERE ID = @id";
 
-            var result = (await connection.QueryAsync<User>(sql, new { id })).SingleOrDefault();
-            if(result != null)
-            {
-                var sqlRoles = @"SELECT role.ID, role.Name
+                var result = (await connection.QueryAsync<User>(sql, new { id })).SingleOrDefault();
+                if (result != null)
+                {
+                    var sqlRoles = @"SELECT role.ID, role.Name
                             FROM Roles role INNER JOIN UserRoles u
                             ON role.ID = u.RoleID
                             WHERE UserID = @ID";
 
-                var roles = await connection.QueryAsync<Role>(sqlRoles, new
-                {
-                    ID = result.ID
-                });
+                    var roles = await connection.QueryAsync<Role>(sqlRoles, new
+                    {
+                        ID = result.ID
+                    });
 
-                result.Roles = roles.ToList();
+                    result.Roles = roles.ToList();
+                }
+
+                return result.SomeWhen(u => u != null && u.ID > 0);
             }
-
-            return result.SomeWhen(u => u != null && u.ID > 0);
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -260,23 +316,31 @@ namespace Inuplan.DAL.Repositories
         /// <returns>An awaitable optional boolean value</returns>
         public async Task<bool> Update(string key, User entity)
         {
-            var sql = @"UPDATE Users SET
+            try
+            {
+                var sql = @"UPDATE Users SET
                             FirstName = @FirstName,
                             LastName = @LastName,
                             Email = @Email,
                             Username = @Username
                         WHERE Username = @key";
 
-            var result = await connection.ExecuteAsync(sql, new
-            {
-                FirstName = entity.FirstName,
-                LastName = entity.LastName,
-                Email = entity.Email,
-                Username = entity.Username,
-                key
-            });
+                var result = await connection.ExecuteAsync(sql, new
+                {
+                    FirstName = entity.FirstName,
+                    LastName = entity.LastName,
+                    Email = entity.Email,
+                    Username = entity.Username,
+                    key
+                });
 
-            return result == 1;
+                return result == 1;
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>

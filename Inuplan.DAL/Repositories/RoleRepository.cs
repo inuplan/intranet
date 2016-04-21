@@ -30,9 +30,13 @@ namespace Inuplan.DAL.Repositories
     using System.Diagnostics;
     using Dapper;
     using Common.Tools;
+    using NLog;
+    using System.Data.SqlClient;
 
     public class RoleRepository : IScalarRepository<int, Role>
     {
+        private static Logger Logger = LogManager.GetCurrentClassLogger();
+
         private readonly IDbConnection connection;
 
         private bool disposedValue = false;
@@ -45,33 +49,65 @@ namespace Inuplan.DAL.Repositories
         public async Task<Option<Role>> Create(Role entity, params object[] identifiers)
         {
             Debug.Assert(entity != null, "Must have valid object to create");
-            var sql = @"INSERT INTO Roles (Name) Values (@Name);SELECT ID FROM Roles WHERE ID = @@IDENTITY;";
-            entity.ID = await connection.ExecuteScalarAsync<int>(sql, entity);
+            try
+            {
+                var sql = @"INSERT INTO Roles (Name) Values (@Name);SELECT ID FROM Roles WHERE ID = @@IDENTITY;";
+                entity.ID = await connection.ExecuteScalarAsync<int>(sql, entity);
 
-            return entity.SomeWhen(e => e.ID > 0);
+                return entity.SomeWhen(e => e.ID > 0);
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         public async Task<bool> Delete(int key)
         {
             Debug.Assert(key > 0, "Must be a valid key");
-            var sql = @"DELETE FROM Roles WHERE ID = @key;";
-            var rows = await connection.ExecuteAsync(sql, key);
+            try
+            {
+                var sql = @"DELETE FROM Roles WHERE ID = @key;";
+                var rows = await connection.ExecuteAsync(sql, key);
 
-            return rows == 1;
+                return rows == 1;
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         public async Task<Option<Role>> Get(int key)
         {
-            var sql = @"SELECT ID, Name FROM Roles WHERE ID = @key";
-            var result = await connection.ExecuteScalarAsync<Role>(sql, new { key });
-            return result.SomeWhen(r => r != null && r.ID > 0);
+            try
+            {
+                var sql = @"SELECT ID, Name FROM Roles WHERE ID = @key";
+                var result = await connection.ExecuteScalarAsync<Role>(sql, new { key });
+                return result.SomeWhen(r => r != null && r.ID > 0);
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         public async Task<List<Role>> GetAll(params object[] identifiers)
         {
-            var sql = @"SELECT * FROM Roles;";
-            var result = await connection.QueryAsync<Role>(sql);
-            return result.ToList();
+            try
+            {
+                var sql = @"SELECT * FROM Roles;";
+                var result = await connection.QueryAsync<Role>(sql);
+                return result.ToList();
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         public Task<Option<Role>> GetByID(int id)
@@ -81,27 +117,43 @@ namespace Inuplan.DAL.Repositories
 
         public async Task<Pagination<Role>> GetPage(int skip, int take, params object[] identifiers)
         {
-            var sql = @"SELECT ID, Name FROM
+            try
+            {
+                var sql = @"SELECT ID, Name FROM
                             (SELECT ID, Name, Row_Number() OVER (ORDER BY ID) AS rownumber
                             FROM Roles) AS seq
                         WHERE seq.rownumber BETWEEN @From AND @To;";
 
-            var roles = await connection.QueryAsync<Role>(sql, new
+                var roles = await connection.QueryAsync<Role>(sql, new
+                {
+                    From = skip + 1,
+                    To = skip + take,
+                });
+
+                var total = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Roles;");
+
+                return Helpers.Pageify(skip, take, total, roles.ToList());
+            }
+            catch (SqlException ex)
             {
-                From = skip + 1,
-                To = skip + take,
-            });
-
-            var total = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Roles;");
-
-            return Helpers.Pageify(skip, take, total, roles.ToList());
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         public async Task<bool> Update(int key, Role entity)
         {
-            var sql = @"UPDATE Roles SET Name = @Name WHERE ID=@ID";
-            var rows = await connection.ExecuteAsync(sql, new { Name = entity.Name, ID = key });
-            return rows == 1;
+            try
+            {
+                var sql = @"UPDATE Roles SET Name = @Name WHERE ID=@ID";
+                var rows = await connection.ExecuteAsync(sql, new { Name = entity.Name, ID = key });
+                return rows == 1;
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         protected virtual void Dispose(bool disposing)

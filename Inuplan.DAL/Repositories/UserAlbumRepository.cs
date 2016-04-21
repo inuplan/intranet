@@ -34,9 +34,12 @@ namespace Inuplan.DAL.Repositories
     using System.IO;
     using Optional.Unsafe;
     using Common.Tools;
-
+    using System.Data.SqlClient;
+    using NLog;
     public class UserAlbumRepository : IScalarRepository<int, Album>
     {
+        private static Logger Logger = LogManager.GetCurrentClassLogger();
+        
         private readonly IDbConnection connection;
 
         private bool disposedValue = false;
@@ -48,68 +51,86 @@ namespace Inuplan.DAL.Repositories
 
         public async Task<Option<Album>> Create(Album entity, params object[] identifiers)
         {
-            var images = identifiers != null ?
-                            identifiers.Cast<Image>().ToList() :
-                            new List<Image>();
-
-            Debug.Assert(entity.Owner != null && entity.Owner.ID > 0, "Must have a valid owner!");
-            Debug.Assert(images.All(img => img.ID > 0), "All images must have existing ID's");
-
-            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
+                var images = identifiers != null ?
+                                identifiers.Cast<Image>().ToList() :
+                                new List<Image>();
 
-                var sql = @"INSERT INTO Albums (Description, Owner, Name)
+                Debug.Assert(entity.Owner != null && entity.Owner.ID > 0, "Must have a valid owner!");
+                Debug.Assert(images.All(img => img.ID > 0), "All images must have existing ID's");
+
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+
+                    var sql = @"INSERT INTO Albums (Description, Owner, Name)
                         VALUES(@Description, @Owner, @Name);
                         SELECT ID FROM Albums WHERE ID = @@IDENTITY;";
 
-                entity.ID = await connection.ExecuteScalarAsync<int>(sql, new
-                {
-                    Description = entity.Description,
-                    Owner = entity.Owner.ID,
-                    Name = entity.Name,
-                });
-
-                foreach(var image in images)
-                {
-
-                    var imgSql = @"INSERT INTO AlbumImages (AlbumID, ImageID) VALUES(@AlbumID, @ImageID);";
-                    var row = await connection.ExecuteAsync(imgSql, new
+                    entity.ID = await connection.ExecuteScalarAsync<int>(sql, new
                     {
-                        AlbumID = entity.ID,
-                        ImageID = image.ID,
+                        Description = entity.Description,
+                        Owner = entity.Owner.ID,
+                        Name = entity.Name,
                     });
-                }
 
-                var result = entity.SomeWhen(a => a.ID > 0);
-                if(result.HasValue)
-                {
-                    transactionScope.Complete();
-                }
+                    foreach (var image in images)
+                    {
 
-                return result;
+                        var imgSql = @"INSERT INTO AlbumImages (AlbumID, ImageID) VALUES(@AlbumID, @ImageID);";
+                        var row = await connection.ExecuteAsync(imgSql, new
+                        {
+                            AlbumID = entity.ID,
+                            ImageID = image.ID,
+                        });
+                    }
+
+                    var result = entity.SomeWhen(a => a.ID > 0);
+                    if (result.HasValue)
+                    {
+                        transactionScope.Complete();
+                    }
+
+                    return result;
+                }
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
             }
         }
 
         public async Task<bool> Delete(int key)
         {
-            Debug.Assert(key > 0, "Must have valid key!");
-            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                var sql = @"DELETE FROM Albums WHERE ID = @key;";
-                var success = (await connection.ExecuteAsync(sql, new { key })).Equals(1);
-                if(success)
+                Debug.Assert(key > 0, "Must have valid key!");
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    transactionScope.Complete();
-                }
+                    var sql = @"DELETE FROM Albums WHERE ID = @key;";
+                    var success = (await connection.ExecuteAsync(sql, new { key })).Equals(1);
+                    if (success)
+                    {
+                        transactionScope.Complete();
+                    }
 
-                return success;
+                    return success;
+                }
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
             }
         }
 
         public async Task<Option<Album>> Get(int key)
         {
-            // Assumption: The Album owner = Image owner
-            var sql = @"SELECT 
+            try
+            {
+                // Assumption: The Album owner = Image owner
+                var sql = @"SELECT 
                             img.ID, img.Description, Filename, Extension, MimeType,		/* Image */
                             preview.ID, preview.Path,									/* Preview */
                             thumbnail.ID, thumbnail.Path,								/* Thumbnail */
@@ -136,50 +157,65 @@ namespace Inuplan.DAL.Repositories
 
                         WHERE a.ID = @key;";
 
-            var albumImages = await connection.QueryAsync<
-                Image,
-                Common.Models.FileInfo, 
-                Common.Models.FileInfo, 
-                Common.Models.FileInfo, 
-                User, 
-                Image>(sql, (img, pre, thumb, orig, user) =>
+                var albumImages = await connection.QueryAsync<
+                    Image,
+                    Common.Models.FileInfo,
+                    Common.Models.FileInfo,
+                    Common.Models.FileInfo,
+                    User,
+                    Image>(sql, (img, pre, thumb, orig, user) =>
+                {
+                    pre.Data = new Lazy<byte[]>(() => File.ReadAllBytes(pre.Path));
+                    thumb.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumb.Path));
+                    orig.Data = new Lazy<byte[]>(() => File.ReadAllBytes(orig.Path));
+
+                    img.Owner = user;
+                    img.Preview = pre;
+                    img.Thumbnail = thumb;
+                    img.Original = orig;
+
+                    return img;
+                }, new { key });
+
+                var album = await connection.ExecuteScalarAsync<Album>(@"SELECT * FROM Albums WHERE ID = @key;", new { key });
+                album.Images = albumImages.ToList();
+
+                return album.SomeWhen(a => a.ID > 0);
+            }
+            catch (SqlException ex)
             {
-                pre.Data = new Lazy<byte[]>(() => File.ReadAllBytes(pre.Path));
-                thumb.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumb.Path));
-                orig.Data = new Lazy<byte[]>(() => File.ReadAllBytes(orig.Path));
-
-                img.Owner = user;
-                img.Preview = pre;
-                img.Thumbnail = thumb;
-                img.Original = orig;
-
-                return img;
-            }, new { key });
-
-            var album = await connection.ExecuteScalarAsync<Album>(@"SELECT * FROM Albums WHERE ID = @key;", new { key });
-            album.Images = albumImages.ToList();
-
-            return album.SomeWhen(a => a.ID > 0);
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         public async Task<List<Album>> GetAll(params object[] identifiers)
         {
-            var userID = (int)identifiers[0];
-            Debug.Assert(userID > 0, "Must be valid user!");
-            var sqlIds = @"SELECT ID FROM Albums WHERE Owner = @key;";
-            var albumIds = await connection.QueryAsync<int>(sqlIds, new
+            try
             {
-                key = userID
-            });
+                var userID = (int)identifiers[0];
+                Debug.Assert(userID > 0, "Must be valid user!");
+                var sqlIds = @"SELECT ID FROM Albums WHERE Owner = @key;";
+                var albumIds = await connection.QueryAsync<int>(sqlIds, new
+                {
+                    key = userID
+                });
 
-            var result = new List<Album>();
-            foreach(var id in albumIds)
-            {
-                var album = await Get(id);
-                result.Add(album.ValueOrFailure());
+                var result = new List<Album>();
+                foreach (var id in albumIds)
+                {
+                    var album = await Get(id);
+                    result.Add(album.ValueOrFailure());
+                }
+
+                return result;
+
             }
-
-            return result;
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         public async Task<Option<Album>> GetByID(int id)
@@ -189,59 +225,75 @@ namespace Inuplan.DAL.Repositories
 
         public async Task<Pagination<Album>> GetPage(int skip, int take, params object[] identifiers)
         {
-            var userID = (int)identifiers[0];
-            Debug.Assert(userID > 0, "Must have a valid user ID!");
-            var sql = @"SELECT ID, Description, Owner, Name FROM
+            try
+            {
+                var userID = (int)identifiers[0];
+                Debug.Assert(userID > 0, "Must have a valid user ID!");
+                var sql = @"SELECT ID, Description, Owner, Name FROM
                             (SELECT *, Row_Number() OVER (ORDER BY ID) AS rn
                             FROM Albums WHERE Owner = @Owner) as seq
                         WHERE seq.rn BETWEEN @From AND @To;";
 
-            // Album info without images
-            var items = await connection.QueryAsync<Album>(sql, new
-            {
-                Owner = userID,
-                From = skip + 1,
-                To = skip + take,
-            });
+                // Album info without images
+                var items = await connection.QueryAsync<Album>(sql, new
+                {
+                    Owner = userID,
+                    From = skip + 1,
+                    To = skip + take,
+                });
 
-            var total = await connection.ExecuteScalarAsync<int>(@"SELECT COUNT(*) FROM Albums WHERE Owner = @Owner", new
-            {
-                Owner = userID
-            });
+                var total = await connection.ExecuteScalarAsync<int>(@"SELECT COUNT(*) FROM Albums WHERE Owner = @Owner", new
+                {
+                    Owner = userID
+                });
 
-            return Helpers.Pageify(skip, take, total, items.ToList());
+                return Helpers.Pageify(skip, take, total, items.ToList());
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         public async Task<bool> Update(int key, Album entity)
         {
-            Debug.Assert(entity.Images.All(img => img.ID > 0), "Images must pre-exist!");
-            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                var sql = @"UPDATE Album SET Description=@Description, Name=@Name WHERE ID=@ID";
-                var update = (await connection.ExecuteAsync(sql, new
+                Debug.Assert(entity.Images.All(img => img.ID > 0), "Images must pre-exist!");
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    Description = entity.Description,
-                    Name = entity.Name,
-                    ID = key
-                })).Equals(1);
+                    var sql = @"UPDATE Album SET Description=@Description, Name=@Name WHERE ID=@ID";
+                    var update = (await connection.ExecuteAsync(sql, new
+                    {
+                        Description = entity.Description,
+                        Name = entity.Name,
+                        ID = key
+                    })).Equals(1);
 
-                var deleteSql = @"DELETE FROM AlbumImages WHERE AlbumID=@AlbumID";
-                var deleted = (await connection.ExecuteAsync(deleteSql, new
-                {
-                    AlbumID = entity.ID
-                })).Equals(entity.Images.Count);
+                    var deleteSql = @"DELETE FROM AlbumImages WHERE AlbumID=@AlbumID";
+                    var deleted = (await connection.ExecuteAsync(deleteSql, new
+                    {
+                        AlbumID = entity.ID
+                    })).Equals(entity.Images.Count);
 
-                var imgs = entity.Images.Select(img => new { AlbumID = entity.ID, ImageID = img.ID }).ToArray();
-                var insertSql = @"INSERT INTO AlbumImages (AlbumID, ImageID) VALUES(@AlbumID, @ImageID);";
-                var inserted = (await connection.ExecuteAsync(insertSql, imgs)).Equals(imgs.Count());
+                    var imgs = entity.Images.Select(img => new { AlbumID = entity.ID, ImageID = img.ID }).ToArray();
+                    var insertSql = @"INSERT INTO AlbumImages (AlbumID, ImageID) VALUES(@AlbumID, @ImageID);";
+                    var inserted = (await connection.ExecuteAsync(insertSql, imgs)).Equals(imgs.Count());
 
-                var success = update && deleted && inserted;
-                if(success)
-                {
-                    transactionScope.Complete();
+                    var success = update && deleted && inserted;
+                    if (success)
+                    {
+                        transactionScope.Complete();
+                    }
+
+                    return success;
                 }
-
-                return success;
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
             }
         }
 

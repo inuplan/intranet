@@ -50,7 +50,7 @@ namespace Inuplan.DAL.Repositories
         /// <summary>
         /// The logging framework
         /// </summary>
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// The database connection
@@ -79,78 +79,86 @@ namespace Inuplan.DAL.Repositories
         /// <returns>An optional image with correct ID</returns>
         public async Task<Option<Image>> Create(Image entity, params object[] identifiers)
         {
-            Debug.Assert(entity.Owner != null && entity.Owner.ID > 0, "Must have a valid user id");
-            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                try
+                Debug.Assert(entity.Owner != null && entity.Owner.ID > 0, "Must have a valid user id");
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    var sqlFileInfo = @"INSERT INTO FileInfo (Path)
+                    try
+                    {
+                        var sqlFileInfo = @"INSERT INTO FileInfo (Path)
                                         VALUES (@Path);
                                         SELECT ID FROM FileInfo WHERE ID = @@IDENTITY;";
-                    var fileInfos = new[]
-                    {
+                        var fileInfos = new[]
+                        {
                         entity.Original,
                         entity.Preview,
                         entity.Thumbnail
                     };
 
-                    foreach(var info in fileInfos)
-                    {
-                        var fileInfoID = await connection.ExecuteScalarAsync<int>(sqlFileInfo, info);
-                        info.ID = fileInfoID;
-                    }
+                        foreach (var info in fileInfos)
+                        {
+                            var fileInfoID = await connection.ExecuteScalarAsync<int>(sqlFileInfo, info);
+                            info.ID = fileInfoID;
+                        }
 
-                    var sqlImage = @"INSERT INTO Images
+                        var sqlImage = @"INSERT INTO Images
                                     (Preview, Thumbnail, Original, Owner, Description, Filename, Extension, MimeType)
                                     VALUES
                                     (@Preview, @Thumbnail, @Original, @Owner, @Description, @Filename, @Extension, @MimeType);
                                     SELECT ID FROM Images WHERE ID = @@IDENTITY;";
 
-                    var imageID = await connection.ExecuteScalarAsync<int>(sqlImage, new
+                        var imageID = await connection.ExecuteScalarAsync<int>(sqlImage, new
+                        {
+                            Preview = entity.Preview.ID,
+                            Thumbnail = entity.Thumbnail.ID,
+                            Original = entity.Original.ID,
+                            Owner = entity.Owner.ID,
+                            entity.Description,
+                            entity.Filename,
+                            entity.Extension,
+                            entity.MimeType
+                        });
+
+                        entity.ID = imageID;
+
+                        var success = entity.ID > 0 &&
+                                        entity.Original.ID > 0 &&
+                                        entity.Thumbnail.ID > 0 &&
+                                        entity.Preview.ID > 0;
+
+                        if (success)
+                        {
+                            // Write directory...
+                            // Assumption: All files are in the same directory
+                            var dir = Path.GetDirectoryName(entity.Original.Path);
+                            var dirInfo = Directory.CreateDirectory(dir);
+
+                            transactionScope.Complete();
+
+                            // Write files 
+                            // Assumption: Filesystem always succeed writing
+                            File.WriteAllBytes(entity.Original.Path, entity.Original.Data.Value);
+                            File.WriteAllBytes(entity.Preview.Path, entity.Preview.Data.Value);
+                            File.WriteAllBytes(entity.Thumbnail.Path, entity.Thumbnail.Data.Value);
+
+                            return entity.Some();
+                        }
+                    }
+                    catch (SqlException ex)
                     {
-                        Preview = entity.Preview.ID,
-                        Thumbnail = entity.Thumbnail.ID,
-                        Original = entity.Original.ID,
-                        Owner = entity.Owner.ID,
-                        entity.Description,
-                        entity.Filename,
-                        entity.Extension,
-                        entity.MimeType
-                    });
-
-                    entity.ID = imageID;
-
-                    var success = entity.ID > 0 &&
-                                    entity.Original.ID > 0 &&
-                                    entity.Thumbnail.ID > 0 &&
-                                    entity.Preview.ID > 0;
-
-                    if(success)
-                    {
-                        // Write directory...
-                        // Assumption: All files are in the same directory
-                        var dir = Path.GetDirectoryName(entity.Original.Path);
-                        var dirInfo = Directory.CreateDirectory(dir);
-                        
-                        transactionScope.Complete();
-
-                        // Write files 
-                        // Assumption: Filesystem always succeed writing
-                        File.WriteAllBytes(entity.Original.Path, entity.Original.Data.Value);
-                        File.WriteAllBytes(entity.Preview.Path, entity.Preview.Data.Value);
-                        File.WriteAllBytes(entity.Thumbnail.Path, entity.Thumbnail.Data.Value);
-
-                        return entity.Some();
+                        // log error
+                        Logger.Error(ex);
                     }
                 }
-                catch (SqlException ex)
-                {
-                    // log error
-                    logger.Error(ex);
-                }
-            }
 
-            return Option.None<Image>();
+                return Option.None<Image>();
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -160,10 +168,9 @@ namespace Inuplan.DAL.Repositories
         /// <returns>True if deleted otherwise false</returns>
         public async Task<bool> Delete(int key)
         {
-            Debug.Assert(key > 0, "The image must have a valid ID!");
-
             try
             {
+                Debug.Assert(key > 0, "The image must have a valid ID!");
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     var sqlImage = @"SELECT * FROM Images WHERE ID = @ID";
@@ -217,7 +224,7 @@ namespace Inuplan.DAL.Repositories
             }
             catch (SqlException ex)
             {
-                logger.Error(ex);
+                Logger.Error(ex);
                 throw;
             }
         }
@@ -229,7 +236,9 @@ namespace Inuplan.DAL.Repositories
         /// <returns>An optional image.</returns>
         public async Task<Option<Image>> Get(int key)
         {
-            var sql = @"SELECT
+            try
+            {
+                var sql = @"SELECT
                         img.ID, Description, Filename, Extension, MimeType,     /* Image */
                         u.ID, FirstName, LastName, Username, Email,             /* User */
                         prev.ID, prev.Path,	                                    /* Preview */
@@ -248,25 +257,31 @@ namespace Inuplan.DAL.Repositories
                     ON img.Thumbnail = thumb.ID
                     WHERE img.ID = @key";
 
-            var image = await connection.
-                QueryAsync<Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
-                (sql, (img, user, preview, original, thumbnail) =>
-                {
+                var image = await connection.
+                    QueryAsync<Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
+                    (sql, (img, user, preview, original, thumbnail) =>
+                    {
                     // Setup file info
                     preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
-                    original.Data = new Lazy<byte[]>(() => File.ReadAllBytes(original.Path));
-                    thumbnail.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnail.Path));
+                        original.Data = new Lazy<byte[]>(() => File.ReadAllBytes(original.Path));
+                        thumbnail.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnail.Path));
 
                     // Construct image details
                     img.Owner = user;
-                    img.Preview = preview;
-                    img.Original = original;
-                    img.Thumbnail = thumbnail;
+                        img.Preview = preview;
+                        img.Original = original;
+                        img.Thumbnail = thumbnail;
 
-                    return img;
-                }, new { key });
+                        return img;
+                    }, new { key });
 
-            return image.SingleOrDefault().SomeNotNull();
+                return image.SingleOrDefault().SomeNotNull();
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -278,7 +293,9 @@ namespace Inuplan.DAL.Repositories
         /// <returns>A list of images</returns>
         public async Task<Pagination<Image>> GetPage(int skip, int take, params object[] identifiers)
         {
-            var sql = @"SELECT
+            try
+            {
+                var sql = @"SELECT
                             imgID AS ID, Description, Filename, Extension, MimeType,
                             userID AS ID, FirstName, LastName, Username, Email,
                             prevID AS ID, prevPath AS Path,
@@ -309,34 +326,40 @@ namespace Inuplan.DAL.Repositories
                         ) AS seq
                         WHERE seq.RowNumber BETWEEN @From AND @To;";
 
-            var result = await connection.QueryAsync
-                            <Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
-                            (sql, (img, user, preview, original, thumbnail) =>
-                            {
+                var result = await connection.QueryAsync
+                                <Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
+                                (sql, (img, user, preview, original, thumbnail) =>
+                                {
                                 // Setup file info
                                 preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
-                                original.Data = new Lazy<byte[]>(() => File.ReadAllBytes(original.Path));
-                                thumbnail.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnail.Path));
+                                    original.Data = new Lazy<byte[]>(() => File.ReadAllBytes(original.Path));
+                                    thumbnail.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnail.Path));
 
                                 // Construct image details
                                 img.Owner = user;
-                                img.Preview = preview;
-                                img.Original = original;
-                                img.Thumbnail = thumbnail;
+                                    img.Preview = preview;
+                                    img.Original = original;
+                                    img.Thumbnail = thumbnail;
 
-                                return img;
-                            }, new
-                            {
-                                Owner = identifiers[0],
-                                From = skip + 1,
-                                To = skip + take,
-                            });
+                                    return img;
+                                }, new
+                                {
+                                    Owner = identifiers[0],
+                                    From = skip + 1,
+                                    To = skip + take,
+                                });
 
-            var totalImagesSql = @"SELECT COUNT(*) FROM Images WHERE Owner = @Owner;";
-            var total = await connection.ExecuteScalarAsync<int>(totalImagesSql, new { Owner = identifiers });
+                var totalImagesSql = @"SELECT COUNT(*) FROM Images WHERE Owner = @Owner;";
+                var total = await connection.ExecuteScalarAsync<int>(totalImagesSql, new { Owner = identifiers });
 
-            var currentPage = Helpers.Pageify(skip, take, total, result.ToList());
-            return currentPage;
+                var currentPage = Helpers.Pageify(skip, take, total, result.ToList());
+                return currentPage;
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -346,8 +369,10 @@ namespace Inuplan.DAL.Repositories
         /// <returns>A list of images</returns>
         public async Task<List<Image>> GetAll(params object[] identifiers)
         {
-            Debug.Assert(identifiers.Length == 1, "Must have a valid user ID!");
-            var sql = @"SELECT
+            try
+            {
+                Debug.Assert(identifiers.Length == 1, "Must have a valid user ID!");
+                var sql = @"SELECT
                         img.ID, Description, Filename, Extension, MimeType,     /* Image */
                         u.ID, FirstName, LastName, Username, Email,             /* User */
                         prev.ID, prev.Path,	                                    /* Preview */
@@ -366,25 +391,31 @@ namespace Inuplan.DAL.Repositories
                     ON img.Thumbnail = thumb.ID
                     WHERE img.Owner = @Owner;";
 
-            var result = await connection.QueryAsync
-                            <Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
-                            (sql, (img, user, preview, original, thumbnail) =>
-                            {
+                var result = await connection.QueryAsync
+                                <Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
+                                (sql, (img, user, preview, original, thumbnail) =>
+                                {
                                 // Setup file info
                                 preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
-                                original.Data = new Lazy<byte[]>(() => File.ReadAllBytes(original.Path));
-                                thumbnail.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnail.Path));
+                                    original.Data = new Lazy<byte[]>(() => File.ReadAllBytes(original.Path));
+                                    thumbnail.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnail.Path));
 
                                 // Construct image details
                                 img.Owner = user;
-                                img.Preview = preview;
-                                img.Original = original;
-                                img.Thumbnail = thumbnail;
+                                    img.Preview = preview;
+                                    img.Original = original;
+                                    img.Thumbnail = thumbnail;
 
-                                return img;
-                            }, new { Owner = identifiers[0] });
+                                    return img;
+                                }, new { Owner = identifiers[0] });
 
-            return result.ToList();
+                return result.ToList();
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -405,10 +436,18 @@ namespace Inuplan.DAL.Repositories
         /// <returns>N/A</returns>
         public async Task<bool> Update(int key, Image entity)
         {
-            // Only update the description!
-            var sql = @"UPDATE Images SET Description = @Description WHERE ID=@key;";
-            var updated = await connection.ExecuteAsync(sql, new { key, Description = entity.Description });
-            return updated == 1;
+            try
+            {
+                // Only update the description!
+                var sql = @"UPDATE Images SET Description = @Description WHERE ID=@key;";
+                var updated = await connection.ExecuteAsync(sql, new { key, Description = entity.Description });
+                return updated == 1;
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>

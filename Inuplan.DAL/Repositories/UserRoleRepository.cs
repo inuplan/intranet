@@ -23,10 +23,12 @@ namespace Inuplan.DAL.Repositories
     using Common.Models;
     using Common.Repositories;
     using Dapper;
+    using NLog;
     using Optional;
     using System;
     using System.Collections.Generic;
     using System.Data;
+    using System.Data.SqlClient;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
@@ -34,6 +36,8 @@ namespace Inuplan.DAL.Repositories
 
     public class UserRoleRepository : IScalarRepository<int, User>
     {
+        private static Logger Logger = LogManager.GetCurrentClassLogger();
+
         private readonly IDbConnection connection;
 
         private bool disposedValue = false;
@@ -45,66 +49,90 @@ namespace Inuplan.DAL.Repositories
 
         public async Task<Option<User>> Create(User entity, params object[] identifiers)
         {
-            // Identifiers are a list of IDs for the role
-            var args = identifiers.Cast<int>().Select(roleID => new
+            try
             {
-                UserID = entity.ID,
-                RoleID = roleID,
-            }).ToArray();
-            Debug.Assert(args.All(arg => arg.RoleID > 0), "Must have valid roles!");
+                // Identifiers are a list of IDs for the role
+                var args = identifiers.Cast<int>().Select(roleID => new
+                {
+                    UserID = entity.ID,
+                    RoleID = roleID,
+                }).ToArray();
+                Debug.Assert(args.All(arg => arg.RoleID > 0), "Must have valid roles!");
 
-            // Create users roles
-            var sql = @"INSERT INTO UserRoles (UserID, RoleID) VALUES(@UserID, @RoleID);";
-            var rows = await connection.ExecuteAsync(sql, args);
-            var createdRoles = rows == args.Length;
+                // Create users roles
+                var sql = @"INSERT INTO UserRoles (UserID, RoleID) VALUES(@UserID, @RoleID);";
+                var rows = await connection.ExecuteAsync(sql, args);
+                var createdRoles = rows == args.Length;
 
-            // Construct object with the roles
-            var roleSql = @"SELECT ID, Name FROM Roles WHERE ID=@RoleID";
-            var roles = await connection.QueryAsync<Role>(roleSql);
-            entity.Roles = roles.ToList();
+                // Construct object with the roles
+                var roleSql = @"SELECT ID, Name FROM Roles WHERE ID=@RoleID";
+                var roles = await connection.QueryAsync<Role>(roleSql);
+                entity.Roles = roles.ToList();
 
-            // Return constructed object
-            return entity.SomeWhen(u => createdRoles);
+                // Return constructed object
+                return entity.SomeWhen(u => createdRoles);
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         public async Task<bool> Delete(int key)
         {
-            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                var sql = @"DELETE FROM UserRoles WHERE UserID = @key;";
-                var rows = await connection.ExecuteAsync(sql, new { key });
-                var done = rows == 1;
-                if(done)
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    transactionScope.Complete();
-                }
+                    var sql = @"DELETE FROM UserRoles WHERE UserID = @key;";
+                    var rows = await connection.ExecuteAsync(sql, new { key });
+                    var done = rows == 1;
+                    if (done)
+                    {
+                        transactionScope.Complete();
+                    }
 
-                return done;
+                    return done;
+                }
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
             }
         }
 
         public async Task<Option<User>> Get(int key)
         {
-            var sql = @"SELECT ID, Name
+            try
+            {
+                var sql = @"SELECT ID, Name
                         FROM Roles r INNER JOIN UserRoles u
                         ON u.RoleID=r.ID
                         WHERE u.UserID=@key;";
 
-            var userSql = @"SELECT ID, Name, FirstName, LastName, Email
+                var userSql = @"SELECT ID, Name, FirstName, LastName, Email
                             FROM Users
                             WHERE ID=@key;";
 
-            var roles = await connection.QueryAsync<Role>(sql, new { key });
-            var user = await connection.ExecuteScalarAsync<User>(userSql, new { key });
+                var roles = await connection.QueryAsync<Role>(sql, new { key });
+                var user = await connection.ExecuteScalarAsync<User>(userSql, new { key });
 
-            var result = user
-                            .SomeNotNull()
-                            .Map(u =>
-                            {
-                                u.Roles = roles.ToList();
-                                return u;
-                            });
-            return result;
+                var result = user
+                                .SomeNotNull()
+                                .Map(u =>
+                                {
+                                    u.Roles = roles.ToList();
+                                    return u;
+                                });
+                return result;
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         public Task<List<User>> GetAll(params object[] identifiers)
@@ -124,22 +152,30 @@ namespace Inuplan.DAL.Repositories
 
         public async Task<bool> Update(int key, User entity)
         {
-            Debug.Assert(entity.Roles.All(r => r.ID > 0), "Must have valid roles to update!");
-            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                var roleIds = entity.Roles.Select(r => r.ID).ToArray();
-
-                // An update is essentially a delete with create!
-                var delete = await Delete(key);
-                var create = await Create(entity, roleIds);
-                var success = delete && create.HasValue;
-
-                if(success)
+                Debug.Assert(entity.Roles.All(r => r.ID > 0), "Must have valid roles to update!");
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    transactionScope.Complete();
-                }
+                    var roleIds = entity.Roles.Select(r => r.ID).ToArray();
 
-                return success;
+                    // An update is essentially a delete with create!
+                    var delete = await Delete(key);
+                    var create = await Create(entity, roleIds);
+                    var success = delete && create.HasValue;
+
+                    if (success)
+                    {
+                        transactionScope.Complete();
+                    }
+
+                    return success;
+                }
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
             }
         }
 

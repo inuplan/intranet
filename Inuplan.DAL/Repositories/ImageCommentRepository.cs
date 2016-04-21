@@ -24,10 +24,12 @@ namespace Inuplan.DAL.Repositories
     using Common.Repositories;
     using Common.Tools;
     using Dapper;
+    using NLog;
     using Optional;
     using System;
     using System.Collections.Generic;
     using System.Data;
+    using System.Data.SqlClient;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
@@ -38,6 +40,11 @@ namespace Inuplan.DAL.Repositories
     /// </summary>
     public class ImageCommentRepository : IVectorRepository<int, Comment>
     {
+        /// <summary>
+        /// Get current logging framework
+        /// </summary>
+        private static Logger Logger = LogManager.GetCurrentClassLogger();
+
         /// <summary>
         /// The database connection
         /// </summary>
@@ -66,42 +73,50 @@ namespace Inuplan.DAL.Repositories
         /// <returns>An optional comment, with the updated id if it has been created</returns>
         public async Task<Option<Comment>> CreateSingle(Comment entity, params object[] identifiers)
         {
-            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                var imageID = (int)identifiers[0];
-                var replyID = identifiers.Length > 1 ? (int?)identifiers[1] : null;
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    var imageID = (int)identifiers[0];
+                    var replyID = identifiers.Length > 1 ? (int?)identifiers[1] : null;
 
-                var sqlComment = @"INSERT INTO Comments (PostedOn, Owner, Remark, Reply)
+                    var sqlComment = @"INSERT INTO Comments (PostedOn, Owner, Remark, Reply)
                                 VALUES (@PostedOn, @Owner, @Remark, @Reply);
                                 SELECT ID FROM Comments WHERE ID = @@IDENTITY;";
 
-                entity.ID = await connection.ExecuteScalarAsync<int>(sqlComment, new
-                {
-                    Owner = entity.Owner.ID,
-                    Reply = replyID,
-                    entity.PostedOn,
-                    entity.Remark,
-                });
-
-                var success = entity.ID > 0;
-
-                if (!replyID.HasValue)
-                {
-                    // It is a top comment
-                    var sqlImageComment = @"INSERT INTO ImageComments (ImageID, CommentID) VALUES (@ImageID, @CommentID)";
-                    success = (await connection.ExecuteAsync(sqlImageComment, new
+                    entity.ID = await connection.ExecuteScalarAsync<int>(sqlComment, new
                     {
-                        ImageID = imageID,
-                        CommentID = entity.ID,
-                    })).Equals(1);
-                }
+                        Owner = entity.Owner.ID,
+                        Reply = replyID,
+                        entity.PostedOn,
+                        entity.Remark,
+                    });
 
-                if(success)
-                {
-                    transactionScope.Complete();
-                }
+                    var success = entity.ID > 0;
 
-                return entity.SomeWhen(c => success);
+                    if (!replyID.HasValue)
+                    {
+                        // It is a top comment
+                        var sqlImageComment = @"INSERT INTO ImageComments (ImageID, CommentID) VALUES (@ImageID, @CommentID)";
+                        success = (await connection.ExecuteAsync(sqlImageComment, new
+                        {
+                            ImageID = imageID,
+                            CommentID = entity.ID,
+                        })).Equals(1);
+                    }
+
+                    if (success)
+                    {
+                        transactionScope.Complete();
+                    }
+
+                    return entity.SomeWhen(c => success);
+                }
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
             }
         }
 
@@ -112,11 +127,13 @@ namespace Inuplan.DAL.Repositories
         /// <returns>An awaitable list of comments</returns>
         public async Task<List<Comment>> Get(int key)
         {
-            var repliesTo = new List<Tuple<int?, Comment>>();
+            try
+            {
+                var repliesTo = new List<Tuple<int?, Comment>>();
 
-            // SQL - CTE where first projection (select) is the anchor
-            // the 2nd projection is the recursion
-            var sqlComments = @"WITH CommentTree AS (
+                // SQL - CTE where first projection (select) is the anchor
+                // the 2nd projection is the recursion
+                var sqlComments = @"WITH CommentTree AS (
                                     SELECT Reply, ID, PostedOn, Owner, Remark, Deleted
                                     FROM Comments INNER JOIN ImageComments
                                     ON Comments.ID = ImageComments.CommentID
@@ -130,31 +147,37 @@ namespace Inuplan.DAL.Repositories
                                 SELECT * FROM CommentTree
                                 INNER JOIN Users ON CommentTree.Owner = Users.ID;";
 
-            var allComments = await connection.QueryAsync<int?, Comment, User, Comment>(sqlComments, (parent, comment, user) =>
-            {
-                comment.Owner = user;
-                if(parent.HasValue)
+                var allComments = await connection.QueryAsync<int?, Comment, User, Comment>(sqlComments, (parent, comment, user) =>
                 {
-                    // Is a reply to a comment
-                    var reply = new Tuple<int?, Comment>(parent, comment);
-                    repliesTo.Add(reply);
+                    comment.Owner = user;
+                    if (parent.HasValue)
+                    {
+                        // Is a reply to a comment
+                        var reply = new Tuple<int?, Comment>(parent, comment);
+                        repliesTo.Add(reply);
+                    }
+
+                    return comment;
+                }, new { key });
+
+                var group = repliesTo.GroupBy(g => g.Item1);
+                var result = new List<Comment>();
+
+                foreach (var item in group)
+                {
+                    var replies = item.Select(r => r.Item2);
+                    var parent = allComments.Single(p => p.ID == item.Key);
+                    parent.Replies = replies.ToList();
+                    result.Add(parent);
                 }
 
-                return comment;
-            }, new { key });
-
-            var group = repliesTo.GroupBy(g => g.Item1);
-            var result = new List<Comment>();
-
-            foreach(var item in group)
-            {
-                var replies = item.Select(r => r.Item2);
-                var parent = allComments.Single(p => p.ID == item.Key);
-                parent.Replies = replies.ToList();
-                result.Add(parent);
+                return result;
             }
-
-            return result;
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -164,12 +187,20 @@ namespace Inuplan.DAL.Repositories
         /// <returns>An optional comment. Some if comment exists, otherwise None</returns>
         public async Task<Option<Comment>> GetSingleByID(int id)
         {
-            var sql = @"SELECT * FROM Comments c INNER JOIN Users u ON c.Owner = u.ID WHERE c.ID = @id";
+            try
+            {
+                var sql = @"SELECT * FROM Comments c INNER JOIN Users u ON c.Owner = u.ID WHERE c.ID = @id";
 
-            var comment = await connection.ExecuteScalarAsync<Comment>(sql, new { id });
-            var result = comment.SomeWhen(c => c != null && c.ID > 0);
+                var comment = await connection.ExecuteScalarAsync<Comment>(sql, new { id });
+                var result = comment.SomeWhen(c => c != null && c.ID > 0);
 
-            return result;
+                return result;
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -181,10 +212,12 @@ namespace Inuplan.DAL.Repositories
         /// <returns>A paginated result of comments</returns>
         public async Task<Pagination<Comment>> GetPage(int skip, int take, params object[] identifiers)
         {
-            var imageID = (int)identifiers[0];
-            Debug.Assert(imageID > 0, "Must have a valid image identifier!");
+            try
+            {
+                var imageID = (int)identifiers[0];
+                Debug.Assert(imageID > 0, "Must have a valid image identifier!");
 
-            var sql = @"WITH CommentTree AS (
+                var sql = @"WITH CommentTree AS (
                             SELECT Reply AS ReplyID, ID AS TopID, PostedOn, Owner, Remark, Deleted, ROW_NUMBER() OVER (ORDER BY ID) AS RowNumber
                             FROM Comments INNER JOIN ImageComments
                             ON Comments.ID = ImageComments.CommentID
@@ -203,43 +236,49 @@ namespace Inuplan.DAL.Repositories
                         INNER JOIN Users ON CommentTree.Owner = Users.ID
                         WHERE RowNumber BETWEEN @From AND @To";
 
-            var repliesTo = new List<Tuple<int?, Comment>>();
-            var comments = await connection.QueryAsync<int?, Comment, User, Comment>(sql, (parent, comment, user) =>
-            {
-                comment.Owner = user;
-                if(parent.HasValue)
+                var repliesTo = new List<Tuple<int?, Comment>>();
+                var comments = await connection.QueryAsync<int?, Comment, User, Comment>(sql, (parent, comment, user) =>
                 {
+                    comment.Owner = user;
+                    if (parent.HasValue)
+                    {
                     // Is a reply to a comment
                     var reply = new Tuple<int?, Comment>(parent, comment);
-                    repliesTo.Add(reply);
+                        repliesTo.Add(reply);
+                    }
+                    return comment;
+                }, new
+                {
+                    ImageID = imageID,
+                    From = skip + 1,
+                    To = skip + take,
+                });
+
+                var group = repliesTo.GroupBy(g => g.Item1);
+                var result = new List<Comment>();
+
+                foreach (var item in group)
+                {
+                    var replies = item.Select(r => r.Item2);
+                    var parent = comments.Single(p => p.ID == item.Key);
+                    parent.Replies = replies.ToList();
+                    result.Add(parent);
                 }
-                return comment;
-            }, new
-            {
-                ImageID = imageID,
-                From = skip + 1,
-                To = skip + take,
-            });
 
-            var group = repliesTo.GroupBy(g => g.Item1);
-            var result = new List<Comment>();
+                var totalSql = @"SELECT COUNT(*) FROM ImageComments WHERE ImageID = @ImageID;";
+                var total = await connection.ExecuteScalarAsync<int>(totalSql, new
+                {
+                    ImageID = imageID
+                });
 
-            foreach(var item in group)
-            {
-                var replies = item.Select(r => r.Item2);
-                var parent = comments.Single(p => p.ID == item.Key);
-                parent.Replies = replies.ToList();
-                result.Add(parent);
+                var pageComments = Helpers.Pageify(skip, take, total, result);
+                return pageComments;
             }
-
-            var totalSql = @"SELECT COUNT(*) FROM ImageComments WHERE ImageID = @ImageID;";
-            var total = await connection.ExecuteScalarAsync<int>(totalSql, new
+            catch (SqlException ex)
             {
-                ImageID = imageID
-            });
-
-            var pageComments = Helpers.Pageify(skip, take, total, result);
-            return pageComments;
+                Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>
@@ -251,18 +290,26 @@ namespace Inuplan.DAL.Repositories
         /// <returns>True if updated otherwise false.</returns>
         public async Task<bool> UpdateSingle(int key, Comment entity, params object[] identifiers)
         {
-            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                var sql = @"UPDATE Comments SET PostedOn=@PostedOn, Remark=@Remark WHERE ID=@key";
-                var success = (await connection.ExecuteAsync(sql, new { key })).Equals(1);
-
-                if(success)
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    transactionScope.Complete();
-                    return true;
-                }
+                    var sql = @"UPDATE Comments SET PostedOn=@PostedOn, Remark=@Remark WHERE ID=@key";
+                    var success = (await connection.ExecuteAsync(sql, new { key })).Equals(1);
 
-                return false;
+                    if (success)
+                    {
+                        transactionScope.Complete();
+                        return true;
+                    }
+
+                    return false;
+                }
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
             }
         }
 
@@ -275,23 +322,31 @@ namespace Inuplan.DAL.Repositories
         /// <returns>True if deleted, false otherwise</returns>
         public async Task<bool> DeleteSingle(int key)
         {
-            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                // Note: only removes identifying marks so that any child-branches aren't left hanging 
-                var sqlDelete = @"UPDATE Comments SET Owner=NULL, Remark=@Comment, Deleted=@Deleted WHERE ID=@ID";
-                var deleted = (await connection.ExecuteAsync(sqlDelete, new
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    Comment = "",
-                    Deleted = true,
-                    ID = key,
-                })).Equals(1);
+                    // Note: only removes identifying marks so that any child-branches aren't left hanging 
+                    var sqlDelete = @"UPDATE Comments SET Owner=NULL, Remark=@Comment, Deleted=@Deleted WHERE ID=@ID";
+                    var deleted = (await connection.ExecuteAsync(sqlDelete, new
+                    {
+                        Comment = "",
+                        Deleted = true,
+                        ID = key,
+                    })).Equals(1);
 
-                if(deleted)
-                {
-                    transactionScope.Complete();
+                    if (deleted)
+                    {
+                        transactionScope.Complete();
+                    }
+
+                    return deleted;
                 }
-
-                return deleted;
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
             }
         }
 
