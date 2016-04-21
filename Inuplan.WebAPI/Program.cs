@@ -31,7 +31,7 @@ namespace Inuplan.WebAPI
         /// <summary>
         /// The logger
         /// </summary>
-        private static ILogger logger = LogManager.GetCurrentClassLogger();
+        private static ILogger Logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Default value if somehow no address is provided
@@ -69,7 +69,6 @@ namespace Inuplan.WebAPI
         /// <param name="args">The arguments</param>
         public void Start(string[] args)
         {
-            logger.Trace("Starting program with args: {0}", args);
             var parser = new Parser(defaultAddress, defaultPort);
             var input = parser.Parse(args);
             var baseAddress = input.ValueOr(defaultAddress);
@@ -77,6 +76,7 @@ namespace Inuplan.WebAPI
             // Start OWIN host 
             using (WebApp.Start<Startup>(url: baseAddress))
             {
+                Logger.Trace("Starting program with: {0}", baseAddress);
                 Headless();
             }
         }
