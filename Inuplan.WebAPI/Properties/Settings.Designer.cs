@@ -13,7 +13,7 @@ namespace Inuplan.WebAPI.Properties {
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "14.0.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
+    public sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
         
@@ -23,15 +23,42 @@ namespace Inuplan.WebAPI.Properties {
             }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2")]
-        public int Setting {
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=IntranetDB;Integrated Security" +
+            "=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationI" +
+            "ntent=ReadWrite;MultiSubnetFailover=False;MultipleActiveResultSets=True")]
+        public string connectionStringDebug {
             get {
-                return ((int)(this["Setting"]));
+                return ((string)(this["connectionStringDebug"]));
             }
-            set {
-                this["Setting"] = value;
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=NUUS07\\INTRANETDB;Initial Catalog=IntranetDB;User ID=intranetdb;Passw" +
+            "ord=NGsDGzjUCY")]
+        public string connectionStringRelease {
+            get {
+                return ((string)(this["connectionStringRelease"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("c:\\tmp")]
+        public string root {
+            get {
+                return ((string)(this["root"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("inuplan.local")]
+        public string domain {
+            get {
+                return ((string)(this["domain"]));
             }
         }
     }
