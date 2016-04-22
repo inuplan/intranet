@@ -20,10 +20,13 @@
 
 namespace Inuplan.Service
 {
+    using NLog;
     using System.ServiceProcess;
 
     public partial class WebAPIService : ServiceBase
     {
+        private static Logger Logger = LogManager.GetCurrentClassLogger();
+
         private WebAPI.Program service;
 
         public WebAPIService()
@@ -33,12 +36,14 @@ namespace Inuplan.Service
 
         protected override void OnStart(string[] args)
         {
+            Logger.Trace("Starting service with args: {0}", string.Join(" ", args));
             service = new WebAPI.Program();
             service.Start(args);
         }
 
         protected override void OnStop()
         {
+            Logger.Trace("Stopping service");
             service.Stop();
         }
     }

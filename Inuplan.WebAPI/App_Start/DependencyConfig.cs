@@ -48,6 +48,7 @@ namespace Inuplan.WebAPI.App_Start
             // Setup variables
             var root = GetRoot();
             var connectionString = GetConnectionString();
+            var test = Properties.Settings.Default.Setting;
             var domain = ConfigurationManager.AppSettings["domain"];
 
             // Create builder
