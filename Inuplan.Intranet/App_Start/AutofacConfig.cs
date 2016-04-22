@@ -25,8 +25,8 @@ namespace Inuplan.Intranet.App_Start
     using Autofac.Integration.Mvc;
     using Common.Enums;
     using Factories;
+    using Properties;
     using System;
-    using System.Configuration;
     using System.Web.Mvc;
 
     public static class AutofacConfig
@@ -37,7 +37,6 @@ namespace Inuplan.Intranet.App_Start
         public static void RegisterContainer()
         {
             // Variables
-            var domain = ConfigurationManager.AppSettings["domain"];
             var builder = new ContainerBuilder();
 
             // Register controllers
@@ -51,7 +50,7 @@ namespace Inuplan.Intranet.App_Start
 
             // Register 
             builder.RegisterType<HttpClientFactory>().As<IHttpClientFactory>();
-            builder.RegisterInstance(new Uri(GetRemote())).Keyed<Uri>(ServiceKeys.RemoteBaseAddress).SingleInstance();
+            builder.RegisterInstance(GetRemote()).Keyed<Uri>(ServiceKeys.RemoteBaseAddress).SingleInstance();
 
             // Build container
             var container = builder.Build();
@@ -64,12 +63,12 @@ namespace Inuplan.Intranet.App_Start
         /// Retrieves the remote api endpoint url
         /// </summary>
         /// <returns></returns>
-        private static string GetRemote()
+        private static Uri GetRemote()
         {
 #if DEBUG
-            return ConfigurationManager.AppSettings["remoteAPIDebug"];
+            return new Uri(Settings.Default.RemoteApiDebug);
 #else
-            return ConfigurationManager.AppSettings["remoteAPI"];
+            return new Uri(Settings.Default.RemoteApiRelease);
 #endif
         }
     }
