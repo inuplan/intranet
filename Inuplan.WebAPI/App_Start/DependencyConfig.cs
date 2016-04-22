@@ -27,8 +27,7 @@ namespace Inuplan.WebAPI.App_Start
     using DAL.Repositories;
     using Image.Factories;
     using Middlewares;
-    using Mocks;
-    using System.Configuration;
+    using Properties;
     using System.Data;
     using System.Data.SqlClient;
     using System.DirectoryServices.AccountManagement;
@@ -46,10 +45,9 @@ namespace Inuplan.WebAPI.App_Start
         public static void RegisterContainer(HttpConfiguration config)
         {
             // Setup variables
-            var root = GetRoot();
+            var root = Settings.Default.root;
             var connectionString = GetConnectionString();
-            var test = Properties.Settings.Default.Setting;
-            var domain = ConfigurationManager.AppSettings["domain"];
+            var domain = Settings.Default.domain;
 
             // Create builder
             var builder = new ContainerBuilder();
@@ -79,9 +77,15 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<int, Image>>();
             builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, Comment>>();
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
-            //builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
             builder.RegisterType<UserRoleRepository>().Keyed<IScalarRepository<int, User>>(ServiceKeys.UserRoleRepository);
-            builder.RegisterType<NoADRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+
+            #region "Register Active Directory"
+#if DEBUG
+            builder.RegisterType<Mocks.NoADRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+#else
+            builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+#endif
+            #endregion
 
             // Use autofac owin pipeline
             OwinPipeline(builder);
@@ -110,21 +114,11 @@ namespace Inuplan.WebAPI.App_Start
         private static string GetConnectionString()
         {
 #if DEBUG
-            var connectionString = ConfigurationManager.AppSettings["localConnection"];
+            var connectionString = Settings.Default.connectionStringDebug;
 #else
-            var connectionString = ConfigurationManager.AppSettings["connectionString"];
+            var connectionString = Settings.Default.connectionStringRelease;
 #endif
             return connectionString;
-        }
-
-        private static string GetRoot()
-        {
-#if DEBUG
-            var root = ConfigurationManager.AppSettings["rootDebug"];
-#else
-            var root = ConfigurationManager.AppSettings["root"];
-#endif
-            return root;
         }
     }
 }

@@ -55,6 +55,10 @@ namespace Inuplan.Service
                             ManagedInstallerClass.InstallHelper(new[] { "/u", executablePath });
                             Logger.Info("Finished uninstall");
                             break;
+                        case "--debug":
+                            Logger.Info("Debug mode");
+                            Test();
+                            break;
                     }
                 }
                 catch (InvalidOperationException ex)
@@ -75,6 +79,12 @@ namespace Inuplan.Service
 
                 ServiceBase.Run(ServicesToRun);
             }
+        }
+
+        private static void Test()
+        {
+            var service = new WebAPI.Program();
+            service.Start(new string[] { });
         }
     }
 }
