@@ -112,7 +112,7 @@
     <ProjectReference Include="..\Inuplan.WebAPI\Inuplan.WebAPI.csproj">
       <Project>{98fbcc8f-9531-4ef1-bf71-7923eca8eb12}</Project>
       <Name>Inuplan.WebAPI</Name>
-      <Private>False</Private>
+      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
