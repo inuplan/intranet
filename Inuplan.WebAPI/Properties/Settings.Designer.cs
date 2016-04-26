@@ -61,5 +61,35 @@ namespace Inuplan.WebAPI.Properties {
                 return ((string)(this["domain"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://localhost:9000")]
+        public string addressDebug {
+            get {
+                return ((string)(this["addressDebug"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://beta-intranet:9000")]
+        public string addressRelease {
+            get {
+                return ((string)(this["addressRelease"]));
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Inuplan Web API listener for the intranet application.")]
+        public string description {
+            get {
+                return ((string)(this["description"]));
+            }
+            set {
+                this["description"] = value;
+            }
+        }
     }
 }

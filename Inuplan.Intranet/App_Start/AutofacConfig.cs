@@ -24,7 +24,6 @@ namespace Inuplan.Intranet.App_Start
     using Autofac.Extras.Attributed;
     using Autofac.Integration.Mvc;
     using Common.Enums;
-    using Factories;
     using Properties;
     using System;
     using System.Web.Mvc;
@@ -49,7 +48,6 @@ namespace Inuplan.Intranet.App_Start
             builder.RegisterSource(new ViewRegistrationSource());
 
             // Register 
-            builder.RegisterType<HttpClientFactory>().As<IHttpClientFactory>();
             builder.RegisterInstance(GetRemote()).Keyed<Uri>(ServiceKeys.RemoteBaseAddress).SingleInstance();
 
             // Build container
@@ -66,9 +64,9 @@ namespace Inuplan.Intranet.App_Start
         private static Uri GetRemote()
         {
 #if DEBUG
-            return new Uri(Settings.Default.RemoteApiDebug);
+            return new Uri(Settings.Default.remoteAddressDebug);
 #else
-            return new Uri(Settings.Default.RemoteApiRelease);
+            return new Uri(Settings.Default.remoteAddressRelease);
 #endif
         }
     }

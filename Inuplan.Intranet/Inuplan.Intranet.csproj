@@ -194,8 +194,6 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ImageController.cs" />
     <Compile Include="Controllers\UserController.cs" />
-    <Compile Include="Factories\HttpClientFactory.cs" />
-    <Compile Include="Factories\IHttpClientFactory.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>

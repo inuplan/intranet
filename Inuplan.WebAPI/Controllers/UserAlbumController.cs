@@ -6,6 +6,8 @@
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
+    using Extensions;
+    using Optional.Unsafe;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -23,7 +25,7 @@
         public UserAlbumController(
              [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
              IScalarRepository<int, Album> albumRepository)
-            :base(userDatabaseRepository)
+            : base(userDatabaseRepository)
         {
             this.albumRepository = albumRepository;
         }
@@ -50,13 +52,13 @@
 
         public async Task<HttpResponseMessage> Delete(int albumId)
         {
-            var user = GetPrincipalIdentityUser();
+            var username = Request.GetUser().Map(u => u.Username).ValueOr("Anonymous");
             var album = await albumRepository.Get(albumId);
             var isOwner = album
-                .Map(a => a.Owner.Username.Equals(user.Username, StringComparison.OrdinalIgnoreCase))
+                .Map(a => a.Owner.Username.Equals(username, StringComparison.OrdinalIgnoreCase))
                 .ValueOr(false);
 
-            if(!isOwner && !RequestContext.Principal.IsInRole("Admin"))
+            if (!isOwner && !RequestContext.Principal.IsInRole("Admin"))
             {
                 Request.CreateResponse(HttpStatusCode.Forbidden);
             }
@@ -70,7 +72,7 @@
         public async Task<HttpResponseMessage> Post(Album album, List<int> imageIds)
         {
             // Set owner to current  user
-            var owner = GetPrincipalIdentityUser();
+            var owner = Request.GetUser().ValueOrFailure();
             album.Owner = owner;
 
             // Convert ids to shallow images

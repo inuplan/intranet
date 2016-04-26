@@ -14,5 +14,14 @@
     <Setting Name="domain" Type="System.String" Scope="Application">
       <Value Profile="(Default)">inuplan.local</Value>
     </Setting>
+    <Setting Name="addressDebug" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">http://localhost:9000</Value>
+    </Setting>
+    <Setting Name="addressRelease" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">http://beta-intranet:9000</Value>
+    </Setting>
+    <Setting Name="description" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Inuplan Web API listener for the intranet application.</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

@@ -18,33 +18,24 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Service
+namespace Inuplan.WebAPI.Extensions
 {
-    using NLog;
-    using System.ServiceProcess;
+    using Common.Models;
+    using Common.Tools;
+    using Optional;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Text;
+    using System.Threading.Tasks;
 
-    public partial class WebAPIService : ServiceBase
+    public static class HttpRequestMessageExtensions
     {
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
-
-        private WebAPI.Program service;
-
-        public WebAPIService()
+        public static Option<User> GetUser(this HttpRequestMessage request)
         {
-            InitializeComponent();
-        }
-
-        protected override void OnStart(string[] args)
-        {
-            Logger.Trace("Starting service with args: {0}", string.Join(" ", args));
-            service = new WebAPI.Program();
-            service.Start(args);
-        }
-
-        protected override void OnStop()
-        {
-            Logger.Trace("Stopping service");
-            service.Stop();
+            var ctx = request.GetOwinContext();
+            return ctx.Get<User>(Constants.CURRENT_USER).SomeNotNull();
         }
     }
 }
