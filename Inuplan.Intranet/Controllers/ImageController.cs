@@ -22,13 +22,8 @@ namespace Inuplan.Intranet.Controllers
 {
     using Autofac.Extras.Attributed;
     using Common.Enums;
-    using Common.Models;
-    using Factories;
-    using Newtonsoft.Json;
-    using Optional;
     using System;
     using System.Threading.Tasks;
-    using System.Web;
     using System.Web.Mvc;
     using ViewModels;
 
@@ -47,7 +42,7 @@ namespace Inuplan.Intranet.Controllers
         }
 
         [HttpGet]
-        [Route("user/{username:alpha}/images", Name = "UserImages")]
+        [Route("user/{username}/images", Name = "UserImages")]
         public async Task<ActionResult> Images(string username)
         {
             var api = string.Format("{0}{1}/image", RemoteBaseApi.ToString(), username);

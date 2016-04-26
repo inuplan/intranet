@@ -25,19 +25,14 @@ namespace Inuplan.Common.Tools
     /// </summary>
     public static class Constants
     {
-        /// <summary>
-        /// The JWT token.
-        /// </summary>
-        public static readonly string OWIN_JWT = "JWT_BEARER";
+        public const string CURRENT_USER = "Inuplan.User.Current";
 
-        public static readonly string TOKEN_COOKIE = "inuplan.token";
-
-        public static readonly string JWT_SCHEME = "Bearer";
-
+        #region "Origin"
 #if DEBUG
         public const string Origin = @"http://localhost:59382";
 #else
-        public const string Origin = @"http://beta-intranet"; 
+        public const string Origin = @"http://beta-intranet";
 #endif
+        #endregion
     }
 }

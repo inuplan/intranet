@@ -2,11 +2,11 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Inuplan.Intranet.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="RemoteApiDebug" Type="System.String" Scope="Application">
+    <Setting Name="remoteAddressDebug" Type="System.String" Scope="Application">
       <Value Profile="(Default)">http://localhost:9000</Value>
     </Setting>
-    <Setting Name="RemoteApiRelease" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">http://beta-intranet:8080</Value>
+    <Setting Name="remoteAddressRelease" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">http://beta-intranet:9000</Value>
     </Setting>
   </Settings>
 </SettingsFile>

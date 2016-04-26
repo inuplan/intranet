@@ -26,9 +26,10 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
+    using Extensions;
     using NLog;
+    using Optional.Unsafe;
     using System;
-    using System.Security.Principal;
     using System.Web.Http;
 
     public abstract class DefaultController : ApiController
@@ -36,7 +37,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <summary>
         /// The logging framework
         /// </summary>
-        protected static Logger logger = LogManager.GetCurrentClassLogger();
+        protected static Logger Logger = LogManager.GetCurrentClassLogger();
 
         protected readonly IScalarRepository<string, User> userDatabaseRepository;
 
@@ -53,31 +54,11 @@ namespace Inuplan.WebAPI.Controllers
         [NonAction]
         protected bool AuthorizeToUsername(string username)
         {
-            var user = GetPrincipalIdentityUser();
-            return username.Equals(user.Username, StringComparison.OrdinalIgnoreCase);
+            var user = Request.GetUser();
+            var isAuthorized = user.Map(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+            return isAuthorized.ValueOr(false);
         }
         
-        /// <summary>
-        /// Gets the <see cref="User"/> which is stored in the <see cref="IPrincipal"/> object.
-        /// </summary>
-        /// <param name="principal">The principal object</param>
-        /// <returns>A user</returns>
-        /// <exception cref="InvalidOperationException">thrown when no user exist</exception>
-        [NonAction]
-        protected User GetPrincipalIdentityUser()
-        {
-            var principal = RequestContext.Principal;
-            var user = principal.TryGetUser();
-            return user.Match(
-                // Return the user
-                u => u,
-                () =>
-                {
-                    logger.Error("User has not been set by the InuplanAuthorizationAttribute object");
-                    throw new InvalidOperationException();
-                });
-        }
-
         /// <summary>
         /// Constructs a <see cref="UserDTO"/> instance for the current user
         /// </summary>
@@ -85,7 +66,7 @@ namespace Inuplan.WebAPI.Controllers
         [NonAction]
         protected UserDTO ConstructUserDTO()
         {
-            var user = GetPrincipalIdentityUser();
+            var user = Request.GetUser().ValueOrFailure();
             return new UserDTO
             {
                 ID = user.ID,

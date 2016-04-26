@@ -24,6 +24,7 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Enums;
     using Common.Models;
     using Common.Repositories;
+    using Extensions;
     using System.Net;
     using System.Net.Http;
     using System.Web.Http;
@@ -43,7 +44,8 @@ namespace Inuplan.WebAPI.Controllers
         [HttpOptions]
         public HttpResponseMessage Get()
         {
-            logger.Trace("Received request from: {0}", System.Environment.UserName);
+            var username = Request.GetUser().Map(u => u.Username).ValueOr("Anonymous");
+            Logger.Trace("Received request from: {0}", username);
             return Request.CreateResponse(HttpStatusCode.OK);
         }
     }

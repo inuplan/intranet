@@ -16,12 +16,11 @@
 
 namespace Inuplan.WebAPI
 {
-    using Inuplan.WebAPI.CLI;
     using Microsoft.Owin.Hosting;
     using NLog;
+    using Properties;
     using System;
-    using System.Threading;
-    using System.Threading.Tasks;
+    using Topshelf;
 
     /// <summary>
     /// The web API server class
@@ -34,19 +33,9 @@ namespace Inuplan.WebAPI
         private static ILogger Logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        /// Default value if somehow no address is provided
+        /// The application web api.
         /// </summary>
-        private const string defaultAddress = "http://localhost";
-
-        /// <summary>
-        /// Default value if no port has been given
-        /// </summary>
-        private const int defaultPort = 9000;
-
-        /// <summary>
-        /// The cancellation token source, which can stop the current web api.
-        /// </summary>
-        private CancellationTokenSource src;
+        private IDisposable application;
 
         /// <summary>
         /// The main function
@@ -54,31 +43,47 @@ namespace Inuplan.WebAPI
         /// <param name="args">Arguments provided through the command-line interface</param>
         public static void Main(string[] args)
         {
-            var program = new Program();
-            program.Start(args);
+            HostFactory.Run(config =>
+            {
+                config.UseNLog();
+                config.Service<Program>(service =>
+                {
+                    var address = GetAddress();
+                    service.ConstructUsing(name => new Program());
+                    service.WhenStarted(program => program.Start(address));
+                    service.WhenStopped(program => program.Stop());
+                });
+
+                config.RunAsLocalSystem();
+                config.SetDescription(Settings.Default.description);
+                config.SetDisplayName("Inuplan Web API");
+                config.SetServiceName("Inuplan.WebAPI");
+                config.StartAutomatically();
+            });
+        }
+
+        /// <summary>
+        /// Retrieves the address from the settings file
+        /// </summary>
+        /// <returns></returns>
+        private static string GetAddress()
+        {
+#if DEBUG
+            return Settings.Default.addressDebug;
+#else
+            return Settings.Default.addressRelease;
+#endif
         }
 
         /// <summary>
         /// Starts the owin web api with the given arguments.
-        /// <code>
-        /// Usage:
-        /// -a http://localhost  'defines the host on which to accept incoming requests'
-        /// -p 9000              'defines the port on which to listen for incoming requests'
-        /// </code>
         /// </summary>
-        /// <param name="args">The arguments</param>
-        public void Start(string[] args)
+        /// <param name="address"></param>
+        public void Start(string address)
         {
-            var parser = new Parser(defaultAddress, defaultPort);
-            var input = parser.Parse(args);
-            var baseAddress = input.ValueOr(defaultAddress);
-
-            // Start OWIN host 
-            using (WebApp.Start<Startup>(url: baseAddress))
-            {
-                Logger.Trace("Starting program with: {0}", baseAddress);
-                Headless();
-            }
+            // Start OWIN host
+            Logger.Trace("Starting OWIN katana on: {0}", address);
+            application = WebApp.Start<Startup>(url: address);
         }
 
         /// <summary>
@@ -86,24 +91,8 @@ namespace Inuplan.WebAPI
         /// </summary>
         public void Stop()
         {
-            src.Cancel();
-        }
-
-        /// <summary>
-        /// The headless console
-        /// </summary>
-        private void Headless()
-        {
-            src = new CancellationTokenSource();
-            var token = src.Token;
-
-            Task.WaitAny(Task.Run(() =>
-            {
-                while (!token.IsCancellationRequested)
-                {
-                    Thread.Sleep(TimeSpan.FromSeconds(5));
-                }
-            }));
+            Logger.Trace("Stopping service!");
+            application.Dispose();
         }
     }
 }

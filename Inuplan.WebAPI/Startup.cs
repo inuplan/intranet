@@ -76,7 +76,6 @@ namespace Inuplan.WebAPI
                     return AuthenticationSchemes.IntegratedWindowsAuthentication;
                 }
             };
-
         }
     }
 }

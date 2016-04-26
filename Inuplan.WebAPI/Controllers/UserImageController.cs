@@ -28,8 +28,10 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
+    using Extensions;
     using NLog;
     using Optional;
+    using Optional.Unsafe;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -73,7 +75,7 @@ namespace Inuplan.WebAPI.Controllers
             IScalarRepository<int, Image> userImageRepository,
             IVectorRepository<int, Comment> imageCommentsRepo,
             ImageHandleFactory imageHandleFactory)
-            :base(userDatabaseRepository)
+            : base(userDatabaseRepository)
         {
             this.userImageRepository = userImageRepository;
             this.imageCommentsRepo = imageCommentsRepo;
@@ -92,13 +94,13 @@ namespace Inuplan.WebAPI.Controllers
         {
             if (!AuthorizeToUsername(username))
             {
-                logger.Error("Cannot upload to another users folder");
+                Logger.Error("Cannot upload to another users folder");
                 return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot upload to another users folder");
             }
 
-            if(!Request.Content.IsMimeMultipartContent())
+            if (!Request.Content.IsMimeMultipartContent())
             {
-                logger.Error("Must be a multipart content type");
+                Logger.Error("Must be a multipart content type");
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "Must be a multipart content type!");
             }
 
@@ -109,9 +111,9 @@ namespace Inuplan.WebAPI.Controllers
             var tasks = provider.Contents.Select(async file =>
             {
                 // Process individual image
-                logger.Trace("Processing image...");
+                Logger.Trace("Processing image...");
                 var handler = imageHandleFactory.GetImageHandler();
-                var user = GetPrincipalIdentityUser();
+                var user = Request.GetUser().ValueOrFailure();
                 var image = await handler.ProcessUserImage(user, file, "");
 
                 // Add images to the collection
@@ -129,12 +131,12 @@ namespace Inuplan.WebAPI.Controllers
                 created.Match(
                     img =>
                     {
-                        logger.Debug("Saved image: {0}.{1}\tWith ID: {2}", img.Filename, img.Extension, img.ID);
+                        Logger.Debug("Saved image: {0}.{1}\tWith ID: {2}", img.Filename, img.Extension, img.ID);
                         error = false;
                     },
                     () =>
                     {
-                        logger.Error("Could not save: {0}.{1}", image.Filename, image.Extension);
+                        Logger.Error("Could not save: {0}.{1}", image.Filename, image.Extension);
                     });
             });
 
@@ -158,7 +160,7 @@ namespace Inuplan.WebAPI.Controllers
             };
 
             var updated = await userImageRepository.Update(id, image);
-            return updated ? 
+            return updated ?
                 Request.CreateResponse(HttpStatusCode.OK) :
                 Request.CreateResponse(HttpStatusCode.InternalServerError, "Possible error: could not locate the specified file.");
         }
@@ -302,13 +304,13 @@ namespace Inuplan.WebAPI.Controllers
 
             return images.Match(
                 imgs => new DefaultDTO<List<UserImageDTO>>
-                        {
-                            User = ConstructUserDTO(),
-                            Item = imgs
-                        },
+                {
+                    User = ConstructUserDTO(),
+                    Item = imgs
+                },
                 () =>
                 {
-                    logger.Error("User: {0} not found", username);
+                    Logger.Error("User: {0} not found", username);
                     throw new HttpResponseException(HttpStatusCode.NotFound);
                 });
         }
@@ -324,9 +326,9 @@ namespace Inuplan.WebAPI.Controllers
         [HttpDelete]
         public async Task<HttpResponseMessage> Delete(string username, int id)
         {
-            if(!AuthorizeToUsername(username))
+            if (!AuthorizeToUsername(username))
             {
-                logger.Error("Cannot delete another user's image");
+                Logger.Error("Cannot delete another user's image");
                 return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot delete another user's image");
             }
 

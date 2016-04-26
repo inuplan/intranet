@@ -26,18 +26,18 @@ namespace Inuplan.Intranet.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("http://localhost:9000")]
-        public string RemoteApiDebug {
+        public string remoteAddressDebug {
             get {
-                return ((string)(this["RemoteApiDebug"]));
+                return ((string)(this["remoteAddressDebug"]));
             }
         }
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://beta-intranet:8080")]
-        public string RemoteApiRelease {
+        [global::System.Configuration.DefaultSettingValueAttribute("http://beta-intranet:9000")]
+        public string remoteAddressRelease {
             get {
-                return ((string)(this["RemoteApiRelease"]));
+                return ((string)(this["remoteAddressRelease"]));
             }
         }
     }
