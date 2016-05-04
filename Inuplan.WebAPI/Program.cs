@@ -43,6 +43,7 @@ namespace Inuplan.WebAPI
         /// <param name="args">Arguments provided through the command-line interface</param>
         public static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptions;
             HostFactory.Run(config =>
             {
                 config.UseNLog();
@@ -60,6 +61,16 @@ namespace Inuplan.WebAPI
                 config.SetServiceName("Inuplan.WebAPI");
                 config.StartAutomatically();
             });
+        }
+
+        /// <summary>
+        /// Catch and log unhandled exceptions
+        /// </summary>
+        /// <param name="sender">The object sender</param>
+        /// <param name="e">The exception event information</param>
+        private static void UnhandledExceptions(object sender, UnhandledExceptionEventArgs e)
+        {
+            Logger.Error("Sender: {0}, exception object: {1}", sender, e.ExceptionObject);
         }
 
         /// <summary>
@@ -81,7 +92,6 @@ namespace Inuplan.WebAPI
         /// <param name="address"></param>
         public void Start(string address)
         {
-            // Start OWIN host
             Logger.Trace("Starting OWIN katana on: {0}", address);
             application = WebApp.Start<Startup>(url: address);
         }

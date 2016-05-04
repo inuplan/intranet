@@ -39,9 +39,6 @@ namespace Inuplan.WebAPI.Controllers
 
         // GET api/diagnostic/ping
         [Route("diagnostic/ping")]
-        [HttpGet]
-        [HttpDelete]
-        [HttpOptions]
         public HttpResponseMessage Get()
         {
             var username = Request.GetUser().Map(u => u.Username).ValueOr("Anonymous");

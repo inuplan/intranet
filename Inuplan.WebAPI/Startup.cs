@@ -16,9 +16,13 @@
 
 namespace Inuplan.WebAPI
 {
-    using Autofac.Integration.WebApi;
     using App_Start;
+    using Autofac;
+    using Autofac.Integration.WebApi;
+    using NLog;
     using Owin;
+    using Properties;
+    using System;
     using System.Net;
     using System.Web.Http;
 
@@ -28,54 +32,121 @@ namespace Inuplan.WebAPI
     public class Startup
     {
         /// <summary>
+        /// The logging framework
+        /// </summary>
+        private static ILogger Logger = LogManager.GetCurrentClassLogger();
+
+        /// <summary>
+        /// The http listener
+        /// </summary>
+        private static HttpListener listener;
+
+        /// <summary>
         /// Configuration setup for <code>OWIN</code>
         /// </summary>
         /// <param name="app">The application builder</param>
         public void Configuration(IAppBuilder app)
         {
-            // Configure Web API for self-host.
+            Logger.Info("Configuring Web API for self-hosting.");
             var config = new HttpConfiguration();
 
-            // Enable win-auth except when using OPTIONS method
-            EnableWindowsAuthenticationWithCorsOptions(app, config);
+            EnableCors(config);
+            EnableWindowsAuthentication(app, config);
 
-            // Register components
+            Logger.Trace("Register components");
             RouteConfig.RegisterRoutes(config);
             DependencyConfig.RegisterContainer(config);
-            var autofac = (AutofacWebApiDependencyResolver)config.DependencyResolver;
 
-            // Owin middleware pipeline
-            app.UseAutofacMiddleware(autofac.Container);
+            EnableMiddleware(app, config);
 
-            // Controllers
+            Logger.Trace("Register controllers with IoC");
             app.UseWebApi(config);
+        }
+
+        /// <summary>
+        /// Enables CORS if it is set in the settings
+        /// </summary>
+        /// <param name="config">The config file</param>
+        private static void EnableCors(HttpConfiguration config)
+        {
+            if(Settings.Default.enableCORS)
+            {
+                Logger.Trace("Enable Cross-Origin Resource Sharing (CORS)");
+                config.EnableCors();
+            }
         }
 
         /// <summary>
         /// Enables windows authentication for all requests except if method is <code>OPTIONS</code>.
         /// </summary>
         /// <param name="app">The application builder</param>
-        private static void EnableWindowsAuthenticationWithCorsOptions(IAppBuilder app, HttpConfiguration config)
+        private static void EnableWindowsAuthentication(IAppBuilder app, HttpConfiguration config)
         {
-            // Enable Cross-Origin Resource Sharing (CORS)
-            config.EnableCors();
+            Logger.Trace("Reading settings, whether to use win-auth: {0}", Settings.Default.enableWin);
+            if (!Settings.Default.enableWin) return;
 
-            // Enable windows authentication and allow http method OPTIONS through
-            // Reason: CORS preflight request sends an OPTIONS request for non-idempotent request
-            // (PUT, POST, DELETE, etc.) and browsers cannot respond to a 401 challenge.
-            // Therefore anonymous pass-through must be allowed for preflight requests!
-            var listener = app.Properties["System.Net.HttpListener"] as HttpListener;
-            listener.AuthenticationSchemeSelectorDelegate = (request) =>
+            Logger.Trace("Enable win-auth except when using OPTIONS method");
+            listener = app.Properties["System.Net.HttpListener"] as HttpListener;
+            listener.AuthenticationSchemeSelectorDelegate = SchemeSelector;
+
+            Logger.Debug("Extended Protection: {0}", listener.ExtendedProtectionPolicy.PolicyEnforcement);
+            Logger.Trace("Setting extended policy to 'Never'...");
+            listener.ExtendedProtectionPolicy = new System.Security.Authentication.ExtendedProtection.ExtendedProtectionPolicy(System.Security.Authentication.ExtendedProtection.PolicyEnforcement.Never);
+        }
+
+        /// <summary>
+        /// Enables middleware if it has been set in the settings file
+        /// </summary>
+        /// <param name="app">The application</param>
+        /// <param name="config">The config file</param>
+        private static void EnableMiddleware(IAppBuilder app, HttpConfiguration config)
+        {
+            if(Settings.Default.enableMiddleware)
             {
-                if (request.HttpMethod.Equals("OPTIONS", System.StringComparison.OrdinalIgnoreCase))
+                Logger.Trace("Setting OWIN middleware pipeline");
+                var autofac = (AutofacWebApiDependencyResolver)config.DependencyResolver;
+                app.UseAutofacMiddleware(autofac.Container);
+            }
+        }
+
+        /// <summary>
+        /// Enable windows authentication and allow http method OPTIONS through
+        /// Reason: CORS preflight request sends an OPTIONS request for non-idempotent request
+        /// (PUT, POST, DELETE, etc.) and browsers cannot respond to a 401 challenge.
+        /// Therefore anonymous pass-through must be allowed for preflight requests!
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        private static AuthenticationSchemes SchemeSelector(HttpListenerRequest request)
+        {
+            try
+            {
+                if (request.HttpMethod.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
                 {
+                    // Using Anonymous for OPTIONS because browsers require that
+                    // a CORS preflight request of type OPTIONS should be answered with a non 401-challenge.
+                    Logger.Trace("Using authentication scheme: Anonymous, incoming request from: {0}", request.RemoteEndPoint.Address);
                     return AuthenticationSchemes.Anonymous;
                 }
                 else
                 {
-                    return AuthenticationSchemes.IntegratedWindowsAuthentication;
+                    // Using NTLM because Integrated = Negotiate + NTLM
+                    // If Negotiate can access the Kerberos tickets, it will use that instead of NTLM
+                    // The difference is between  vpn users and internal users
+                    // where vpn users will use NTLM authentication
+                    // whereas internal users will use Kerberos protocol.
+                    // Chrome currently doesn't seem to support the Kerberos protocol out-of-the-box.
+                    // ------
+                    // In short: Use NTLM
+                    Logger.Trace("Using authentication scheme: NTLM, incoming request from: {0}", request.RemoteEndPoint.Address);
+                    return AuthenticationSchemes.Ntlm;
                 }
-            };
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex);
+                throw;
+            }
         }
     }
 }

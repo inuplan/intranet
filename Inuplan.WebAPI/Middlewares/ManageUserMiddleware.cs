@@ -85,6 +85,7 @@ namespace Inuplan.WebAPI.Middlewares
         /// <returns>An awaitable task</returns>
         public async override Task Invoke(IOwinContext context)
         {
+            Logger.Info("Incoming request from: {0}", context.Request.RemoteIpAddress);
             if (context.Request.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
             {
                 Logger.Trace("Http method: OPTIONS - Request is probably a preflight request, must allow anonymous pass-through");
@@ -92,93 +93,104 @@ namespace Inuplan.WebAPI.Middlewares
                 return;
             }
 
-            var identity = context.Authentication.User.Identity;
-            var username = identity.Name.Substring(identity.Name.LastIndexOf(@"\") + 1);
-            Logger.Trace("Identity: {0}, Username: {1}", identity.ToString(), username);
-
-            var user = await userDatabaseRepository.Get(username);
-            var error = false;
-            var roles = new List<Role>();
-
-            if (!user.HasValue)
+            try
             {
-                // Get existing "normal role"
-                var role = (await roleRepository.GetAll())
-                    .FirstOrDefault(r => r.Name.Equals("User", StringComparison.OrdinalIgnoreCase));
+                var identity = context.Authentication.User.Identity;
+                var username = identity.Name.Substring(identity.Name.LastIndexOf(@"\") + 1);
 
-                // Assume that a "User" role exists!
-                roles.Add(role);
-                Debug.Assert(role != null, "Must have a predefined role: \"User\"");
+                Logger.Trace("Trying to retrieve user {0} from the database", username);
+                var user = await userDatabaseRepository.Get(username);
+                var error = false;
+                var roles = new List<Role>();
 
-                // We need to create the user in the database
-                var adUser = await userActiveDirectoryRepository.Get(username);
-                error = await adUser.Match(async u =>
+                if (!user.HasValue)
                 {
-                    // Set role to "User"
-                    u.Roles = roles;
-                    var created = await userDatabaseRepository.Create(u);
-                    if(!created.HasValue)
+                    Logger.Debug("User {0} does not exist in database", username);
+                    Logger.Trace("Retrieve \"User\" role from database");
+                    var role = (await roleRepository.GetAll())
+                        .FirstOrDefault(r => r.Name.Equals("User", StringComparison.OrdinalIgnoreCase));
+
+                    roles.Add(role);
+                    Debug.Assert(role != null, "Must have a predefined role: \"User\"");
+
+                    Logger.Trace("Retrieve user information from Active Directory");
+                    var adUser = await userActiveDirectoryRepository.Get(username);
+                    error = await adUser.Match(async u =>
                     {
+                        Logger.Info("User info retrieved from Active Directory!");
+                        u.Roles = roles;
+
+                        Logger.Trace("Creating user {0} in the database", username);
+                        var created = await userDatabaseRepository.Create(u);
+                        if (!created.HasValue)
+                        {
                         // Error, couldn't create user in DB
                         Logger.Error("Could not create user {0} in the database!", username);
-                        return true;
-                    }
+                            return true;
+                        }
 
-                    Logger.Info("Created user {0} in the database!", username);
-                    user = created;
-                    return false;
-                },
-                () =>
-                {
+                        Logger.Info("Created user {0} in the database!", username);
+                        user = created;
+                        return false;
+                    },
+                    () =>
+                    {
                     // Error user, does not exist in AD
                     Logger.Error("No user information for {0} in Active Directory!", username);
-                    return Task.FromResult(true);
-                });
+                        return Task.FromResult(true);
+                    });
 
+                }
+
+                if (error)
+                {
+                    Logger.Trace("Returning with error 500. Reason given earlier");
+                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    return;
+                }
+
+                // Set principal roles
+                var actualUser = user.ValueOrFailure();
+                Logger.Trace("Extracting user {1} with ID {0}...", actualUser.ID, username);
+
+                //// Note: .NET Framework 1.1 and onwards IsInRole is case-insensitive!
+                //// source: https://msdn.microsoft.com/en-us/library/fs485fwh(v=vs.110).aspx
+                Logger.Trace("Setting authenticated user to principal");
+                var claimsPrincipal = new ClaimsPrincipal();
+                var claimsIdentity = new ClaimsIdentity();
+
+                Logger.Trace("Filtering out the claims...");
+                var claims = context.Authentication.User.Claims.Where(c => !c.Type.Equals(ClaimTypes.Name, StringComparison.OrdinalIgnoreCase));
+
+                Logger.Trace("Adding filtered claims...");
+                claimsIdentity.AddClaims(claims);
+
+                Logger.Trace("Setting claim to username: {0}", actualUser.Username);
+                claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, actualUser.Username));
+
+                foreach (var role in actualUser.Roles)
+                {
+                    Logger.Trace("Adding role \"{0}\" to claims", role.Name);
+                    claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, role.Name));
+                }
+
+                Logger.Trace("Adding identity to principal...");
+                claimsPrincipal.AddIdentity(claimsIdentity);
+
+                Logger.Trace("Setting context to principal...");
+                context.Authentication.User = claimsPrincipal;
+
+                Logger.Trace("Saving user in owin context: ({0}, {1})...", Constants.CURRENT_USER, actualUser.Username);
+                context.Set(Constants.CURRENT_USER, actualUser);
+
+                Logger.Trace("Proceeding with the owin middleware pipeline");
+                await Next.Invoke(context);
             }
-
-            if (error)
+            catch (Exception ex)
             {
-                Logger.Trace("Returning with error 500. Reason given earlier");
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                return;
+                Logger.Error(ex);
+                throw;
             }
-
-            // Set principal roles
-            var actualUser = user.ValueOrFailure();
-
-            //// Note: .NET Framework 1.1 and onwards IsInRole is case-insensitive!
-            //// source: https://msdn.microsoft.com/en-us/library/fs485fwh(v=vs.110).aspx
-            Logger.Trace("Setting authenticated user to principal");
-            var claimsPrincipal = new ClaimsPrincipal();
-            var claimsIdentity = new ClaimsIdentity();
-
-            Logger.Trace("Filtering out the claims...");
-            var claims = context.Authentication.User.Claims.Where(c => !c.Type.Equals(ClaimTypes.Name, StringComparison.OrdinalIgnoreCase));
-
-            Logger.Trace("Adding filtered claims...");
-            claimsIdentity.AddClaims(claims);
-
-            Logger.Trace("Setting claim to username: {0}", actualUser.Username);
-            claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, actualUser.Username));
-
-            foreach(var role in actualUser.Roles)
-            {
-                Logger.Trace("Adding role \"{0}\" to claims", role.Name);
-                claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, role.Name));
-            }
-
-            Logger.Trace("Adding identity to principal...");
-            claimsPrincipal.AddIdentity(claimsIdentity);
-
-            Logger.Trace("Setting context to principal...");
-            context.Authentication.User = claimsPrincipal;
-
-            Logger.Trace("Saving user in owin context: ({0}, {1})...", Constants.CURRENT_USER, actualUser.Username);
-            context.Set(Constants.CURRENT_USER, actualUser);
-
-            Logger.Trace("Proceeding with the owin middleware pipeline");
-            await Next.Invoke(context);
         }
     }
 }
