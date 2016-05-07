@@ -50,6 +50,7 @@ namespace Inuplan.WebAPI.Controllers
             this.roleRepository = roleRepository;
         }
 
+        [HttpGet]
         public async Task<BaseDTO<Role>> Get(int id)
         {
             var role = await roleRepository.Get(id);
@@ -62,6 +63,7 @@ namespace Inuplan.WebAPI.Controllers
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
+        [HttpGet]
         public async Task<BaseDTO<List<Role>>> Get()
         {
             var roles = await roleRepository.GetAll();
