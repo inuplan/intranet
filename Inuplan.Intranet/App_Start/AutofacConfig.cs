@@ -23,7 +23,6 @@ namespace Inuplan.Intranet.App_Start
     using Autofac;
     using Autofac.Extras.Attributed;
     using Autofac.Integration.Mvc;
-    using Common.Enums;
     using Properties;
     using System;
     using System.Web.Mvc;
@@ -48,7 +47,7 @@ namespace Inuplan.Intranet.App_Start
             builder.RegisterSource(new ViewRegistrationSource());
 
             // Register 
-            builder.RegisterInstance(GetRemote()).Keyed<Uri>(ServiceKeys.RemoteBaseAddress).SingleInstance();
+            builder.RegisterInstance(GetRemote()).SingleInstance();
 
             // Build container
             var container = builder.Build();
