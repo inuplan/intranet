@@ -157,7 +157,7 @@ namespace Inuplan.WebAPI.Middlewares
                 //// source: https://msdn.microsoft.com/en-us/library/fs485fwh(v=vs.110).aspx
                 Logger.Trace("Setting authenticated user to principal");
                 var claimsPrincipal = new ClaimsPrincipal();
-                var claimsIdentity = new ClaimsIdentity();
+                var claimsIdentity = new ClaimsIdentity(AuthenticationTypes.Windows);
 
                 Logger.Trace("Filtering out the claims...");
                 var claims = context.Authentication.User.Claims.Where(c => !c.Type.Equals(ClaimTypes.Name, StringComparison.OrdinalIgnoreCase));
