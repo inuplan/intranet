@@ -85,10 +85,10 @@ namespace Inuplan.DAL.Repositories
             try
             {
                 var sql = @"SELECT ID, Name FROM Roles WHERE ID = @key";
-                var result = await connection.ExecuteScalarAsync<Role>(sql, new { key });
+                var result = (await connection.QueryAsync<Role>(sql, new { key })).Single();
                 return result.SomeWhen(r => r != null && r.ID > 0);
             }
-            catch (SqlException ex)
+            catch (System.Exception ex)
             {
                 Logger.Error(ex);
                 throw;
