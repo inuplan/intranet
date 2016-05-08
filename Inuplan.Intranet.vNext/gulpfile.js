@@ -5,7 +5,9 @@ var gulp = require("gulp"),
     rimraf = require("rimraf"),
     concat = require("gulp-concat"),
     cssmin = require("gulp-cssmin"),
-    uglify = require("gulp-uglify");
+    uglify = require("gulp-uglify"),
+    babel = require("gulp-babel"),
+    sourcemaps = require("gulp-sourcemaps");
 
 var paths = {
     webroot: "./wwwroot/"
@@ -17,6 +19,16 @@ paths.css = paths.webroot + "css/**/*.css";
 paths.minCss = paths.webroot + "css/**/*.min.css";
 paths.concatJsDest = paths.webroot + "js/site.min.js";
 paths.concatCssDest = paths.webroot + "css/site.min.css";
+paths.reactJsx = paths.webroot + "js/app.jsx";
+paths.reactDest = paths.webroot + "js/";
+
+gulp.task("transform:react", function () {
+    return gulp.src(paths.reactJsx)
+        .pipe(sourcemaps.init())
+        .pipe(babel())
+        .pipe(sourcemaps.write("."))
+        .pipe(gulp.dest(paths.reactDest));
+});
 
 gulp.task("clean:js", function (cb) {
     rimraf(paths.concatJsDest, cb);
