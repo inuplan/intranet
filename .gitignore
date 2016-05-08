@@ -188,3 +188,6 @@ packages/
 **/web.release.config
 *.pdb
 docs/rest_api.pdf
+
+# NodeJS modules
+**/node_modules/
