@@ -113,7 +113,7 @@ namespace Inuplan.DAL.Repositories
                     return entity.SomeWhen(c => success);
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 Logger.Error(ex);
                 throw;
