@@ -66,6 +66,7 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserController>().WithAttributeFilter();
             builder.RegisterType<UserRolesController>().WithAttributeFilter();
             builder.RegisterType<DiagnosticController>().WithAttributeFilter();
+            builder.RegisterType<ImageCommentController>().WithAttributeFilter();
 
             // Register classes and keys
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
