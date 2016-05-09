@@ -27,6 +27,7 @@ namespace Inuplan.DAL.Repositories
     using NLog;
     using Optional;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Data;
     using System.Data.SqlClient;
@@ -113,7 +114,7 @@ namespace Inuplan.DAL.Repositories
                     return entity.SomeWhen(c => success);
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 Logger.Error(ex);
                 throw;
@@ -134,50 +135,70 @@ namespace Inuplan.DAL.Repositories
                 // SQL - CTE where first projection (select) is the anchor
                 // the 2nd projection is the recursion
                 var sqlComments = @"WITH CommentTree AS (
-                                    SELECT Reply, ID, PostedOn, Owner, Remark, Deleted
+                                    SELECT Reply, ID, PostedOn, Owner AS OwnerID, Remark
                                     FROM Comments INNER JOIN ImageComments
                                     ON Comments.ID = ImageComments.CommentID
                                     WHERE ImageComments.ImageID = @key
 
                                     UNION ALL
 
-                                    SELECT Reply.Reply, Reply.ID, Reply.PostedOn, Reply.Owner, Reply.Remark, Reply.Deleted
+                                    SELECT Reply.Reply, Reply.ID, Reply.PostedOn, Reply.Owner, Reply.Remark
                                     FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
                                     WHERE Reply.Reply IS NOT NULL)
                                 SELECT * FROM CommentTree
-                                INNER JOIN Users ON CommentTree.Owner = Users.ID;";
+                                INNER JOIN Users ON CommentTree.OwnerID = Users.ID;";
 
+                var collection = new ConcurrentDictionary<int, Comment>();
                 var allComments = await connection.QueryAsync<int?, Comment, User, Comment>(sqlComments, (parent, comment, user) =>
                 {
                     comment.Owner = user;
                     if (parent.HasValue)
                     {
                         // Is a reply to a comment
-                        var reply = new Tuple<int?, Comment>(parent, comment);
-                        repliesTo.Add(reply);
+                        // Assumption: parent comments are processed before the child comments
+                        Comment parentComment;
+                        collection.TryGetValue(parent.Value, out parentComment);
+
+                        if (parentComment.Replies == null)
+                        {
+                            parentComment.Replies = new List<Comment>();
+                        }
+
+                        parentComment.Replies.Add(comment);
                     }
 
                     return comment;
                 }, new { key });
 
-                var group = repliesTo.GroupBy(g => g.Item1);
-                var result = new List<Comment>();
-
-                foreach (var item in group)
-                {
-                    var replies = item.Select(r => r.Item2);
-                    var parent = allComments.Single(p => p.ID == item.Key);
-                    parent.Replies = replies.ToList();
-                    result.Add(parent);
-                }
-
-                return result;
+                return ConstructComments(repliesTo, allComments);
             }
             catch (SqlException ex)
             {
                 Logger.Error(ex);
                 throw;
             }
+        }
+
+        private List<Comment> ConstructComments(List<Tuple<int?, Comment>> repliesTo, IEnumerable<Comment> allComments)
+        {
+            var group = repliesTo.GroupBy(g => g.Item1);
+            if (!group.Any())
+            {
+                // No replies only top-level comments
+                return allComments.ToList();
+            }
+
+            // Construct reply hierarchy
+            var result = new List<Comment>();
+            foreach (var item in group)
+            {
+                var replies = item.Select(r => r.Item2);
+                var parent = allComments.Single(p => p.ID == item.Key);
+                parent.Replies = replies.ToList();
+                result.Add(parent);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -189,9 +210,15 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var sql = @"SELECT * FROM Comments c INNER JOIN Users u ON c.Owner = u.ID WHERE c.ID = @id";
+                var sql = @"SELECT c.ID, PostedOn, Remark,
+                            u.ID, FirstName, LastName, Username, Email
+                            FROM Comments c INNER JOIN Users u ON c.Owner = u.ID WHERE c.ID = @id";
 
-                var comment = await connection.ExecuteScalarAsync<Comment>(sql, new { id });
+                var comment = (await connection.QueryAsync<Comment, User, Comment>(sql, (c, o) =>
+                {
+                    c.Owner = o;
+                    return c;
+                }, new { id })).Single();
                 var result = comment.SomeWhen(c => c != null && c.ID > 0);
 
                 return result;
@@ -218,7 +245,7 @@ namespace Inuplan.DAL.Repositories
                 Debug.Assert(imageID > 0, "Must have a valid image identifier!");
 
                 var sql = @"WITH CommentTree AS (
-                            SELECT Reply AS ReplyID, ID AS TopID, PostedOn, Owner, Remark, Deleted, ROW_NUMBER() OVER (ORDER BY ID) AS RowNumber
+                            SELECT Reply AS ReplyID, ID AS TopID, PostedOn, Owner AS OwnerID, Remark, Deleted, ROW_NUMBER() OVER (ORDER BY ID) AS RowNumber
                             FROM Comments INNER JOIN ImageComments
                             ON Comments.ID = ImageComments.CommentID
                             WHERE ImageComments.ImageID = @ImageID
@@ -230,20 +257,20 @@ namespace Inuplan.DAL.Repositories
                             WHERE Reply.Reply IS NOT NULL)
                         SELECT
                             ReplyID,									/* parent */
-                            TopID AS ID, PostedOn, Owner, Remark,		/* comment */
+                            TopID AS ID, PostedOn, Remark,				/* comment */
                             ID, FirstName, LastName, Username, Email	/* user */
                         FROM CommentTree
-                        INNER JOIN Users ON CommentTree.Owner = Users.ID
+                        INNER JOIN Users ON CommentTree.OwnerID = Users.ID
                         WHERE RowNumber BETWEEN @From AND @To";
 
                 var repliesTo = new List<Tuple<int?, Comment>>();
-                var comments = await connection.QueryAsync<int?, Comment, User, Comment>(sql, (parent, comment, user) =>
+                var allComments = await connection.QueryAsync<int?, Comment, User, Comment>(sql, (parent, comment, user) =>
                 {
                     comment.Owner = user;
                     if (parent.HasValue)
                     {
-                    // Is a reply to a comment
-                    var reply = new Tuple<int?, Comment>(parent, comment);
+                        // Is a reply to a comment
+                        var reply = new Tuple<int?, Comment>(parent, comment);
                         repliesTo.Add(reply);
                     }
                     return comment;
@@ -254,24 +281,14 @@ namespace Inuplan.DAL.Repositories
                     To = skip + take,
                 });
 
-                var group = repliesTo.GroupBy(g => g.Item1);
-                var result = new List<Comment>();
-
-                foreach (var item in group)
-                {
-                    var replies = item.Select(r => r.Item2);
-                    var parent = comments.Single(p => p.ID == item.Key);
-                    parent.Replies = replies.ToList();
-                    result.Add(parent);
-                }
-
+                var comments = ConstructComments(repliesTo, allComments);
                 var totalSql = @"SELECT COUNT(*) FROM ImageComments WHERE ImageID = @ImageID;";
                 var total = await connection.ExecuteScalarAsync<int>(totalSql, new
                 {
                     ImageID = imageID
                 });
 
-                var pageComments = Helpers.Pageify(skip, take, total, result);
+                var pageComments = Helpers.Pageify(skip, take, total, comments);
                 return pageComments;
             }
             catch (SqlException ex)
@@ -295,7 +312,12 @@ namespace Inuplan.DAL.Repositories
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     var sql = @"UPDATE Comments SET PostedOn=@PostedOn, Remark=@Remark WHERE ID=@key";
-                    var success = (await connection.ExecuteAsync(sql, new { key })).Equals(1);
+                    var success = (await connection.ExecuteAsync(sql, new
+                    {
+                        key,
+                        PostedOn = entity.PostedOn,
+                        Remark = entity.Remark
+                    })).Equals(1);
 
                     if (success)
                     {
