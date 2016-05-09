@@ -1,1 +1,0 @@
-{"version":3,"sources":["app.jsx"],"names":[],"mappings":";;AAAA,SAAS,MAAT,CACQ;AAAA;QAAA;QAAA;AAAA,CADR,EAEQ,SAAS,cAAT,CAAwB,SAAxB,CAFR","file":"app.js","sourcesContent":["ReactDOM.render(\r\n        <h1>Hello, world!</h1>,\r\n        document.getElementById('example')\r\n      );"]}

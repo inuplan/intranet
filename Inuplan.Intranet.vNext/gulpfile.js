@@ -1,4 +1,4 @@
-﻿/// <binding Clean='clean' />
+/// <binding BeforeBuild='transform:react-dev' Clean='clean' />
 "use strict";
 
 var gulp = require("gulp"),
@@ -19,14 +19,25 @@ paths.css = paths.webroot + "css/**/*.css";
 paths.minCss = paths.webroot + "css/**/*.min.css";
 paths.concatJsDest = paths.webroot + "js/site.min.js";
 paths.concatCssDest = paths.webroot + "css/site.min.css";
-paths.reactJsx = paths.webroot + "js/app.jsx";
+paths.reactComponents = paths.webroot + "js/**/*.jsx";
+paths.reactConcatDest = paths.webroot + "js/components.min.js";
 paths.reactDest = paths.webroot + "js/";
 
-gulp.task("transform:react", function () {
-    return gulp.src(paths.reactJsx)
+gulp.task("transform:react-final", function () {
+    return gulp.src([paths.reactComponents, "!" + paths.minJs])
         .pipe(sourcemaps.init())
         .pipe(babel())
+        .pipe(concat(paths.reactConcatDest))
+        .pipe(uglify())
         .pipe(sourcemaps.write("."))
+        .pipe(gulp.dest("."));
+});
+
+gulp.task("transform:react-dev", function () {
+    return gulp.src(paths.reactComponents)
+        .pipe(sourcemaps.init())
+        .pipe(babel())
+        .pipe(sourcemaps.write())
         .pipe(gulp.dest(paths.reactDest));
 });
 
