@@ -47,25 +47,16 @@ namespace Inuplan.WebAPI.Controllers
             this.imageCommentRepository = imageCommentRepository;
         }
 
-        [Route(Name = "GetComment")]
-        public async Task<BaseDTO<List<Comment>>> Get(int imageId)
+        public async Task<List<Comment>> Get(int imageId)
         {
             var comments = await imageCommentRepository.Get(imageId);
-            return new DefaultDTO<List<Comment>>
-            {
-                User = ConstructUserDTO(),
-                Item = comments
-            };
+            return comments;
         }
 
-        public async Task<BaseDTO<Pagination<Comment>>> Get(int skip, int take, int imageId)
+        public async Task<Pagination<Comment>> Get(int skip, int take, int imageId)
         {
             var page = await imageCommentRepository.GetPage(skip, take, imageId);
-            return new DefaultDTO<Pagination<Comment>>
-            {
-                User = ConstructUserDTO(),
-                Item = page
-            };
+            return page;
         }
 
         public async Task<HttpResponseMessage> Post(Comment comment, [FromUri] int imageId, [FromUri] int? replyId = null)

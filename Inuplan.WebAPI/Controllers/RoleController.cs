@@ -51,27 +51,19 @@ namespace Inuplan.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<BaseDTO<Role>> Get(int id)
+        public async Task<Role> Get(int id)
         {
             var role = await roleRepository.Get(id);
             return role.Match(
-                r => new DefaultDTO<Role>
-                {
-                    User = ConstructUserDTO(),
-                    Item = r
-                },
+                r => r,
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
         [HttpGet]
-        public async Task<BaseDTO<List<Role>>> Get()
+        public async Task<List<Role>> Get()
         {
             var roles = await roleRepository.GetAll();
-            return new DefaultDTO<List<Role>>
-            {
-                User = ConstructUserDTO(),
-                Item = roles
-            };
+            return roles;
         }
 
         public async Task<HttpResponseMessage> Post(string name)
