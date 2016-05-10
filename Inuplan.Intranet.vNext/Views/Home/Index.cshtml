@@ -23,14 +23,8 @@
     <script src="~/js/components.min.js" asp-append-version="true"></script>
 </environment>
 <script>
-    // Simulate json data from web service...
-    var data = [
-      { id: 1, author: "Pete Hunt", text: "This is one comment" },
-      { id: 2, author: "Jordan Walke", text: "This is *another* comment" }
-    ];
-
     ReactDOM.render(
-        React.createElement(CommentBox, { url: "", polInterval: 2000 }),
+        React.createElement(CommentBox, { url: "http://localhost:9000/api", polInterval: 2000 }),
         document.getElementById('content')
     );
 </script>
