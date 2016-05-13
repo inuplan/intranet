@@ -21,12 +21,15 @@
 namespace Inuplan.Common.DTOs
 {
     using System;
+    using System.Collections.Generic;
 
     public class CommentDTO
     {
         public int ID { get; set; }
-        public string Comment { get; set; }
+        public string Text { get; set; }
         public DateTime PostedOn { get; set; }
-        public UserDTO Author { get; set; }
+        public string Author { get; set; }
+        public string Avatar { get; set; }
+        public List<CommentDTO> Replies { get; set; }
     }
 }

@@ -5,6 +5,7 @@ var CommentBox = React.createClass({
         $.ajax({
             url: this.props.url,
             dataType: 'json',
+            data: this.props.range,
             cache: false,
             success: function (data) {
                 this.setState({ data: data });
