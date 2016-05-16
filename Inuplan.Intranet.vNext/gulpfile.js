@@ -1,4 +1,4 @@
-/// <binding BeforeBuild='transform:react-dev' Clean='clean' />
+/// <binding Clean='clean' />
 "use strict";
 
 var gulp = require("gulp"),
@@ -39,6 +39,10 @@ gulp.task("transform:react-dev", function () {
         .pipe(babel())
         .pipe(sourcemaps.write())
         .pipe(gulp.dest(paths.reactDest));
+});
+
+gulp.task("watch:react-dev", function () {
+    gulp.watch(paths.reactComponents, ["transform:react-dev"]);
 });
 
 gulp.task("clean:js", function (cb) {
