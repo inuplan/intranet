@@ -20,7 +20,6 @@
 
 namespace Inuplan.Intranet.Controllers
 {
-    using Common.Models;
     using System;
     using System.Threading.Tasks;
     using System.Web.Mvc;
@@ -36,7 +35,7 @@ namespace Inuplan.Intranet.Controllers
         [ChildActionOnly]
         public ActionResult Menu()
         {
-            return PartialView("_Menu", new BaseViewModel<User>
+            return PartialView("_Menu", new BaseViewModel<string>
             {
                 DisplayName = Environment.UserName,
             });

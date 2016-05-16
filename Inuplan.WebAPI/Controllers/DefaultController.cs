@@ -63,20 +63,20 @@ namespace Inuplan.WebAPI.Controllers
         /// Constructs a <see cref="UserDTO"/> instance for the current user
         /// </summary>
         /// <returns></returns>
-        [NonAction]
-        protected UserDTO ConstructUserDTO()
-        {
-            var user = Request.GetUser().ValueOrFailure();
-            return new UserDTO
-            {
-                ID = user.ID,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                IsAdmin = RequestContext.Principal.IsInRole("Admin"),
-                Username = user.Username,
-                ProfileImageUrl = string.Empty,
-            };
-        }
+        //[NonAction]
+        //protected UserDTO ConstructUserDTO()
+        //{
+        //    var user = Request.GetUser().ValueOrFailure();
+        //    return new UserDTO
+        //    {
+        //        ID = user.ID,
+        //        Email = user.Email,
+        //        FirstName = user.FirstName,
+        //        LastName = user.LastName,
+        //        IsAdmin = RequestContext.Principal.IsInRole("Admin"),
+        //        Username = user.Username,
+        //        ProfileImageUrl = string.Empty,
+        //    };
+        //}
     }
 }

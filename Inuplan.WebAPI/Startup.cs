@@ -88,10 +88,6 @@ namespace Inuplan.WebAPI
             Logger.Trace("Enable win-auth except when using OPTIONS method");
             listener = app.Properties["System.Net.HttpListener"] as HttpListener;
             listener.AuthenticationSchemeSelectorDelegate = SchemeSelector;
-
-            Logger.Debug("Extended Protection: {0}", listener.ExtendedProtectionPolicy.PolicyEnforcement);
-            Logger.Trace("Setting extended policy to 'Never'...");
-            listener.ExtendedProtectionPolicy = new System.Security.Authentication.ExtendedProtection.ExtendedProtectionPolicy(System.Security.Authentication.ExtendedProtection.PolicyEnforcement.Never);
         }
 
         /// <summary>

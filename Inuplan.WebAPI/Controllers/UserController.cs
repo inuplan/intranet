@@ -41,15 +41,11 @@ namespace Inuplan.WebAPI.Controllers
         }
 
         [AllowAnonymous]
-        public async Task<BaseDTO<User>> Get([FromUri] string username)
+        public async Task<User> Get([FromUri] string username)
         {
             var user = await userDatabaseRepository.Get(username);
             return user.Match(
-                u => new DefaultDTO<User>
-                {
-                    User = ConstructUserDTO(),
-                    Item = u,
-                },
+                u => u,
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
@@ -61,14 +57,10 @@ namespace Inuplan.WebAPI.Controllers
                 () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }
 
-        public async Task<BaseDTO<Pagination<User>>> Get(int skip, int take)
+        public async Task<Pagination<User>> Get(int skip, int take)
         {
             var page = await userDatabaseRepository.GetPage(skip, take);
-            return new DefaultDTO<Pagination<User>>
-            {
-                User = ConstructUserDTO(),
-                Item = page,
-            };
+            return page;
         }
     }
 }

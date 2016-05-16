@@ -93,12 +93,17 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <div>
-                        @if (Model.IsEditable)
-                        {
-                            <button type="button" class="btn btn-danger" data-bind="click: $data.delete">Slet</button>
-                        }
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Luk</button>
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <!-- Insert comments here? -->
+                            </div>
+                            <div class="col-lg-4">
+                            @if (Model.IsEditable)
+                            {
+                                <button type="button" class="btn btn-danger" data-bind="click: $data.delete">Slet</button>
+                            }
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Luk</button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -21,7 +21,6 @@
 namespace Inuplan.Intranet.Controllers
 {
     using Autofac.Extras.Attributed;
-    using Common.Enums;
     using System;
     using System.Threading.Tasks;
     using System.Web.Mvc;
@@ -31,7 +30,7 @@ namespace Inuplan.Intranet.Controllers
     {
         private Uri RemoteBaseApi;
 
-        public ImageController([WithKey(ServiceKeys.RemoteBaseAddress)] Uri RemoteBaseApi)
+        public ImageController(Uri RemoteBaseApi)
         {
             this.RemoteBaseApi = RemoteBaseApi;
         }

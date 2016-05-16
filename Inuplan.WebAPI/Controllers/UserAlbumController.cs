@@ -30,15 +30,11 @@
             this.albumRepository = albumRepository;
         }
 
-        public async Task<BaseDTO<Album>> Get(int albumId)
+        public async Task<Album> Get(int albumId)
         {
             var album = await albumRepository.Get(albumId);
             return album.Match(
-                a => new DefaultDTO<Album>
-                {
-                    User = ConstructUserDTO(),
-                    Item = a
-                },
+                a => a,
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
@@ -92,24 +88,16 @@
                 () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }
 
-        public async Task<BaseDTO<Pagination<Album>>> Get(int skip, int take, int userID)
+        public async Task<Pagination<Album>> Get(int skip, int take, int userID)
         {
             var page = await albumRepository.GetPage(skip, take, userID);
-            return new DefaultDTO<Pagination<Album>>
-            {
-                User = ConstructUserDTO(),
-                Item = page,
-            };
+            return page;
         }
 
-        public async Task<BaseDTO<List<Album>>> GetAll(int userId)
+        public async Task<List<Album>> GetAll(int userId)
         {
             var albums = await albumRepository.GetAll(userId);
-            return new DefaultDTO<List<Album>>
-            {
-                User = ConstructUserDTO(),
-                Item = albums
-            };
+            return albums;
         }
     }
 }

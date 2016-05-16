@@ -294,12 +294,6 @@
     <None Include="Project_Readme.html" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Inuplan.Common\Inuplan.Common.csproj">
-      <Project>{00db2518-eaee-4f5d-aed6-8cf7f64e5c24}</Project>
-      <Name>Inuplan.Common</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{4A0DDDB5-7A95-4FBF-97CC-616D07737A77}" />
   </ItemGroup>
   <PropertyGroup>

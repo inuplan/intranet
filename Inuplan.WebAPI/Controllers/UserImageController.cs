@@ -288,7 +288,7 @@ namespace Inuplan.WebAPI.Controllers
         // GET user/image
         [HttpGet]
         [Route("")]
-        public async Task<BaseDTO<List<UserImageDTO>>> GetAll(string username)
+        public async Task<List<UserImageDTO>> GetAll(string username)
         {
             // Get user
             var user = await userDatabaseRepository.Get(username);
@@ -303,11 +303,7 @@ namespace Inuplan.WebAPI.Controllers
             });
 
             return images.Match(
-                imgs => new DefaultDTO<List<UserImageDTO>>
-                {
-                    User = ConstructUserDTO(),
-                    Item = imgs
-                },
+                img => img,
                 () =>
                 {
                     Logger.Error("User: {0} not found", username);
