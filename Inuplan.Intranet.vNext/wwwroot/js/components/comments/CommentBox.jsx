@@ -1,6 +1,4 @@
-﻿/// <reference path="CommentList.js" />
-/// <reference path="CommentForm.js" />
-var CommentBox = React.createClass({
+﻿var CommentBox = React.createClass({
     loadCommentsFromServer: function() {
         $.ajax({
             url: this.props.url,
