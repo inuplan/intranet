@@ -25,7 +25,7 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Enums;
     using Common.Repositories;
     using Common.Tools;
-    using Inuplan.Common.Models;
+    using Common.Models;
     using System;
     using System.Collections.Generic;
     using System.Net;
@@ -33,6 +33,7 @@ namespace Inuplan.WebAPI.Controllers
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Cors;
+    using System.Linq;
 
     [EnableCors(origins: Constants.Origin, headers: "", methods: "*", SupportsCredentials = true)]
     public class ImageCommentController : DefaultController
@@ -47,10 +48,10 @@ namespace Inuplan.WebAPI.Controllers
             this.imageCommentRepository = imageCommentRepository;
         }
 
-        public async Task<List<Comment>> Get(int imageId)
+        public async Task<List<CommentDTO>> Get(int imageId)
         {
             var comments = await imageCommentRepository.Get(imageId);
-            return comments;
+            return comments.Select(c => ConvertToDTO(c)).ToList();
         }
 
         public async Task<Pagination<Comment>> Get(int skip, int take, int imageId)
@@ -91,6 +92,30 @@ namespace Inuplan.WebAPI.Controllers
                             Request.CreateResponse(HttpStatusCode.NoContent) :
                             Request.CreateResponse(HttpStatusCode.InternalServerError);
             return response;
+        }
+
+        [NonAction]
+        private CommentDTO ConvertToDTO(Comment comment)
+        {
+            var profile = new Func<int, string>(id =>
+            {
+                return "TODO: get url for profile";
+            });
+
+            var displayName = new Func<User, string>(user =>
+            {
+                return user.FirstName + " " + user.LastName;
+            });
+
+            return new CommentDTO
+            {
+                ID = comment.ID,
+                PostedOn = comment.PostedOn,
+                Text = comment.Remark,
+                Author = displayName(comment.Owner),
+                Replies = comment.Replies.Select(c => ConvertToDTO(c)).ToList(),
+                Avatar = profile(comment.Owner.ID),
+            };
         }
     }
 }
