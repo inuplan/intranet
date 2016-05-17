@@ -177,6 +177,7 @@ packages/
 
 #Test files
 *.testsettings
+Inuplan.Intranet.vNext/wwwroot/js/tests
 
 # Git merge backup files
 *.orig
