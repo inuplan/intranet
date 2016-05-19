@@ -16,7 +16,7 @@
 <script src="~/lib/react/react-dom.js"></script>
 <environment names="Development">
     <script src="~/lib/marked/lib/marked.js"></script>
-    <script asp-src-include="~/js/components/*.js"></script>
+    <script asp-src-include="~/js/components/**/*.js"></script>
 </environment>
 <environment names="Staging,Production">
     <script src="~/lib/marked/marked.min.js"></script>
@@ -24,7 +24,11 @@
 </environment>
 <script>
     ReactDOM.render(
-        React.createElement(CommentBox, { url: "http://localhost:9000/api", polInterval: 2000 }),
+        React.createElement(ImageBox, {
+            username: '@ViewBag.Username',
+            imagesUrl: 'http://localhost:9000/api/userimage/getall',
+            commentsUrl: 'http://localhost:9000/api/imagecomment'
+        }),
         document.getElementById('content')
     );
 </script>

@@ -29,16 +29,15 @@ namespace Inuplan.WebAPI.Controllers
     using System.Net.Http;
     using System.Web.Http;
 
-    [RoutePrefix("api")]
     public class DiagnosticController : DefaultController
     {
-        public DiagnosticController([WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository)
+        public DiagnosticController(
+            [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository)
             : base(userDatabaseRepository)
         {
         }
 
         // GET api/diagnostic/ping
-        [Route("diagnostic/ping")]
         public HttpResponseMessage Get()
         {
             var username = Request.GetUser().Map(u => u.Username).ValueOr("Anonymous");
