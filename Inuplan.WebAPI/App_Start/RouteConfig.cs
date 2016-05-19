@@ -39,10 +39,15 @@ namespace Inuplan.WebAPI.App_Start
             config.MapHttpAttributeRoutes();
 
             // Standard routing
+            //config.Routes.MapHttpRoute(
+            //    name: "DefaultApi",
+            //    routeTemplate: "api/{controller}/{id}",
+            //    defaults: new { id = RouteParameter.Optional });
+
             config.Routes.MapHttpRoute(
-                name: "DefaultApi",
-                routeTemplate: "api/{controller}/{id}",
-                defaults: new { id = RouteParameter.Optional });
+                name: "RouteWithActions",
+                routeTemplate: "api/{controller}/{action}");
+
         }
     }
 }

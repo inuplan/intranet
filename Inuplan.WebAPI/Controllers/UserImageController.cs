@@ -48,7 +48,6 @@ namespace Inuplan.WebAPI.Controllers
     /// Image file controller
     /// </summary>
     [EnableCors(origins: Constants.Origin, headers: "accept, *", methods: "*", SupportsCredentials = true)]
-    [RoutePrefix("{username}/image")]
     public class UserImageController : DefaultController
     {
         /// <summary>
@@ -87,8 +86,7 @@ namespace Inuplan.WebAPI.Controllers
         /// </summary>
         /// <param name="username">The 3-letter username to upload to</param>
         /// <returns>Returns a response message to the caller</returns>
-        // POST user/image
-        [Route("")]
+        // POST /api/UserImage?username={username}
         [HttpPost]
         public async Task<HttpResponseMessage> Post(string username)
         {
@@ -149,8 +147,16 @@ namespace Inuplan.WebAPI.Controllers
                    "Could not save file. Possible reasons: File already exists or database error. See log files for more information.");
         }
 
+        /// <summary>
+        /// TODO
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="id"></param>
+        /// <param name="file"></param>
+        /// <param name="description"></param>
+        /// <returns></returns>
+        // PUT /api/UserImage?username={username}&id={id}&file={file}
         [HttpPut]
-        [Route("{id:int}/{file}")]
         public async Task<HttpResponseMessage> Put(string username, int id, string file, [FromBody] string description)
         {
             // Only update the description for the image
@@ -171,15 +177,11 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username">The username of the current user</param>
         /// <param name="file">The full name of the image requested</param>
         /// <returns>The requested image</returns>
-        // GET user/image/1/test.jpeg
-        [Route("{id:int}/{file}")]
-        public async Task<HttpResponseMessage> Get(string username, int id, string file)
+        // GET /api/UserImage?username={username}&id={id}
+        [HttpGet]
+        public async Task<HttpResponseMessage> Get(string username, int imageId)
         {
-            var tmp = Helpers.GetFilename(file);
-            var filename = tmp.Item1;
-            var extension = tmp.Item2;
-
-            var image = await userImageRepository.Get(id);
+            var image = await userImageRepository.Get(imageId);
 
             return image.Match(img =>
             {
@@ -201,15 +203,11 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username">The username of the current user</param>
         /// <param name="file">The full name of the image requested</param>
         /// <returns>The requested image</returns>
-        // GET user/image/1/preview/test.jpeg
-        [Route("{id:int}/preview/{file}")]
-        public async Task<HttpResponseMessage> GetPreview(string username, int id, string file)
+        // GET /api/UserImage/GetPreview?username={username}&id={id}
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetPreview(string username, int imageId)
         {
-            var tmp = Helpers.GetFilename(file);
-            var filename = tmp.Item1;
-            var extension = tmp.Item2;
-
-            var image = await userImageRepository.Get(id);
+            var image = await userImageRepository.Get(imageId);
 
             return image.Match(img =>
             {
@@ -231,15 +229,11 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username">The username of the current user</param>
         /// <param name="file">The full name of the image requested</param>
         /// <returns>The requested image</returns>
-        // GET user/image/1/thumbnail/test.jpeg
-        [Route("{id:int}/thumbnail/{file}")]
-        public async Task<HttpResponseMessage> GetThumbnail(string username, int id, string file)
+        // GET /api/UserImage/GetThumbnail?username={username}&id={id}&file={file}
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetThumbnail(string username, int imageId)
         {
-            var tmp = Helpers.GetFilename(file);
-            var filename = tmp.Item1;
-            var extension = tmp.Item2;
-
-            var image = await userImageRepository.Get(id);
+            var image = await userImageRepository.Get(imageId);
 
             return image.Match(img =>
             {
@@ -261,8 +255,8 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username">The username of the</param>
         /// <param name="id"></param>
         /// <returns></returns>
-        // GET image/2
-        [Route("~/image/id/{id:int}")]
+        // GET /api/UserImage/GetByID?id={id}
+        [HttpGet]
         public async Task<HttpResponseMessage> GetByID(int id)
         {
             var image = await userImageRepository.GetByID(id);
@@ -285,9 +279,8 @@ namespace Inuplan.WebAPI.Controllers
         /// </summary>
         /// <param name="username">The username</param>
         /// <returns>An awaitable list of <see cref="UserImageDTO"/></returns>
-        // GET user/image
+        // GET /api/userimage/getall?username={username}
         [HttpGet]
-        [Route("")]
         public async Task<List<UserImageDTO>> GetAll(string username)
         {
             // Get user
@@ -317,8 +310,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username"></param>
         /// <param name="file"></param>
         /// <returns></returns>
-        // DELETE user/image/1
-        [Route("{id:int}")]
+        // DELETE /api/userimage?username={username}
         [HttpDelete]
         public async Task<HttpResponseMessage> Delete(string username, int id)
         {
@@ -338,16 +330,31 @@ namespace Inuplan.WebAPI.Controllers
         [NonAction]
         private UserImageDTO Convert(Image image)
         {
-            // Construct image DTO
-            var baseUri = new Uri(Request.RequestUri, RequestContext.VirtualPathRoot).ToString();
+            // Note: Uri ends on forward slash!
+            var baseUri = new Uri(Request.RequestUri, RequestContext.VirtualPathRoot);
+            var getUrl = new Func<string, string>((action) =>
+            {
+                var route = Url.Route(
+                    "RouteWithActions",
+                    new
+                    {
+                        controller = "UserImage",
+                        action = action,
+                        username = image.Owner.Username,
+                        imageId = image.ID
+                    });
+
+                return new Uri(baseUri, route).ToString();
+            });
+
             return new UserImageDTO
             {
                 Extension = image.Extension,
                 Filename = image.Filename,
                 ImageID = image.ID,
-                PathOriginalUrl = string.Format("{0}{1}/image/{2}/{3}.{4}", baseUri, image.Owner.Username, image.ID, image.Filename, image.Extension),
-                PathPreviewUrl = string.Format("{0}{1}/image/{2}/preview/{3}.{4}", baseUri, image.Owner.Username, image.ID, image.Filename, image.Extension),
-                PathThumbnailUrl = string.Format("{0}{1}/image/{2}/thumbnail/{3}.{4}", baseUri, image.Owner.Username, image.ID, image.Filename, image.Extension),
+                OriginalUrl = getUrl("Get"),
+                PreviewUrl = getUrl("GetPreview"),
+                ThumbnailUrl = getUrl("GetThumbnail"),
                 Username = image.Owner.Username,
             };
         }

@@ -50,16 +50,16 @@ namespace Inuplan.Common.DTOs
         /// <summary>
         /// Gets or sets the url path to the original image
         /// </summary>
-        public string PathOriginalUrl { get; set; }
+        public string OriginalUrl { get; set; }
 
         /// <summary>
         /// Gets or sets the url path to the preview image
         /// </summary>
-        public string PathPreviewUrl { get; set; }
+        public string PreviewUrl { get; set; }
 
         /// <summary>
         /// Gets or sets the url path to the thumbnail image
         /// </summary>
-        public string PathThumbnailUrl { get; set; }
+        public string ThumbnailUrl { get; set; }
     }
 }
