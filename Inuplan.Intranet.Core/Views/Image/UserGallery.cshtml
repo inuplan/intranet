@@ -1,0 +1,36 @@
+﻿@{
+    ViewData["Title"] = ViewBag.Username + " Billeder";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <p>
+            <div id="content"></div>
+        </p>
+    </div>
+</div>
+
+@section scripts
+{
+<script src="~/lib/react/react.js"></script>
+<script src="~/lib/react/react-dom.js"></script>
+<environment names="Development">
+    <script asp-src-include="~/js/components/**/*.js"></script>
+</environment>
+<environment names="Staging,Production">
+    <script src="~/js/components.min.js" asp-append-version="true"></script>
+</environment>
+<script>
+    ReactDOM.render(
+        React.createElement(ImageBox, {
+            username: '@ViewBag.Username',
+            imagesUrl: 'http://localhost:9000/api/userimage/getall',
+            imageUploadUrl: 'http://localhost:9000/api/userimage',
+            commentsUrl: 'http://localhost:9000/api/imagecomment',
+            deleteImageUrl: 'http://localhost:9000/api/userimage',
+            canEdit: @ViewBag.CanEdit
+        }),
+        document.getElementById('content')
+    );
+</script>
+}

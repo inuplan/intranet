@@ -121,6 +121,7 @@ namespace Inuplan.WebAPI.Controllers
             // Wait for all images to be processed
             await Task.WhenAll(tasks);
             var error = true;
+            int imageID = -1;
 
             // Save images to the repository
             var save = bag.Select(async image =>
@@ -130,6 +131,7 @@ namespace Inuplan.WebAPI.Controllers
                     img =>
                     {
                         Logger.Debug("Saved image: {0}.{1}\tWith ID: {2}", img.Filename, img.Extension, img.ID);
+                        imageID = img.ID;
                         error = false;
                     },
                     () =>
@@ -310,7 +312,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="username"></param>
         /// <param name="file"></param>
         /// <returns></returns>
-        // DELETE /api/userimage?username={username}
+        // DELETE /api/userimage?username={username}&id={id}
         [HttpDelete]
         public async Task<HttpResponseMessage> Delete(string username, int id)
         {
