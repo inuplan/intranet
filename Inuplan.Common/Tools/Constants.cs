@@ -29,7 +29,7 @@ namespace Inuplan.Common.Tools
 
         #region "Origin"
 #if DEBUG
-        public const string Origin = @"http://localhost:59382,http://localhost:52256";
+        public const string Origin = @"http://localhost:59382,http://localhost:52256,http://localhost:60464";
 #else
         public const string Origin = @"http://beta-intranet,http://intranet";
 #endif
