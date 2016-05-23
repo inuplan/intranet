@@ -9,13 +9,14 @@
         $(ReactDOM.findDOMNode(this)).modal('hide');
     },
     render: function () {
+        var fullname = this.props.image.Filename + "." + this.props.image.Extension;
         return (
             <div className="modal fade" id="modalWindow">
                 <div className="modal-dialog modal-lg">
                   <div className="modal-content">
                     <div className="modal-header">
                       <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                      <h4 className="modal-title">{this.props.image.Filename}</h4>
+                      <h4 className="modal-title">{fullname}</h4>
                     </div>
                     <div className="modal-body">
                         <a href={this.props.image.OriginalUrl} target="_blank">
