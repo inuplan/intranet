@@ -1,9 +1,0 @@
-24-11-2015:
---------------------------
-A user can only have 1 role.
-A role is predefined at compile time and unable to add new ones.
-
-Authentication is done via an OWIN middleware against Active Directory.
-Authorization is done via an OWIN middleware against an SQL database.
-Both early in the pipeline, meaning if a request reaches a controller
-or a repository we don't need to check if it is a legitimate request.
