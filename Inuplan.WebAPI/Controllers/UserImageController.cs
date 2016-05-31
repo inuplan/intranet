@@ -293,7 +293,7 @@ namespace Inuplan.WebAPI.Controllers
             {
                 // Transform image to DTOs
                 var imgs = userImageRepository.GetAll(u.ID).Result;
-                var dtos = imgs.Select(img => Convert(img));
+                var dtos = imgs.Select(img => Convert(img).Result);
                 return dtos.ToList();
             });
 
@@ -330,7 +330,7 @@ namespace Inuplan.WebAPI.Controllers
         }
 
         [NonAction]
-        private UserImageDTO Convert(Image image)
+        private async Task<UserImageDTO> Convert(Image image)
         {
             // Note: Uri ends on forward slash!
             var baseUri = new Uri(Request.RequestUri, RequestContext.VirtualPathRoot);
@@ -349,6 +349,8 @@ namespace Inuplan.WebAPI.Controllers
                 return new Uri(baseUri, route).ToString();
             });
 
+            var commentCount = await imageCommentsRepo.Count(image.ID);
+
             return new UserImageDTO
             {
                 Extension = image.Extension,
@@ -358,6 +360,7 @@ namespace Inuplan.WebAPI.Controllers
                 PreviewUrl = getUrl("GetPreview"),
                 ThumbnailUrl = getUrl("GetThumbnail"),
                 Username = image.Owner.Username,
+                CommentCount = commentCount,
             };
         }
     }

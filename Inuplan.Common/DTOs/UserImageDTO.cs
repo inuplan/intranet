@@ -61,5 +61,10 @@ namespace Inuplan.Common.DTOs
         /// Gets or sets the url path to the thumbnail image
         /// </summary>
         public string ThumbnailUrl { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of comments for this image
+        /// </summary>
+        public int CommentCount { get; set; }
     }
 }

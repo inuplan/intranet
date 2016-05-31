@@ -71,5 +71,12 @@ namespace Inuplan.Common.Repositories
         /// <param name="key">The key K</param>
         /// <returns>True if successful otherwise false</returns>
         Task<bool> DeleteSingle(K key);
+
+        /// <summary>
+        /// Returns the count of items with the key <see cref="K"/>
+        /// </summary>
+        /// <param name="key">The key identifier</param>
+        /// <returns>The number of items for <see cref="K"/></returns>
+        Task<int> Count(K key);
     }
 }

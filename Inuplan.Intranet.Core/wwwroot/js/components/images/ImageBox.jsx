@@ -48,6 +48,7 @@
             this.setState({
                 selected: null,
             });
+            this.loadImagesFromServer(this.props.username);
         }.bind(this));
     },
     imageUploadFormView: function () {
@@ -75,7 +76,10 @@
         return (
         <div className="row">
             <div className="row">
-                <ImageList images={this.state.data} modalHandle={this.modalHandle} />
+                <ImageList 
+                          images={this.state.data}
+                          modalHandle={this.modalHandle}
+                />
                 {this.modalView()}
             </div>
             {this.imageUploadFormView()}

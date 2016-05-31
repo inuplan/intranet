@@ -130,45 +130,38 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var repliesTo = new List<Tuple<int?, Comment>>();
-
                 // SQL - CTE where first projection (select) is the anchor
                 // the 2nd projection is the recursion
-                var sqlComments = @"WITH CommentTree AS (
-                                    SELECT Reply, ID, PostedOn, Author AS AuthorID, Text
-                                    FROM Comments INNER JOIN ImageComments
-                                    ON Comments.ID = ImageComments.CommentID
-                                    WHERE ImageComments.ImageID = @key
+                // Note: using LEFT JOIN on final projection, since we want to include all the deleted comments where user is null
+                var sqlComments = 
+                    @"WITH CommentTree AS(
+                            SELECT Reply AS ReplyID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
+                            FROM Comments INNER JOIN ImageComments
+                            ON Comments.ID = ImageComments.CommentID
+                              WHERE ImageComments.ImageID = @key
 
-                                    UNION ALL
+                            UNION ALL
 
-                                    SELECT Reply.Reply, Reply.ID, Reply.PostedOn, Reply.Author, Reply.Text
-                                    FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
-                                    WHERE Reply.Reply IS NOT NULL)
-                                SELECT * FROM CommentTree
-                                LEFT JOIN Users ON CommentTree.AuthorID = Users.ID;";
+                            SELECT Reply.Reply, Reply.ID, Reply.PostedOn, Reply.Author, Reply.Text, Reply.Deleted, CommentTree.RowNumber
+                            FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.TopID
+                            WHERE Reply.Reply IS NOT NULL)
+                        SELECT
+                            ReplyID,                                    /* parent */
+                            TopID AS ID, Deleted, PostedOn, Text,       /* comment */
+                            ID, FirstName, LastName, Username, Email	/* author */
+                        FROM CommentTree
+                        LEFT JOIN Users ON CommentTree.AuthorID = Users.ID";
 
-                var collection = new ConcurrentDictionary<int, Comment>();
+                var repliesTo = new List<Tuple<int?, Comment>>();
                 var allComments = await connection.QueryAsync<int?, Comment, User, Comment>(sqlComments, (parent, comment, author) =>
                 {
                     comment.Author = author;
-                    if (parent.HasValue)
-                    {
-                        // Is a reply to a comment
-                        // Assumption: parent comments are processed before the child comments
-                        Comment parentComment;
-                        collection.TryGetValue(parent.Value, out parentComment);
-
-                        if (parentComment.Replies == null)
-                        {
-                            parentComment.Replies = new List<Comment>();
-                        }
-
-                        parentComment.Replies.Add(comment);
-                    }
-
+                    var item = new Tuple<int?, Comment>(parent, comment);
+                    repliesTo.Add(item);
                     return comment;
                 }, new { key });
+
+                Debug.Assert(allComments.Count() == repliesTo.Count, "Every comment must be in the repliesTo variable");
 
                 return ConstructComments(repliesTo);
             }
@@ -348,6 +341,37 @@ namespace Inuplan.DAL.Repositories
                 Logger.Error(ex);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Returns the count of comments for a particular image with the given key.
+        /// Only counts NOT deleted comments.
+        /// </summary>
+        /// <param name="key">The Image ID</param>
+        /// <returns>The number of items for <see cref="K"/></returns>
+        public async Task<int> Count(int key)
+        {
+            var sqlComments =
+                @"WITH CommentTree AS(
+                        SELECT Reply AS ReplyID, ID, Deleted
+                        FROM Comments INNER JOIN ImageComments
+                        ON Comments.ID = ImageComments.CommentID
+                            WHERE ImageComments.ImageID = @key
+
+                        UNION ALL
+
+                        SELECT Reply.Reply, Reply.ID, Reply.Deleted
+                        FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
+                        WHERE Reply.Reply IS NOT NULL)
+                    SELECT Count(*) FROM CommentTree
+                    WHERE Deleted <> 1";
+
+            var count = await connection.ExecuteScalarAsync<int>(sqlComments, new
+            {
+                key
+            });
+
+            return count;
         }
 
         /// <summary>
