@@ -1,4 +1,10 @@
 ﻿var ImageBox = React.createClass({
+    getInitialState: function () {
+        return {
+            data: [],
+            selected: null,
+        };
+    },
     deleteImageFromServer: function (imageId) {
         $.ajax({
             url: this.props.deleteImageUrl + "?username=" + this.props.username + "&id=" + imageId,
@@ -30,42 +36,50 @@
             processData: false
         });
     },
-    modalHandle: function(image) {
+    modalHandle: function (image) {
         this.setState({
-            selected: image
+            selected: image,
         });
         $("#modalWindow").modal("show");
     },
-    getInitialState: function () {
-        return {
-            data: [],
-            selected: {
-                Filename: '',
-                OriginalUrl: '',
-                PreviewUrl: '',
-                ImageID: -1,
-            }
-        };
-    },
     componentDidMount: function () {
-        var username = this.props.username;
-        this.loadImagesFromServer(username);
+        this.loadImagesFromServer(this.props.username);
+        $(ReactDOM.findDOMNode(this)).on('hide.bs.modal', function (e) {
+            this.setState({
+                selected: null,
+            });
+        }.bind(this));
     },
-    imageUploadForm: function() {
+    imageUploadFormView: function () {
         return (
-            <ImageUpload imageUploadUrl={this.props.imageUploadUrl} username={this.props.username } />
+            this.props.canEdit ? 
+            <ImageUpload imageUploadUrl={this.props.imageUploadUrl} username={this.props.username } reload={this.loadImagesFromServer} /> :
+            null
         );
     },
+    modalView: function () {
+        return (this.state.selected ?
+                <Modal
+                       imageId={this.state.selected.ImageID}
+                       filename={this.state.selected.Filename + "." + this.state.selected.Extension}
+                       originalUrl={this.state.selected.OriginalUrl}
+                       previewUrl={this.state.selected.PreviewUrl}
+                       deleteImageHandle={this.deleteImageFromServer}
+                       commentsUrl={this.props.commentsUrl}
+                       userUrl={this.props.userUrl}
+                       username={this.props.me}
+                       canEdit={this.props.canEdit}
+                /> : null);
+},
     render: function () {
         return (
-            // Pass the data to ImageList component
+        <div className="row">
             <div className="row">
-                <div className="row">
-                    <ImageList images={this.state.data} modalHandle={this.modalHandle} />
-                    <Modal image={this.state.selected} commentsUrl={this.props.commentsUrl} canEdit={this.props.canEdit} deleteHandle={this.deleteImageFromServer} />
-                </div>
-                {this.props.canEdit ? this.imageUploadForm() : ''}
+                <ImageList images={this.state.data} modalHandle={this.modalHandle} />
+                {this.modalView()}
             </div>
-            );
+            {this.imageUploadFormView()}
+        </div>
+        );
     }
 });

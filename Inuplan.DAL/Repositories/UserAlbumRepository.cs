@@ -247,7 +247,7 @@ namespace Inuplan.DAL.Repositories
                     Owner = userID
                 });
 
-                return Helpers.Pageify(skip, take, total, items.ToList());
+                return Helpers.Paginate(skip, take, total, items.ToList());
             }
             catch (SqlException ex)
             {

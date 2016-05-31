@@ -173,16 +173,39 @@ namespace Inuplan.DAL.Repositories
                 Debug.Assert(key > 0, "The image must have a valid ID!");
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
+                    // Delete all comments for the image:
+                    var deleteCommentsSql = @"WITH CommentTree AS(
+                                SELECT Reply AS ReplyID, ID, ImageID
+                                FROM Comments INNER JOIN ImageComments
+                                ON Comments.ID = ImageComments.CommentID
+                                  WHERE ImageComments.ImageID = @ImageID
+
+                                UNION ALL
+
+                                SELECT Reply.Reply, Reply.ID, ImageID
+                                FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
+                                WHERE Reply.Reply IS NOT NULL)
+                                DELETE c
+                                FROM Comments c
+                                INNER JOIN CommentTree t
+                                ON c.ID = t.ID";
+
+                    // Returns the number of affected rows (comments deleted)
+                    var deletedComments = await connection.ExecuteAsync(deleteCommentsSql, new
+                    {
+                        ImageID = key
+                    });
+
                     var sqlImage = @"SELECT * FROM Images WHERE ID = @ID";
                     var imageRow = (await connection.QueryAsync(sqlImage, new { ID = key }))
                                     .SingleOrDefault();
 
                     var ids = new[]
                     {
-                    new { ID = imageRow.Preview },
-                    new { ID = imageRow.Original },
-                    new { ID = imageRow.Thumbnail }
-                };
+                        new { ID = imageRow.Preview },
+                        new { ID = imageRow.Original },
+                        new { ID = imageRow.Thumbnail }
+                    };
 
                     var sqlInfos = @"SELECT * FROM FileInfo WHERE ID = @ID;";
 
@@ -352,7 +375,7 @@ namespace Inuplan.DAL.Repositories
                 var totalImagesSql = @"SELECT COUNT(*) FROM Images WHERE Owner = @Owner;";
                 var total = await connection.ExecuteScalarAsync<int>(totalImagesSql, new { Owner = identifiers });
 
-                var currentPage = Helpers.Pageify(skip, take, total, result.ToList());
+                var currentPage = Helpers.Paginate(skip, take, total, result.ToList());
                 return currentPage;
             }
             catch (SqlException ex)

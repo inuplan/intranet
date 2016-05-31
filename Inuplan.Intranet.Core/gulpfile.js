@@ -1,4 +1,4 @@
-﻿/// <binding Clean='clean' />
+/// <binding BeforeBuild='transform:react-dev' Clean='clean' ProjectOpened='watch:react-dev' />
 "use strict";
 
 var gulp = require("gulp"),

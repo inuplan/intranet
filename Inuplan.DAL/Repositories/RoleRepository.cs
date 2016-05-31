@@ -132,7 +132,7 @@ namespace Inuplan.DAL.Repositories
 
                 var total = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Roles;");
 
-                return Helpers.Pageify(skip, take, total, roles.ToList());
+                return Helpers.Paginate(skip, take, total, roles.ToList());
             }
             catch (SqlException ex)
             {

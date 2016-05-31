@@ -35,7 +35,7 @@ namespace Inuplan.WebAPI.Controllers
     using System.Web.Http.Cors;
     using System.Linq;
 
-    [EnableCors(origins: Constants.Origin, headers: "", methods: "*", SupportsCredentials = true)]
+    [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class ImageCommentController : DefaultController
     {
         private readonly IVectorRepository<int, Comment> imageCommentRepository;
@@ -48,10 +48,19 @@ namespace Inuplan.WebAPI.Controllers
             this.imageCommentRepository = imageCommentRepository;
         }
 
-        public async Task<List<CommentDTO>> Get(int imageId)
+        public async Task<List<Comment>> Get(int imageId)
         {
             var comments = await imageCommentRepository.Get(imageId);
-            return comments.Select(c => ConvertToDTO(c)).ToList();
+            return comments;
+        }
+
+        [Route(Name = "GetComment")]
+        public async Task<Comment> GetSingle(int commentId)
+        {
+            var comment = await imageCommentRepository.GetSingleByID(commentId);
+            return comment.Match(
+                c => c,
+                () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
         public async Task<Pagination<Comment>> Get(int skip, int take, int imageId)
@@ -62,6 +71,9 @@ namespace Inuplan.WebAPI.Controllers
 
         public async Task<HttpResponseMessage> Post(Comment comment, [FromUri] int imageId, [FromUri] int? replyId = null)
         {
+            // Set time and owner to current user and time!
+            comment.PostedOn = DateTime.Now;
+            comment.Author = Request.GetOwinContext().Get<User>(Constants.CURRENT_USER);
             var created = await imageCommentRepository.CreateSingle(comment, imageId, replyId);
             var response = created.Match(
                 c =>
@@ -85,37 +97,14 @@ namespace Inuplan.WebAPI.Controllers
             return response;
         }
 
-        public async Task<HttpResponseMessage> Put([FromUri] int imageId, Comment comment)
+        public async Task<HttpResponseMessage> Put([FromBody]Comment comment)
         {
-            var updated = await imageCommentRepository.UpdateSingle(imageId, comment);
+            comment.PostedOn = DateTime.Now;
+            var updated = await imageCommentRepository.UpdateSingle(comment.ID, comment);
             var response = updated ?
                             Request.CreateResponse(HttpStatusCode.NoContent) :
                             Request.CreateResponse(HttpStatusCode.InternalServerError);
             return response;
-        }
-
-        [NonAction]
-        private CommentDTO ConvertToDTO(Comment comment)
-        {
-            var profile = new Func<int, string>(id =>
-            {
-                return "TODO: get url for profile";
-            });
-
-            var displayName = new Func<User, string>(user =>
-            {
-                return user.FirstName + " " + user.LastName;
-            });
-
-            return new CommentDTO
-            {
-                ID = comment.ID,
-                PostedOn = comment.PostedOn,
-                Text = comment.Remark,
-                Author = displayName(comment.Owner),
-                Replies = comment.Replies.Select(c => ConvertToDTO(c)).ToList(),
-                Avatar = profile(comment.Owner.ID),
-            };
         }
     }
 }

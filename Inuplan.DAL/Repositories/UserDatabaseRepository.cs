@@ -237,7 +237,7 @@ namespace Inuplan.DAL.Repositories
                 var totalSql = @"SELECT COUNT(*) FROM Users";
                 var total = await connection.ExecuteScalarAsync<int>(totalSql);
 
-                var page = Helpers.Pageify(skip, take, total, result.ToList());
+                var page = Helpers.Paginate(skip, take, total, result.ToList());
                 return page;
             }
             catch (SqlException ex)

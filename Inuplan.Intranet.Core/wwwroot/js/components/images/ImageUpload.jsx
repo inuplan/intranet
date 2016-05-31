@@ -21,9 +21,8 @@
             contentType: false,
             processData: false,
             success: function (result, status, jqXhr) {
-                // Refresh page
-                window.location.reload();
-            }
+                this.props.reload(this.props.username);
+            }.bind(this)
         });
     }
 

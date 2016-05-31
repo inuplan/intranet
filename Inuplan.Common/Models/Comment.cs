@@ -22,16 +22,14 @@ namespace Inuplan.Common.Models
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
     public class Comment
     {
         public int ID { get; set; }
+        public bool Deleted { get; set; }
         public DateTime PostedOn { get; set; }
-        public User Owner { get; set; }
-        public string Remark { get; set; }
+        public User Author { get; set; }
+        public string Text { get; set; }
         public List<Comment> Replies { get; set; }
     }
 }

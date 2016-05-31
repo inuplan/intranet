@@ -109,9 +109,9 @@ namespace Inuplan.Tests.IntegrationTests.RepositoryTests
                 var commentRepo = new ImageCommentRepository(c);
                 var comment = new Comment
                 {
-                    Owner = new User { ID = userId },
+                    Author = new User { ID = userId },
                     PostedOn = DateTime.Now,
-                    Remark = remark,
+                    Text = remark,
                 };
 
                 // Act
@@ -159,7 +159,7 @@ namespace Inuplan.Tests.IntegrationTests.RepositoryTests
                 var updated = new Comment
                 {
                     PostedOn = DateTime.Now,
-                    Remark = updatedRemark
+                    Text = updatedRemark
                 };
 
                 // Act

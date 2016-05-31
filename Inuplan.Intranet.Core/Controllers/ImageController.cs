@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Inuplan.Intranet.Core.Extensions;
 
 // For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -19,8 +20,7 @@ namespace Inuplan.Intranet.Core.Controllers
         [Route("[controller]/[action]/{username}")]
         public IActionResult UserGallery(string username)
         {
-            var userDomain = User.Identity.Name;
-            var currentUsername = userDomain.Substring(userDomain.LastIndexOf('\\') + 1);
+            var currentUsername = User.UsernameWithoutDomain();
             var canEdit = currentUsername.Equals(username, StringComparison.OrdinalIgnoreCase).ToString().ToLower();
             ViewBag.Username = username;
             ViewBag.CanEdit = canEdit;
