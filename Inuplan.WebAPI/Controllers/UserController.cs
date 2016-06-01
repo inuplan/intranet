@@ -62,6 +62,12 @@ namespace Inuplan.WebAPI.Controllers
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
+        /// <summary>
+        /// Get a paginated list of users
+        /// </summary>
+        /// <param name="skip">The number of users to skip</param>
+        /// <param name="take">The number of users to take</param>
+        /// <returns></returns>
         public async Task<Pagination<UserDTO>> Get(int skip, int take)
         {
             var page = await userDatabaseRepository.GetPage(skip, take);
