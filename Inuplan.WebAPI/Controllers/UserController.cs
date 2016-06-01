@@ -80,6 +80,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <param name="skip">The number of users to skip</param>
         /// <param name="take">The number of users to take</param>
         /// <returns>A paginated list of users</returns>
+        [AllowAnonymous]
         public async Task<Pagination<User>> Get(int skip, int take)
         {
             var page = await userDatabaseRepository.GetPage(skip, take);
