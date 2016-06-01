@@ -3,6 +3,9 @@
         return {
             data: [],
             selected: null,
+            user: {
+                DisplayName: this.props.me
+            },
         };
     },
     deleteImageFromServer: function (imageId) {
@@ -36,20 +39,40 @@
             processData: false
         });
     },
+    loadUser: function (username) {
+        $.ajax({
+            url: this.props.userUrl,
+            data: { username: username },
+            method: 'GET',
+            success: function (data) {
+                this.setState({ user: data });
+            }.bind(this),
+            error: function (xhr, status, err) {
+                console.error(this.props.userUrl, status, err.toString());
+            }.bind(this),
+            xhrFields: {
+                withCredentials: true
+            },
+        })
+    },
     modalHandle: function (image) {
         this.setState({
             selected: image,
         });
         $("#modalWindow").modal("show");
     },
-    componentDidMount: function () {
+    hideModal: function () {
+        this.setState({
+            selected: null,
+        });
         this.loadImagesFromServer(this.props.username);
-        $(ReactDOM.findDOMNode(this)).on('hide.bs.modal', function (e) {
-            this.setState({
-                selected: null,
-            });
-            this.loadImagesFromServer(this.props.username);
-        }.bind(this));
+    },
+    componentWillMount: function () {
+        this.loadUser(this.props.username);
+        this.loadImagesFromServer(this.props.username);
+    },
+    componentDidMount: function () {
+        $(ReactDOM.findDOMNode(this)).on('hide.bs.modal', this.hideModal);
     },
     imageUploadFormView: function () {
         return (
@@ -67,22 +90,23 @@
                        previewUrl={this.state.selected.PreviewUrl}
                        deleteImageHandle={this.deleteImageFromServer}
                        commentsUrl={this.props.commentsUrl}
-                       userUrl={this.props.userUrl}
-                       username={this.props.me}
+                       userId={this.state.user.ID}
                        canEdit={this.props.canEdit}
                 /> : null);
 },
     render: function () {
         return (
         <div className="row">
-            <div className="row">
+            <div className="col-lg-12">
+                <h1>{this.state.user.DisplayName} <small>billede galleri</small></h1>
+                <hr />
                 <ImageList 
                           images={this.state.data}
                           modalHandle={this.modalHandle}
                 />
                 {this.modalView()}
+                {this.imageUploadFormView()}
             </div>
-            {this.imageUploadFormView()}
         </div>
         );
     }

@@ -22,9 +22,8 @@
                     <div className="modal-footer">
                         <CommentBox
                                 commentsUrl={this.props.commentsUrl}
-                                username={this.props.username}
+                                userId={this.props.userId}
                                 imageId={this.props.imageId}
-                                userUrl={this.props.userUrl}
                         />
                         <hr />
                         <Modal.Delete

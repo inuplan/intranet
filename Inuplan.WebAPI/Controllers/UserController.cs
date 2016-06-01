@@ -26,13 +26,13 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
+    using System.Linq;
     using System.Net;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Cors;
 
-    [EnableCors(origins: Constants.Origin, headers: "", methods: "*", SupportsCredentials = true)]
+    [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class UserController : DefaultController
     {
         public UserController([WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userRepository)
@@ -41,26 +41,38 @@ namespace Inuplan.WebAPI.Controllers
         }
 
         [AllowAnonymous]
-        public async Task<User> Get([FromUri] string username)
+        public async Task<UserDTO> Get([FromUri] string username)
         {
             var user = await userDatabaseRepository.Get(username);
-            return user.Match(
+            var dto = user.Map(ConvertToDTO);
+            return dto.Match(
                 u => u,
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
-        [Authorize(Roles = "Admin")]
-        public async Task<HttpResponseMessage> Post(User user)
-        {
-            var created = await userDatabaseRepository.Create(user);
-            return created.Match(u => Request.CreateResponse(HttpStatusCode.Created),
-                () => Request.CreateResponse(HttpStatusCode.InternalServerError));
-        }
-
-        public async Task<Pagination<User>> Get(int skip, int take)
+        public async Task<Pagination<UserDTO>> Get(int skip, int take)
         {
             var page = await userDatabaseRepository.GetPage(skip, take);
-            return page;
+            var dto = Helpers.Paginate(skip, take, page.TotalPages, page.CurrentItems.Select(ConvertToDTO).ToList());
+            return dto;
+        }
+
+        [NonAction]
+        private UserDTO ConvertToDTO(User user)
+        {
+            var displayName = (string.IsNullOrEmpty(user.DisplayName)) ? user.FirstName + " " + user.LastName : user.DisplayName;
+            return new UserDTO
+            {
+                ID = user.ID,
+                Username = user.Username,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                DisplayName = displayName,
+                Email = user.Email,
+                IsAdmin = user.Roles.Exists(r => r.Name.Equals("Admin")),
+                Roles = user.Roles,
+                ProfileImage = "NA"
+            };
         }
     }
 }
