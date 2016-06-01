@@ -25,19 +25,19 @@ namespace Inuplan.Intranet.Core.Controllers
     using Extensions;
 
     /// <summary>
-    /// Controller for a user's images
+    /// Controller for the user images
     /// </summary>
     public class ImageController : Controller
     {
         /// <summary>
-        /// A user gallery
+        /// Displays a single user's image gallery
         /// </summary>
-        /// <param name="username">The username</param>
-        /// <returns>A user gallery view</returns>
+        /// <param name="username">The username who owns the gallery</param>
+        /// <returns>A view of the user's image gallery</returns>
         [Route("[controller]/[action]/{username}", Name = "UserGallery")]
         public IActionResult UserGallery(string username)
         {
-            var currentUsername = User.UsernameWithoutDomain();
+            var currentUsername = User.Identity.UsernameWithoutDomain();
             ViewBag.Username = username;
             ViewBag.CanEdit = currentUsername.Equals(username, StringComparison.OrdinalIgnoreCase).ToString().ToLower();
             return View();
