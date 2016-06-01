@@ -44,6 +44,11 @@ namespace Inuplan.Common.Models
         public string LastName { get; set; }
 
         /// <summary>
+        /// Gets or sets the display name of the user
+        /// </summary>
+        public string DisplayName { get; set; }
+
+        /// <summary>
         /// Gets or sets the email of the user
         /// </summary>
         public string Email { get; set; }

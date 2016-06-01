@@ -8,13 +8,13 @@
                         <CommentDeleted
                              key={comment.ID} 
                              replies={comment.Replies}
-                             userID={this.props.userID}
+                             userId={this.props.userId}
                              constructComments={this.constructComments}
                          />
                     </div>);
             }
 
-            var canEdit = this.props.userID == comment.Author.ID;
+            var canEdit = this.props.userId == comment.Author.ID;
 
             return (
                 <div className="media" key={comment.ID }>
@@ -25,7 +25,7 @@
                              text={comment.Text}
                              replies={comment.Replies}
                              canEdit={canEdit}
-                             userID={this.props.userID}
+                             userId={this.props.userId}
                              commentId={comment.ID}
                              deleteHandle={this.props.commentDeleteHandle}
                              editHandle={this.props.commentEditHandle}

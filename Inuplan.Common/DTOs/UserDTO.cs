@@ -18,6 +18,9 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+using Inuplan.Common.Models;
+using System.Collections.Generic;
+
 namespace Inuplan.Common.DTOs
 {
     public class UserDTO
@@ -28,7 +31,8 @@ namespace Inuplan.Common.DTOs
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
-        public string ProfileImageUrl { get; set; }
+        public string ProfileImage { get; set; }
         public bool? IsAdmin { get; set; }
+        public List<Role> Roles { get; set; }
     }
 }

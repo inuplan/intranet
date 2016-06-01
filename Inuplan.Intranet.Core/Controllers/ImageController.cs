@@ -21,9 +21,8 @@ namespace Inuplan.Intranet.Core.Controllers
         public IActionResult UserGallery(string username)
         {
             var currentUsername = User.UsernameWithoutDomain();
-            var canEdit = currentUsername.Equals(username, StringComparison.OrdinalIgnoreCase).ToString().ToLower();
             ViewBag.Username = username;
-            ViewBag.CanEdit = canEdit;
+            ViewBag.CanEdit = currentUsername.Equals(username, StringComparison.OrdinalIgnoreCase).ToString().ToLower();
             return View();
         }
     }

@@ -2,7 +2,6 @@
     getInitialState: function () {
         return {
             comments: [],
-            user: { ID: -1 },
             skip: 0,
             take: 10,
             page: 1,
@@ -43,22 +42,6 @@
             error: function (xhr, status, err) {
                 console.error(url, status, err.toString());
             }.bind(this)
-        })
-    },
-    loadUser: function(username) {
-        $.ajax({
-            url: this.props.userUrl,
-            data: { username: username },
-            method: 'GET',
-            success: function (data) {
-                this.setState({ user: data });
-            }.bind(this),
-            error: function (xhr, status, err) {
-                console.error(this.props.userUrl, status, err.toString());
-            }.bind(this),
-            xhrFields: {
-                withCredentials: true
-            },
         })
     },
     commentDeleteHandle: function (commentId) {
@@ -125,7 +108,6 @@
     },
     componentDidMount: function () {
         this.loadCommentsFromServer(this.props.imageId, this.state.skip, this.state.take);
-        this.loadUser(this.props.username);
     },
     render: function () {
         return (
@@ -134,14 +116,12 @@
                     <div className="col-lg-offset-1 col-lg-11">
                         <CommentList
                              url={this.props.commentsUrl}
-                             username={this.props.username}
                              imageId={this.props.imageId}
-                             userUrl={this.props.userUrl}
                              commentDeleteHandle={this.commentDeleteHandle}
                              commentEditHandle={this.commentEditHandle}
                              commentReplyHandle={this.commentReplyHandle}
                              comments={this.state.comments}
-                             userID={this.state.user.ID}
+                             userId={this.props.userId}
                          />
                     </div>
                 </div>

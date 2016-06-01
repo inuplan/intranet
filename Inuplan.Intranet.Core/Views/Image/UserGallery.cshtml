@@ -3,14 +3,6 @@
     ViewData["Title"] = ViewBag.Username + " Billeder";
 }
 
-<div class="row">
-    <div class="col-lg-12">
-        <h1>@ViewBag.Username <small>billede gallery</small></h1>
-        <hr />
-        <div id="content"></div>
-    </div>
-</div>
-
 @section scripts
 {
     <script src="~/lib/react/react.js"></script>
@@ -37,7 +29,7 @@
                 deleteImageUrl: 'http://localhost:9000/api/userimage',
                 userUrl: 'http://localhost:9000/api/user',
                 me: '@User.UsernameWithoutDomain()',
-                canEdit: @ViewBag.CanEdit
+                canEdit: @ViewBag.CanEdit,
                 }),
             document.getElementById('content')
         );

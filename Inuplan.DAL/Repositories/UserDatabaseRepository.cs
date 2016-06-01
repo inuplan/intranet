@@ -88,8 +88,8 @@ namespace Inuplan.DAL.Repositories
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     // Create user
-                    var sqlUser = @"INSERT INTO Users (Username, FirstName, LastName, Email)
-                        VALUES (@Username, @FirstName, @LastName, @Email);
+                    var sqlUser = @"INSERT INTO Users (Username, FirstName, LastName, Email, DisplayName)
+                        VALUES (@Username, @FirstName, @LastName, @Email, @DisplayName);
                         SELECT ID FROM Users WHERE ID = @@IDENTITY";
 
                     entity.ID = await connection.ExecuteScalarAsync<int>(sqlUser, new
@@ -98,7 +98,7 @@ namespace Inuplan.DAL.Repositories
                         FirstName = entity.FirstName,
                         LastName = entity.LastName,
                         Email = entity.Email,
-                        RoleID = entity.Roles
+                        DisplayName = entity.DisplayName,
                     });
 
                     // Set role for user
@@ -155,7 +155,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var sqlUser = @"SELECT ID, FirstName, LastName, Email, Username
+                var sqlUser = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
                         FROM Users
                         WHERE Username = @key";
 
@@ -200,7 +200,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var sql = @"SELECT ID, FirstName, LastName, Email, Username
+                var sql = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
                         FROM
                         (
                             SELECT tmp.*, ROW_NUMBER() OVER (ORDER BY Username ASC) AS 'RowNumber'
@@ -256,7 +256,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var sql = @"SELECT ID, FirstName, LastName, Email, Username
+                var sql = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
                         FROM Users";
 
                 var result = await connection.QueryAsync<User>(sql);
@@ -278,7 +278,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var sql = @"SELECT ID, FirstName, LastName, Email, Username
+                var sql = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
                         FROM Users
                         WHERE ID = @id";
 
@@ -322,7 +322,8 @@ namespace Inuplan.DAL.Repositories
                             FirstName = @FirstName,
                             LastName = @LastName,
                             Email = @Email,
-                            Username = @Username
+                            Username = @Username,
+                            DisplayName = @DisplayName
                         WHERE Username = @key";
 
                 var result = await connection.ExecuteAsync(sql, new
@@ -331,7 +332,8 @@ namespace Inuplan.DAL.Repositories
                     LastName = entity.LastName,
                     Email = entity.Email,
                     Username = entity.Username,
-                    key
+                    DisplayName = entity.DisplayName,
+                    key,
                 });
 
                 return result == 1;
