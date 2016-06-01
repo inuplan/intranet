@@ -21,14 +21,11 @@
 namespace Inuplan.WebAPI.Controllers
 {
     using Autofac.Extras.Attributed;
-    using Common.DTOs;
     using Common.Enums;
     using Common.Models;
     using Common.Repositories;
-    using Common.Tools;
     using Extensions;
     using NLog;
-    using Optional.Unsafe;
     using System;
     using System.Web.Http;
 
@@ -39,8 +36,15 @@ namespace Inuplan.WebAPI.Controllers
         /// </summary>
         protected static Logger Logger = LogManager.GetCurrentClassLogger();
 
+        /// <summary>
+        /// The user database repository
+        /// </summary>
         protected readonly IScalarRepository<string, User> userDatabaseRepository;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DefaultController"/> class.
+        /// </summary>
+        /// <param name="userDatabaseRepository">The user database repository</param>
         public DefaultController([WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository)
         {
             this.userDatabaseRepository = userDatabaseRepository;
@@ -58,25 +62,5 @@ namespace Inuplan.WebAPI.Controllers
             var isAuthorized = user.Map(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
             return isAuthorized.ValueOr(false);
         }
-        
-        /// <summary>
-        /// Constructs a <see cref="UserDTO"/> instance for the current user
-        /// </summary>
-        /// <returns></returns>
-        //[NonAction]
-        //protected UserDTO ConstructUserDTO()
-        //{
-        //    var user = Request.GetUser().ValueOrFailure();
-        //    return new UserDTO
-        //    {
-        //        ID = user.ID,
-        //        Email = user.Email,
-        //        FirstName = user.FirstName,
-        //        LastName = user.LastName,
-        //        IsAdmin = RequestContext.Principal.IsInRole("Admin"),
-        //        Username = user.Username,
-        //        ProfileImageUrl = string.Empty,
-        //    };
-        //}
     }
 }

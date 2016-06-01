@@ -32,14 +32,26 @@ namespace Inuplan.WebAPI.Controllers
     using System.Web.Http;
     using System.Web.Http.Cors;
 
-    [EnableCors(origins: Constants.Origin, headers: "", methods: "*", SupportsCredentials = true)]
+    /// <summary>
+    /// Handles the users in the system
+    /// </summary>
+    [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class UserController : DefaultController
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserController"/> class.
+        /// </summary>
+        /// <param name="userRepository">The user repository</param>
         public UserController([WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userRepository)
             :base(userRepository)
         {
         }
 
+        /// <summary>
+        /// Gets the user info with the given username
+        /// </summary>
+        /// <param name="username">The username of the user</param>
+        /// <returns>An awaitable <see cref="User"/></returns>
         [AllowAnonymous]
         public async Task<User> Get([FromUri] string username)
         {
@@ -49,6 +61,11 @@ namespace Inuplan.WebAPI.Controllers
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
+        /// <summary>
+        /// Creates a new user with the given info
+        /// </summary>
+        /// <param name="user">The user info</param>
+        /// <returns>A http response</returns>
         [Authorize(Roles = "Admin")]
         public async Task<HttpResponseMessage> Post(User user)
         {
@@ -57,6 +74,12 @@ namespace Inuplan.WebAPI.Controllers
                 () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }
 
+        /// <summary>
+        /// Gets a paginated list of users
+        /// </summary>
+        /// <param name="skip">The number of users to skip</param>
+        /// <param name="take">The number of users to take</param>
+        /// <returns>A paginated list of users</returns>
         public async Task<Pagination<User>> Get(int skip, int take)
         {
             var page = await userDatabaseRepository.GetPage(skip, take);
