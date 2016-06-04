@@ -26,20 +26,33 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Cors;
 
+    /// <summary>
+    /// Handles the users in the system
+    /// </summary>
     [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class UserController : DefaultController
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserController"/> class.
+        /// </summary>
+        /// <param name="userRepository">The user repository</param>
         public UserController([WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userRepository)
             :base(userRepository)
         {
         }
 
+        /// <summary>
+        /// Gets the user info with the given username
+        /// </summary>
+        /// <param name="username">The username of the user</param>
+        /// <returns>An awaitable <see cref="User"/></returns>
         [AllowAnonymous]
         public async Task<UserDTO> Get([FromUri] string username)
         {
@@ -50,6 +63,12 @@ namespace Inuplan.WebAPI.Controllers
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
+        /// <summary>
+        /// Get a paginated list of users
+        /// </summary>
+        /// <param name="skip">The number of users to skip</param>
+        /// <param name="take">The number of users to take</param>
+        /// <returns></returns>
         public async Task<Pagination<UserDTO>> Get(int skip, int take)
         {
             var page = await userDatabaseRepository.GetPage(skip, take);
@@ -57,11 +76,28 @@ namespace Inuplan.WebAPI.Controllers
             return dto;
         }
 
+        /// <summary>
+        /// Get all users in the system
+        /// </summary>
+        /// <returns>A list of all users</returns>
+        public async Task<List<UserDTO>> Get()
+        {
+            var users = await userDatabaseRepository.GetAll();
+            var dtos = users.Select(ConvertToDTO);
+            return dtos.ToList();
+        }
+
+        /// <summary>
+        /// Convert <see cref="User"/> to <see cref="UserDTO"/>
+        /// </summary>
+        /// <param name="user">The input user</param>
+        /// <returns>The output user dto</returns>
         [NonAction]
         private UserDTO ConvertToDTO(User user)
         {
             var displayName = (string.IsNullOrEmpty(user.DisplayName)) ? user.FirstName + " " + user.LastName : user.DisplayName;
-            return new UserDTO
+            var roles = user.Roles ?? new List<Role>();
+            var result = new UserDTO
             {
                 ID = user.ID,
                 Username = user.Username,
@@ -69,10 +105,11 @@ namespace Inuplan.WebAPI.Controllers
                 LastName = user.LastName,
                 DisplayName = displayName,
                 Email = user.Email,
-                IsAdmin = user.Roles.Exists(r => r.Name.Equals("Admin")),
+                IsAdmin = roles.Exists(r => r.Name.Equals("Admin")),
                 Roles = user.Roles,
                 ProfileImage = "NA"
             };
+            return result;
         }
     }
 }

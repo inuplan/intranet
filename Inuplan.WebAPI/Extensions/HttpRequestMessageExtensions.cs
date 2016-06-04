@@ -23,15 +23,18 @@ namespace Inuplan.WebAPI.Extensions
     using Common.Models;
     using Common.Tools;
     using Optional;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Net.Http;
-    using System.Text;
-    using System.Threading.Tasks;
 
+    /// <summary>
+    /// Extension methods for the <see cref="HttpRequestMessage"/>
+    /// </summary>
     public static class HttpRequestMessageExtensions
     {
+        /// <summary>
+        /// Gets the user from the <see cref="Microsoft.Owin.IOwinContext"/>
+        /// </summary>
+        /// <param name="request">The http request</param>
+        /// <returns>An optional <see cref="User"/> if it exists otherwise <seealso cref="Option.None{User}"/></returns>
         public static Option<User> GetUser(this HttpRequestMessage request)
         {
             var ctx = request.GetOwinContext();

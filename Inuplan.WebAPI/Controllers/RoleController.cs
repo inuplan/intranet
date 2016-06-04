@@ -21,7 +21,6 @@
 namespace Inuplan.WebAPI.Controllers
 {
     using Autofac.Extras.Attributed;
-    using Common.DTOs;
     using Common.Enums;
     using Common.Models;
     using Common.Repositories;
@@ -40,8 +39,16 @@ namespace Inuplan.WebAPI.Controllers
     [EnableCors(origins: Constants.Origin, headers: "", methods: "*", SupportsCredentials = true)]
     public class RoleController : DefaultController
     {
+        /// <summary>
+        /// The roles repository
+        /// </summary>
         private readonly IScalarRepository<int, Role> roleRepository;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref=""/>
+        /// </summary>
+        /// <param name="userDatabaseRepository">The user database repository</param>
+        /// <param name="roleRepository">The roles repository</param>
         public RoleController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             IScalarRepository<int, Role> roleRepository)
@@ -50,6 +57,11 @@ namespace Inuplan.WebAPI.Controllers
             this.roleRepository = roleRepository;
         }
 
+        /// <summary>
+        /// Retrieves the role with the given id
+        /// </summary>
+        /// <param name="id">The id of the role</param>
+        /// <returns>A <see cref="Role"/> info</returns>
         [HttpGet]
         public async Task<Role> Get(int id)
         {
@@ -59,6 +71,10 @@ namespace Inuplan.WebAPI.Controllers
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
+        /// <summary>
+        /// Retrieves all roles from the database
+        /// </summary>
+        /// <returns>A collection of roles</returns>
         [HttpGet]
         public async Task<List<Role>> Get()
         {
@@ -66,6 +82,11 @@ namespace Inuplan.WebAPI.Controllers
             return roles;
         }
 
+        /// <summary>
+        /// Creates a new <see cref="Role"/> with the given name
+        /// </summary>
+        /// <param name="name">The name of the role</param>
+        /// <returns>An http response</returns>
         public async Task<HttpResponseMessage> Post(string name)
         {
             var role = new Role { Name = name };
@@ -74,12 +95,21 @@ namespace Inuplan.WebAPI.Controllers
                 () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }
 
+        /// <summary>
+        /// Deletes a role from the database
+        /// </summary>
+        /// <param name="id">The id of the role to delete</param>
+        /// <returns>An http response message</returns>
         public async Task<HttpResponseMessage> Delete(int id)
         {
             var deleted = await roleRepository.Delete(id);
             return deleted ? Request.CreateResponse(HttpStatusCode.NoContent) : Request.CreateResponse(HttpStatusCode.InternalServerError);
         }
 
+        /// <summary>
+        /// Disposes the repositories
+        /// </summary>
+        /// <param name="disposing">true if disposing otherwise false</param>
         protected override void Dispose(bool disposing)
         {
             roleRepository.Dispose();
