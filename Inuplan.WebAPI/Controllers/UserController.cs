@@ -26,6 +26,7 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
@@ -75,11 +76,28 @@ namespace Inuplan.WebAPI.Controllers
             return dto;
         }
 
+        /// <summary>
+        /// Get all users in the system
+        /// </summary>
+        /// <returns>A list of all users</returns>
+        public async Task<List<UserDTO>> Get()
+        {
+            var users = await userDatabaseRepository.GetAll();
+            var dtos = users.Select(ConvertToDTO);
+            return dtos.ToList();
+        }
+
+        /// <summary>
+        /// Convert <see cref="User"/> to <see cref="UserDTO"/>
+        /// </summary>
+        /// <param name="user">The input user</param>
+        /// <returns>The output user dto</returns>
         [NonAction]
         private UserDTO ConvertToDTO(User user)
         {
             var displayName = (string.IsNullOrEmpty(user.DisplayName)) ? user.FirstName + " " + user.LastName : user.DisplayName;
-            return new UserDTO
+            var roles = user.Roles ?? new List<Role>();
+            var result = new UserDTO
             {
                 ID = user.ID,
                 Username = user.Username,
@@ -87,10 +105,11 @@ namespace Inuplan.WebAPI.Controllers
                 LastName = user.LastName,
                 DisplayName = displayName,
                 Email = user.Email,
-                IsAdmin = user.Roles.Exists(r => r.Name.Equals("Admin")),
+                IsAdmin = roles.Exists(r => r.Name.Equals("Admin")),
                 Roles = user.Roles,
                 ProfileImage = "NA"
             };
+            return result;
         }
     }
 }

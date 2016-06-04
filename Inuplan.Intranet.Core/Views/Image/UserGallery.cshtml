@@ -5,14 +5,16 @@
 
 @section scripts
 {
-    <script src="~/lib/react/react.js"></script>
-    <script src="~/lib/react/react-dom.js"></script>
     <environment names="Development">
+        <script src="~/lib/react/react.js"></script>
+        <script src="~/lib/react/react-dom.js"></script>
         <script src="~/lib/moment/moment.js"></script>
         <script asp-src-include="~/js/components/**/*.js"></script>
         <script src="~/lib/marked/lib/marked.js"></script>
     </environment>
     <environment names="Staging,Production">
+        <script src="~/lib/react/react.min.js"></script>
+        <script src="~/lib/react/react-dom.min.js"></script>
         <script src="~/lib/moment/min/moment-with-locales.min.js"></script>
         <script src="~/js/components.min.js" asp-append-version="true"></script>
         <script src="~/lib/marked/marked.min.js"></script>
