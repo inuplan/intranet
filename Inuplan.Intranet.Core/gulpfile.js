@@ -1,4 +1,3 @@
-/// <binding BeforeBuild='transform:react-dev' Clean='clean' ProjectOpened='watch:react-dev' />
 "use strict";
 
 var gulp = require("gulp"),
@@ -6,15 +5,24 @@ var gulp = require("gulp"),
     concat = require("gulp-concat"),
     cssmin = require("gulp-cssmin"),
     uglify = require("gulp-uglify"),
-    babel = require("gulp-babel"),
-    sourcemaps = require("gulp-sourcemaps");
+    browserify = require("browserify"),
+    watchify = require("watchify"),
+    babelify = require("babelify"),
+    sourcemaps = require("gulp-sourcemaps"),
+    buffer = require("vinyl-buffer"),
+    source = require("vinyl-source-stream");
+
+// =======================
+// ----  1. Constants ----
+// =======================
 
 var webroot = "./wwwroot/";
 
 var config = {
     babel: {
         presets: ["react", "es2015"]
-    }
+    },
+    extensions: [ '.jsx', '.js', '.json' ]
 };
 
 var paths = {
@@ -24,32 +32,46 @@ var paths = {
     minCss: webroot + "css/**/*.min.css",
     concatJsDest: webroot + "js/site.min.js",
     concatCssDest: webroot + "css/site.min.css",
-    reactComponents: webroot + "js/**/*.jsx",
-    reactConcatDest: webroot + "js/components.min.js",
-    reactDest: webroot + "js/"
+    bundle: webroot + "js/bundle.js",
+    app: webroot + "js/app.jsx"
 };
 
-gulp.task("transform:react-dev", function() {
-    return gulp.src("./wwwroot/js/**/*.jsx")
-        .pipe(sourcemaps.init())
-        .pipe(babel(config.babel))
-        .pipe(sourcemaps.write())
-        .pipe(gulp.dest(paths.reactDest));
-});
+// =============================
+// ----  2. Gulp user tasks ----
+// =============================
 
-gulp.task("watch:react-dev", function () {
-    gulp.watch(paths.reactComponents, ["transform:react-dev"]);
-});
-
-gulp.task("transform:react-final", function () {
-    return gulp.src([paths.reactComponents, "!" + paths.minJs])
-        .pipe(sourcemaps.init())
-        .pipe(babel())
-        .pipe(concat(paths.reactConcatDest))
-        .pipe(uglify())
-        .pipe(sourcemaps.write("."))
+gulp.task("bundle:debug", function() {
+    return browserify(paths.app, {
+            debug: true,
+            extensions: config.extensions
+        })
+        .transform(babelify, config.babel)
+        .bundle()
+        .pipe(source(paths.bundle))
         .pipe(gulp.dest("."));
 });
+
+gulp.task("bundle:release", function() {
+    return browserify(paths.app, {
+            debug: false,
+            extensions: config.extensions
+        })
+        .transform(babelify, config.babel)
+        .bundle()
+        .pipe(source(paths.bundle))
+        .pipe(buffer())
+        .pipe(uglify())
+        .pipe(gulp.dest("."));
+});
+
+// ===============================
+// ----  3. Private functions ----
+// ===============================
+
+
+// ============================
+// ----  4. Pre-made tasks ----
+// ============================
 
 gulp.task("clean:js", function (cb) {
     rimraf(paths.concatJsDest, cb);
