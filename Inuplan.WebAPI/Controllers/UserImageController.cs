@@ -21,7 +21,6 @@
 namespace Inuplan.WebAPI.Controllers
 {
     using Autofac.Extras.Attributed;
-    using Common.Controllers;
     using Common.DTOs;
     using Common.Enums;
     using Common.Factories;
@@ -30,7 +29,6 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Tools;
     using Extensions;
     using NLog;
-    using Optional;
     using Optional.Unsafe;
     using System;
     using System.Collections.Concurrent;
@@ -38,16 +36,14 @@ namespace Inuplan.WebAPI.Controllers
     using System.Linq;
     using System.Net;
     using System.Net.Http;
-    using System.Security.Principal;
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Cors;
-    using Key = System.Tuple<string, string, string>;
 
     /// <summary>
     /// Image file controller
     /// </summary>
-    [EnableCors(origins: Constants.Origin, headers: "accept, *", methods: "*", SupportsCredentials = true)]
+    [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class UserImageController : DefaultController
     {
         /// <summary>
@@ -281,7 +277,7 @@ namespace Inuplan.WebAPI.Controllers
         /// </summary>
         /// <param name="username">The username</param>
         /// <returns>An awaitable list of <see cref="UserImageDTO"/></returns>
-        // GET /api/userimage/getall?username={username}
+        // GET /api/userimage?username={username}
         [HttpGet]
         public async Task<List<UserImageDTO>> GetAll(string username)
         {
@@ -293,7 +289,7 @@ namespace Inuplan.WebAPI.Controllers
             {
                 // Transform image to DTOs
                 var imgs = userImageRepository.GetAll(u.ID).Result;
-                var dtos = imgs.Select(img => Convert(img).Result);
+                var dtos = imgs.Select(Construct);
                 return dtos.ToList();
             });
 
@@ -301,8 +297,9 @@ namespace Inuplan.WebAPI.Controllers
                 img => img,
                 () =>
                 {
-                    Logger.Error("User: {0} not found", username);
-                    throw new HttpResponseException(HttpStatusCode.NotFound);
+                    var error = string.Format("User: {0} not found", username);
+                    Logger.Error(error);
+                    throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound, error));
                 });
         }
 
@@ -329,8 +326,37 @@ namespace Inuplan.WebAPI.Controllers
                 Request.CreateResponse(HttpStatusCode.InternalServerError, "Failed to delete image");
         }
 
+        [HttpDelete]
+        public async Task<HttpResponseMessage> DeleteMany(string username, string ids)
+        {
+            var imageIds = ids.Split(',').Select(s => int.Parse(s));
+            if(!AuthorizeToUsername(username))
+            {
+                Logger.Error("Cannot delete another user's image");
+                return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot delete another user's image");
+            }
+
+            var success = true;
+            foreach (var id in imageIds)
+            {
+                var deleted = await userImageRepository.Delete(id);
+                Logger.Info("Image: {0}, deleted: {1}", id, deleted);
+
+                if (!deleted)
+                {
+                    success = false;
+                    Logger.Error("Image: {0} - Could not be deleted", id);
+                    break;
+                }
+            }
+
+            return success ?
+                Request.CreateResponse(HttpStatusCode.NoContent) :
+                Request.CreateResponse(HttpStatusCode.InternalServerError, "Failed to delete some images");
+        }
+
         [NonAction]
-        private async Task<UserImageDTO> Convert(Image image)
+        private UserImageDTO Construct(Image image)
         {
             // Note: Uri ends on forward slash!
             var baseUri = new Uri(Request.RequestUri, RequestContext.VirtualPathRoot);
@@ -349,19 +375,13 @@ namespace Inuplan.WebAPI.Controllers
                 return new Uri(baseUri, route).ToString();
             });
 
-            var commentCount = await imageCommentsRepo.Count(image.ID);
+            var count = imageCommentsRepo.Count(image.ID).Result;
+            var originalUrl = getUrl("Get");
+            var previewUrl = getUrl("GetPreview");
+            var thumbnailurl = getUrl("GetThumbnail");
 
-            return new UserImageDTO
-            {
-                Extension = image.Extension,
-                Filename = image.Filename,
-                ImageID = image.ID,
-                OriginalUrl = getUrl("Get"),
-                PreviewUrl = getUrl("GetPreview"),
-                ThumbnailUrl = getUrl("GetThumbnail"),
-                Username = image.Owner.Username,
-                CommentCount = commentCount,
-            };
+            var userImageDto = Converters.ToUserImageDTO(image, count, originalUrl, previewUrl, thumbnailurl);
+            return userImageDto;
         }
     }
 }

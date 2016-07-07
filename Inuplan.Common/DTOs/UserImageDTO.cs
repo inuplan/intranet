@@ -20,6 +20,7 @@
 
 namespace Inuplan.Common.DTOs
 {
+    using Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -27,6 +28,11 @@ namespace Inuplan.Common.DTOs
     /// </summary>
     public class UserImageDTO
     {
+        /// <summary>
+        /// Gets or sets the image author
+        /// </summary>
+        public UserDTO Author { get; set; }
+
         /// <summary>
         /// Gets or sets the ID of the image
         /// </summary>
@@ -41,11 +47,6 @@ namespace Inuplan.Common.DTOs
         /// Gets or sets the extension for the image
         /// </summary>
         public string Extension { get; set; }
-
-        /// <summary>
-        /// Gets or sets the username for the owner of this image
-        /// </summary>
-        public string Username { get; set; }
 
         /// <summary>
         /// Gets or sets the url path to the original image

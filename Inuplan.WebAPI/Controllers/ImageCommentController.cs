@@ -48,25 +48,32 @@ namespace Inuplan.WebAPI.Controllers
             this.imageCommentRepository = imageCommentRepository;
         }
 
-        public async Task<List<Comment>> Get(int imageId)
+        public async Task<List<CommentDTO>> Get(int imageId)
         {
             var comments = await imageCommentRepository.Get(imageId);
-            return comments;
+            return comments.Select(Converters.ToCommentDTO).ToList();
         }
 
         [Route(Name = "GetComment")]
-        public async Task<Comment> GetSingle(int commentId)
+        public async Task<CommentDTO> GetSingle(int commentId)
         {
             var comment = await imageCommentRepository.GetSingleByID(commentId);
-            return comment.Match(
+            var dto = comment.Map(Converters.ToCommentDTO);
+            return dto.Match(
                 c => c,
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
-        public async Task<Pagination<Comment>> Get(int skip, int take, int imageId)
+        public async Task<Pagination<CommentDTO>> Get(int skip, int take, int imageId)
         {
             var page = await imageCommentRepository.GetPage(skip, take, imageId);
-            return page;
+            var dtos = page.CurrentItems.Select(Converters.ToCommentDTO).ToList();
+            return new Pagination<CommentDTO>
+            {
+                CurrentItems = dtos,
+                CurrentPage = page.CurrentPage,
+                TotalPages = page.TotalPages
+            };
         }
 
         public async Task<HttpResponseMessage> Post(Comment comment, [FromUri] int imageId, [FromUri] int? replyId = null)
@@ -106,5 +113,6 @@ namespace Inuplan.WebAPI.Controllers
                             Request.CreateResponse(HttpStatusCode.InternalServerError);
             return response;
         }
+
     }
 }

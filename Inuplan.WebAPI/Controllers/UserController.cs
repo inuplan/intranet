@@ -57,7 +57,7 @@ namespace Inuplan.WebAPI.Controllers
         public async Task<UserDTO> Get([FromUri] string username)
         {
             var user = await userDatabaseRepository.Get(username);
-            var dto = user.Map(ConvertToDTO);
+            var dto = user.Map(Converters.ToUserDTO);
             return dto.Match(
                 u => u,
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
@@ -72,7 +72,7 @@ namespace Inuplan.WebAPI.Controllers
         public async Task<Pagination<UserDTO>> Get(int skip, int take)
         {
             var page = await userDatabaseRepository.GetPage(skip, take);
-            var dto = Helpers.Paginate(skip, take, page.TotalPages, page.CurrentItems.Select(ConvertToDTO).ToList());
+            var dto = Helpers.Paginate(skip, take, page.TotalPages, page.CurrentItems.Select(Converters.ToUserDTO).ToList());
             return dto;
         }
 
@@ -83,33 +83,8 @@ namespace Inuplan.WebAPI.Controllers
         public async Task<List<UserDTO>> Get()
         {
             var users = await userDatabaseRepository.GetAll();
-            var dtos = users.Select(ConvertToDTO);
+            var dtos = users.Select(Converters.ToUserDTO);
             return dtos.ToList();
-        }
-
-        /// <summary>
-        /// Convert <see cref="User"/> to <see cref="UserDTO"/>
-        /// </summary>
-        /// <param name="user">The input user</param>
-        /// <returns>The output user dto</returns>
-        [NonAction]
-        private UserDTO ConvertToDTO(User user)
-        {
-            var displayName = (string.IsNullOrEmpty(user.DisplayName)) ? user.FirstName + " " + user.LastName : user.DisplayName;
-            var roles = user.Roles ?? new List<Role>();
-            var result = new UserDTO
-            {
-                ID = user.ID,
-                Username = user.Username,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                DisplayName = displayName,
-                Email = user.Email,
-                IsAdmin = roles.Exists(r => r.Name.Equals("Admin")),
-                Roles = user.Roles,
-                ProfileImage = "NA"
-            };
-            return result;
         }
     }
 }

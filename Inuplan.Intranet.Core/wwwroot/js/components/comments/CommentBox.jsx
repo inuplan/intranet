@@ -140,7 +140,6 @@
                     <div className="col-lg-offset-1 col-lg-10">
                         <CommentForm
                             url={this.props.commentsUrl}
-                            imageId={this.props.imageId}
                             postCommentHandle={this.postComment}
                         />
                     </div>

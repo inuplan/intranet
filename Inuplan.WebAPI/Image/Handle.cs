@@ -203,10 +203,10 @@ namespace Inuplan.WebAPI.Image
         {
             // Return %root%/username/images/{sha1:length(5)}.extension
             var sb = new StringBuilder();
-            sb.AppendFormat("{0}\\{1}\\images\\", root, username, DateTime.Now);
+            sb.AppendFormat("{0}\\{1}\\images\\", root, username);
 
             var hex = GetHex(data).Substring(0, filenameLength);
-            sb.AppendFormat("{0}.{1}", hex, extension);
+            sb.AppendFormat("{0}-{2}.{1}", hex, extension, DateTime.Now.ToString("dd_M_yyyy-HH_mm_ss"));
             return sb.ToString();
         }
 
