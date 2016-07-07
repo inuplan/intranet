@@ -91,10 +91,10 @@ namespace Inuplan.DAL.Repositories
                                         SELECT ID FROM FileInfo WHERE ID = @@IDENTITY;";
                         var fileInfos = new[]
                         {
-                        entity.Original,
-                        entity.Preview,
-                        entity.Thumbnail
-                    };
+                            entity.Original,
+                            entity.Preview,
+                            entity.Thumbnail
+                        };
 
                         foreach (var info in fileInfos)
                         {

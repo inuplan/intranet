@@ -5,25 +5,19 @@ var gulp = require("gulp"),
     concat = require("gulp-concat"),
     cssmin = require("gulp-cssmin"),
     uglify = require("gulp-uglify"),
-    browserify = require("browserify"),
-    watchify = require("watchify"),
-    babelify = require("babelify"),
+    gutil = require("gulp-util"),
+    fs = require("fs"),
     sourcemaps = require("gulp-sourcemaps"),
     buffer = require("vinyl-buffer"),
-    source = require("vinyl-source-stream");
+    source = require("vinyl-source-stream"),
+    browserify = require("browserify");
 
 // =======================
 // ----  1. Constants ----
 // =======================
 
 var webroot = "./wwwroot/";
-
-var config = {
-    babel: {
-        presets: ["react", "es2015"]
-    },
-    extensions: [ '.jsx', '.js', '.json' ]
-};
+var noderoot = "./node_modules/";
 
 var paths = {
     js: webroot + "js/**/*.js",
@@ -32,36 +26,79 @@ var paths = {
     minCss: webroot + "css/**/*.min.css",
     concatJsDest: webroot + "js/site.min.js",
     concatCssDest: webroot + "css/site.min.css",
-    bundle: webroot + "js/bundle.js",
-    app: webroot + "js/app.jsx"
+    vendorsDest: webroot + "lib/",
+    vendors: "vendors.js",
+    vendorsMin: "vendors.min.js",
+    react: noderoot + "react/dist/react.js",
+    reactMin: noderoot + "react/dist/react.min.js",
+    reactDom: noderoot + "react-dom/dist/react-dom.js",
+    reactDomMin: noderoot + "react-dom/dist/react-dom.min.js",
+    redux: noderoot + "redux/dist/redux.js",
+    reduxMin: noderoot + "redux/dist/redux.min.js",
+    reduxThunk: noderoot + "redux-thunk/dist/redux-thunk.js",
+    reduxThunkMin: noderoot + "redux-thunk/dist/redux-thunk.min.js",
+    reactRouter: noderoot + "react-router/umd/ReactRouter.js",
+    reactRouterMin: noderoot + "react-router/umd/ReactRouter.min.js",
+    reactRedux: noderoot + "react-redux/dist/react-redux.js",
+    reactReduxMin: noderoot + "react-redux/dist/react-redux.min.js",
+    underscore: noderoot + "underscore/underscore.js",
+    underscoreMin: noderoot + "underscore/underscore-min.js",
+    isomorphicFetch: noderoot + "isomorphic-fetch/fetch-npm-browserify.js",
+    marked: noderoot + "marked/index.js",
+    markedMin: noderoot + "marked/marked.min.js",
 };
+
+var vendors = [
+    { file: paths.react, expose: 'react' },
+    { file: paths.reactDom, expose: 'react-dom' },
+    { file: paths.redux, expose: 'redux' },
+    { file: paths.reactRouter, expose: 'react-router' },
+    { file: paths.reactRedux, expose: 'react-redux' },
+    { file: paths.underscore, expose: 'underscore' },
+    { file: paths.reduxThunk, expose: 'redux-thunk' },
+    { file: paths.isomorphicFetch, expose: 'isomorphic-fetch' },
+    { file: paths.marked, expose: 'marked' }
+]
+
+var vendorsMin = [
+    { file: paths.reactMin, expose: 'react' },
+    { file: paths.reactDomMin, expose: 'react-dom' },
+    { file: paths.reduxMin, expose: 'redux' },
+    { file: paths.reactRouterMin, expose: 'react-router' },
+    { file: paths.reactReduxMin, expose: 'react-redux' },
+    { file: paths.underscoreMin, expose: 'underscore' },
+    { file: paths.reduxThunkMin, expose: 'redux-thunk' },
+    { file: paths.isomorphicFetch, expose: 'isomorphic-fetch' },
+    { file: paths.markedMin, expose: 'marked' }
+]
 
 // =============================
 // ----  2. Gulp user tasks ----
 // =============================
 
-gulp.task("bundle:debug", function() {
-    return browserify(paths.app, {
-            debug: true,
-            extensions: config.extensions
-        })
-        .transform(babelify, config.babel)
-        .bundle()
-        .pipe(source(paths.bundle))
-        .pipe(gulp.dest("."));
+gulp.task("bundle:vendors", function () {
+    const b = browserify({
+        debug: true
+    });
+
+    b.require(vendors);
+    b.bundle()
+        .pipe(source(paths.vendors))
+        .pipe(buffer())
+        .pipe(gulp.dest(paths.vendorsDest));
 });
 
-gulp.task("bundle:release", function() {
-    return browserify(paths.app, {
-            debug: false,
-            extensions: config.extensions
-        })
-        .transform(babelify, config.babel)
-        .bundle()
-        .pipe(source(paths.bundle))
+gulp.task("bundle:vendors-min", function () {
+    const b = browserify({
+        debug: false
+    });
+
+    b.require(vendorsMin);
+    b.bundle()
+        .pipe(source(paths.vendorsMin))
         .pipe(buffer())
         .pipe(uglify())
-        .pipe(gulp.dest("."));
+        .pipe(gulp.dest(paths.vendorsDest));
 });
 
 // ===============================
