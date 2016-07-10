@@ -103,9 +103,9 @@ namespace Inuplan.DAL.Repositories
                         }
 
                         var sqlImage = @"INSERT INTO Images
-                                    (Preview, Thumbnail, Original, Owner, Description, Filename, Extension, MimeType)
+                                    (Preview, Thumbnail, Original, Owner, Description, Filename, Extension, MimeType, Uploaded)
                                     VALUES
-                                    (@Preview, @Thumbnail, @Original, @Owner, @Description, @Filename, @Extension, @MimeType);
+                                    (@Preview, @Thumbnail, @Original, @Owner, @Description, @Filename, @Extension, @MimeType, @Uploaded);
                                     SELECT ID FROM Images WHERE ID = @@IDENTITY;";
 
                         var imageID = await connection.ExecuteScalarAsync<int>(sqlImage, new
@@ -117,7 +117,8 @@ namespace Inuplan.DAL.Repositories
                             entity.Description,
                             entity.Filename,
                             entity.Extension,
-                            entity.MimeType
+                            entity.MimeType,
+                            entity.Uploaded
                         });
 
                         entity.ID = imageID;
@@ -262,11 +263,11 @@ namespace Inuplan.DAL.Repositories
             try
             {
                 var sql = @"SELECT
-                        img.ID, Description, Filename, Extension, MimeType,     /* Image */
-                        u.ID, FirstName, LastName, Username, Email,             /* User */
-                        prev.ID, prev.Path,	                                    /* Preview */
-                        orig.ID, orig.Path,                                     /* Original */
-                        thumb.ID, thumb.Path                                    /* Thumbnail */
+                        img.ID, Description, Filename, Extension, MimeType, Uploaded,   /* Image */
+                        u.ID, FirstName, LastName, Username, Email,                     /* User */
+                        prev.ID, prev.Path,	                                            /* Preview */
+                        orig.ID, orig.Path,                                             /* Original */
+                        thumb.ID, thumb.Path                                            /* Thumbnail */
                     FROM Images img INNER JOIN Users u
                     ON img.Owner = u.ID
 
@@ -284,13 +285,13 @@ namespace Inuplan.DAL.Repositories
                     QueryAsync<Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
                     (sql, (img, user, preview, original, thumbnail) =>
                     {
-                    // Setup file info
-                    preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
+                        // Setup file info
+                        preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
                         original.Data = new Lazy<byte[]>(() => File.ReadAllBytes(original.Path));
                         thumbnail.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnail.Path));
 
-                    // Construct image details
-                    img.Owner = user;
+                        // Construct image details
+                        img.Owner = user;
                         img.Preview = preview;
                         img.Original = original;
                         img.Thumbnail = thumbnail;
@@ -319,7 +320,7 @@ namespace Inuplan.DAL.Repositories
             try
             {
                 var sql = @"SELECT
-                            imgID AS ID, Description, Filename, Extension, MimeType,
+                            imgID AS ID, Description, Filename, Extension, MimeType, Uploaded,
                             userID AS ID, FirstName, LastName, Username, Email,
                             prevID AS ID, prevPath AS Path,
                             origID AS ID, origPath AS Path,
@@ -327,7 +328,7 @@ namespace Inuplan.DAL.Repositories
                         FROM
                         (
                         SELECT
-                            img.ID AS imgID, Description, Filename, Extension, MimeType,
+                            img.ID AS imgID, Description, Filename, Extension, MimeType, Uploaded,
                             u.ID AS userID, FirstName, LastName, Username, Email,
                             prev.ID AS prevID, prev.Path AS prevPath,
                             orig.ID AS origID, orig.Path AS origPath,
@@ -353,13 +354,13 @@ namespace Inuplan.DAL.Repositories
                                 <Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
                                 (sql, (img, user, preview, original, thumbnail) =>
                                 {
-                                // Setup file info
-                                preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
+                                    // Setup file info
+                                    preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
                                     original.Data = new Lazy<byte[]>(() => File.ReadAllBytes(original.Path));
                                     thumbnail.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnail.Path));
 
-                                // Construct image details
-                                img.Owner = user;
+                                    // Construct image details
+                                    img.Owner = user;
                                     img.Preview = preview;
                                     img.Original = original;
                                     img.Thumbnail = thumbnail;
@@ -396,11 +397,11 @@ namespace Inuplan.DAL.Repositories
             {
                 Debug.Assert(identifiers.Length == 1, "Must have a valid user ID!");
                 var sql = @"SELECT
-                        img.ID, Description, Filename, Extension, MimeType,     /* Image */
-                        u.ID, FirstName, LastName, Username, Email,             /* User */
-                        prev.ID, prev.Path,	                                    /* Preview */
-                        orig.ID, orig.Path,                                     /* Original */
-                        thumb.ID, thumb.Path                                    /* Thumbnail */
+                        img.ID, Description, Filename, Extension, MimeType, Uploaded,   /* Image */
+                        u.ID, FirstName, LastName, Username, Email,                     /* User */
+                        prev.ID, prev.Path,	                                            /* Preview */
+                        orig.ID, orig.Path,                                             /* Original */
+                        thumb.ID, thumb.Path                                            /* Thumbnail */
                     FROM Images img INNER JOIN Users u
                     ON img.Owner = u.ID
 
@@ -418,13 +419,13 @@ namespace Inuplan.DAL.Repositories
                                 <Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
                                 (sql, (img, user, preview, original, thumbnail) =>
                                 {
-                                // Setup file info
-                                preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
+                                    // Setup file info
+                                    preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
                                     original.Data = new Lazy<byte[]>(() => File.ReadAllBytes(original.Path));
                                     thumbnail.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnail.Path));
 
-                                // Construct image details
-                                img.Owner = user;
+                                    // Construct image details
+                                    img.Owner = user;
                                     img.Preview = preview;
                                     img.Original = original;
                                     img.Thumbnail = thumbnail;

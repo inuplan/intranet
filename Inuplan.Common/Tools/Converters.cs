@@ -57,7 +57,8 @@ namespace Inuplan.Common.Tools
                 PreviewUrl = previewUrl,
                 ThumbnailUrl = thumbnailUrl,
                 Author = author,
-                CommentCount = commentCount
+                CommentCount = commentCount,
+                Uploaded = image.Uploaded,
             };
         }
 
