@@ -34,18 +34,25 @@ namespace Inuplan.WebAPI.Controllers
     using System.Web.Http;
     using System.Web.Http.Cors;
     using System.Linq;
+    using Common.Commands;
 
     [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class ImageCommentController : DefaultController
     {
         private readonly IVectorRepository<int, Comment> imageCommentRepository;
+        private readonly IAddImageComment newComment;
+        private readonly IDeleteItem removeNews;
 
         public ImageCommentController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
-            IVectorRepository<int, Comment> imageCommentRepository)
+            IVectorRepository<int, Comment> imageCommentRepository,
+            IAddImageComment newComment,
+            IDeleteItem removeNews)
             : base(userDatabaseRepository)
         {
             this.imageCommentRepository = imageCommentRepository;
+            this.newComment = newComment;
+            this.removeNews = removeNews;
         }
 
         public async Task<List<CommentDTO>> Get(int imageId)
@@ -79,9 +86,10 @@ namespace Inuplan.WebAPI.Controllers
         public async Task<HttpResponseMessage> Post(Comment comment, [FromUri] int imageId, [FromUri] int? replyId = null)
         {
             // Set time and owner to current user and time!
+            newComment.Connect();
             comment.PostedOn = DateTime.Now;
             comment.Author = Request.GetOwinContext().Get<User>(Constants.CURRENT_USER);
-            var created = await imageCommentRepository.CreateSingle(comment, imageId, replyId);
+            var created = await imageCommentRepository.CreateSingle(comment, c => newComment.Insert(c), imageId, replyId);
             var response = created.Match(
                 c =>
                 {
@@ -97,7 +105,10 @@ namespace Inuplan.WebAPI.Controllers
 
         public async Task<HttpResponseMessage> Delete(int commentId)
         {
-            var deleted = await imageCommentRepository.DeleteSingle(commentId);
+            // NOTE: Comments are NOT deleted only set to "null" to keep comment hierarchy
+            // Question: Should "deleted" comments be removed from the latest news?
+            // Be careful on the client side, take into consideration that Author field could be null!
+            var deleted = await imageCommentRepository.DeleteSingle(commentId, _ => { });
             var response = deleted ?
                             Request.CreateResponse(HttpStatusCode.NoContent) :
                             Request.CreateResponse(HttpStatusCode.InternalServerError);

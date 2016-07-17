@@ -16,12 +16,13 @@
 
 namespace Inuplan.Common.Models
 {
+    using Interfaces;
     using System.Collections.Generic;
 
     /// <summary>
     /// A user
     /// </summary>
-    public class User
+    public class User : IIdentifier
     {
         /// <summary>
         /// Gets or sets the ID of the user

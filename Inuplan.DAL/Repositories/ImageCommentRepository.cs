@@ -72,7 +72,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="entity">The comment to create</param>
         /// <param name="identifiers">An array where the first item is the id of the image, the second item is the id of the parent comment id</param>
         /// <returns>An optional comment, with the updated id if it has been created</returns>
-        public async Task<Option<Comment>> CreateSingle(Comment entity, params object[] identifiers)
+        public async Task<Option<Comment>> CreateSingle(Comment entity, Action<Comment> onCreate, params object[] identifiers)
         {
             try
             {
@@ -108,6 +108,7 @@ namespace Inuplan.DAL.Repositories
 
                     if (success)
                     {
+                        onCreate(entity);
                         transactionScope.Complete();
                     }
 
@@ -181,13 +182,14 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var sql = @"SELECT c.ID, PostedOn, Text,
+                var sql = @"SELECT 
+                            c.ID, PostedOn, Text, c.Deleted,
                             u.ID, FirstName, LastName, Username, Email
-                            FROM Comments c INNER JOIN Users u ON c.Author = u.ID WHERE c.ID = @id";
+                            FROM Comments c LEFT JOIN Users u ON c.Author = u.ID WHERE c.ID = @id";
 
-                var comment = (await connection.QueryAsync<Comment, User, Comment>(sql, (c, o) =>
+                var comment = (await connection.QueryAsync<Comment, User, Comment>(sql, (c, u) =>
                 {
-                    c.Author = o;
+                    if(!c.Deleted) c.Author = u;
                     return c;
                 }, new { id })).Single();
                 var result = comment.SomeWhen(c => c != null && c.ID > 0);
@@ -313,23 +315,23 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="key">The id of the comment</param>
         /// <returns>True if deleted, false otherwise</returns>
-        public async Task<bool> DeleteSingle(int key)
+        public async Task<bool> DeleteSingle(int key, Action<int> onDelete)
         {
             try
             {
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     // Note: only removes identifying marks so that any child-branches aren't left hanging 
-                    var sqlDelete = @"UPDATE Comments SET Author=NULL, Text=@Comment, Deleted=@Deleted WHERE ID=@ID";
+                    var sqlDelete = @"UPDATE Comments SET Author=NULL, Text=NULL, Deleted=@Deleted WHERE ID=@ID";
                     var deleted = (await connection.ExecuteAsync(sqlDelete, new
                     {
-                        Comment = "",
                         Deleted = true,
                         ID = key,
                     })).Equals(1);
 
                     if (deleted)
                     {
+                        onDelete(key);
                         transactionScope.Complete();
                     }
 
@@ -340,6 +342,65 @@ namespace Inuplan.DAL.Repositories
             {
                 Logger.Error(ex);
                 throw;
+            }
+        }
+
+        public async Task<bool> Delete(int imageId, Action<int> onDelete)
+        {
+            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                var sqlIds = @"WITH CommentTree AS(
+                                SELECT Reply AS ReplyID, ID, ImageID
+                                FROM Comments INNER JOIN ImageComments
+                                ON Comments.ID = ImageComments.CommentID
+                                WHERE ImageComments.ImageID = @ImageID
+
+                                UNION ALL
+
+                                SELECT Reply.Reply, Reply.ID, ImageID
+                                FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
+                                WHERE Reply.Reply IS NOT NULL)
+                            SELECT ID FROM CommentTree";
+                var commentIds = (await connection.QueryAsync<int>(sqlIds, new
+                {
+                    ImageID = imageId
+                })).ToList();
+
+                // Delete all comments for the image:
+                var deleteCommentsSql = @"WITH CommentTree AS(
+                                SELECT Reply AS ReplyID, ID, ImageID
+                                FROM Comments INNER JOIN ImageComments
+                                ON Comments.ID = ImageComments.CommentID
+                                  WHERE ImageComments.ImageID = @ImageID
+
+                                UNION ALL
+
+                                SELECT Reply.Reply, Reply.ID, ImageID
+                                FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
+                                WHERE Reply.Reply IS NOT NULL)
+                                DELETE c
+                                FROM Comments c
+                                INNER JOIN CommentTree t
+                                ON c.ID = t.ID";
+
+                // Returns the number of affected rows (comments deleted)
+                var deletedComments = await connection.ExecuteAsync(deleteCommentsSql, new
+                {
+                    ImageID = imageId
+                });
+
+                var success = commentIds.Count == deletedComments;
+                if (success)
+                {
+                    foreach (var commentId in commentIds)
+                    {
+                        onDelete(commentId);
+                    }
+
+                    transactionScope.Complete();
+                }
+
+                return success;
             }
         }
 

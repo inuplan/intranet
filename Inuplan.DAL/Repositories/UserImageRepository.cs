@@ -77,7 +77,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="entity">The image to create</param>
         /// <param name="identifiers">N/A</param>
         /// <returns>An optional image with correct ID</returns>
-        public async Task<Option<Image>> Create(Image entity, params object[] identifiers)
+        public async Task<Option<Image>> Create(Image entity, Action<Image> onCreate, params object[] identifiers)
         {
             try
             {
@@ -135,6 +135,7 @@ namespace Inuplan.DAL.Repositories
                             var dir = Path.GetDirectoryName(entity.Original.Path);
                             var dirInfo = Directory.CreateDirectory(dir);
 
+                            onCreate(entity);
                             transactionScope.Complete();
 
                             // Write files 
@@ -167,36 +168,13 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="key">The username, filename and extension</param>
         /// <returns>True if deleted otherwise false</returns>
-        public async Task<bool> Delete(int key)
+        public async Task<bool> Delete(int key, Action<int> onDelete)
         {
             try
             {
                 Debug.Assert(key > 0, "The image must have a valid ID!");
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    // Delete all comments for the image:
-                    var deleteCommentsSql = @"WITH CommentTree AS(
-                                SELECT Reply AS ReplyID, ID, ImageID
-                                FROM Comments INNER JOIN ImageComments
-                                ON Comments.ID = ImageComments.CommentID
-                                  WHERE ImageComments.ImageID = @ImageID
-
-                                UNION ALL
-
-                                SELECT Reply.Reply, Reply.ID, ImageID
-                                FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
-                                WHERE Reply.Reply IS NOT NULL)
-                                DELETE c
-                                FROM Comments c
-                                INNER JOIN CommentTree t
-                                ON c.ID = t.ID";
-
-                    // Returns the number of affected rows (comments deleted)
-                    var deletedComments = await connection.ExecuteAsync(deleteCommentsSql, new
-                    {
-                        ImageID = key
-                    });
-
                     var sqlImage = @"SELECT * FROM Images WHERE ID = @ID";
                     var imageRow = (await connection.QueryAsync(sqlImage, new { ID = key }))
                                     .SingleOrDefault();
@@ -229,6 +207,7 @@ namespace Inuplan.DAL.Repositories
 
                     if (nullFields && deleted && filePaths.Count() == 3)
                     {
+                        onDelete(key);
                         transactionScope.Complete();
 
                         //Delete files from filesystem

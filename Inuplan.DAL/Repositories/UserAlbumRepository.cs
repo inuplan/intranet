@@ -36,6 +36,7 @@ namespace Inuplan.DAL.Repositories
     using Common.Tools;
     using System.Data.SqlClient;
     using NLog;
+
     public class UserAlbumRepository : IScalarRepository<int, Album>
     {
         private static Logger Logger = LogManager.GetCurrentClassLogger();
@@ -49,7 +50,7 @@ namespace Inuplan.DAL.Repositories
             this.connection = connection;
         }
 
-        public async Task<Option<Album>> Create(Album entity, params object[] identifiers)
+        public async Task<Option<Album>> Create(Album entity, Action<Album> onCreate, params object[] identifiers)
         {
             try
             {
@@ -88,6 +89,7 @@ namespace Inuplan.DAL.Repositories
                     var result = entity.SomeWhen(a => a.ID > 0);
                     if (result.HasValue)
                     {
+                        onCreate(entity);
                         transactionScope.Complete();
                     }
 
@@ -101,7 +103,7 @@ namespace Inuplan.DAL.Repositories
             }
         }
 
-        public async Task<bool> Delete(int key)
+        public async Task<bool> Delete(int key, Action<int> onDelete)
         {
             try
             {
@@ -112,6 +114,7 @@ namespace Inuplan.DAL.Repositories
                     var success = (await connection.ExecuteAsync(sql, new { key })).Equals(1);
                     if (success)
                     {
+                        onDelete(key);
                         transactionScope.Complete();
                     }
 

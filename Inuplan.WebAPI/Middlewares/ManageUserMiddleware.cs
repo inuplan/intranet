@@ -121,7 +121,7 @@ namespace Inuplan.WebAPI.Middlewares
                         u.Roles = roles;
 
                         Logger.Trace("Creating user {0} in the database", username);
-                        var created = await userDatabaseRepository.Create(u);
+                        var created = await userDatabaseRepository.Create(u, _ => { });
                         if (!created.HasValue)
                         {
                         // Error, couldn't create user in DB

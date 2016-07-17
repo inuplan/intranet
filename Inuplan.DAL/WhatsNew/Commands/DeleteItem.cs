@@ -18,23 +18,39 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-using Inuplan.Common.Models.Interfaces;
-
-namespace Inuplan.Common.Models
+namespace Inuplan.DAL.WhatsNew.Commands
 {
-    /// <summary>
-    /// The role information
-    /// </summary>
-    public class Role : IIdentifier
-    {
-        /// <summary>
-        /// Gets or sets the ID for this role
-        /// </summary>
-        public int ID { get; set; }
+    using Common.Commands;
+    using Dapper;
+    using System.Data;
+    using System.Threading.Tasks;
 
-        /// <summary>
-        /// Gets or sets the name for this role
-        /// </summary>
-        public string Name { get; set; }
+    public class DeleteItem : IDeleteItem
+    {
+        private readonly IDbConnection connection;
+
+        public DeleteItem(IDbConnection connection)
+        {
+            this.connection = connection;
+        }
+
+        public void Connect()
+        {
+            if (connection.State == ConnectionState.Closed)
+            {
+                connection.Open();
+            }
+        }
+
+        public async Task<bool> Remove(int id)
+        {
+            var sql = "DELETE FROM WhatsNew WHERE TargetID = @ID";
+            var removed = await connection.ExecuteAsync(sql, new
+            {
+                ID = id
+            });
+
+            return removed > 0;
+        }
     }
 }

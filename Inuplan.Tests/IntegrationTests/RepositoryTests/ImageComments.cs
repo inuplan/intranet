@@ -115,7 +115,8 @@ namespace Inuplan.Tests.IntegrationTests.RepositoryTests
                 };
 
                 // Act
-                var result = await commentRepo.CreateSingle(comment, imageId);
+                Action<Comment> onCreate = com => { };
+                var result = await commentRepo.CreateSingle(comment, onCreate, imageId);
 
                 // Assert
                 Assert.True(result.HasValue);
@@ -136,7 +137,8 @@ namespace Inuplan.Tests.IntegrationTests.RepositoryTests
                 var commentRepo = new ImageCommentRepository(c);
 
                 // Act
-                var result = await commentRepo.DeleteSingle(commentId);
+                Action<int> onDelete = (id) => { };
+                var result = await commentRepo.DeleteSingle(commentId, onDelete);
 
                 // Assert
                 Assert.True(result);

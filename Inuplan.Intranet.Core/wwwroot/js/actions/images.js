@@ -83,7 +83,7 @@ export function requestDeleteImage(id, username) {
 
         return fetch(url, opt)
             .then(handler)
-            .then(() => dispatch(removeImage(id)), undf);
+            .then(() => dispatch(removeImage(id)), onReject);
     }
 }
 

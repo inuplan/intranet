@@ -20,10 +20,10 @@
 
 namespace Inuplan.Common.Models
 {
+    using Interfaces;
     using System;
-    using System.Collections.Generic;
 
-    public class Image
+    public class Image : IIdentifier
     {
         /// <summary>
         /// Gets or sets the id

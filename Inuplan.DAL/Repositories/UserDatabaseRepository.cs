@@ -77,7 +77,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="entity">The user entity</param>
         /// <returns>Returns an awaitable optional user</returns>
-        public async Task<Option<User>> Create(User entity, params object[] identifiers)
+        public async Task<Option<User>> Create(User entity, Action<User> onCreate, params object[] identifiers)
         {
             try
             {
@@ -112,6 +112,7 @@ namespace Inuplan.DAL.Repositories
                     // On success commit
                     if (result.HasValue)
                     {
+                        onCreate(entity);
                         transactionScope.Complete();
                     }
 
@@ -130,14 +131,16 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="key">The ID of the user</param>
         /// <returns>An awaitable optional boolean value, indicating whether the operation was succesfull</returns>
-        public async Task<bool> Delete(string key)
+        public async Task<bool> Delete(string key, Action<string> onDelete)
         {
             try
             {
                 Debug.Assert(!string.IsNullOrEmpty(key), "Must have a valid username");
                 var sql = @"DELETE FROM Users WHERE Username = @key";
                 var rows = await connection.ExecuteAsync(sql, new { key });
-                return rows == 1;
+                var result = rows == 1;
+                if (result) onDelete(key);
+                return result;
             }
             catch (SqlException ex)
             {

@@ -18,23 +18,29 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-using Inuplan.Common.Models.Interfaces;
-
-namespace Inuplan.Common.Models
+namespace Inuplan.Common.Enums
 {
+    using System;
+
     /// <summary>
-    /// The role information
+    /// An enumerable of news types
     /// </summary>
-    public class Role : IIdentifier
+    [Flags]
+    public enum NewsType : byte
     {
         /// <summary>
-        /// Gets or sets the ID for this role
+        /// The none (null) value
         /// </summary>
-        public int ID { get; set; }
+        Nothing = 0,
 
         /// <summary>
-        /// Gets or sets the name for this role
+        /// Represents an upload has happened
         /// </summary>
-        public string Name { get; set; }
+        ImageUpload = 1,
+
+        /// <summary>
+        /// Represents a comment has happened
+        /// </summary>
+        ImageComment = 1 << 1,
     }
 }

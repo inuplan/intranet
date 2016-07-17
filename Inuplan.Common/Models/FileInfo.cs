@@ -18,14 +18,15 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
-
 namespace Inuplan.Common.Models
 {
+    using Interfaces;
+    using System;
+
     /// <summary>
     /// File information class
     /// </summary>
-    public class FileInfo
+    public class FileInfo : IIdentifier
     {
         /// <summary>
         /// Gets or sets the id

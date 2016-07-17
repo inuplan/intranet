@@ -32,6 +32,7 @@ namespace Inuplan.DAL.Repositories
     using Common.Tools;
     using NLog;
     using System.Data.SqlClient;
+    using System;
 
     public class RoleRepository : IScalarRepository<int, Role>
     {
@@ -46,15 +47,16 @@ namespace Inuplan.DAL.Repositories
             this.connection = connection;
         }
 
-        public async Task<Option<Role>> Create(Role entity, params object[] identifiers)
+        public async Task<Option<Role>> Create(Role entity, Action<Role> onCreate, params object[] identifiers)
         {
             Debug.Assert(entity != null, "Must have valid object to create");
             try
             {
                 var sql = @"INSERT INTO Roles (Name) Values (@Name);SELECT ID FROM Roles WHERE ID = @@IDENTITY;";
                 entity.ID = await connection.ExecuteScalarAsync<int>(sql, entity);
-
-                return entity.SomeWhen(e => e.ID > 0);
+                var result = entity.SomeWhen(e => e.ID > 0);
+                if (result.HasValue) onCreate(entity);
+                return result;
             }
             catch (SqlException ex)
             {
@@ -63,7 +65,7 @@ namespace Inuplan.DAL.Repositories
             }
         }
 
-        public async Task<bool> Delete(int key)
+        public async Task<bool> Delete(int key, Action<int> onDelete)
         {
             Debug.Assert(key > 0, "Must be a valid key");
             try
@@ -71,7 +73,9 @@ namespace Inuplan.DAL.Repositories
                 var sql = @"DELETE FROM Roles WHERE ID = @key;";
                 var rows = await connection.ExecuteAsync(sql, key);
 
-                return rows == 1;
+                var result = rows == 1;
+                if (result) onDelete(key);
+                return result;
             }
             catch (SqlException ex)
             {

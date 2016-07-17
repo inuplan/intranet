@@ -59,7 +59,7 @@
                 Request.CreateResponse(HttpStatusCode.Forbidden);
             }
 
-            var deleted = await albumRepository.Delete(albumId);
+            var deleted = await albumRepository.Delete(albumId, _ => { });
             return deleted ?
                 Request.CreateResponse(HttpStatusCode.NoContent) :
                 Request.CreateResponse(HttpStatusCode.InternalServerError);
@@ -80,7 +80,7 @@
                 });
 
             // Create album
-            var created = await albumRepository.Create(album, images);
+            var created = await albumRepository.Create(album, _ => { }, images);
 
             // Return result
             return created.Match(

@@ -20,31 +20,17 @@
 
 namespace Inuplan.Common.Models
 {
+    using Enums;
     using System;
 
-    /// <summary>
-    /// Represents a single news info in a "What's new?" module
-    /// </summary>
-    public class NewsInfo
+    public class NewsItem
     {
-        /// <summary>
-        /// Gets or sets the ID of the <see cref="NewsInfo"/> item
-        /// </summary>
         public int ID { get; set; }
 
-        /// <summary>
-        /// Gets or sets when the info happened
-        /// </summary>
         public DateTime On { get; set; }
 
-        /// <summary>
-        /// Gets or sets the info description of the news
-        /// </summary>
-        public string Info { get; set; }
+        public NewsType Type { get; set; }
 
-        /// <summary>
-        /// Gets or sets the subject for this news info item
-        /// </summary>
-        public User Subject { get; set; }
+        public object Item { get; set; }
     }
 }

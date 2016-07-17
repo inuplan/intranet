@@ -71,6 +71,10 @@
     <Compile Include="Repositories\UserADRepository.cs" />
     <Compile Include="Repositories\UserDatabaseRepository.cs" />
     <Compile Include="Repositories\UserRoleRepository.cs" />
+    <Compile Include="WhatsNew\Commands\AddImageComment.cs" />
+    <Compile Include="WhatsNew\Commands\AddImageUpload.cs" />
+    <Compile Include="WhatsNew\Commands\DeleteItem.cs" />
+    <Compile Include="WhatsNew\Queries\GetPage.cs" />
   </ItemGroup>
   <ItemGroup>
     <!-- <None Include="App.config" /> -->
