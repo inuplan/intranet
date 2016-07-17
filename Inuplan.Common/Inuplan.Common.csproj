@@ -51,6 +51,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\IAddImageComment.cs" />
+    <Compile Include="Commands\IAddImageUpload.cs" />
+    <Compile Include="Commands\IDeleteItem.cs" />
     <Compile Include="DTOs\BaseDTO.cs" />
     <Compile Include="DTOs\ClaimsDTO.cs" />
     <Compile Include="DTOs\CommentDTO.cs" />
@@ -58,18 +61,21 @@
     <Compile Include="DTOs\UserImageDTO.cs" />
     <Compile Include="DTOs\ProfileImageDTO.cs" />
     <Compile Include="DTOs\UserDTO.cs" />
+    <Compile Include="Enums\NewsType.cs" />
     <Compile Include="Enums\ServiceKeys.cs" />
     <Compile Include="Factories\ImageHandleFactory.cs" />
     <Compile Include="Handlers\IImageHandler.cs" />
-    <Compile Include="Controllers\IUserImageController.cs" />
     <Compile Include="Models\Album.cs" />
     <Compile Include="Models\Comment.cs" />
     <Compile Include="Models\FileInfo.cs" />
     <Compile Include="Models\Image.cs" />
+    <Compile Include="Models\Interfaces\IIdentifier.cs" />
+    <Compile Include="Models\NewsItem.cs" />
     <Compile Include="Models\Pagination.cs" />
     <Compile Include="Models\Role.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Queries\IGetPage.cs" />
     <Compile Include="Repositories\IScalarRepository.cs" />
     <Compile Include="Repositories\IVectorRepository.cs" />
     <Compile Include="Tools\Converters.cs" />

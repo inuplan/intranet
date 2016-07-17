@@ -20,8 +20,7 @@
 
 namespace Inuplan.Common.DTOs
 {
-    using Models;
-    using System.Collections.Generic;
+    using System;
 
     /// <summary>
     /// A data transfer object for an image on the server.
@@ -37,6 +36,11 @@ namespace Inuplan.Common.DTOs
         /// Gets or sets the ID of the image
         /// </summary>
         public int ImageID { get; set; }
+
+        /// <summary>
+        /// Gets or sets the uploaded date
+        /// </summary>
+        public DateTime Uploaded { get; set; }
 
         /// <summary>
         /// Gets or sets the filename of the image

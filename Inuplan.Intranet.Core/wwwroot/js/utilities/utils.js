@@ -54,7 +54,8 @@ export const normalizeImage = (img) => {
         OriginalUrl: img.OriginalUrl,
         PreviewUrl: img.PreviewUrl,
         ThumbnailUrl: img.ThumbnailUrl,
-        CommentCount: img.CommentCount
+        CommentCount: img.CommentCount,
+        Uploaded: new Date(img.Uploaded),
     };
 }
 

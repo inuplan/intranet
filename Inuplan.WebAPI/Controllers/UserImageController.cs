@@ -21,6 +21,7 @@
 namespace Inuplan.WebAPI.Controllers
 {
     using Autofac.Extras.Attributed;
+    using Common.Commands;
     using Common.DTOs;
     using Common.Enums;
     using Common.Factories;
@@ -60,6 +61,8 @@ namespace Inuplan.WebAPI.Controllers
         /// The repository comments for an image.
         /// </summary>
         private readonly IVectorRepository<int, Comment> imageCommentsRepo;
+        private readonly IAddImageUpload newUpload;
+        private readonly IDeleteItem removeNews;
 
         /// <summary>
         /// Instantiates a new <see cref="UserImageController"/> instance.
@@ -69,12 +72,16 @@ namespace Inuplan.WebAPI.Controllers
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             IScalarRepository<int, Image> userImageRepository,
             IVectorRepository<int, Comment> imageCommentsRepo,
-            ImageHandleFactory imageHandleFactory)
+            ImageHandleFactory imageHandleFactory,
+            IAddImageUpload newUpload,
+            IDeleteItem removeNews)
             : base(userDatabaseRepository)
         {
             this.userImageRepository = userImageRepository;
             this.imageCommentsRepo = imageCommentsRepo;
             this.imageHandleFactory = imageHandleFactory;
+            this.newUpload = newUpload;
+            this.removeNews = removeNews;
         }
 
         /// <summary>
@@ -101,6 +108,7 @@ namespace Inuplan.WebAPI.Controllers
             // Proceed - everything OK
             var provider = await Request.Content.ReadAsMultipartAsync(new MultipartMemoryStreamProvider());
             var bag = new ConcurrentBag<Image>();
+            newUpload.Connect();
 
             var tasks = provider.Contents.Select(async file =>
             {
@@ -119,12 +127,11 @@ namespace Inuplan.WebAPI.Controllers
             var error = true;
             int imageID = -1;
 
-            // Save images to the repository
             var save = bag.Select(async image =>
             {
-                var created = await userImageRepository.Create(image);
+                var created = await userImageRepository.Create(image, img => newUpload.Insert(img));
                 created.Match(
-                    img =>
+                    (img) =>
                     {
                         Logger.Debug("Saved image: {0}.{1}\tWith ID: {2}", img.Filename, img.Extension, img.ID);
                         imageID = img.ID;
@@ -319,7 +326,9 @@ namespace Inuplan.WebAPI.Controllers
                 return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot delete another user's image");
             }
 
-            var deleted = await userImageRepository.Delete(id);
+            removeNews.Connect();
+            var deleteComments = await imageCommentsRepo.Delete(id, commentId => removeNews.Remove(commentId));
+            var deleted = await userImageRepository.Delete(id, k => removeNews.Remove(k));
 
             return deleted ?
                 Request.CreateResponse(HttpStatusCode.OK, "Image deleted") :
@@ -339,10 +348,12 @@ namespace Inuplan.WebAPI.Controllers
             var success = true;
             foreach (var id in imageIds)
             {
-                var deleted = await userImageRepository.Delete(id);
-                Logger.Info("Image: {0}, deleted: {1}", id, deleted);
+                var deleteComments = await imageCommentsRepo.Delete(id, commentId => removeNews.Remove(commentId));
+                var deleteImage = await userImageRepository.Delete(id, imageId => removeNews.Remove(imageId));
 
-                if (!deleted)
+                Logger.Info("Image: {0}, deleted: {1}", id, deleteImage);
+
+                if (!deleteImage && deleteComments)
                 {
                     success = false;
                     Logger.Error("Image: {0} - Could not be deleted", id);

@@ -38,8 +38,10 @@ export default class Modal extends React.Component {
 
     render() {
         const { image } = this.props;
-        const { ImageID, Filename, PreviewUrl, Extension, OriginalUrl } = image;
+        const { ImageID, Filename, PreviewUrl, Extension, OriginalUrl, Uploaded } = image;
         const name = Filename + "." + Extension;
+        const uploadDate = moment(Uploaded);
+        const dateString = "Uploaded d. " + uploadDate.format("D MMM YYYY ") + "kl. " + uploadDate.format("H:mm");
 
         return (
             <div className="modal fade">
@@ -47,7 +49,8 @@ export default class Modal extends React.Component {
                     <div className="modal-content">
                         <div className="modal-header">
                           <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                          <h4 className="modal-title text-center">{name}</h4>
+                          <h4 className="modal-title text-center">{name}<span><small> - {dateString}</small></span></h4>
+                          
                         </div>
                         <div className="modal-body">
                             <a href={OriginalUrl} target="_blank">

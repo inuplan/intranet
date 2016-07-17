@@ -19,12 +19,16 @@ namespace Inuplan.WebAPI.App_Start
     using Autofac;
     using Autofac.Extras.Attributed;
     using Autofac.Integration.WebApi;
+    using Common.Commands;
     using Common.Enums;
     using Common.Factories;
     using Common.Models;
+    using Common.Queries;
     using Common.Repositories;
     using Controllers;
     using DAL.Repositories;
+    using DAL.WhatsNew.Commands;
+    using DAL.WhatsNew.Queries;
     using Image.Factories;
     using Middlewares;
     using Properties;
@@ -67,8 +71,13 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserRolesController>().WithAttributeFilter();
             builder.RegisterType<DiagnosticController>().WithAttributeFilter();
             builder.RegisterType<ImageCommentController>().WithAttributeFilter();
+            builder.RegisterType<WhatsNewController>().WithAttributeFilter();
 
             // Register classes and keys
+            builder.RegisterType<AddImageUpload>().As<IAddImageUpload>();
+            builder.RegisterType<AddImageComment>().As<IAddImageComment>();
+            builder.RegisterType<DeleteItem>().As<IDeleteItem>();
+            builder.RegisterType<GetPage>().As<IGetPage>();
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));

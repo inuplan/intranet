@@ -20,9 +20,10 @@
 
 namespace Inuplan.Common.Models
 {
+    using Interfaces;
     using System.Collections.Generic;
 
-    public class Album
+    public class Album : IIdentifier
     {
         public int ID { get; set; }
         public string Name { get; set; }

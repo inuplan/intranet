@@ -137,6 +137,7 @@ namespace Inuplan.WebAPI.Image
                         Preview = preview,
                         Thumbnail = thumbnail,
                         Owner = user,
+                        Uploaded = DateTime.Now,
                     };
                 }
             }

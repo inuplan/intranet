@@ -18,23 +18,19 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-using Inuplan.Common.Models.Interfaces;
-
 namespace Inuplan.Common.Models
 {
-    /// <summary>
-    /// The role information
-    /// </summary>
-    public class Role : IIdentifier
+    using Enums;
+    using System;
+
+    public class NewsItem
     {
-        /// <summary>
-        /// Gets or sets the ID for this role
-        /// </summary>
         public int ID { get; set; }
 
-        /// <summary>
-        /// Gets or sets the name for this role
-        /// </summary>
-        public string Name { get; set; }
+        public DateTime On { get; set; }
+
+        public NewsType Type { get; set; }
+
+        public object Item { get; set; }
     }
 }

@@ -77,7 +77,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="entity">The image to create</param>
         /// <param name="identifiers">N/A</param>
         /// <returns>An optional image with correct ID</returns>
-        public async Task<Option<Image>> Create(Image entity, params object[] identifiers)
+        public async Task<Option<Image>> Create(Image entity, Action<Image> onCreate, params object[] identifiers)
         {
             try
             {
@@ -103,9 +103,9 @@ namespace Inuplan.DAL.Repositories
                         }
 
                         var sqlImage = @"INSERT INTO Images
-                                    (Preview, Thumbnail, Original, Owner, Description, Filename, Extension, MimeType)
+                                    (Preview, Thumbnail, Original, Owner, Description, Filename, Extension, MimeType, Uploaded)
                                     VALUES
-                                    (@Preview, @Thumbnail, @Original, @Owner, @Description, @Filename, @Extension, @MimeType);
+                                    (@Preview, @Thumbnail, @Original, @Owner, @Description, @Filename, @Extension, @MimeType, @Uploaded);
                                     SELECT ID FROM Images WHERE ID = @@IDENTITY;";
 
                         var imageID = await connection.ExecuteScalarAsync<int>(sqlImage, new
@@ -117,7 +117,8 @@ namespace Inuplan.DAL.Repositories
                             entity.Description,
                             entity.Filename,
                             entity.Extension,
-                            entity.MimeType
+                            entity.MimeType,
+                            entity.Uploaded
                         });
 
                         entity.ID = imageID;
@@ -134,6 +135,7 @@ namespace Inuplan.DAL.Repositories
                             var dir = Path.GetDirectoryName(entity.Original.Path);
                             var dirInfo = Directory.CreateDirectory(dir);
 
+                            onCreate(entity);
                             transactionScope.Complete();
 
                             // Write files 
@@ -166,36 +168,13 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="key">The username, filename and extension</param>
         /// <returns>True if deleted otherwise false</returns>
-        public async Task<bool> Delete(int key)
+        public async Task<bool> Delete(int key, Action<int> onDelete)
         {
             try
             {
                 Debug.Assert(key > 0, "The image must have a valid ID!");
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    // Delete all comments for the image:
-                    var deleteCommentsSql = @"WITH CommentTree AS(
-                                SELECT Reply AS ReplyID, ID, ImageID
-                                FROM Comments INNER JOIN ImageComments
-                                ON Comments.ID = ImageComments.CommentID
-                                  WHERE ImageComments.ImageID = @ImageID
-
-                                UNION ALL
-
-                                SELECT Reply.Reply, Reply.ID, ImageID
-                                FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
-                                WHERE Reply.Reply IS NOT NULL)
-                                DELETE c
-                                FROM Comments c
-                                INNER JOIN CommentTree t
-                                ON c.ID = t.ID";
-
-                    // Returns the number of affected rows (comments deleted)
-                    var deletedComments = await connection.ExecuteAsync(deleteCommentsSql, new
-                    {
-                        ImageID = key
-                    });
-
                     var sqlImage = @"SELECT * FROM Images WHERE ID = @ID";
                     var imageRow = (await connection.QueryAsync(sqlImage, new { ID = key }))
                                     .SingleOrDefault();
@@ -228,6 +207,7 @@ namespace Inuplan.DAL.Repositories
 
                     if (nullFields && deleted && filePaths.Count() == 3)
                     {
+                        onDelete(key);
                         transactionScope.Complete();
 
                         //Delete files from filesystem
@@ -262,11 +242,11 @@ namespace Inuplan.DAL.Repositories
             try
             {
                 var sql = @"SELECT
-                        img.ID, Description, Filename, Extension, MimeType,     /* Image */
-                        u.ID, FirstName, LastName, Username, Email,             /* User */
-                        prev.ID, prev.Path,	                                    /* Preview */
-                        orig.ID, orig.Path,                                     /* Original */
-                        thumb.ID, thumb.Path                                    /* Thumbnail */
+                        img.ID, Description, Filename, Extension, MimeType, Uploaded,   /* Image */
+                        u.ID, FirstName, LastName, Username, Email,                     /* User */
+                        prev.ID, prev.Path,	                                            /* Preview */
+                        orig.ID, orig.Path,                                             /* Original */
+                        thumb.ID, thumb.Path                                            /* Thumbnail */
                     FROM Images img INNER JOIN Users u
                     ON img.Owner = u.ID
 
@@ -284,13 +264,13 @@ namespace Inuplan.DAL.Repositories
                     QueryAsync<Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
                     (sql, (img, user, preview, original, thumbnail) =>
                     {
-                    // Setup file info
-                    preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
+                        // Setup file info
+                        preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
                         original.Data = new Lazy<byte[]>(() => File.ReadAllBytes(original.Path));
                         thumbnail.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnail.Path));
 
-                    // Construct image details
-                    img.Owner = user;
+                        // Construct image details
+                        img.Owner = user;
                         img.Preview = preview;
                         img.Original = original;
                         img.Thumbnail = thumbnail;
@@ -319,7 +299,7 @@ namespace Inuplan.DAL.Repositories
             try
             {
                 var sql = @"SELECT
-                            imgID AS ID, Description, Filename, Extension, MimeType,
+                            imgID AS ID, Description, Filename, Extension, MimeType, Uploaded,
                             userID AS ID, FirstName, LastName, Username, Email,
                             prevID AS ID, prevPath AS Path,
                             origID AS ID, origPath AS Path,
@@ -327,7 +307,7 @@ namespace Inuplan.DAL.Repositories
                         FROM
                         (
                         SELECT
-                            img.ID AS imgID, Description, Filename, Extension, MimeType,
+                            img.ID AS imgID, Description, Filename, Extension, MimeType, Uploaded,
                             u.ID AS userID, FirstName, LastName, Username, Email,
                             prev.ID AS prevID, prev.Path AS prevPath,
                             orig.ID AS origID, orig.Path AS origPath,
@@ -353,13 +333,13 @@ namespace Inuplan.DAL.Repositories
                                 <Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
                                 (sql, (img, user, preview, original, thumbnail) =>
                                 {
-                                // Setup file info
-                                preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
+                                    // Setup file info
+                                    preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
                                     original.Data = new Lazy<byte[]>(() => File.ReadAllBytes(original.Path));
                                     thumbnail.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnail.Path));
 
-                                // Construct image details
-                                img.Owner = user;
+                                    // Construct image details
+                                    img.Owner = user;
                                     img.Preview = preview;
                                     img.Original = original;
                                     img.Thumbnail = thumbnail;
@@ -396,11 +376,11 @@ namespace Inuplan.DAL.Repositories
             {
                 Debug.Assert(identifiers.Length == 1, "Must have a valid user ID!");
                 var sql = @"SELECT
-                        img.ID, Description, Filename, Extension, MimeType,     /* Image */
-                        u.ID, FirstName, LastName, Username, Email,             /* User */
-                        prev.ID, prev.Path,	                                    /* Preview */
-                        orig.ID, orig.Path,                                     /* Original */
-                        thumb.ID, thumb.Path                                    /* Thumbnail */
+                        img.ID, Description, Filename, Extension, MimeType, Uploaded,   /* Image */
+                        u.ID, FirstName, LastName, Username, Email,                     /* User */
+                        prev.ID, prev.Path,	                                            /* Preview */
+                        orig.ID, orig.Path,                                             /* Original */
+                        thumb.ID, thumb.Path                                            /* Thumbnail */
                     FROM Images img INNER JOIN Users u
                     ON img.Owner = u.ID
 
@@ -418,13 +398,13 @@ namespace Inuplan.DAL.Repositories
                                 <Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
                                 (sql, (img, user, preview, original, thumbnail) =>
                                 {
-                                // Setup file info
-                                preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
+                                    // Setup file info
+                                    preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));
                                     original.Data = new Lazy<byte[]>(() => File.ReadAllBytes(original.Path));
                                     thumbnail.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumbnail.Path));
 
-                                // Construct image details
-                                img.Owner = user;
+                                    // Construct image details
+                                    img.Owner = user;
                                     img.Preview = preview;
                                     img.Original = original;
                                     img.Thumbnail = thumbnail;

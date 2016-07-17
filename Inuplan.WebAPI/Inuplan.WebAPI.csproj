@@ -195,6 +195,7 @@
     <Compile Include="Controllers\UserController.cs" />
     <Compile Include="Controllers\UserImageController.cs" />
     <Compile Include="Controllers\UserRolesController.cs" />
+    <Compile Include="Controllers\WhatsNewController.cs" />
     <Compile Include="Extensions\HttpRequestMessageExtensions.cs" />
     <Compile Include="Image\Factories\HandleFactory.cs" />
     <Compile Include="Image\Handle.cs" />

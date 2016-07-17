@@ -39,12 +39,12 @@ namespace Inuplan.WebAPI.Mocks
             users = MockUsers();
         }
 
-        public Task<Option<User>> Create(User entity, params object[] identifiers)
+        public Task<Option<User>> Create(User entity, Action<User> onCreate, params object[] identifiers)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> Delete(string key)
+        public Task<bool> Delete(string key, Action<string> onDelete)
         {
             throw new NotImplementedException();
         }

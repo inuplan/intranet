@@ -22,6 +22,7 @@ namespace Inuplan.Common.Repositories
 {
     using Models;
     using Optional;
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -32,7 +33,7 @@ namespace Inuplan.Common.Repositories
         /// </summary>
         /// <param name="entity">The entity to create</param>
         /// <returns>A task of the created entity or <see cref="Option.None"/></returns>
-        Task<Option<E>> CreateSingle(E entity, params object[] identifiers);
+        Task<Option<E>> CreateSingle(E entity, Action<E> onCreate, params object[] identifiers);
 
         /// <summary>
         /// Retrieves an entity with the key K
@@ -70,7 +71,14 @@ namespace Inuplan.Common.Repositories
         /// </summary>
         /// <param name="key">The key K</param>
         /// <returns>True if successful otherwise false</returns>
-        Task<bool> DeleteSingle(K key);
+        Task<bool> DeleteSingle(K key, Action<K> onDelete);
+
+        /// <summary>
+        /// Deletes all entities related to the key K.
+        /// </summary>
+        /// <param name="key">The key</param>
+        /// <returns>A boolean value indicating success or failure</returns>
+        Task<bool> Delete(K key, Action<K> onDelete);
 
         /// <summary>
         /// Returns the count of items with the key <see cref="K"/>

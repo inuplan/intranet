@@ -21,6 +21,7 @@ namespace Inuplan.Common.Repositories
     using System.Threading.Tasks;
     using Optional;
     using Models;
+
     /// <summary>
     /// A generic repository interface, with standard <code>CRUD</code> operations defined.
     /// This repository operates on a single entity value.
@@ -34,7 +35,7 @@ namespace Inuplan.Common.Repositories
         /// </summary>
         /// <param name="entity">The entity to create</param>
         /// <returns>A task of the created entity or <see cref="Option.None"/></returns>
-        Task<Option<E>> Create(E entity, params object[] identifiers);
+        Task<Option<E>> Create(E entity, Action<E> onCreate, params object[] identifiers);
 
         /// <summary>
         /// Retrieves an entity with the key K
@@ -78,6 +79,6 @@ namespace Inuplan.Common.Repositories
         /// </summary>
         /// <param name="key">The key K</param>
         /// <returns>True if successful otherwise false</returns>
-        Task<bool> Delete(K key);
+        Task<bool> Delete(K key, Action<K> onDelete);
     }
 }

@@ -18,23 +18,14 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-using Inuplan.Common.Models.Interfaces;
-
-namespace Inuplan.Common.Models
+namespace Inuplan.Common.Commands
 {
-    /// <summary>
-    /// The role information
-    /// </summary>
-    public class Role : IIdentifier
-    {
-        /// <summary>
-        /// Gets or sets the ID for this role
-        /// </summary>
-        public int ID { get; set; }
+    using Models;
+    using System.Threading.Tasks;
 
-        /// <summary>
-        /// Gets or sets the name for this role
-        /// </summary>
-        public string Name { get; set; }
+    public interface IAddImageComment
+    {
+        void Connect();
+        Task<bool> Insert(Comment comment);
     }
 }
