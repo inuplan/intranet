@@ -370,26 +370,11 @@ namespace Inuplan.WebAPI.Controllers
         private UserImageDTO Construct(Image image)
         {
             // Note: Uri ends on forward slash!
-            var baseUri = new Uri(Request.RequestUri, RequestContext.VirtualPathRoot);
-            var getUrl = new Func<string, string>((action) =>
-            {
-                var route = Url.Route(
-                    "RouteWithActions",
-                    new
-                    {
-                        controller = "UserImage",
-                        action = action,
-                        username = image.Owner.Username,
-                        imageId = image.ID
-                    });
-
-                return new Uri(baseUri, route).ToString();
-            });
 
             var count = imageCommentsRepo.Count(image.ID).Result;
-            var originalUrl = getUrl("Get");
-            var previewUrl = getUrl("GetPreview");
-            var thumbnailurl = getUrl("GetThumbnail");
+            var originalUrl = ImageUrl(image, "Get");
+            var previewUrl = ImageUrl(image, "GetPreview");
+            var thumbnailurl = ImageUrl(image, "GetThumbnail");
 
             var userImageDto = Converters.ToUserImageDTO(image, count, originalUrl, previewUrl, thumbnailurl);
             return userImageDto;

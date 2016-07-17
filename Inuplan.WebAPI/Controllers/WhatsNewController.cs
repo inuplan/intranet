@@ -50,7 +50,7 @@ namespace Inuplan.WebAPI.Controllers
             else if (imageUploads) filter = NewsType.ImageUpload;
             else throw new NotSupportedException();
 
-            var page = await whatsNew.Page(filter, skip, take);
+            var page = await whatsNew.Page(filter, skip, take, ImageUrl);
             return page;
         }
     }

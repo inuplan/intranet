@@ -51,7 +51,7 @@ namespace Inuplan.DAL.WhatsNew.Queries
             this.imageRepo = imageRepo;
         }
 
-        public async Task<Pagination<NewsItem>> Page(NewsType filter, int skip, int take)
+        public async Task<Pagination<NewsItem>> Page(NewsType filter, int skip, int take, Func<Image, string, string> getUrl)
         {
             var num = (byte)(filter & (NewsType.ImageUpload | NewsType.ImageComment));
             var sql = @"SELECT * FROM
@@ -80,7 +80,7 @@ namespace Inuplan.DAL.WhatsNew.Queries
                 switch (type)
                 {
                     case NewsType.ImageUpload:
-                        return FetchImage(id, on, targetId);
+                        return FetchImage(id, on, targetId, getUrl);
                     case NewsType.ImageComment:
                         return FetchComment(id, on, targetId);
                 }
@@ -96,12 +96,16 @@ namespace Inuplan.DAL.WhatsNew.Queries
             return page;
         }
 
-        private Option<NewsItem> FetchImage(int id, DateTime on, int imageId)
+        private Option<NewsItem> FetchImage(int id, DateTime on, int imageId, Func<Image, string, string> getUrl)
         {
             var image = imageRepo.Get(imageId).Result;
             return image.Map(img =>
             {
-                var dto = Converters.ToUserImageDTO(img, -1, null, null, null);
+                var originalUrl = getUrl(img, "Get");
+                var previewUrl = getUrl(img, "GetPreview");
+                var thumbnailurl = getUrl(img, "GetThumbnail");
+                var dto = Converters.ToUserImageDTO(img, -1, originalUrl, previewUrl, thumbnailurl);
+
                 return new NewsItem
                 {
                     ID = id,

@@ -22,10 +22,11 @@ namespace Inuplan.Common.Queries
 {
     using Enums;
     using Models;
+    using System;
     using System.Threading.Tasks;
 
     public interface IGetPage
     {
-        Task<Pagination<NewsItem>> Page(NewsType filter, int skip, int take);
+        Task<Pagination<NewsItem>> Page(NewsType filter, int skip, int take, Func<Image, string, string> getUrl);
     }
 }

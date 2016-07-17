@@ -62,5 +62,21 @@ namespace Inuplan.WebAPI.Controllers
             var isAuthorized = user.Map(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
             return isAuthorized.ValueOr(false);
         }
+
+        protected string ImageUrl(Image image, string action)
+        {
+            var baseUri = new Uri(Request.RequestUri, RequestContext.VirtualPathRoot);
+            var route = Url.Route(
+                "RouteWithActions",
+                new
+                {
+                    controller = "UserImage",
+                    action = action,
+                    username = image.Owner.Username,
+                    imageId = image.ID
+                });
+
+            return new Uri(baseUri, route).ToString();
+        }
     }
 }
