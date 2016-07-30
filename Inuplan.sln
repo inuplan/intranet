@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.WebAPI", "Inuplan.WebAPI\Inuplan.WebAPI.csproj", "{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.DAL", "Inuplan.DAL\Inuplan.DAL.csproj", "{1E2FDE8F-EE89-4B2A-B7C9-D84D80847C14}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Common", "Inuplan.Common\Inuplan.Common.csproj", "{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Tests", "Inuplan.Tests\Inuplan.Tests.csproj", "{1C2ACEE7-8333-4EE0-A589-771838B4686F}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Inuplan.Intranet.Core", "Inuplan.Intranet.Core\Inuplan.Intranet.Core.xproj", "{FD946844-5A27-402E-9F71-469C653D28F6}"
 EndProject
@@ -31,10 +29,6 @@ Global
 		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00DB2518-EAEE-4F5D-AED6-8CF7F64E5C24}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1C2ACEE7-8333-4EE0-A589-771838B4686F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1C2ACEE7-8333-4EE0-A589-771838B4686F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1C2ACEE7-8333-4EE0-A589-771838B4686F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1C2ACEE7-8333-4EE0-A589-771838B4686F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FD946844-5A27-402E-9F71-469C653D28F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FD946844-5A27-402E-9F71-469C653D28F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD946844-5A27-402E-9F71-469C653D28F6}.Release|Any CPU.ActiveCfg = Release|Any CPU

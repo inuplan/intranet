@@ -50,7 +50,7 @@ namespace Inuplan.DAL.Repositories
             this.connection = connection;
         }
 
-        public async Task<Option<Album>> Create(Album entity, Action<Album> onCreate, params object[] identifiers)
+        public async Task<Option<Album>> Create(Album entity, Func<Album, Task> onCreate, params object[] identifiers)
         {
             try
             {
@@ -89,7 +89,7 @@ namespace Inuplan.DAL.Repositories
                     var result = entity.SomeWhen(a => a.ID > 0);
                     if (result.HasValue)
                     {
-                        onCreate(entity);
+                        await onCreate(entity);
                         transactionScope.Complete();
                     }
 
@@ -103,7 +103,7 @@ namespace Inuplan.DAL.Repositories
             }
         }
 
-        public async Task<bool> Delete(int key, Action<int> onDelete)
+        public async Task<bool> Delete(int key, Func<int, Task> onDelete)
         {
             try
             {
@@ -114,7 +114,7 @@ namespace Inuplan.DAL.Repositories
                     var success = (await connection.ExecuteAsync(sql, new { key })).Equals(1);
                     if (success)
                     {
-                        onDelete(key);
+                        await onDelete(key);
                         transactionScope.Complete();
                     }
 

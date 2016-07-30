@@ -59,7 +59,7 @@ namespace Inuplan.WebAPI.Controllers
 
             var done = user.Map(async u =>
             {
-                var associateRoles = await userRolesRepository.Create(u, _ => { }, roleIds);
+                var associateRoles = await userRolesRepository.Create(u, _ => Task.FromResult(0), roleIds);
                 return associateRoles.HasValue;
             });
 
@@ -85,7 +85,7 @@ namespace Inuplan.WebAPI.Controllers
         {
             var user = await userDatabaseRepository.Get(username);
             var userId = user.Map(u => u.ID).ValueOr(-1);
-            var deleted = await userRolesRepository.Delete(userId, _ => { });
+            var deleted = await userRolesRepository.Delete(userId, _ => Task.FromResult(0));
             return deleted ?
                 Request.CreateResponse(HttpStatusCode.OK) :
                 Request.CreateResponse(HttpStatusCode.InternalServerError);

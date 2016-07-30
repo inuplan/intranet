@@ -58,7 +58,7 @@ namespace Inuplan.Tests.IntegrationTests
                 };
 
                 // User ID = 2
-                var roleCreate = roleRepository.Create(new Role { Name = "User" }, _ => { }).Result;
+                var roleCreate = roleRepository.Create(new Role { Name = "User" }, _ => Task.FromResult(0)).Result;
                 var userCreate = userRepository.Create(new User
                 {
                     Username = "jdoe",
@@ -66,8 +66,8 @@ namespace Inuplan.Tests.IntegrationTests
                     FirstName = "John",
                     LastName = "Doe",
                     Roles = new List<Role> { roleCreate.ValueOrFailure() },
-                }, _ => { }).Result;
-                var created = imageRepository.Create(image, _ => { }, userCreate.ValueOrFailure().ID).Result;
+                }, _ => Task.FromResult(0)).Result;
+                var created = imageRepository.Create(image, _ => Task.FromResult(0), userCreate.ValueOrFailure().ID).Result;
                 Assert.True(created.HasValue, "Image is not created");
             }
         }

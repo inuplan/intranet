@@ -1,9 +1,10 @@
 ﻿import React from 'react'
 import { connect } from 'react-redux'
+import WhatsNew from './WhatsNew'
 
 const mapStateToProps = (state) => {
     return {
-        user: state.usersInfo.users.filter(u => u.Username.toUpperCase() == globals.currentUsername.toUpperCase())[0]
+        user: state.usersInfo.users.filter(u => u.Username.toUpperCase() == globals.currentUsername.toUpperCase())[0],
     }
 }
 
@@ -13,7 +14,7 @@ class HomeView extends React.Component {
     }
 
     render() {
-        const { user } = this.props;
+        const { user, latestItems } = this.props;
         const name = user ? user.FirstName : 'User';
         return (
             <div className="row">
@@ -24,6 +25,7 @@ class HomeView extends React.Component {
                             Til Inuplans intranet side
                         </p>
                     </div>
+                    <WhatsNew />
                 </div>
             </div>
         );

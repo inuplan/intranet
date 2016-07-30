@@ -27,7 +27,7 @@ namespace Inuplan.Tests.IntegrationTests
             {
                 // To create a USER you MUST first have already created a ROLE!
                 var role = new Role { Name = "User" };
-                var createdRole = roleRepository.Create(role, _ => { }).Result;
+                var createdRole = roleRepository.Create(role, _ => Task.FromResult(0)).Result;
 
                 createdRole.Match(r =>
                 {
@@ -40,7 +40,7 @@ namespace Inuplan.Tests.IntegrationTests
                         Username = "jdoe"
                     };
 
-                    var created = userRepository.Create(user, _ => { }).Result;
+                    var created = userRepository.Create(user, _ => Task.FromResult(0)).Result;
                     Assert.True(created.HasValue);
                 },
                 () =>

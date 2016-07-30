@@ -39,7 +39,7 @@ namespace Inuplan.DAL.Repositories
     /// <summary>
     /// A repository which handles the Comments for a related Image.
     /// </summary>
-    public class ImageCommentRepository : IVectorRepository<int, Comment>
+    public class ImageCommentRepository : IVectorRepository<int, ImageComment>
     {
         /// <summary>
         /// Get current logging framework
@@ -72,15 +72,12 @@ namespace Inuplan.DAL.Repositories
         /// <param name="entity">The comment to create</param>
         /// <param name="identifiers">An array where the first item is the id of the image, the second item is the id of the parent comment id</param>
         /// <returns>An optional comment, with the updated id if it has been created</returns>
-        public async Task<Option<Comment>> CreateSingle(Comment entity, Action<Comment> onCreate, params object[] identifiers)
+        public async Task<Option<ImageComment>> CreateSingle(ImageComment entity, Func<ImageComment, Task> onCreate)
         {
             try
             {
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    var imageID = (int)identifiers[0];
-                    var replyID = identifiers.Length > 1 ? (int?)identifiers[1] : null;
-
                     var sqlComment = @"INSERT INTO Comments (PostedOn, Author, Text, Reply)
                                 VALUES (@PostedOn, @Author, @Text, @Reply);
                                 SELECT ID FROM Comments WHERE ID = @@IDENTITY;";
@@ -88,27 +85,27 @@ namespace Inuplan.DAL.Repositories
                     entity.ID = await connection.ExecuteScalarAsync<int>(sqlComment, new
                     {
                         Author = entity.Author.ID,
-                        Reply = replyID,
+                        Reply = entity.ParentID,
                         entity.PostedOn,
                         entity.Text,
                     });
 
                     var success = entity.ID > 0;
 
-                    if (!replyID.HasValue)
+                    if (!entity.ParentID.HasValue)
                     {
                         // It is a top comment
                         var sqlImageComment = @"INSERT INTO ImageComments (ImageID, CommentID) VALUES (@ImageID, @CommentID)";
                         success = (await connection.ExecuteAsync(sqlImageComment, new
                         {
-                            ImageID = imageID,
+                            ImageID = entity.ImageID,
                             CommentID = entity.ID,
                         })).Equals(1);
                     }
 
                     if (success)
                     {
-                        onCreate(entity);
+                        await onCreate(entity);
                         transactionScope.Complete();
                     }
 
@@ -127,7 +124,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="key">The image id</param>
         /// <returns>An awaitable list of comments</returns>
-        public async Task<List<Comment>> Get(int key)
+        public async Task<List<ImageComment>> Get(int key)
         {
             try
             {
@@ -136,7 +133,7 @@ namespace Inuplan.DAL.Repositories
                 // Note: using LEFT JOIN on final projection, since we want to include all the deleted comments where user is null
                 var sqlComments = 
                     @"WITH CommentTree AS(
-                            SELECT Reply AS ReplyID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
+                            SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
                             FROM Comments INNER JOIN ImageComments
                             ON Comments.ID = ImageComments.CommentID
                               WHERE ImageComments.ImageID = @key
@@ -147,24 +144,20 @@ namespace Inuplan.DAL.Repositories
                             FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.TopID
                             WHERE Reply.Reply IS NOT NULL)
                         SELECT
-                            ReplyID,                                    /* parent */
-                            TopID AS ID, Deleted, PostedOn, Text,       /* comment */
-                            ID, FirstName, LastName, Username, Email	/* author */
+                            ParentID, TopID AS ID, Deleted, PostedOn, Text,  /* comment */
+                            ID, FirstName, LastName, Username, Email        /* author */
                         FROM CommentTree
                         LEFT JOIN Users ON CommentTree.AuthorID = Users.ID";
 
-                var repliesTo = new List<Tuple<int?, Comment>>();
-                var allComments = await connection.QueryAsync<int?, Comment, User, Comment>(sqlComments, (parent, comment, author) =>
+                var allComments = await connection.QueryAsync<ImageComment, User, ImageComment>(sqlComments, (comment, author) =>
                 {
                     comment.Author = author;
-                    var item = new Tuple<int?, Comment>(parent, comment);
-                    repliesTo.Add(item);
+                    comment.ImageID = key;
                     return comment;
                 }, new { key });
 
-                Debug.Assert(allComments.Count() == repliesTo.Count, "Every comment must be in the repliesTo variable");
-
-                return ConstructComments(repliesTo);
+                var result = ConstructReplies(allComments);
+                return result;
             }
             catch (SqlException ex)
             {
@@ -178,7 +171,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="id">The id of the comment</param>
         /// <returns>An optional comment. Some if comment exists, otherwise None</returns>
-        public async Task<Option<Comment>> GetSingleByID(int id)
+        public async Task<Option<ImageComment>> GetSingleByID(int id)
         {
             try
             {
@@ -187,12 +180,28 @@ namespace Inuplan.DAL.Repositories
                             u.ID, FirstName, LastName, Username, Email
                             FROM Comments c LEFT JOIN Users u ON c.Author = u.ID WHERE c.ID = @id";
 
-                var comment = (await connection.QueryAsync<Comment, User, Comment>(sql, (c, u) =>
+                var comment = (await connection.QueryAsync<ImageComment, User, ImageComment>(sql, (c, u) =>
                 {
-                    if(!c.Deleted) c.Author = u;
+                    if (!c.Deleted) c.Author = u;
                     return c;
                 }, new { id })).Single();
-                var result = comment.SomeWhen(c => c != null && c.ID > 0);
+
+                var imageIdSql = @"WITH parent AS
+                            (
+                                SELECT ID, Reply  from Comments WHERE ID = @id
+                                UNION ALL 
+                                SELECT t.ID, t.Reply FROM parent
+                                INNER JOIN Comments t ON t.id =  parent.Reply
+                            )
+
+                            SELECT TOP 1 i.ImageID FROM  parent
+                            INNER JOIN ImageComments i
+                            ON parent.ID = i.CommentID";
+
+                var imageId = await connection.ExecuteScalarAsync<int>(imageIdSql, new { id = comment.ID });
+                comment.ImageID = imageId;
+
+                var result = comment.SomeWhen(c => c != null && c.ID > 0 && c.ImageID > 0);
 
                 return result;
             }
@@ -210,17 +219,14 @@ namespace Inuplan.DAL.Repositories
         /// <param name="take">The number of top comments to take.</param>
         /// <param name="identifiers">The image id to which the comments belong.</param>
         /// <returns>A paginated result of comments</returns>
-        public async Task<Pagination<Comment>> GetPage(int skip, int take, params object[] identifiers)
+        public async Task<Pagination<ImageComment>> GetPage(int imageId, int skip, int take)
         {
             try
             {
-                var imageID = (int)identifiers[0];
-                Debug.Assert(imageID > 0, "Must have a valid image identifier!");
-
                 // Note: we use left join because we want the left side (comments) to be included
                 // even if the right side (users) are null.
                 var sql = @"WITH CommentTree AS(
-                                SELECT Reply AS ReplyID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
+                                SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
                                 FROM Comments INNER JOIN ImageComments
                                 ON Comments.ID = ImageComments.CommentID
                                   WHERE ImageComments.ImageID = @ImageID
@@ -231,38 +237,33 @@ namespace Inuplan.DAL.Repositories
                                 FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.TopID
                                 WHERE Reply.Reply IS NOT NULL)
                             SELECT
-                                ReplyID,                                    /* parent */
-                                TopID AS ID, Deleted, PostedOn, Text,       /* comment */
-                                ID, FirstName, LastName, Username, Email	/* author */
+                                ParentID, TopID AS ID, Deleted, PostedOn, Text,    /* comment */
+                                ID, FirstName, LastName, Username, Email            /* author */
                             FROM CommentTree
                             LEFT JOIN Users ON CommentTree.AuthorID = Users.ID
                             WHERE RowNumber BETWEEN @From AND @To";
 
-                var repliesTo = new List<Tuple<int?, Comment>>();
-                var allComments = await connection.QueryAsync<int?, Comment, User, Comment>(sql, (parent, comment, author) =>
+                var repliesTo = new List<Tuple<int?, ImageComment>>();
+                var comments = await connection.QueryAsync<ImageComment, User, ImageComment>(sql, (comment, author) =>
                 {
                     comment.Author = author;
-                    var item = new Tuple<int?, Comment>(parent, comment);
-                    repliesTo.Add(item);
+                    comment.ImageID = imageId;
                     return comment;
                 }, new
                 {
-                    ImageID = imageID,
+                    ImageID = imageId,
                     From = skip + 1,
                     To = skip + take,
                 });
 
-                Debug.Assert(allComments.Count() == repliesTo.Count, "Every comment must be in the repliesTo variable");
-
-                var comments = ConstructComments(repliesTo);
                 var totalSql = @"SELECT COUNT(*) FROM ImageComments WHERE ImageID = @ImageID;";
                 var total = await connection.ExecuteScalarAsync<int>(totalSql, new
                 {
-                    ImageID = imageID
+                    ImageID = imageId
                 });
 
-                var pageComments = Helpers.Paginate(skip, take, total, comments);
-                return pageComments;
+                var items = ConstructReplies(comments);
+                return Helpers.Paginate(skip, take, total, items);
             }
             catch (SqlException ex)
             {
@@ -278,7 +279,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="key">The id of the comment</param>
         /// <param name="entity">The updated comment</param>
         /// <returns>True if updated otherwise false.</returns>
-        public async Task<bool> UpdateSingle(int key, Comment entity, params object[] identifiers)
+        public async Task<bool> UpdateSingle(int key, ImageComment entity, params object[] identifiers)
         {
             try
             {
@@ -315,7 +316,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="key">The id of the comment</param>
         /// <returns>True if deleted, false otherwise</returns>
-        public async Task<bool> DeleteSingle(int key, Action<int> onDelete)
+        public async Task<bool> DeleteSingle(int key, Func<int, Task> onDelete)
         {
             try
             {
@@ -331,7 +332,7 @@ namespace Inuplan.DAL.Repositories
 
                     if (deleted)
                     {
-                        onDelete(key);
+                        await onDelete(key);
                         transactionScope.Complete();
                     }
 
@@ -345,7 +346,7 @@ namespace Inuplan.DAL.Repositories
             }
         }
 
-        public async Task<bool> Delete(int imageId, Action<int> onDelete)
+        public async Task<bool> Delete(int imageId, Func<int, Task> onDelete)
         {
             using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
@@ -394,7 +395,7 @@ namespace Inuplan.DAL.Repositories
                 {
                     foreach (var commentId in commentIds)
                     {
-                        onDelete(commentId);
+                        await onDelete(commentId);
                     }
 
                     transactionScope.Complete();
@@ -435,6 +436,21 @@ namespace Inuplan.DAL.Repositories
             return count;
         }
 
+        private List<ImageComment> ConstructReplies(IEnumerable<ImageComment> allComments)
+        {
+            // Create the child hierarchy
+            var groups = allComments.GroupBy(c => c.ParentID);
+            foreach (var replies in groups)
+            {
+                if (replies.Key == null) continue;
+                var parent = allComments.Single(c => c.ID == replies.Key);
+                parent.Replies = replies.ToList();
+            }
+
+            // Select only top-level comments (since the children are included in the replies)
+            return allComments.Where(c => c.ParentID == null).ToList();
+        }
+
         /// <summary>
         /// The dispose pattern
         /// </summary>
@@ -460,39 +476,6 @@ namespace Inuplan.DAL.Repositories
 
                 disposedValue = true;
             }
-        }
-
-        private List<Comment> ConstructComments(List<Tuple<int?, Comment>> repliesTo)
-        {
-            var group = repliesTo.GroupBy(g => g.Item1);
-
-            var getParent = new Func<int, Comment>(id =>
-            {
-                var p = repliesTo.Single(i => i.Item2.ID == id).Item2;
-                return p;
-            });
-
-            // Construct reply hierarchy
-            var result = new List<Comment>();
-            foreach (var item in group)
-            {
-                // all parents:
-                if (item.Key == null)
-                {
-                    // only add the top-level comments
-                    result.AddRange(item.Select(c => c.Item2));
-                    continue;
-                }
-
-                // Construct the replies for the top-level comments
-                // Retrieve parent with id @key
-                var parent = repliesTo.Single(c => c.Item2.ID == item.Key.Value).Item2;
-
-                // A group of replies to parent
-                parent.Replies = item.Select(c => c.Item2).ToList();
-            }
-
-            return result;
         }
     }
 }

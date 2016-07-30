@@ -35,7 +35,7 @@ namespace Inuplan.Tests.IntegrationTests.RepositoryTests
     /// Integration tests of the <see cref="ImageCommentRepository"/> class.
     /// State the database must contain:
     /// - <see cref="User"/> with ID of 1009.
-    /// - <see cref="Comment"/> with ID of 1014
+    /// - <see cref="ImageComment"/> with ID of 1014
     /// - <see cref="Image"/> with ID of 6006
     /// Note:
     /// To persist the queries call <seealso cref="TransactionScope.Complete"/>
@@ -107,7 +107,7 @@ namespace Inuplan.Tests.IntegrationTests.RepositoryTests
             {
                 // Arrange
                 var commentRepo = new ImageCommentRepository(c);
-                var comment = new Comment
+                var comment = new ImageComment
                 {
                     Author = new User { ID = userId },
                     PostedOn = DateTime.Now,
@@ -115,8 +115,8 @@ namespace Inuplan.Tests.IntegrationTests.RepositoryTests
                 };
 
                 // Act
-                Action<Comment> onCreate = com => { };
-                var result = await commentRepo.CreateSingle(comment, onCreate, imageId);
+                Func<ImageComment, Task> onCreate = com => Task.FromResult(0);
+                var result = await commentRepo.CreateSingle(comment, onCreate);
 
                 // Assert
                 Assert.True(result.HasValue);
@@ -137,7 +137,7 @@ namespace Inuplan.Tests.IntegrationTests.RepositoryTests
                 var commentRepo = new ImageCommentRepository(c);
 
                 // Act
-                Action<int> onDelete = (id) => { };
+                Func<int, Task> onDelete = (id) => Task.FromResult(0);
                 var result = await commentRepo.DeleteSingle(commentId, onDelete);
 
                 // Assert
@@ -158,7 +158,7 @@ namespace Inuplan.Tests.IntegrationTests.RepositoryTests
             {
                 // Arrange
                 var commentRepo = new ImageCommentRepository(c);
-                var updated = new Comment
+                var updated = new ImageComment
                 {
                     PostedOn = DateTime.Now,
                     Text = updatedRemark

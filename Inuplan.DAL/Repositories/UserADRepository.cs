@@ -66,7 +66,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="entity">N/A</param>
         /// <exception cref="NotSupportedException">Not supported operation</exception>
         /// <returns>N/A</returns>
-        public Task<Option<User>> Create(User entity, Action<User> onCreate, params object[] identifiers)
+        public Task<Option<User>> Create(User entity, Func<User, Task> onCreate, params object[] identifiers)
         {
             throw new NotSupportedException("Not supported operation!");
         }
@@ -88,7 +88,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="key">N/A</param>
         /// <exception cref="NotSupportedException">Not supported operation</exception>
         /// <returns>N/A</returns>
-        public Task<bool> Delete(string key, Action<string> onDelete)
+        public Task<bool> Delete(string key, Func<string, Task> onDelete)
         {
             throw new NotSupportedException("Not supported operation!");
         }

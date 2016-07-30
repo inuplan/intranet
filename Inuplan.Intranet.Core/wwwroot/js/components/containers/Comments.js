@@ -1,5 +1,5 @@
 ﻿import React from 'react'
-import { fetchComments, postComment, postReply, editComment, deleteComment } from '../../actions/comments'
+import { fetchComments, postComment, editComment, deleteComment } from '../../actions/comments'
 import { CommentList } from '../comments/CommentList'
 import { find } from 'underscore'
 import { connect } from 'react-redux'
@@ -26,10 +26,10 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(fetchComments(imageId, skip, take));
         },
         postReply: (imageId, replyId, text) => {
-            dispatch(postReply(imageId, replyId, text));
+            dispatch(postComment(imageId, text, replyId));
         },
         postComment: (imageId, text) => {
-            dispatch(postComment(imageId, text));
+            dispatch(postComment(imageId, text, null));
         },
         editComment: (imageId, commentId, text) => {
             dispatch(editComment(commentId, imageId, text));
