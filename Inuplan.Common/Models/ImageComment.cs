@@ -18,18 +18,22 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.DTOs
+namespace Inuplan.Common.Models
 {
+    using Interfaces;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
 
-    public class CommentDTO
+    public class ImageComment : IIdentifier
     {
+        public int? ParentID { get; set; }
         public int ID { get; set; }
+        public int ImageID { get; set; }
         public bool Deleted { get; set; }
         public DateTime PostedOn { get; set; }
-        public UserDTO Author { get; set; }
+        public User Author { get; set; }
         public string Text { get; set; }
-        public List<CommentDTO> Replies { get; set; }
+        public List<ImageComment> Replies { get; set; }
     }
 }

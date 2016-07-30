@@ -41,10 +41,10 @@ namespace Inuplan.DAL.WhatsNew.Queries
     public class GetPage : IGetPage
     {
         private readonly IDbConnection connection;
-        private readonly IVectorRepository<int, Comment> commentRepo;
+        private readonly IVectorRepository<int, ImageComment> commentRepo;
         private readonly IScalarRepository<int, Image> imageRepo;
 
-        public GetPage(IDbConnection connection, IVectorRepository<int, Comment> commentRepo, IScalarRepository<int, Image> imageRepo)
+        public GetPage(IDbConnection connection, IVectorRepository<int, ImageComment> commentRepo, IScalarRepository<int, Image> imageRepo)
         {
             this.connection = connection;
             this.commentRepo = commentRepo;
@@ -104,7 +104,8 @@ namespace Inuplan.DAL.WhatsNew.Queries
                 var originalUrl = getUrl(img, "Get");
                 var previewUrl = getUrl(img, "GetPreview");
                 var thumbnailurl = getUrl(img, "GetThumbnail");
-                var dto = Converters.ToUserImageDTO(img, -1, originalUrl, previewUrl, thumbnailurl);
+                var count = commentRepo.Count(imageId).Result;
+                var dto = Converters.ToUserImageDTO(img, count, originalUrl, previewUrl, thumbnailurl);
 
                 return new NewsItem
                 {
@@ -118,10 +119,11 @@ namespace Inuplan.DAL.WhatsNew.Queries
 
         private Option<NewsItem> FetchComment(int id, DateTime on, int commentId)
         {
+            // TODO: Get the ImageID from the database
             var comment = commentRepo.GetSingleByID(commentId).Result;
             return comment.Map(c =>
             {
-                var dto = Converters.ToCommentDTO(c);
+                var dto = Converters.ToImageCommentDTO(c);
                 return new NewsItem
                 {
                     ID = id,

@@ -90,7 +90,7 @@ namespace Inuplan.WebAPI.Controllers
         public async Task<HttpResponseMessage> Post(string name)
         {
             var role = new Role { Name = name };
-            var created = await roleRepository.Create(role, _ => { });
+            var created = await roleRepository.Create(role, _ => Task.FromResult(0));
             return created.Match(r => Request.CreateResponse(HttpStatusCode.Created),
                 () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }
@@ -102,7 +102,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <returns>An http response message</returns>
         public async Task<HttpResponseMessage> Delete(int id)
         {
-            var deleted = await roleRepository.Delete(id, _ => { });
+            var deleted = await roleRepository.Delete(id, _ => Task.FromResult(0));
             return deleted ? Request.CreateResponse(HttpStatusCode.NoContent) : Request.CreateResponse(HttpStatusCode.InternalServerError);
         }
 

@@ -77,7 +77,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="entity">The image to create</param>
         /// <param name="identifiers">N/A</param>
         /// <returns>An optional image with correct ID</returns>
-        public async Task<Option<Image>> Create(Image entity, Action<Image> onCreate, params object[] identifiers)
+        public async Task<Option<Image>> Create(Image entity, Func<Image, Task> onCreate, params object[] identifiers)
         {
             try
             {
@@ -135,7 +135,7 @@ namespace Inuplan.DAL.Repositories
                             var dir = Path.GetDirectoryName(entity.Original.Path);
                             var dirInfo = Directory.CreateDirectory(dir);
 
-                            onCreate(entity);
+                            await onCreate(entity);
                             transactionScope.Complete();
 
                             // Write files 
@@ -168,7 +168,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="key">The username, filename and extension</param>
         /// <returns>True if deleted otherwise false</returns>
-        public async Task<bool> Delete(int key, Action<int> onDelete)
+        public async Task<bool> Delete(int key, Func<int, Task> onDelete)
         {
             try
             {
@@ -207,7 +207,7 @@ namespace Inuplan.DAL.Repositories
 
                     if (nullFields && deleted && filePaths.Count() == 3)
                     {
-                        onDelete(key);
+                        await onDelete(key);
                         transactionScope.Complete();
 
                         //Delete files from filesystem

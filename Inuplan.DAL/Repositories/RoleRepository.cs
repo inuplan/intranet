@@ -47,7 +47,7 @@ namespace Inuplan.DAL.Repositories
             this.connection = connection;
         }
 
-        public async Task<Option<Role>> Create(Role entity, Action<Role> onCreate, params object[] identifiers)
+        public async Task<Option<Role>> Create(Role entity, Func<Role, Task> onCreate, params object[] identifiers)
         {
             Debug.Assert(entity != null, "Must have valid object to create");
             try
@@ -55,7 +55,7 @@ namespace Inuplan.DAL.Repositories
                 var sql = @"INSERT INTO Roles (Name) Values (@Name);SELECT ID FROM Roles WHERE ID = @@IDENTITY;";
                 entity.ID = await connection.ExecuteScalarAsync<int>(sql, entity);
                 var result = entity.SomeWhen(e => e.ID > 0);
-                if (result.HasValue) onCreate(entity);
+                if (result.HasValue) await onCreate(entity);
                 return result;
             }
             catch (SqlException ex)
@@ -65,7 +65,7 @@ namespace Inuplan.DAL.Repositories
             }
         }
 
-        public async Task<bool> Delete(int key, Action<int> onDelete)
+        public async Task<bool> Delete(int key, Func<int, Task> onDelete)
         {
             Debug.Assert(key > 0, "Must be a valid key");
             try
@@ -74,7 +74,7 @@ namespace Inuplan.DAL.Repositories
                 var rows = await connection.ExecuteAsync(sql, key);
 
                 var result = rows == 1;
-                if (result) onDelete(key);
+                if (result) await onDelete(key);
                 return result;
             }
             catch (SqlException ex)

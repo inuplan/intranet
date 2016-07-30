@@ -1,15 +1,9 @@
 ﻿import React from 'react'
-import marked from 'marked'
 import { CommentControls } from './CommentControls'
 import { CommentProfile } from './CommentProfile'
+import { formatText } from '../../utilities/utils'
 
 export class Comment extends React.Component {
-    rawMarkup(text) {
-        if (!text) return;
-        var rawMarkup = marked(text, { sanitize: true });
-        return { __html: rawMarkup };
-    }
-
     render() {
         const { commentId, postedOn, authorId, text, replies, handlers, constructComments } = this.props;
         const { replyHandle, editHandle, deleteHandle, canEdit, getUser } = handlers;
@@ -17,13 +11,14 @@ export class Comment extends React.Component {
         const fullname = author.FirstName + " " + author.LastName;
         const canEditVal = canEdit(authorId);
         const replyNodes = constructComments(replies, handlers);
+        const txt = formatText(text);
 
         return (
             <div className="media pull-left text-left">
                     <CommentProfile />
                     <div className="media-body">
                         <h5 className="media-heading"><strong>{fullname}</strong> <PostedOn postedOn={postedOn} /></h5>
-                        <span dangerouslySetInnerHTML={this.rawMarkup(text)}></span>
+                        <span dangerouslySetInnerHTML={txt}></span>
                         <CommentControls
                                   canEdit={canEditVal}
                                   commentId={commentId}

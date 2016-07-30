@@ -1,5 +1,6 @@
 ﻿import { uniq, flatten } from 'underscore'
 import { HttpError, setError } from '../actions/error'
+import marked from 'marked'
 
 var curry = function(f, nargs, args) {
     nargs = isFinite(nargs) ? nargs : f.length;
@@ -73,6 +74,40 @@ export const normalizeComment = (comment) => {
     }
 }
 
+export const normalizeLatest = (latest) => {
+    let item = null;
+    if(latest.Type == 1) {
+        // Image - omit Author and CommentCount
+        const image = latest.Item;
+        item = {
+            Extension: image.Extension,
+            Filename: image.Filename,
+            ImageID: image.ImageID,
+            OriginalUrl: image.OriginalUrl,
+            PreviewUrl: image.PreviewUrl,
+            ThumbnailUrl: image.ThumbnailUrl,
+            Uploaded: image.Uploaded
+        };
+    }
+    else if (latest.Type == 2) {
+        // Comment - omit Author and Deleted and Replies
+        const comment = latest.Item;
+        item = {
+            ID: comment.ID,
+            PostedOn: comment.PostedOn,
+            Text: comment.Text
+        };
+    }
+
+    return {
+        ID: latest.ID,
+        Type: latest.Type,
+        Item: item,
+        On: latest.On,
+        AuthorID: latest.Item.Author.ID
+    }
+}
+
 export const visitComments = (comments, func) => {
     const getReplies = (c) => c.Replies ? c.Replies : [];
     for (var i = 0; i < comments.length; i++) {
@@ -104,7 +139,19 @@ export function union(arr1, arr2, equalityFunc) {
 }
 
 export const userEquality = (user1, user2) => {
+    if(!user2 || !user1) return false;
     return user1.ID == user2.ID;
+}
+
+
+export const formatText = (text) => {
+    if (!text) return;
+    var rawMarkup = marked(text, { sanitize: true });
+    return { __html: rawMarkup };
+}
+
+export const getWords = (text, numberOfWords) => {
+    return text.split(/\s+/).slice(0, numberOfWords).join(" ");
 }
 
 export const responseHandler = (dispatch, response) => {

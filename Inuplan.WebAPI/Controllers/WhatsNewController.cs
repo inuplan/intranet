@@ -25,10 +25,13 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Models;
     using Common.Queries;
     using Common.Repositories;
+    using Common.Tools;
     using System;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using System.Web.Http.Cors;
 
+    [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class WhatsNewController : DefaultController
     {
         private readonly IGetPage whatsNew;

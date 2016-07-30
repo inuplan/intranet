@@ -88,37 +88,22 @@ export function fetchComments(imageId, skip, take) {
     }
 }
 
-export const postReply = (imageId, replyId, text) => {
-    return function(dispatch, getState) {
-        const { skip, take } = getState().commentsInfo;
-        const url = globals.urls.comments + "?imageId=" + imageId + "&replyId=" + replyId;
-
-        const headers = new Headers();
-        headers.append('Content-Type', 'application/json');
-        const opt = Object.assign({}, options, {
-            method: 'POST',
-            body: JSON.stringify({ Text: text}),
-            headers: headers
-        });
-
-        return fetch(url, opt)
-            .then(() => {
-                dispatch(incrementCommentCount(imageId));
-                dispatch(fetchComments(imageId, skip, take));
-            })
-    }
-}
-
-export const postComment = (imageId, text) => {
+export const postComment = (imageId, text, parentCommentId) => {
     return function (dispatch, getState) {
         const { skip, take } = getState().commentsInfo;
-        const url = globals.urls.comments + "?imageId=" + imageId;
+        const url = globals.urls.comments;
 
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
+        const body =JSON.stringify({ 
+            Text: text,
+            ImageID: imageId,
+            ParentID: parentCommentId
+        });
+
         const opt = Object.assign({}, options, {
             method: 'POST',
-            body: JSON.stringify({ Text: text}),
+            body: body,
             headers: headers
         });
 

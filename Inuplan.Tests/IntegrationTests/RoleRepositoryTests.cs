@@ -30,7 +30,7 @@ namespace Inuplan.Tests.IntegrationTests
                     Name = name
                 };
 
-                var created = repository.Create(role, _ => { }).Result;
+                var created = repository.Create(role, _ => Task.FromResult(0)).Result;
 
                 Assert.True(created.HasValue, "Role has not been created!");
                 // The command is never committed to database
