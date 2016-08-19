@@ -18,7 +18,9 @@ export class WhatsNewList extends React.Component {
                 case 2:
                     return  <WhatsNewItemComment
                                 id={item.ID}
-                                item={item.Item}
+                                text={item.Item.Text}
+                                uploadedBy={item.Item.ImageUploadedBy}
+                                imageId={item.Item.ImageID}
                                 on={item.On}
                                 author={author}
                             />

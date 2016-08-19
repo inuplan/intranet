@@ -9,6 +9,7 @@ import About from './components/containers/About'
 import Home from './components/containers/Home'
 import Users from './components/containers/Users'
 import UserImages from './components/containers/UserImages'
+import SelectedImage from './components/containers/SelectedImage'
 
 store.dispatch(fetchCurrentUser(globals.currentUsername));
 moment.locale('da');
@@ -20,7 +21,9 @@ ReactDOM.render(
                 <IndexRoute component={Home} />
                 <Route path="users" component={Users} />
                 <Route path="about" component={About} />
-                <Route path=":username/gallery" component={UserImages} />
+                <Route path=":username/gallery" component={UserImages}>
+                    <Route path="image/:id" component={SelectedImage} />
+                </Route>
             </Route>
         </Router>
     </Provider>,

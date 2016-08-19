@@ -1,17 +1,12 @@
 ﻿import React from 'react'
+import { Link } from 'react-router'
 
 export class Image extends React.Component {
     constructor(props) {
         super(props);
 
         // Bind 'this' to functions
-        this.selectImage = this.selectImage.bind(this);
         this.checkboxHandler = this.checkboxHandler.bind(this);
-    }
-
-    selectImage() {
-        const { selectImage, image } = this.props;
-        selectImage(image.ImageID);
     }
 
     checkboxHandler(e) {
@@ -28,15 +23,14 @@ export class Image extends React.Component {
     }
 
     commentIcon(count) {
-        return ( count == 0 ?
-            <div className="col-lg-6 text-muted" onClick={this.selectImage} style={{ cursor: 'pointer' }}> 
-                <span className="glyphicon glyphicon-comment" aria-hidden="true"></span> {count}
-            </div>
-            :
-            <div className="col-lg-6 text-primary" onClick={this.selectImage} style={{ cursor: 'pointer' }}>
-                <span className="glyphicon glyphicon-comment" aria-hidden="true"></span> {count}
-            </div>
-        );
+        const style = count == 0 ? "col-lg-6 text-muted" : "col-lg-6 text-primary";
+        const props = {
+            className: style
+        };
+
+        return  <div {... props}>
+                    <span className="glyphicon glyphicon-comment" aria-hidden="true"></span> {count}   
+                </div>
     }
 
     checkboxView() {
@@ -51,19 +45,31 @@ export class Image extends React.Component {
             : null);
     }
 
-    render() {
-        const { image } = this.props;
-        let count = image.CommentCount;
-        return (
-            <div>
-                <a onClick={this.selectImage} style={{cursor: "pointer", textDecoration: "none"}}>
+render() {
+    const { image, username } = this.props;
+    let count = image.CommentCount;
+    return  <div>
+                <Link to={`/${username}/gallery/image/${image.ImageID}`}>
                     <img src={image.PreviewUrl} className="img-thumbnail" />
-                </a>
+                </Link>
                 <div className="row">
-                    {this.commentIcon(count)} 
+                    <Link to={`/${username}/gallery/image/${image.ImageID}`}>
+                        {this.commentIcon(count)} 
+                    </Link>
                     {this.checkboxView()}
                 </div>
             </div>
-        );
     }
 }
+                //<a onClick={this.selectImage} style={{cursor: "pointer", textDecoration: "none"}}>
+                //</a>
+
+        //return ( count == 0 ?
+        //    <div className="col-lg-6 text-muted"> 
+        //        <span className="glyphicon glyphicon-comment" aria-hidden="true"></span> {count}
+        //    </div>
+        //    :
+        //    <div className="col-lg-6 text-primary" style={{ cursor: 'pointer' }}>
+        //        <span className="glyphicon glyphicon-comment" aria-hidden="true"></span> {count}
+        //    </div>
+        //);

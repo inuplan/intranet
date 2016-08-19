@@ -1,6 +1,7 @@
 ﻿import { uniq, flatten } from 'underscore'
 import { HttpError, setError } from '../actions/error'
 import marked from 'marked'
+import removeMd from 'remove-markdown'
 
 var curry = function(f, nargs, args) {
     nargs = isFinite(nargs) ? nargs : f.length;
@@ -94,8 +95,9 @@ export const normalizeLatest = (latest) => {
         const comment = latest.Item;
         item = {
             ID: comment.ID,
-            PostedOn: comment.PostedOn,
-            Text: comment.Text
+            Text: comment.Text,
+            ImageID: comment.ImageID,
+            ImageUploadedBy: comment.ImageUploadedBy
         };
     }
 
@@ -151,7 +153,20 @@ export const formatText = (text) => {
 }
 
 export const getWords = (text, numberOfWords) => {
-    return text.split(/\s+/).slice(0, numberOfWords).join(" ");
+    if(!text) return "";
+    const plainText = removeMd(text);
+    return plainText.split(/\s+/).slice(0, numberOfWords).join(" ");
+}
+
+export const timeText = (postedOn) => {
+    const ago = moment(postedOn).fromNow();
+    const diff = moment().diff(postedOn, 'hours', true);
+    if (diff >= 12.5) {
+        var date = moment(postedOn);
+        return "d. " + date.format("D MMM YYYY ") + "kl. " + date.format("H:mm");
+    }
+
+    return "for " + ago;
 }
 
 export const responseHandler = (dispatch, response) => {

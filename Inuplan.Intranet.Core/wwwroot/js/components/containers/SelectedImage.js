@@ -1,26 +1,96 @@
 ﻿import React from 'react'
 import ReactDOM from 'react-dom'
+import { setSelectedImg } from '../../actions/images'
+import { setError } from '../../actions/error'
 import { Comments } from '../containers/Comments'
+import { find } from 'underscore'
+import { connect } from 'react-redux'
+import { withRouter } from 'react-router'
 
-export default class Modal extends React.Component {
+const mapStateToProps = (state) => {
+    const ownerId  = state.imagesInfo.ownerId;
+    const currentId = state.usersInfo.currentUserId;
+    const canEdit = (ownerId > 0 && currentId > 0 && ownerId == currentId);
+
+    const getImage = (id) => {
+        return find(state.imagesInfo.images, image => {
+            return image.ImageID == id;
+        });
+    };
+
+    return {
+        canEdit: canEdit,
+        getImage: getImage
+    }
+}
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        setSelectedImageId: (id) => {
+            dispatch(setSelectedImg(id));
+        },
+        deselectImage: () => {
+            dispatch(setSelectedImg(undefined));
+        },
+        setError: (error) => {
+            dispatch(setError(error));
+        }
+    }
+}
+
+class ModalImage extends React.Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            image: null,
+            hasError: false
+        }
+
         this.deleteImage = this.deleteImage.bind(this); 
     }
 
+    componentWillMount() {
+        const { setSelectedImageId, getImage, setError } = this.props;
+        const { id } = this.props.params;
+
+        const image = getImage(id);
+
+        if(image) {
+            setSelectedImageId(id);
+            this.setState({ image: image });
+        }
+        else {
+            const error = {
+                title: 'Image not found',
+                message: 'Cannot find the selected image! It might have been deleted or the url is invalid.'
+            };
+
+            setError(error);
+            this.setState({ hasError: true });
+        }
+    }
+
     componentDidMount() {
+        if(this.state.hasError) return;
         const { deselectImage } = this.props;
+        const { push } = this.props.router;
+        const { username } = this.props.params;
+
         $(ReactDOM.findDOMNode(this)).modal('show');
         $(ReactDOM.findDOMNode(this)).on('hide.bs.modal', (e) => {
             deselectImage();
+            const galleryUrl = '/' + username + '/gallery';
+            push(galleryUrl);
         });
     }
 
     deleteImage() {
-        const { deleteImage, image, username } = this.props;
-        const id = image.ImageID;
+        const { deleteImage } = this.props;
+        const { username } = this.props.params;
+        const { image } = this.state;
 
-        deleteImage(id, username);
+        deleteImage(image.ImageID, username);
         $(ReactDOM.findDOMNode(this)).modal('hide');
     }
 
@@ -37,8 +107,10 @@ export default class Modal extends React.Component {
     }
 
     render() {
-        const { image } = this.props;
-        const { ImageID, Filename, PreviewUrl, Extension, OriginalUrl, Uploaded } = image;
+        if(this.state.hasError) return null;
+
+        const { image } = this.state;
+        const { Filename, PreviewUrl, Extension, OriginalUrl, Uploaded } = image;
         const name = Filename + "." + Extension;
         const uploadDate = moment(Uploaded);
         const dateString = "Uploaded d. " + uploadDate.format("D MMM YYYY ") + "kl. " + uploadDate.format("H:mm");
@@ -72,3 +144,7 @@ export default class Modal extends React.Component {
         );
     }
 }
+
+const SelectedImageRedux = connect(mapStateToProps, mapDispatchToProps)(ModalImage);
+const SelectedImage = withRouter(SelectedImageRedux);
+export default SelectedImage;

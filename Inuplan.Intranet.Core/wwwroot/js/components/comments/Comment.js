@@ -1,7 +1,7 @@
 ﻿import React from 'react'
 import { CommentControls } from './CommentControls'
 import { CommentProfile } from './CommentProfile'
-import { formatText } from '../../utilities/utils'
+import { formatText, timeText } from '../../utilities/utils'
 
 export class Comment extends React.Component {
     render() {
@@ -36,14 +36,7 @@ export class Comment extends React.Component {
 class PostedOn extends React.Component {
     ago() {
         const { postedOn } = this.props;
-        const ago = moment(postedOn).fromNow();
-        const diff = moment().diff(postedOn, 'hours', true);
-        if (diff >= 12.5) {
-            var date = moment(postedOn);
-            return "d. " + date.format("D MMM YYYY ") + "kl. " + date.format("H:mm");
-        }
-
-        return "for " + ago;
+        return timeText(postedOn);
     }
 
     render() {
