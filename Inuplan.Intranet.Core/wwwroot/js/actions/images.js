@@ -2,10 +2,10 @@
 import * as T from '../constants/types'
 import { options } from '../constants/constants'
 import { addUser } from './users'
-import { addComments, setDefaultSkip, setDefaultTake, setDefaultComments} from './comments'
-import { normalizeImage, normalizeComment } from '../utilities/utils'
+import { normalizeImage } from '../utilities/utils'
 import { HttpError, setError } from './error'
 import { responseHandler, onReject } from '../utilities/utils'
+import { find } from 'underscore'
 
 export function setImagesOwner(id) {
     return {
@@ -25,23 +25,6 @@ export const setSelectedImg = (id) => {
     return {
         type: T.SET_SELECTED_IMG,
         id: id
-    };
-}
-
-export const removeModal = () => {
-    return (dispatch, getState) => {
-        const state = getState();
-        dispatch(unsetSelectedImg());
-        dispatch(setDefaultSkip());
-        dispatch(setDefaultTake());
-        dispatch(setDefaultComments());
-        return Promise.resolve();
-    }
-}
-
-const unsetSelectedImg = () => {
-    return {
-        type: T.UNSET_SELECTED_IMG
     };
 }
 
@@ -110,8 +93,8 @@ export function fetchUserImages(username) {
         const handler = responseHandler.bind(this, dispatch);
 
         const onSuccess = (data) => {
-            const normalized = data.map(normalizeImage);
-            dispatch(recievedUserImages(normalized.reverse()));
+            const normalized = data.map(normalizeImage).reverse();
+            dispatch(recievedUserImages(normalized));
         }
 
         return fetch(url, options)
@@ -134,5 +117,35 @@ export function deleteImages(username, imageIds = []) {
             .then(handler)
             .then(() => dispatch(clearSelectedImageIds()), onReject)
             .then(() => dispatch(fetchUserImages(username)));
+    }
+}
+
+export function setImageOwner(username) {
+    return function(dispatch, getState) {
+        // Lazy evaluation
+        const findOwner = () => {
+            return find(getState().usersInfo.users, (user) => {
+                return user.Username == username;
+            });
+        }
+
+        let owner = findOwner();
+
+        if(owner) {
+            const ownerId = owner.ID;
+            dispatch(setImagesOwner(ownerId));
+            return Promise.resolve();
+        }
+        else {
+            var url = globals.urls.users + '?username=' + username;
+            const handler = responseHandler.bind(this, dispatch);
+            return fetch(url, options)
+                .then(handler)
+                .then(user => dispatch(addUser(user)), onReject)
+                .then(() => {
+                    owner = findOwner();
+                    dispatch(setImagesOwner(owner.ID));
+                });
+        }
     }
 }

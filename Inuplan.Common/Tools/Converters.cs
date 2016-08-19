@@ -42,8 +42,22 @@ namespace Inuplan.Common.Tools
                 Deleted = comment.Deleted,
                 PostedOn = comment.PostedOn,
                 Replies = replyDtos,
-                Text = comment.Text,
-                ParentID = comment.ParentID
+                Text = comment.Text
+            };
+        }
+
+        public static WhatsNewImageCommentDTO ToWhatsNewComment(ImageComment comment, User uploadedBy)
+        {
+            var author = (comment.Deleted) ? null : ToUserDTO(comment.Author);
+            var uploader = ToUserDTO(uploadedBy);
+            return new WhatsNewImageCommentDTO
+            {
+                Author = author,
+                Deleted = comment.Deleted,
+                ID = comment.ID,
+                ImageID = comment.ImageID,
+                ImageUploadedBy = uploader,
+                Text = comment.Text
             };
         }
 

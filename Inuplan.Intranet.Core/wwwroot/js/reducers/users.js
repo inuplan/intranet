@@ -16,7 +16,7 @@ const users = (state = [], action) => {
 const currentUserId = (state = -1, action) => {
     switch (action.type) {
         case T.SET_CURRENT_USER_ID:
-            return action.id
+            return action.id || state;
         default:
             return state;
     }

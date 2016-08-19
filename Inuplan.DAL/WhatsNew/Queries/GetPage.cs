@@ -20,6 +20,7 @@
 
 namespace Inuplan.DAL.WhatsNew.Queries
 {
+    using Common.DTOs;
     using Common.Enums;
     using Common.Models;
     using Common.Models.Interfaces;
@@ -123,7 +124,9 @@ namespace Inuplan.DAL.WhatsNew.Queries
             var comment = commentRepo.GetSingleByID(commentId).Result;
             return comment.Map(c =>
             {
-                var dto = Converters.ToImageCommentDTO(c);
+                var uploader = imageRepo.Get(c.ImageID).Result.ValueOrFailure().Owner;
+                var dto = Converters.ToWhatsNewComment(c, uploader);
+
                 return new NewsItem
                 {
                     ID = id,

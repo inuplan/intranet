@@ -5,7 +5,7 @@ import errorInfo from './error'
 export const hasError = (state = false, action) => {
     switch (action.type) {
         case T.SET_HAS_ERROR:
-            return action.hasError;
+            return action.hasError || state;
         default:
             return state;
     }

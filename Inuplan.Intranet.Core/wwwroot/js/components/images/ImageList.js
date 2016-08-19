@@ -28,7 +28,7 @@ export default class ImageList extends React.Component {
 
     imagesView(images) {
         if(images.length == 0) return null;
-        const { selectImage, addSelectedImageId, removeSelectedImageId, deleteSelectedImages, canEdit, imageIsSelected } = this.props;
+        const { addSelectedImageId, removeSelectedImageId, deleteSelectedImages, canEdit, imageIsSelected, username } = this.props;
         const result = this.arrangeArray(images);
         const view = result.map((row, i) => {
             const imgs = row.map((img) => {
@@ -36,11 +36,11 @@ export default class ImageList extends React.Component {
                     <div className="col-lg-3" key={img.ImageID}>
                         <Image
                             image={img}
-                            selectImage={selectImage}
                             canEdit={canEdit}
                             addSelectedImageId={addSelectedImageId}
                             removeSelectedImageId={removeSelectedImageId}
                             imageIsSelected={imageIsSelected}
+                            username={username}
                         />
                     </div>
                 );

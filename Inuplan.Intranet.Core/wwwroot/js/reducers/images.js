@@ -6,7 +6,7 @@ import { union } from '../utilities/utils'
 const ownerId = (state = -1, action) => {
     switch (action.type) {
         case T.SET_IMAGES_OWNER:
-            return action.id;
+            return action.id || state;
         default:
             return state;
     }
@@ -40,9 +40,7 @@ const images = (state = [], action) => {
 const selectedImageId = (state = -1, action) => {
     switch (action.type) {
         case T.SET_SELECTED_IMG:
-            return action.id;
-        case T.UNSET_SELECTED_IMG:
-            return -1;
+            return action.id || state;
         default:
             return state;
     }

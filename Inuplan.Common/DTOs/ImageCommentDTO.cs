@@ -26,8 +26,6 @@ namespace Inuplan.Common.DTOs
 
     public class ImageCommentDTO
     {
-        [JsonProperty(NullValueHandling=NullValueHandling.Ignore)]
-        public int? ParentID { get; set; }
         public int ID { get; set; }
         public int ImageID { get; set; }
         public bool Deleted { get; set; }

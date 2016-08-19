@@ -5,7 +5,7 @@ import * as T from '../constants/types'
 const skip = (state = 0, action) => {
     switch (action.type) {
         case T.SET_SKIP_WHATS_NEW:
-            return action.skip;
+            return action.skip || state;
         default:
             return state;
     }
@@ -14,7 +14,7 @@ const skip = (state = 0, action) => {
 const take = (state = 10, action) => {
     switch (action.type) {
         case T.SET_TAKE_WHATS_NEW:
-            return action.take;
+            return action.take || state;
         default:
             return state;
     }
@@ -23,7 +23,7 @@ const take = (state = 10, action) => {
 const page = (state = 1, action) => {
     switch (action.type) {
         case T.SET_PAGE_WHATS_NEW:
-            return action.page;
+            return action.page || state;
         default:
             return state;
     }
@@ -32,7 +32,7 @@ const page = (state = 1, action) => {
 const totalPages = (state = 0, action) => {
     switch (action.type) {
         case T.SET_TOTAL_PAGES_WHATS_NEW:
-            return action.totalPages;
+            return action.totalPages || state;
         default:
             return state;
     }
@@ -41,7 +41,7 @@ const totalPages = (state = 0, action) => {
 const items = (state = [], action) => {
     switch (action.type) {
         case T.ADD_LATEST:
-            return action.latest;
+            return action.latest || state;
         default:
             return state;
     }
