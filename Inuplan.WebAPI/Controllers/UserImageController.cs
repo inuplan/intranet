@@ -262,20 +262,19 @@ namespace Inuplan.WebAPI.Controllers
         /// <returns></returns>
         // GET /api/UserImage/GetByID?id={id}
         [HttpGet]
-        public async Task<HttpResponseMessage> GetByID(int id)
+        public async Task<UserImageDTO> GetByID(int id)
         {
             var image = await userImageRepository.GetByID(id);
             return image.Match(img =>
             {
-                var imageBlob = img.Original.Data.Value;
-                var response = Request.CreateResponse(HttpStatusCode.OK);
-                response.Content = new ByteArrayContent(imageBlob);
-                response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(img.MimeType);
-                return response;
+                var dto = Construct(img);
+                return dto;
             },
             () =>
             {
-                return Request.CreateResponse(HttpStatusCode.NotFound);
+                var error = string.Format("Image: {0} not found", id);
+                Logger.Error(error);
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.NotFound, error));
             });
         }
 

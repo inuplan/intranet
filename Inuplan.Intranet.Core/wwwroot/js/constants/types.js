@@ -1,6 +1,7 @@
 ﻿// Image actions
 export const SET_SELECTED_IMG = 'SET_SELECTED_IMG';
 export const UNSET_SELECTED_IMG = 'UNSET_SELECTED_IMG';
+export const ADD_IMAGE = 'ADD_IMAGE';
 export const REMOVE_IMAGE = 'REMOVE_IMAGE';
 export const SET_IMAGES_OWNER = 'SET_IMAGES_OWNER';
 export const RECIEVED_USER_IMAGES = 'RECIEVED_USER_IMAGES';

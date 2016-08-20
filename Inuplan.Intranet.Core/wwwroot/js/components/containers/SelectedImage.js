@@ -1,6 +1,6 @@
 ﻿import React from 'react'
 import ReactDOM from 'react-dom'
-import { setSelectedImg } from '../../actions/images'
+import { setSelectedImg, fetchSingleImage, deleteImage } from '../../actions/images'
 import { setError } from '../../actions/error'
 import { Comments } from '../containers/Comments'
 import { find } from 'underscore'
@@ -18,9 +18,21 @@ const mapStateToProps = (state) => {
         });
     };
 
+    const image = () => getImage(state.imagesInfo.selectedImageId);
+    const filename = () => { if(image()) return image().Filename; return ''; };
+    const previewUrl = () => { if(image()) return image().PreviewUrl; return ''; };
+    const extension = () => { if(image()) return image().Extension; return ''; };
+    const originalUrl = () => { if(image()) return image().OriginalUrl; return ''; };
+    const uploaded = () => { if(image()) return image().Uploaded; return new Date(); };
+
     return {
         canEdit: canEdit,
-        getImage: getImage
+        image: image(),
+        filename: filename(),
+        previewUrl: previewUrl(),
+        extension: extension(),
+        originalUrl: originalUrl(),
+        uploaded: uploaded()
     }
 }
 
@@ -34,6 +46,12 @@ const mapDispatchToProps = (dispatch) => {
         },
         setError: (error) => {
             dispatch(setError(error));
+        },
+        fetchImage: (id) => {
+            dispatch(fetchSingleImage(id));
+        },
+        deleteImage: (id, username) => {
+            dispatch(deleteImage(id, username));
         }
     }
 }
@@ -41,41 +59,13 @@ const mapDispatchToProps = (dispatch) => {
 class ModalImage extends React.Component {
     constructor(props) {
         super(props);
-
-        this.state = {
-            image: null,
-            hasError: false
-        }
-
         this.deleteImage = this.deleteImage.bind(this); 
     }
 
-    componentWillMount() {
-        const { setSelectedImageId, getImage, setError } = this.props;
-        const { id } = this.props.params;
-
-        const image = getImage(id);
-
-        if(image) {
-            setSelectedImageId(id);
-            this.setState({ image: image });
-        }
-        else {
-            const error = {
-                title: 'Image not found',
-                message: 'Cannot find the selected image! It might have been deleted or the url is invalid.'
-            };
-
-            setError(error);
-            this.setState({ hasError: true });
-        }
-    }
-
     componentDidMount() {
-        if(this.state.hasError) return;
         const { deselectImage } = this.props;
-        const { push } = this.props.router;
         const { username } = this.props.params;
+        const { push } = this.props.router;
 
         $(ReactDOM.findDOMNode(this)).modal('show');
         $(ReactDOM.findDOMNode(this)).on('hide.bs.modal', (e) => {
@@ -87,10 +77,9 @@ class ModalImage extends React.Component {
 
     deleteImage() {
         const { deleteImage } = this.props;
-        const { username } = this.props.params;
-        const { image } = this.state;
+        const { id, username } = this.props.params;
 
-        deleteImage(image.ImageID, username);
+        deleteImage(id, username);
         $(ReactDOM.findDOMNode(this)).modal('hide');
     }
 
@@ -107,41 +96,36 @@ class ModalImage extends React.Component {
     }
 
     render() {
-        if(this.state.hasError) return null;
-
-        const { image } = this.state;
-        const { Filename, PreviewUrl, Extension, OriginalUrl, Uploaded } = image;
-        const name = Filename + "." + Extension;
-        const uploadDate = moment(Uploaded);
+        const { filename, previewUrl, extension, originalUrl, uploaded } = this.props;
+        const name = filename + "." + extension;
+        const uploadDate = moment(uploaded);
         const dateString = "Uploaded d. " + uploadDate.format("D MMM YYYY ") + "kl. " + uploadDate.format("H:mm");
 
-        return (
-            <div className="modal fade">
-                <div className="modal-dialog modal-lg">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                          <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                          <h4 className="modal-title text-center">{name}<span><small> - {dateString}</small></span></h4>
+        return  <div className="modal fade">
+                    <div className="modal-dialog modal-lg">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                              <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                              <h4 className="modal-title text-center">{name}<span><small> - {dateString}</small></span></h4>
                           
-                        </div>
-                        <div className="modal-body">
-                            <a href={OriginalUrl} target="_blank">
-                                <img className="img-responsive center-block" src={PreviewUrl} />
-                            </a>
-                        </div>
-                        <div className="modal-footer">
-                            <Comments />
-                            <hr />
-                            {this.deleteImageView()}
-                            <button type="button" className="btn btn-default" data-dismiss="modal">Luk</button>
-                            <div className="row">
-                                {'\u00A0'}
+                            </div>
+                            <div className="modal-body">
+                                <a href={originalUrl} target="_blank">
+                                    <img className="img-responsive center-block" src={previewUrl} />
+                                </a>
+                            </div>
+                            <div className="modal-footer">
+                                <Comments />
+                                <hr />
+                                {this.deleteImageView()}
+                                <button type="button" className="btn btn-default" data-dismiss="modal">Luk</button>
+                                <div className="row">
+                                    {'\u00A0'}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        );
     }
 }
 

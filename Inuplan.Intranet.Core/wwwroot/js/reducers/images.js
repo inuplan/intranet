@@ -14,6 +14,8 @@ const ownerId = (state = -1, action) => {
 
 const images = (state = [], action) => {
     switch (action.type) {
+        case T.ADD_IMAGE:
+            return union(state, [action.image], (img1, img2) => img1.ImageID == img2.ImageID);
         case T.RECIEVED_USER_IMAGES:
             return action.images;
         case T.REMOVE_IMAGE:

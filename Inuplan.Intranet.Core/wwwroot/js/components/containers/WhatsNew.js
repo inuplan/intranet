@@ -1,4 +1,5 @@
 ﻿import React from 'react'
+import { find } from 'underscore'
 import { connect } from 'react-redux'
 import { fetchLatestNews } from '../../actions/whatsnew'
 import { WhatsNewList } from '../WhatsNew/WhatsNewList'
@@ -12,7 +13,9 @@ const mapDispatchToProps = (dispatch) => {
 const mapStateToProps = (state) => {
     return {
         items: state.whatsNewInfo.items,
-        getUser: (id) => state.usersInfo.users.filter(u => u.ID == id)[0],
+        getUser: (id) => find(state.usersInfo.users, (user) => {
+            return user.ID == id;
+        }),
         skip: state.whatsNewInfo.skip,
         take: state.whatsNewInfo.take
     }

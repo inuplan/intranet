@@ -28,6 +28,13 @@ export const setSelectedImg = (id) => {
     };
 }
 
+export function addImage(img) {
+    return {
+        type: T.ADD_IMAGE,
+        image: img
+    };
+}
+
 export function removeImage(id) {
     return {
         type: T.REMOVE_IMAGE,
@@ -55,7 +62,7 @@ export function clearSelectedImageIds() {
     };
 }
 
-export function requestDeleteImage(id, username) {
+export function deleteImage(id, username) {
     return function(dispatch) {
         const url = globals.urls.images + "?username=" + username + "&id=" + id;
         const opt = Object.assign({}, options, {
@@ -147,5 +154,33 @@ export function setImageOwner(username) {
                     dispatch(setImagesOwner(owner.ID));
                 });
         }
+    }
+}
+
+const promiseGetImage = (id, getState) => {
+    return new Promise( (resolve, reject) => {
+        const images = getState().imagesInfo.images;
+        const image = find(images, (img) => img.ImageID == id);
+
+        if(image) {
+            resolve(image);
+        }
+        else {
+            reject(Error("Image does not exist locally!"));
+        }
+    });
+}
+
+export function fetchSingleImage(id) {
+    return function(dispatch, getState) {
+        const url = globals.urls.images + "/getbyid?id=" + id;
+        const handler = responseHandler.bind(this, dispatch);
+        return fetch(url, options)
+            .then(handler)
+            .then(img => {
+                if(!img) return;
+                const normalizedImage = normalizeImage(img);
+                dispatch(addImage(normalizedImage));
+            });
     }
 }
