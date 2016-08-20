@@ -4,7 +4,7 @@ import { NavLink, IndexNavLink } from './wrappers/Links'
 import { Error } from './containers/Error'
 import { clearError } from '../actions/error'
 import { connect } from 'react-redux'
-import { Grid, Row, Col, Navbar, Nav, NavItem } from 'react-bootstrap'
+import { Grid, Navbar, Nav } from 'react-bootstrap'
 
 const mapStateToProps = (state) => {
     return {
