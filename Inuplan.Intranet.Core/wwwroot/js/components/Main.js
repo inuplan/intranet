@@ -4,6 +4,7 @@ import { NavLink, IndexNavLink } from './wrappers/Links'
 import { Error } from './containers/Error'
 import { clearError } from '../actions/error'
 import { connect } from 'react-redux'
+import { Grid, Row, Col, Navbar, Nav, NavItem } from 'react-bootstrap'
 
 const mapStateToProps = (state) => {
     return {
@@ -32,33 +33,30 @@ class Shell extends React.Component {
     }
 
     render() {
-        return (
-            <div className="container-fluid">
-                <div className="navbar navbar-default navbar-static-top">
-                    <div className="container">
-                        <div className="navbar-header">
-                            <button type="button" className="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                                <span className="sr-only">Toggle navigation</span>
-                                <span className="icon-bar"></span>
-                                <span className="icon-bar"></span>
-                                <span className="icon-bar"></span>
-                            </button>
-                            <Link to="/" className="navbar-brand">Inuplan Intranet</Link>
-                        </div>
-                        <div className="navbar-collapse collapse">
-                            <ul className="nav navbar-nav">
+        return  <Grid fluid={true}>
+                    <Navbar>
+                        <Navbar.Header>
+                            <Navbar.Brand>
+                                <Link to="/" className="navbar-brand">Inuplan Intranet</Link>
+                            </Navbar.Brand>
+                            <Navbar.Toggle />
+                        </Navbar.Header>
+
+                        <Navbar.Collapse>
+                            <Nav>
                                 <IndexNavLink to="/">Forside</IndexNavLink>
                                 <NavLink to="/users">Brugere</NavLink>
-                                <NavLink to="/about">Om</NavLink>
-                            </ul>
-                            <p className="nav navbar-text navbar-right">Hej, {globals.currentUsername}!</p>
-                        </div>
-                    </div>
-                </div>
-                {this.errorView()}
-                {this.props.children}
-            </div>
-        );
+                                <NavLink to="/about">Om</NavLink>                                
+                            </Nav>
+                            <Navbar.Text pullRight>
+                                Hej, {globals.currentUsername}!
+                            </Navbar.Text>
+                        </Navbar.Collapse>
+
+                    </Navbar>
+                        {this.errorView()}
+                        {this.props.children}
+                </Grid>
     }
 }
 

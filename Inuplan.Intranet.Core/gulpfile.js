@@ -46,7 +46,9 @@ var paths = {
     isomorphicFetch: noderoot + "isomorphic-fetch/fetch-npm-browserify.js",
     marked: noderoot + "marked/index.js",
     markedMin: noderoot + "marked/marked.min.js",
-    removeMarkdown: noderoot + "remove-markdown/index.js"
+    removeMarkdown: noderoot + "remove-markdown/index.js",
+    reactBootstrap: noderoot + "react-bootstrap/lib/index.js",
+    reactBootstrapMin: noderoot + "react-bootstrap/dist/react-bootstrap.min.js"
 };
 
 var vendors = [
@@ -59,7 +61,8 @@ var vendors = [
     { file: paths.reduxThunk, expose: 'redux-thunk' },
     { file: paths.isomorphicFetch, expose: 'isomorphic-fetch' },
     { file: paths.marked, expose: 'marked' },
-    { file: paths.removeMarkdown, expose: 'remove-markdown' }
+    { file: paths.removeMarkdown, expose: 'remove-markdown' },
+    { file: paths.reactBootstrap, expose: 'react-bootstrap' }
 ]
 
 var vendorsMin = [
@@ -72,7 +75,8 @@ var vendorsMin = [
     { file: paths.reduxThunkMin, expose: 'redux-thunk' },
     { file: paths.isomorphicFetch, expose: 'isomorphic-fetch' },
     { file: paths.markedMin, expose: 'marked' },
-    { file: paths.removeMarkdown, expose: 'remove-markdown' }
+    { file: paths.removeMarkdown, expose: 'remove-markdown' },
+    { file: paths.reactBootstrapMin, expose: 'react-bootstrap' }
 ]
 
 // =============================
