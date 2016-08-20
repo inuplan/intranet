@@ -10,19 +10,19 @@ import Home from './components/containers/Home'
 import Users from './components/containers/Users'
 import UserImages from './components/containers/UserImages'
 import SelectedImage from './components/containers/SelectedImage'
-import { fetchUserImages, setSelectedImg, fetchSingleImage } from './actions/images'
+import { fetchUserImages, setSelectedImg, fetchSingleImage, setImageOwner } from './actions/images'
 
 store.dispatch(fetchCurrentUser(globals.currentUsername));
 moment.locale('da');
 
 const enterSelectedImage = (nextState) => {
     const imageId = nextState.params.id;
-    store.dispatch(fetchSingleImage(imageId));
     store.dispatch(setSelectedImg(imageId));
 }
 
 const enterGallery = (nextState) => {
     const username = nextState.params.username;
+    store.dispatch(setImageOwner(username));
     store.dispatch(fetchUserImages(username));
 }
 

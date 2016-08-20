@@ -27,7 +27,6 @@ const mapStateToProps = (state) => {
 
     return {
         canEdit: canEdit,
-        image: image(),
         filename: filename(),
         previewUrl: previewUrl(),
         extension: extension(),
@@ -63,16 +62,26 @@ class ModalImage extends React.Component {
     }
 
     componentDidMount() {
-        const { deselectImage } = this.props;
+        const { deselectImage, setError } = this.props;
         const { username } = this.props.params;
         const { push } = this.props.router;
 
-        $(ReactDOM.findDOMNode(this)).modal('show');
-        $(ReactDOM.findDOMNode(this)).on('hide.bs.modal', (e) => {
-            deselectImage();
-            const galleryUrl = '/' + username + '/gallery';
-            push(galleryUrl);
-        });
+        const isLoaded = typeof $ !== "undefined";
+        if(isLoaded) {
+            const node = ReactDOM.findDOMNode(this);
+            $(node).modal('show');
+            $(node).on('hide.bs.modal', (e) => {
+                deselectImage();
+                const galleryUrl = '/' + username + '/gallery';
+                push(galleryUrl);
+            });
+        }
+        else {
+            setError({
+                title: 'Something bad happened',
+                message: 'Could not find the image, maybe the URL is invalid or it has been deleted!'
+            });
+        }
     }
 
     deleteImage() {

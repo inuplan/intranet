@@ -1,7 +1,6 @@
 ﻿import React from 'react'
 import { connect } from 'react-redux'
-import { fetchUserImages, setImageOwner, uploadImage, addSelectedImageId,  deleteImages, removeSelectedImageId, clearSelectedImageIds } from '../../actions/images'
-import { fetchUser } from '../../actions/users'
+import { uploadImage, addSelectedImageId,  deleteImages, removeSelectedImageId, clearSelectedImageIds } from '../../actions/images'
 import { Error } from './Error'
 import { ImageUpload } from '../images/ImageUpload'
 import ImageList from '../images/ImageList'
@@ -27,9 +26,6 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        loadImages: (username) => {
-            dispatch(fetchUserImages(username));
-        },
         uploadImage: (username, formData) => {
             dispatch(uploadImage(username, formData));
         },
@@ -46,9 +42,6 @@ const mapDispatchToProps = (dispatch) => {
         },
         clearSelectedImageIds: () => {
             dispatch(clearSelectedImageIds());
-        },
-        setImageOwner: (username) => {
-            dispatch(setImageOwner(username));
         }
     }
 }
@@ -63,13 +56,9 @@ class UserImagesContainer extends React.Component {
 
     componentDidMount() {
         const { username } = this.props.params;
-        const { loadImages, router, route, setImageOwner } = this.props;
-
-        setImageOwner(username);
-        loadImages(username);
+        const { router, route } = this.props;
 
         document.title = username + "'s billeder";
-
         router.setRouteLeaveHook(route, this.clearSelected);
     }
 
