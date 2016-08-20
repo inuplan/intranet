@@ -5,8 +5,10 @@ import { WhatsNewItemComment } from './WhatsNewItemComment'
 export class WhatsNewList extends React.Component {
     constructItems() {
         const { items, getUser } = this.props;
+        const generateKey = (id) => "whatsnew_" + id;
         return items.map(item => {
             const author = getUser(item.AuthorID);
+            const itemKey = generateKey(item.ID);
             switch (item.Type) {
                 case 1:
                     return  <WhatsNewItemImage
@@ -14,6 +16,7 @@ export class WhatsNewList extends React.Component {
                                 item={item.Item}
                                 on={item.On}
                                 author={author}
+                                key={itemKey}
                             />
                 case 2:
                     return  <WhatsNewItemComment
@@ -23,6 +26,7 @@ export class WhatsNewList extends React.Component {
                                 imageId={item.Item.ImageID}
                                 on={item.On}
                                 author={author}
+                                key={itemKey}
                             />
             }
         })

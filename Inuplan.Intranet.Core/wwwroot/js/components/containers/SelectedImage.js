@@ -78,7 +78,7 @@ class ModalImage extends React.Component {
         }
         else {
             setError({
-                title: 'Something bad happened',
+                title: 'Oops something went wrong',
                 message: 'Could not find the image, maybe the URL is invalid or it has been deleted!'
             });
         }

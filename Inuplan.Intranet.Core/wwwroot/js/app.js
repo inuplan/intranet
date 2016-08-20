@@ -15,12 +15,12 @@ import { fetchUserImages, setSelectedImg, fetchSingleImage, setImageOwner } from
 store.dispatch(fetchCurrentUser(globals.currentUsername));
 moment.locale('da');
 
-const enterSelectedImage = (nextState) => {
+const selectImage = (nextState) => {
     const imageId = nextState.params.id;
     store.dispatch(setSelectedImg(imageId));
 }
 
-const enterGallery = (nextState) => {
+const fetchImages = (nextState) => {
     const username = nextState.params.username;
     store.dispatch(setImageOwner(username));
     store.dispatch(fetchUserImages(username));
@@ -33,10 +33,14 @@ ReactDOM.render(
                 <IndexRoute component={Home} />
                 <Route path="users" component={Users} />
                 <Route path="about" component={About} />
-                <Route path=":username/gallery" component={UserImages} onEnter={enterGallery}>
-                    <Route path="image/:id" component={SelectedImage} onEnter={enterSelectedImage}/>
+                <Route path=":username/gallery" component={UserImages} onEnter={fetchImages}>
+                    <Route path="image/:id" component={SelectedImage} onEnter={selectImage}>
+                    </Route>
                 </Route>
             </Route>
         </Router>
     </Provider>,
     document.getElementById('content'));
+
+//<Route path="comment/:cid" component={'Single Comment'} onEnter={'fetchSingleCommentChain?'} />
+//<Route path="comments" component={'Comments'} onEnter={'fetchComments'} />
