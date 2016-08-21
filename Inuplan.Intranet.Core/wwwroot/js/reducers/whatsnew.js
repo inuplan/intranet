@@ -5,7 +5,7 @@ import * as T from '../constants/types'
 const skip = (state = 0, action) => {
     switch (action.type) {
         case T.SET_SKIP_WHATS_NEW:
-            return action.skip || state;
+            return action.skip || 0;
         default:
             return state;
     }
@@ -14,7 +14,7 @@ const skip = (state = 0, action) => {
 const take = (state = 10, action) => {
     switch (action.type) {
         case T.SET_TAKE_WHATS_NEW:
-            return action.take || state;
+            return action.take || 10;
         default:
             return state;
     }
@@ -23,7 +23,7 @@ const take = (state = 10, action) => {
 const page = (state = 1, action) => {
     switch (action.type) {
         case T.SET_PAGE_WHATS_NEW:
-            return action.page || state;
+            return action.page || 1;
         default:
             return state;
     }
@@ -32,7 +32,7 @@ const page = (state = 1, action) => {
 const totalPages = (state = 0, action) => {
     switch (action.type) {
         case T.SET_TOTAL_PAGES_WHATS_NEW:
-            return action.totalPages || state;
+            return action.totalPages || 0;
         default:
             return state;
     }
@@ -41,7 +41,7 @@ const totalPages = (state = 0, action) => {
 const items = (state = [], action) => {
     switch (action.type) {
         case T.ADD_LATEST:
-            return action.latest || state;
+            return action.latest || [];
         default:
             return state;
     }
@@ -56,28 +56,3 @@ const whatsNewInfo = combineReducers({
 })
 
 export default whatsNewInfo;
-
-/** WhatsNewInfo
-    {
-        skip: 0,
-        take: 10,
-        page: 1,
-        totalPages: 2,
-        items: [
-            {
-                Id: 1
-                Type: enum,
-                AuthorId: 1,
-                Item: { },
-                On: time,
-            },
-            {
-                Id: 2,
-                Type: enum,
-                AuthorId: 1,
-                Item: { },
-                On: time,
-            }
-        ]
-    }
-**/

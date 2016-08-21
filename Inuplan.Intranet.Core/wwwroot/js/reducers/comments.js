@@ -4,7 +4,7 @@ import * as T from '../constants/types'
 const comments = (state = [], action) => {
     switch (action.type) {
         case T.RECIEVED_COMMENTS:
-            return action.comments || state;
+            return action.comments || [];
         default:
             return state;
     }
@@ -13,7 +13,7 @@ const comments = (state = [], action) => {
 const skip = (state = 0, action) => {
     switch (action.type) {
         case T.SET_SKIP_COMMENTS:
-            return action.skip || state;
+            return action.skip || 0;
         default:
             return state;
     }
@@ -22,7 +22,7 @@ const skip = (state = 0, action) => {
 const take = (state = 10, action) => {
     switch (action.type) {
         case T.SET_TAKE_COMMENTS:
-            return action.take || state;
+            return action.take || 10;
         default:
             return state;
     }
@@ -31,7 +31,7 @@ const take = (state = 10, action) => {
 const page = (state = 1, action) => {
     switch (action.type) {
         case T.SET_CURRENT_PAGE:
-            return action.page || state;
+            return action.page || 1;
         default:
             return state;
     }
@@ -40,7 +40,7 @@ const page = (state = 1, action) => {
 const totalPages = (state = 1, action) => {
     switch (action.type) {
         case T.SET_TOTAL_PAGES:
-            return action.totalPages || state;
+            return action.totalPages || 1;
         default:
             return state;
     }

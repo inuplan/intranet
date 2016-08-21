@@ -4,7 +4,7 @@ import * as T from '../constants/types'
 export const title = (state = "", action) => {
     switch (action.type) {
         case T.SET_ERROR_TITLE:
-            return action.title || state;
+            return action.title || "";
         default:
             return state;
     }
@@ -13,7 +13,7 @@ export const title = (state = "", action) => {
 export const message = (state = "", action) => {
     switch (action.type) {
         case T.SET_ERROR_MESSAGE:
-            return action.message || state;
+            return action.message || "";
         default:
             return state;
     }
