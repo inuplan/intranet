@@ -1,5 +1,6 @@
 ﻿import React from 'react'
 import ReactDOM from 'react-dom'
+import { Row, Col, Button } from 'react-bootstrap'
 
 export class ImageUpload extends React.Component {
     constructor(props) {
@@ -43,32 +44,24 @@ export class ImageUpload extends React.Component {
         this.clearInput(fileInput);
     }
 
-    deleteBtn() {
-        const { hasImages, deleteSelectedImages } = this.props;
-        return (hasImages ?
-                <button type="button" className="btn btn-danger" onClick={deleteSelectedImages}>Slet markeret billeder</button>
-                : <button type="button" className="btn btn-danger" onClick={deleteSelectedImages} disabled="disabled">Slet markeret billeder</button>);
-    }
-
     render() {
-        return (
-            <div className="row">
-                <br />
-                <div className="col-lg-4">
-                    <form
-                          onSubmit={this.handleSubmit}
-                          id="form-upload"
-                          enctype="multipart/form-data">
-                            <div className="form-group">
-                                <label htmlFor="files">Upload filer:</label>
-                                <input type="file" className="form-control" id="files" name="files" multiple />
-                            </div>
-                            <button type="submit" className="btn btn-primary" id="upload">Upload</button>
-                            {'\u00A0'}
-                            {this.deleteBtn()}
-                    </form>
-                </div>
-            </div>
-        );
+        const { hasImages, deleteSelectedImages } = this.props;
+        return  <Row>
+                    <br />
+                    <Col lg={4}>
+                        <form
+                              onSubmit={this.handleSubmit}
+                              id="form-upload"
+                              enctype="multipart/form-data">
+                                <div className="form-group">
+                                    <label htmlFor="files">Upload filer:</label>
+                                    <input type="file" className="form-control" id="files" name="files" multiple />
+                                </div>
+                                <Button bsStyle="primary" type="submit">Upload</Button>
+                                {'\u00A0'}
+                                <Button bsStyle="danger" disabled={!hasImages} onClick={deleteSelectedImages}>Slet markeret billeder</Button>
+                        </form>
+                    </Col>
+                </Row>
     }
 }
