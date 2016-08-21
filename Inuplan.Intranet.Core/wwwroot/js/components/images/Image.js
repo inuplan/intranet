@@ -1,11 +1,10 @@
 ﻿import React from 'react'
 import { Link } from 'react-router'
+import { Row, Col } from 'react-bootstrap'
 
 export class Image extends React.Component {
     constructor(props) {
         super(props);
-
-        // Bind 'this' to functions
         this.checkboxHandler = this.checkboxHandler.bind(this);
     }
 
@@ -37,11 +36,11 @@ export class Image extends React.Component {
         const { canEdit, imageIsSelected, image } = this.props;
         const checked = imageIsSelected(image.ImageID);
         return (canEdit ? 
-            <div className="col-lg-6 pull-right text-right">
+            <Col lg={6} className="pull-right text-right">
                 <label>
                     Slet <input type="checkbox" onClick={this.checkboxHandler} checked={checked} /> 
                 </label>
-            </div>
+            </Col>
             : null);
     }
 
@@ -52,24 +51,12 @@ render() {
                 <Link to={`/${username}/gallery/image/${image.ImageID}`}>
                     <img src={image.PreviewUrl} className="img-thumbnail" />
                 </Link>
-                <div className="row">
+                <Row>
                     <Link to={`/${username}/gallery/image/${image.ImageID}`}>
                         {this.commentIcon(count)} 
                     </Link>
                     {this.checkboxView()}
-                </div>
+                </Row>
             </div>
     }
 }
-                //<a onClick={this.selectImage} style={{cursor: "pointer", textDecoration: "none"}}>
-                //</a>
-
-        //return ( count == 0 ?
-        //    <div className="col-lg-6 text-muted"> 
-        //        <span className="glyphicon glyphicon-comment" aria-hidden="true"></span> {count}
-        //    </div>
-        //    :
-        //    <div className="col-lg-6 text-primary" style={{ cursor: 'pointer' }}>
-        //        <span className="glyphicon glyphicon-comment" aria-hidden="true"></span> {count}
-        //    </div>
-        //);
