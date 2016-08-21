@@ -1,13 +1,14 @@
 ﻿import React from 'react'
 import { connect } from 'react-redux'
 import { User } from './User'
+import { Row } from 'react-bootstrap'
 
 export class UserList extends React.Component {
     userNodes() {
         const { users } = this.props;
         return users.map((user) => {
             const userId = `userId_${user.ID}`;
-            return (<User
+            return  <User
                           username={user.Username}
                           userId={user.ID}
                           firstName={user.FirstName}
@@ -16,15 +17,13 @@ export class UserList extends React.Component {
                           profileUrl={user.ProfileImage}
                           roles={user.Roles}
                           key={userId}
-                      />);
+                      />
         });
     }
 
     render() {
-        const users = this.userNodes();
-        return (
-            <div className="row">
-                {users}
-            </div>)
+        return  <Row>
+                    {this.userNodes()}
+                </Row>
     }
 }
