@@ -1,6 +1,6 @@
 ﻿import React from 'react'
 import { Link } from 'react-router'
-import { Row, Col } from 'react-bootstrap'
+import { Row, Col, Image as ImageBs } from 'react-bootstrap'
 
 export class Image extends React.Component {
     constructor(props) {
@@ -49,7 +49,7 @@ render() {
     let count = image.CommentCount;
     return  <div>
                 <Link to={`/${username}/gallery/image/${image.ImageID}`}>
-                    <img src={image.PreviewUrl} className="img-thumbnail" />
+                    <ImageBs src={image.PreviewUrl} thumbnail />
                 </Link>
                 <Row>
                     <Link to={`/${username}/gallery/image/${image.ImageID}`}>
