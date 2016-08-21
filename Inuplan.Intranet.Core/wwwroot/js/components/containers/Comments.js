@@ -5,6 +5,7 @@ import { find } from 'underscore'
 import { connect } from 'react-redux'
 import { Pagination } from '../comments/Pagination'
 import { CommentForm } from '../comments/CommentForm'
+import { Row, Col } from 'react-bootstrap'
 
 const mapStateToProps = (state) => {
     return {
@@ -77,41 +78,62 @@ class CommentsContainer extends React.Component {
                 deleteComment, canEdit, getUser,
                 userId, imageId, page, totalPages } = this.props;
 
-        return (
-            <div>
-                <div className="row">
-                    <div className="col-lg-offset-1 col-lg-11">
-                        <CommentList
-                            comments={comments}
-                            replyHandle={postReply.bind(null, imageId)}
-                            editHandle={editComment.bind(null, imageId)}
-                            deleteHandle={deleteComment.bind(null, imageId)}
-                            canEdit={canEdit}
-                            getUser={getUser}
+        return  <div className="text-left">
+                    <Row>
+                        <Col lgOffset={1} lg={11}>
+                            <CommentList
+                                comments={comments}
+                                replyHandle={postReply.bind(null, imageId)}
+                                editHandle={editComment.bind(null, imageId)}
+                                deleteHandle={deleteComment.bind(null, imageId)}
+                                canEdit={canEdit}
+                                getUser={getUser}
+                            />
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Pagination
+                                imageId={imageId}
+                                currentPage={page}
+                                totalPages={totalPages}
+                                next={this.nextPage}
+                                prev={this.previousPage}
+                                getPage={this.getPage}
                         />
-                    </div>
+                    </Row>
+                    <hr />
+                    <Row>
+                        <Col lgOffset={1} lg={10}>
+                            <CommentForm postHandle={postComment.bind(null, imageId)}/>
+                        </Col>
+                    </Row>
                 </div>
-                <div className="row text-left">
-                    <Pagination
-                            imageId={imageId}
-                            currentPage={page}
-                            totalPages={totalPages}
-                            next={this.nextPage}
-                            prev={this.previousPage}
-                            getPage={this.getPage}
-                    />
-                </div>
-                <hr />
-                <div className="row text-left">
-                    <div className="col-lg-offset-1 col-lg-10">
-                        <CommentForm
-                            postHandle={postComment.bind(null, imageId)}
-                        />
-                    </div>
-                </div>
-            </div>
-        );
+
     }
 }
 
 export const Comments = connect(mapStateToProps, mapDispatchToProps)(CommentsContainer);
+            //<div>
+            //    <div className="row">
+            //        <div className="col-lg-offset-1 col-lg-11">
+            //        </div>
+            //    </div>
+            //    <div className="row text-left">
+            //        <Pagination
+            //                imageId={imageId}
+            //                currentPage={page}
+            //                totalPages={totalPages}
+            //                next={this.nextPage}
+            //                prev={this.previousPage}
+            //                getPage={this.getPage}
+            //        />
+            //    </div>
+            //    <hr />
+            //    <div className="row text-left">
+            //        <div className="col-lg-offset-1 col-lg-10">
+            //            <CommentForm
+            //                postHandle={postComment.bind(null, imageId)}
+            //            />
+            //        </div>
+            //    </div>
+            //</div>
