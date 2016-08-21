@@ -1,6 +1,7 @@
 ﻿import React from 'react'
 import { CommentDeleted } from './CommentDeleted'
 import { Comment } from './Comment'
+import { Media } from 'react-bootstrap'
 
 const compactHandlers = (replyHandle, editHandle, deleteHandle, canEdit, getUser) => {
     return {
@@ -20,42 +21,38 @@ export class CommentList extends React.Component {
             const key = "commentId" + comment.CommentID;
 
             if (comment.Deleted) {
-                return (
-                    <div className="media" key={key}>
-                        <CommentDeleted
-                             key={key} 
-                             replies={comment.Replies}
-                             handlers={handlers}
-                             constructComments={constructComments}
-                         />
-                    </div>);
+                return  <Media.ListItem key={key}>
+                            <CommentDeleted
+                                 key={key} 
+                                 replies={comment.Replies}
+                                 handlers={handlers}
+                                 constructComments={constructComments}
+                             />
+                        </Media.ListItem>
             }
 
-            return (
-                <div className="media" key={key}>
-                    <Comment
-                             key={key} 
-                             postedOn={comment.PostedOn}
-                             authorId={comment.AuthorID}                             
-                             text={comment.Text}
-                             replies={comment.Replies}
-                             commentId={comment.CommentID}
-                             handlers={handlers}
-                             constructComments={constructComments}
-                     />
-                </div>
-            );
+            return  <Media.ListItem key={key}>
+                        <Comment
+                                 key={key} 
+                                 postedOn={comment.PostedOn}
+                                 authorId={comment.AuthorID}                             
+                                 text={comment.Text}
+                                 replies={comment.Replies}
+                                 commentId={comment.CommentID}
+                                 handlers={handlers}
+                                 constructComments={constructComments}
+                         />
+                    </Media.ListItem>
         });
     }
 
     render() {
-        const { comments, replyHandle, editHandle, deleteHandle, canEdit, getUser, userId } = this.props;
+        const { comments, replyHandle, editHandle, deleteHandle, canEdit, getUser } = this.props;
         const handlers = compactHandlers(replyHandle, editHandle, deleteHandle, canEdit, getUser);
         const nodes = this.constructComments(comments, handlers);
-        return (
-            <div>
-                {nodes}
-            </div>
-        );
+
+        return  <Media.List>
+                    {nodes}
+                </Media.List>
     }
 }
