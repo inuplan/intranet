@@ -1,53 +1,45 @@
 ﻿import React from 'react'
 import { Link } from 'react-router'
+import { Row, Col } from 'react-bootstrap'
 
 export class User extends React.Component {
     render() {
-        var email = "mailto:" + this.props.email;
-        var gallery = "/" + this.props.username + "/gallery";
-        return (
-            <div className="col-lg-3 panel panel-default" style={{ paddingTop: "8px", paddingBottom: "8px" }}>
-                <div className="row">
-                    <div className="col-lg-6">
-                        <strong>Brugernavn</strong>
-                    </div>
-                    <div className="col-lg-6">
-                        {this.props.username}
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-lg-6">
-                        <strong>Fornavn</strong>
-                    </div>
-                    <div className="col-lg-6">
-                        {this.props.firstName}
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-lg-6">
-                        <strong>Efternavn</strong>
-                    </div>
-                    <div className="col-lg-6">
-                        {this.props.lastName}
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-lg-6">
-                        <strong>Email</strong>
-                    </div>
-                    <div className="col-lg-6">
-                        <a href={email}>{this.props.email}</a>
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-lg-6">
-                        <strong>Billeder</strong>
-                    </div>
-                    <div className="col-lg-6">
-                        <Link to={gallery}>Billeder</Link>
-                    </div>
-                </div>
-            </div>
-        );
+        const { username, firstName, lastName, email } = this.props;
+        const emailLink = "mailto:" + email;
+        const gallery = "/" + username + "/gallery";
+
+        return  <Col lg={3}>
+                    <UserItem title="Brugernavn">{username}</UserItem>
+                    <UserItem title="Fornavn">{firstName}</UserItem>
+                    <UserItem title="Efternavn">{lastName}</UserItem>
+                    <UserItem title="Email"><a href={emailLink}>{email}</a></UserItem>
+                    <UserItem title="Billeder"><Link to={gallery}>Billeder</Link></UserItem>
+                </Col>
+    }
+}
+
+class UserHeading extends React.Component {
+    render() {
+        return  <Col lg={6}>
+                    <strong>{this.props.children}</strong>
+                </Col>
+    }
+}
+
+class UserBody extends React.Component {
+    render() {
+        return  <Col lg={6}>
+                    {this.props.children}
+                </Col>
+    }
+}
+
+class UserItem extends React.Component {
+    render() {
+        const { title } = this.props;
+        return  <Row>
+                    <UserHeading>{title}</UserHeading>
+                    <UserBody>{this.props.children}</UserBody>
+                </Row>
     }
 }
