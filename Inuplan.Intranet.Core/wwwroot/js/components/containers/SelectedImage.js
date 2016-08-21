@@ -6,6 +6,7 @@ import { Comments } from '../containers/Comments'
 import { find } from 'underscore'
 import { connect } from 'react-redux'
 import { withRouter } from 'react-router'
+import { Modal, Image, Button, ButtonToolbar } from 'react-bootstrap'
 
 const mapStateToProps = (state) => {
     const ownerId  = state.imagesInfo.ownerId;
@@ -27,6 +28,7 @@ const mapStateToProps = (state) => {
 
     return {
         canEdit: canEdit,
+        hasImage: Boolean(getImage(state.imagesInfo.selectedImageId)),
         filename: filename(),
         previewUrl: previewUrl(),
         extension: extension(),
@@ -59,29 +61,29 @@ class ModalImage extends React.Component {
     constructor(props) {
         super(props);
         this.deleteImage = this.deleteImage.bind(this); 
+        this.open = this.open.bind(this); 
+        this.close = this.close.bind(this); 
     }
 
-    componentDidMount() {
-        const { deselectImage, setError } = this.props;
+    open() {
+        const { hasImage, setError } = this.props;
+        if(hasImage) return true;
+
+        setError({
+            title: 'Oops something went wrong',
+            message: 'Could not find the image, maybe the URL is invalid or it has been deleted!'
+        });
+        return false;
+    }
+
+    close() {
+        const { deselectImage } = this.props;
         const { username } = this.props.params;
         const { push } = this.props.router;
 
-        const isLoaded = typeof $ !== "undefined";
-        if(isLoaded) {
-            const node = ReactDOM.findDOMNode(this);
-            $(node).modal('show');
-            $(node).on('hide.bs.modal', (e) => {
-                deselectImage();
-                const galleryUrl = '/' + username + '/gallery';
-                push(galleryUrl);
-            });
-        }
-        else {
-            setError({
-                title: 'Oops something went wrong',
-                message: 'Could not find the image, maybe the URL is invalid or it has been deleted!'
-            });
-        }
+        deselectImage();
+        const galleryUrl = '/' + username + '/gallery';
+        push(galleryUrl);
     }
 
     deleteImage() {
@@ -96,45 +98,36 @@ class ModalImage extends React.Component {
         const { canEdit } = this.props;
         return (
             canEdit ?
-            <button
-                    type="button"
-                    className="btn btn-danger"
-                    onClick={this.deleteImage}>
-                    Slet billede
-            </button> : null);
+            <Button bsStyle="danger" onClick={this.deleteImage}>Slet billede</Button>
+            : null);
     }
 
-    render() {
-        const { filename, previewUrl, extension, originalUrl, uploaded } = this.props;
-        const name = filename + "." + extension;
-        const uploadDate = moment(uploaded);
-        const dateString = "Uploaded d. " + uploadDate.format("D MMM YYYY ") + "kl. " + uploadDate.format("H:mm");
+            render() {
+                const { filename, previewUrl, extension, originalUrl, uploaded } = this.props;
+                const name = filename + "." + extension;
+                const uploadDate = moment(uploaded);
+                const dateString = "Uploaded d. " + uploadDate.format("D MMM YYYY ") + "kl. " + uploadDate.format("H:mm");
 
-        return  <div className="modal fade">
-                    <div className="modal-dialog modal-lg">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                              <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                              <h4 className="modal-title text-center">{name}<span><small> - {dateString}</small></span></h4>
-                          
-                            </div>
-                            <div className="modal-body">
-                                <a href={originalUrl} target="_blank">
-                                    <img className="img-responsive center-block" src={previewUrl} />
+                return  <Modal show={this.open()} onHide={this.close} bsSize="large">
+                            <Modal.Header closeButton>
+                                <Modal.Title>{name}<span><small> - {dateString}</small></span></Modal.Title>
+                            </Modal.Header>
+
+                            <Modal.Body>
+                                <a href={originalUrl} target="_blank" rel="noopener">
+                                    <Image src={previewUrl} responsive/>
                                 </a>
-                            </div>
-                            <div className="modal-footer">
+                            </Modal.Body>
+
+                            <Modal.Footer>
                                 <Comments />
                                 <hr />
-                                {this.deleteImageView()}
-                                <button type="button" className="btn btn-default" data-dismiss="modal">Luk</button>
-                                <div className="row">
-                                    {'\u00A0'}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                                <ButtonToolbar style={{float: "right"}}>
+                                    {this.deleteImageView()}
+                                    <Button onClick={this.close}>Luk</Button>
+                                </ButtonToolbar>
+                    </Modal.Footer>
+                </Modal>
     }
 }
 
