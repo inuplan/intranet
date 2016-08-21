@@ -1,6 +1,7 @@
 ﻿import React from 'react'
 import { WhatsNewItemImage } from './WhatsNewItemImage'
 import { WhatsNewItemComment } from './WhatsNewItemComment'
+import { Media } from 'react-bootstrap'
 
 export class WhatsNewList extends React.Component {
     constructItems() {
@@ -34,8 +35,8 @@ export class WhatsNewList extends React.Component {
 
     render() {
         const itemNodes = this.constructItems();
-        return  <div className="media pull-left text-left">
+        return  <Media.List>
                     {itemNodes}
-                </div>
+                </Media.List>
     }
 }
