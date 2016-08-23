@@ -17,7 +17,7 @@ export class PaginationComments extends React.Component {
 
     render() {
         const { totalPages, page } = this.props;
-        if(totalPages < 1) return null;
+        if(totalPages <= 1) return null;
 
         return  <Pagination
                     prev next first last ellipsis boundaryLinks

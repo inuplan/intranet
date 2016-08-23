@@ -37,10 +37,10 @@ const page = (state = 1, action) => {
     }
 }
 
-const totalPages = (state = 1, action) => {
+const totalPages = (state = 0, action) => {
     switch (action.type) {
         case T.SET_TOTAL_PAGES:
-            return action.totalPages || 1;
+            return action.totalPages || 0;
         default:
             return state;
     }
