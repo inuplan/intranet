@@ -90,7 +90,7 @@ class CommentControlsContainer extends React.Component {
         const { commentId, imageId, replyComment } = this.props;
         const { replyText } = this.state;
 
-        this.toggleReply();
+        this.setState({ reply: false, replyText: '' });
         replyComment(imageId, replyText, commentId);
         this.reload();
     }
