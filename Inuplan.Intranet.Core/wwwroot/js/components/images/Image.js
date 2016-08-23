@@ -47,12 +47,13 @@ export class Image extends React.Component {
 render() {
     const { image, username } = this.props;
     let count = image.CommentCount;
+    const url = `/${username}/gallery/image/${image.ImageID}/comments`;
     return  <div>
-                <Link to={`/${username}/gallery/image/${image.ImageID}`}>
+                <Link to={url}>
                     <ImageBs src={image.PreviewUrl} thumbnail />
                 </Link>
                 <Row>
-                    <Link to={`/${username}/gallery/image/${image.ImageID}`}>
+                    <Link to={url}>
                         {this.commentIcon(count)} 
                     </Link>
                     {this.checkboxView()}
