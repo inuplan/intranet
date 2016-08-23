@@ -88,27 +88,3 @@ class CommentsContainer extends React.Component {
 }
 
 export const Comments = connect(mapStateToProps, mapDispatchToProps)(CommentsContainer);
-            //<div>
-            //    <div className="row">
-            //        <div className="col-lg-offset-1 col-lg-11">
-            //        </div>
-            //    </div>
-            //    <div className="row text-left">
-            //        <Pagination
-            //                imageId={imageId}
-            //                currentPage={page}
-            //                totalPages={totalPages}
-            //                next={this.nextPage}
-            //                prev={this.previousPage}
-            //                getPage={this.getPage}
-            //        />
-            //    </div>
-            //    <hr />
-            //    <div className="row text-left">
-            //        <div className="col-lg-offset-1 col-lg-10">
-            //            <CommentForm
-            //                postHandle={postComment.bind(null, imageId)}
-            //            />
-            //        </div>
-            //    </div>
-            //</div>
