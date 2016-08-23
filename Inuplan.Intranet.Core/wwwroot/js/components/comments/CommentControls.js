@@ -1,52 +1,52 @@
 ﻿import React from 'react'
+import { editComment, deleteComment, postComment, fetchComments } from '../../actions/comments'
+import { Row, Col, ButtonToolbar, ButtonGroup, OverlayTrigger, Button, Glyphicon, Tooltip, Collapse, FormGroup, FormControl } from 'react-bootstrap'
+import { connect } from 'react-redux'
 
-const ids = (commentId) => {
+const mapStateToProps = (state) => {
     return {
-        replyId: commentId + '_reply',
-        editId: commentId + '_edit',
-        deleteId: commentId + '_delete',
-        editCollapse: commentId + '_editCollapse',
-        replyCollapse: commentId + '_replyCollapse'
-    };
+        canEdit: (id) => state.usersInfo.currentUserId == id,
+        imageId: state.imagesInfo.selectedImageId,
+        skip: state.commentsInfo.skip,
+        take: state.commentsInfo.take,
+    }
 }
 
-export class CommentControls extends React.Component {
+const mapDispatchToProps = (dispatch) => {
+    return {
+        editComment: (commentId, imageId, text) => dispatch(editComment(commentId, imageId, text)),
+        deleteComment: (commentId, imageId) => dispatch(deleteComment(commentId, imageId)),
+        replyComment: (imageId, text, parentId) => dispatch(postComment(imageId, text, parentId)),
+        loadComments: (imageId, skip, take) => {
+            dispatch(fetchComments(imageId, skip, take));
+        }
+    }
+}
+
+class CommentControlsContainer extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             text: props.text,
-            reply: ''
+            replyText: '',
+            reply: false,
+            edit: false
         };
 
-        this.edit = this.edit.bind(this);
-        this.reply = this.reply.bind(this);
+        this.toggleEdit = this.toggleEdit.bind(this);
+        this.toggleReply = this.toggleReply.bind(this);
+
+        this.editHandle = this.editHandle.bind(this);
+        this.replyHandle = this.replyHandle.bind(this);
+        this.deleteHandle = this.deleteHandle.bind(this);
+
         this.handleTextChange = this.handleTextChange.bind(this);
         this.handleReplyChange = this.handleReplyChange.bind(this);
     }
 
-    edit() {
-        const { editHandle, commentId } = this.props;
-        const { text } = this.state;
-        const { editCollapse } = ids(commentId);
-
-        editHandle(commentId, text);
-        $("#" + editCollapse).collapse('hide');
-    }
-
-    reply() {
-        const { replyHandle, commentId } = this.props;
-        const { reply } = this.state;
-        const { replyCollapse } = ids(commentId);
-
-        replyHandle(commentId, reply);
-        $("#" + replyCollapse).collapse('hide');
-        this.setState({ reply: '' });
-    }
-
-    showTooltip(item) {
-        const { commentId } = this.props;
-        const btn = "#" + commentId + "_" + item;
-        $(btn).tooltip('show');
+    reload() {
+        const { loadComments, imageId, skip, take } = this.props;
+        loadComments(imageId, skip, take)
     }
 
     handleTextChange(e) {
@@ -54,93 +54,126 @@ export class CommentControls extends React.Component {
     }
 
     handleReplyChange(e) {
-        this.setState({ reply: e.target.value })
+        this.setState({ replyText: e.target.value })
+    }
+
+    toggleEdit() {
+        const { edit } = this.state;
+        this.setState({ edit: !edit });
+        if(!edit) {
+            const { text } = this.props;
+            this.setState({ text: text });
+        }
+    }
+
+    toggleReply() {
+        const { reply } = this.state;
+        this.setState({ reply: !reply });
+    }
+
+    deleteHandle() {
+        const { deleteComment, commentId, imageId } = this.props;
+        deleteComment(commentId, imageId);
+        this.reload();
+    }
+
+    editHandle() {
+        const { editComment, imageId, commentId } = this.props;
+        const { text } = this.state;
+
+        this.setState({ edit: false });
+        editComment(commentId, imageId, text);
+        this.reload();
+    }
+
+    replyHandle() {
+        const { commentId, imageId, replyComment } = this.props;
+        const { replyText } = this.state;
+
+        this.toggleReply();
+        replyComment(imageId, replyText, commentId);
+        this.reload();
     }
 
     render() {
-        const { text, commentId, canEdit, deleteHandle } = this.props;
-        const { editCollapse, replyCollapse, replyId, editId, deleteId } = ids(commentId);
-        const editTarget = "#" + editCollapse;
-        const replyTarget = "#" + replyCollapse;
+        const { commentId, authorId, canEdit } = this.props;
+        const { edit, text, reply, replyText } = this.state;
+        const mount = canEdit(authorId);
 
-        return (
-            canEdit ?
-            <div className="row">
-                <div className="row" style={{paddingBottom: '5px', paddingLeft: "15px"}}>
-                    <div className="col-lg-4">
-                        <a onClick={deleteHandle.bind(null, commentId)} style={{ textDecoration: "none", cursor: "pointer" }}>
-                            <span
-                                  onMouseEnter={this.showTooltip.bind(this, 'delete')}
-                                  id={deleteId}
-                                  data-toggle="tooltip"
-                                  title="Slet"
-                                  className="label label-danger">
-                                <span className="glyphicon glyphicon-trash"></span>
-                            </span>{'\u00A0'}
-                        </a> 
-                        <a data-toggle="collapse" data-target={editTarget} style={{ textDecoration: "none", cursor: "pointer" }}>
-                            <span
-                                  onMouseEnter={this.showTooltip.bind(this, 'edit')}
-                                  id={editId}
-                                  data-toggle="tooltip"
-                                  title="Ændre"
-                                  className="label label-success">
-                                <span className="glyphicon glyphicon-pencil"></span>
-                            </span>{'\u00A0'}
-                        </a> 
-                        <a data-toggle="collapse" data-target={replyTarget} style={{ textDecoration: "none", cursor: "pointer" }}>
-                            <span
-                                  onMouseEnter={this.showTooltip.bind(this, 'reply')}
-                                  id={replyId}
-                                  data-toggle="tooltip"
-                                  title="Svar"
-                                  className="label label-primary">
-                                <span className="glyphicon glyphicon-envelope"></span>
-                            </span>
-                        </a>
-                    </div>
-                </div>
-                <div className="row" style={{paddingBottom: '5px'}}>
-                    <div className="col-lg-offset-1 col-lg-10 collapse" id={editCollapse}>
-                        <textarea className="form-control" value={this.state.text} onChange={this.handleTextChange} rows="4" />
+        return  <Row>
+                    <Row style={{paddingBottom: '5px', paddingLeft: "15px"}}>
+                        <Col lg={4}>
+                            <ButtonToolbar>
+                                <ButtonGroup>
+
+                                    <ButtonTooltip bsStyle="primary" onClick={this.deleteHandle} icon="trash" tooltip="slet" mount={mount} />
+                                    <ButtonTooltip bsStyle="primary" onClick={this.toggleEdit} icon="pencil" tooltip="ændre" active={edit} mount={mount} />
+                                    <ButtonTooltip bsStyle="primary" onClick={this.toggleReply} icon="envelope" tooltip="svar" active={reply} mount={mount} />
+
+                                </ButtonGroup>
+                            </ButtonToolbar>
+                        </Col>
+                    </Row>
+                    <Row style={{paddingBottom: '5px'}}>
+                        <Col lgOffset={1} lg={10}>
+                            <CollapseTextArea
+                                show={edit}
+                                id="editTextControl"
+                                value={text}
+                                onChange={this.handleTextChange}
+                                toggle={this.toggleEdit}
+                                save={this.editHandle}
+                                saveText="Gem ændringer"
+                                mount={mount}
+                            />
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col lgOffset={1} lg={10}>
+                            <CollapseTextArea
+                                show={reply}
+                                id="replyTextControl"
+                                value={replyText}
+                                onChange={this.handleReplyChange}
+                                toggle={this.toggleReply}
+                                save={this.replyHandle}
+                                saveText="Svar"
+                                mount={mount}
+                            />
+                        </Col>
+                    </Row>
+                </Row>
+    }
+}
+
+export const CommentControls = connect(mapStateToProps, mapDispatchToProps)(CommentControlsContainer);
+
+class CollapseTextArea extends React.Component {
+    render() {
+        const { show, id, value, onChange, toggle, save, saveText, mount } = this.props;
+        if(!mount) return null;
+        return  <Collapse in={show}>
+                    <FormGroup controlId={id}>
+                        <FormControl componentClass="textarea" value={value} onChange={onChange} rows="4" />
                         <br />
-                        <button type="button" data-toggle="collapse" onClick={() => this.setState({text: text})} data-target={editTarget} className="btn btn-default">Luk</button>
-                        <button type="button" className="btn btn-info" onClick={this.edit}>Gem ændringer</button>
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-lg-offset-1 col-lg-10 collapse" id={replyCollapse}>
-                        <textarea className="form-control" value={this.state.reply} onChange={this.handleReplyChange} rows="4" />
-                        <br />
-                        <button type="button" data-toggle="collapse" data-target={replyTarget} className="btn btn-default">Luk</button>
-                        <button type="button" className="btn btn-info" onClick={this.reply}>Svar</button>
-                    </div>
-                </div>
-            </div> : 
-            <div className="row">
-                <div className="row" style={{paddingBottom: '5px', paddingLeft: '15px'}}>
-                    <div className="col-lg-4">
-                        <a data-toggle="collapse" data-target={replyTarget}>
-                            <span
-                                  onMouseEnter={this.showTooltip.bind(this, 'reply')}
-                                  id={replyId}
-                                  data-toggle="tooltip"
-                                  title="Svar"
-                                  className="label label-primary">
-                                <span className="glyphicon glyphicon-envelope"></span>
-                            </span>
-                        </a>
-                    </div>
-                </div>
-                <div className="row">
-                    <div className="col-lg-offset-1 col-lg-10 collapse" id={replyCollapse}>
-                        <textarea className="form-control" value={this.state.reply} onChange={this.handleReplyChange} rows="4" />
-                        <br />
-                        <button type="button" data-toggle="collapse" data-target={replyTarget} className="btn btn-default">Luk</button>
-                        <button type="button" className="btn btn-info" onClick={this.reply}>Svar</button>
-                    </div>
-                </div>
-            </div>
-        );
+                        <Button onClick={toggle}>Luk</Button>
+                        <Button type="submit" bsStyle="info" onClick={save}>{saveText}</Button>
+                    </FormGroup>
+                </Collapse>
+    }
+}
+
+class ButtonTooltip extends React.Component {
+    render() {
+        const { tooltip, onClick, icon, bsStyle, active, mount } = this.props;
+        let overlayTip = <Tooltip id="tooltip">{tooltip}</Tooltip>;
+
+        if(!mount) return null;
+
+        return  <OverlayTrigger placement="top" overlay={overlayTip}>
+                    <Button bsStyle={bsStyle} bsSize="xsmall" onClick={onClick} active={active}>
+                        <Glyphicon glyph={icon} />
+                    </Button>
+                </OverlayTrigger>
     }
 }

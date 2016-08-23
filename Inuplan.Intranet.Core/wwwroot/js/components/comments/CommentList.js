@@ -3,53 +3,49 @@ import { CommentDeleted } from './CommentDeleted'
 import { Comment } from './Comment'
 import { Media } from 'react-bootstrap'
 
-const compactHandlers = (replyHandle, editHandle, deleteHandle, canEdit, getUser) => {
-    return {
-        replyHandle,
-        editHandle,
-        deleteHandle,
-        canEdit,
-        getUser
-    }
-}
 
 export class CommentList extends React.Component {
-    constructComments(comments, handlers) {
-        if (!comments || comments.length == 0) return;
+    constructor(props) {
+        super(props);
+        this.constructComment = this.constructComment.bind(this);
+    }
+
+    rootComments(comments) {
+        if (!comments) return;
 
         return comments.map((comment) => {
-            const key = "commentId" + comment.CommentID;
-
-            if (comment.Deleted) {
-                return  <Media.ListItem key={key}>
-                            <CommentDeleted
-                                 key={key} 
-                                 replies={comment.Replies}
-                                 handlers={handlers}
-                                 constructComments={constructComments}
-                             />
-                        </Media.ListItem>
-            }
-
-            return  <Media.ListItem key={key}>
-                        <Comment
-                                 key={key} 
-                                 postedOn={comment.PostedOn}
-                                 authorId={comment.AuthorID}                             
-                                 text={comment.Text}
-                                 replies={comment.Replies}
-                                 commentId={comment.CommentID}
-                                 handlers={handlers}
-                                 constructComments={constructComments}
-                         />
+            const node = this.constructComment(comment);
+            return  <Media.ListItem key={"rootComment_" + comment.CommentID}>
+                        {node}
                     </Media.ListItem>
         });
     }
 
+    constructComment(comment) {
+        const key = "commentId" + comment.CommentID;
+
+        if (comment.Deleted)
+            return  <CommentDeleted
+                        key={key} 
+                        construct={this.constructComment}
+                        replies={comment.Replies} />
+
+        const { getName } = this.props;
+        const name = getName(comment.AuthorID);
+        return  <Comment
+                    key={key} 
+                    name={name}
+                    postedOn={comment.PostedOn}
+                    authorId={comment.AuthorID}                             
+                    text={comment.Text}
+                    construct={this.constructComment}
+                    replies={comment.Replies}
+                    commentId={comment.CommentID} />
+    }
+
     render() {
-        const { comments, replyHandle, editHandle, deleteHandle, canEdit, getUser } = this.props;
-        const handlers = compactHandlers(replyHandle, editHandle, deleteHandle, canEdit, getUser);
-        const nodes = this.constructComments(comments, handlers);
+        const { comments } = this.props;
+        const nodes = this.rootComments(comments);
 
         return  <Media.List>
                     {nodes}

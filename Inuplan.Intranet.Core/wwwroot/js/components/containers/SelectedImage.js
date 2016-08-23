@@ -2,7 +2,6 @@
 import ReactDOM from 'react-dom'
 import { setSelectedImg, fetchSingleImage, deleteImage } from '../../actions/images'
 import { setError } from '../../actions/error'
-import { Comments } from '../containers/Comments'
 import { find } from 'underscore'
 import { connect } from 'react-redux'
 import { withRouter } from 'react-router'
@@ -61,19 +60,7 @@ class ModalImage extends React.Component {
     constructor(props) {
         super(props);
         this.deleteImage = this.deleteImage.bind(this); 
-        this.open = this.open.bind(this); 
         this.close = this.close.bind(this); 
-    }
-
-    open() {
-        const { hasImage, setError } = this.props;
-        if(hasImage) return true;
-
-        setError({
-            title: 'Oops something went wrong',
-            message: 'Could not find the image, maybe the URL is invalid or it has been deleted!'
-        });
-        return false;
     }
 
     close() {
@@ -108,7 +95,7 @@ class ModalImage extends React.Component {
                 const uploadDate = moment(uploaded);
                 const dateString = "Uploaded d. " + uploadDate.format("D MMM YYYY ") + "kl. " + uploadDate.format("H:mm");
 
-                return  <Modal show={this.open()} onHide={this.close} bsSize="large">
+                return  <Modal show={true} onHide={this.close} bsSize="large" animation={false}>
                             <Modal.Header closeButton>
                                 <Modal.Title>{name}<span><small> - {dateString}</small></span></Modal.Title>
                             </Modal.Header>
@@ -120,7 +107,7 @@ class ModalImage extends React.Component {
                             </Modal.Body>
 
                             <Modal.Footer>
-                                <Comments />
+                                {this.props.children}
                                 <hr />
                                 <ButtonToolbar style={{float: "right"}}>
                                     {this.deleteImageView()}

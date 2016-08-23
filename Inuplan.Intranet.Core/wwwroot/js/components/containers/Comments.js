@@ -15,9 +15,11 @@ const mapStateToProps = (state) => {
         page: state.commentsInfo.page,
         totalPages: state.commentsInfo.totalPages,
         comments: state.commentsInfo.comments,
-        getUser: (id) => find(state.usersInfo.users, (u) => u.ID == id),
-        canEdit: (userId) => state.usersInfo.currentUserId == userId,
-        userId: state.usersInfo.currentUserId
+        getName: (userId) => {
+            const user = find(state.usersInfo.users, (user) => user.ID == userId);
+            const { FirstName, LastName } = user;
+            return `${FirstName} ${LastName}`;
+        }
     }
 }
 
@@ -25,18 +27,6 @@ const mapDispatchToProps = (dispatch) => {
     return {
         loadComments: (imageId, skip, take) => {
             dispatch(fetchComments(imageId, skip, take));
-        },
-        postReply: (imageId, replyId, text) => {
-            dispatch(postComment(imageId, text, replyId));
-        },
-        postComment: (imageId, text) => {
-            dispatch(postComment(imageId, text, null));
-        },
-        editComment: (imageId, commentId, text) => {
-            dispatch(editComment(commentId, imageId, text));
-        },
-        deleteComment: (imageId, commentId) => {
-            dispatch(deleteComment(commentId, imageId));
         }
     }
 }
@@ -68,27 +58,13 @@ class CommentsContainer extends React.Component {
         loadComments(imageId, backSkip, take);
     }
 
-    componentDidMount() {
-        const { loadComments, imageId, skip, take } = this.props;
-        loadComments(imageId, skip, take);
-    }
-
     render() {
-        const { comments, postReply, editComment, postComment,
-                deleteComment, canEdit, getUser,
-                userId, imageId, page, totalPages } = this.props;
+        const { comments, getName, imageId, page, totalPages } = this.props;
 
         return  <div className="text-left">
                     <Row>
                         <Col lgOffset={1} lg={11}>
-                            <CommentList
-                                comments={comments}
-                                replyHandle={postReply.bind(null, imageId)}
-                                editHandle={editComment.bind(null, imageId)}
-                                deleteHandle={deleteComment.bind(null, imageId)}
-                                canEdit={canEdit}
-                                getUser={getUser}
-                            />
+                            <CommentList comments={comments} getName={getName} />
                         </Col>
                     </Row>
                     <Row>
@@ -108,7 +84,6 @@ class CommentsContainer extends React.Component {
                         </Col>
                     </Row>
                 </div>
-
     }
 }
 
