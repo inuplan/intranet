@@ -3,63 +3,34 @@ import { fetchComments, postComment, editComment, deleteComment } from '../../ac
 import { CommentList } from '../comments/CommentList'
 import { find } from 'underscore'
 import { connect } from 'react-redux'
-import { Pagination } from '../comments/Pagination'
+import { PaginationComments } from '../comments/PaginationComments'
 import { CommentForm } from '../comments/CommentForm'
 import { Row, Col } from 'react-bootstrap'
+import { withRouter } from 'react-router'
 
 const mapStateToProps = (state) => {
+    const getUser = (userId) => {
+            return find(state.usersInfo.users, (user) => user.ID == userId);
+    }
+
     return {
         imageId: state.imagesInfo.selectedImageId,
-        skip: state.commentsInfo.skip,
-        take: state.commentsInfo.take,
         page: state.commentsInfo.page,
         totalPages: state.commentsInfo.totalPages,
         comments: state.commentsInfo.comments,
         getName: (userId) => {
-            const user = find(state.usersInfo.users, (user) => user.ID == userId);
+            const user = getUser(userId);
             const { FirstName, LastName } = user;
             return `${FirstName} ${LastName}`;
-        }
-    }
-}
-
-const mapDispatchToProps = (dispatch) => {
-    return {
-        loadComments: (imageId, skip, take) => {
-            dispatch(fetchComments(imageId, skip, take));
-        }
+        },
+        owner: getUser(state.imagesInfo.ownerId)
     }
 }
 
 class CommentsContainer extends React.Component {
-    constructor(props) {
-        super(props);
-        this.nextPage = this.nextPage.bind(this);
-        this.getPage = this.getPage.bind(this);
-        this.previousPage = this.previousPage.bind(this);
-    }
-
-    nextPage() {
-        const { loadComments, imageId, skip, take } = this.props;
-        const skipNext = skip + take;
-        loadComments(imageId, skipNext, take);
-    }
-
-    getPage(page) {
-        const { loadComments, imageId, take } = this.props;
-        const skipPages = page - 1;
-        const skipItems = (skipPages * take);
-        loadComments(imageId, skipItems, take);
-    }
-
-    previousPage() {
-        const { loadComments, imageId, skip, take} = this.props;
-        const backSkip = skip - take;
-        loadComments(imageId, backSkip, take);
-    }
-
     render() {
-        const { comments, getName, imageId, page, totalPages } = this.props;
+        const { comments, getName, imageId, page, owner, totalPages } = this.props;
+        const { push } = this.props.router;
 
         return  <div className="text-left">
                     <Row>
@@ -68,14 +39,15 @@ class CommentsContainer extends React.Component {
                         </Col>
                     </Row>
                     <Row>
-                        <Pagination
-                                imageId={imageId}
-                                currentPage={page}
+                        <Col lgOffset={1} lg={10}>
+                            <PaginationComments
+                                username={owner.Username}
                                 totalPages={totalPages}
-                                next={this.nextPage}
-                                prev={this.previousPage}
-                                getPage={this.getPage}
-                        />
+                                page={page}
+                                navigateTo={push}
+                                imageId={imageId}
+                            />
+                        </Col>
                     </Row>
                     <hr />
                     <Row>
@@ -87,4 +59,5 @@ class CommentsContainer extends React.Component {
     }
 }
 
-export const Comments = connect(mapStateToProps, mapDispatchToProps)(CommentsContainer);
+const CommentsRedux = connect(mapStateToProps, null)(CommentsContainer);
+export const Comments = withRouter(CommentsRedux);
