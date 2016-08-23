@@ -27,7 +27,7 @@ const mapStateToProps = (state) => {
 
     return {
         canEdit: canEdit,
-        hasImage: Boolean(getImage(state.imagesInfo.selectedImageId)),
+        hasImage: () => Boolean(getImage(state.imagesInfo.selectedImageId)),
         filename: filename(),
         previewUrl: previewUrl(),
         extension: extension(),
@@ -59,7 +59,7 @@ const mapDispatchToProps = (dispatch) => {
 class ModalImage extends React.Component {
     constructor(props) {
         super(props);
-        this.deleteImage = this.deleteImage.bind(this); 
+        this.deleteImageHandler = this.deleteImageHandler.bind(this); 
         this.close = this.close.bind(this); 
     }
 
@@ -73,29 +73,30 @@ class ModalImage extends React.Component {
         push(galleryUrl);
     }
 
-    deleteImage() {
-        const { deleteImage } = this.props;
+    deleteImageHandler() {
+        const { deleteImage, setSelectedImageId } = this.props;
         const { id, username } = this.props.params;
 
         deleteImage(id, username);
-        $(ReactDOM.findDOMNode(this)).modal('hide');
+        setSelectedImageId(-1);
     }
 
     deleteImageView() {
         const { canEdit } = this.props;
         return (
             canEdit ?
-            <Button bsStyle="danger" onClick={this.deleteImage}>Slet billede</Button>
+            <Button bsStyle="danger" onClick={this.deleteImageHandler}>Slet billede</Button>
             : null);
     }
 
             render() {
-                const { filename, previewUrl, extension, originalUrl, uploaded } = this.props;
+                const { filename, previewUrl, extension, originalUrl, uploaded, hasImage } = this.props;
+                const show = hasImage();
                 const name = filename + "." + extension;
                 const uploadDate = moment(uploaded);
                 const dateString = "Uploaded d. " + uploadDate.format("D MMM YYYY ") + "kl. " + uploadDate.format("H:mm");
 
-                return  <Modal show={true} onHide={this.close} bsSize="large" animation={false}>
+                return  <Modal show={show} onHide={this.close} bsSize="large" animation={false}>
                             <Modal.Header closeButton>
                                 <Modal.Title>{name}<span><small> - {dateString}</small></span></Modal.Title>
                             </Modal.Header>
