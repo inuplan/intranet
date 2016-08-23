@@ -30,7 +30,17 @@ const fetchImages = (nextState) => {
 
 const loadComments = (nextState) => {
     const { username, id } = nextState.params;
-    store.dispatch(fetchComments(id, 0, 10));
+    const { page } = nextState.location.query;
+    const { skip, take } = store.getState().commentsInfo;
+
+    if(!page) {
+        store.dispatch(fetchComments(id, skip, take));
+    }
+    else {
+        const skipPages = page - 1;
+        const skipItems = (skipPages * take);
+        store.dispatch(fetchComments(id, skipItems, take));
+    }
 }
 
 ReactDOM.render(
