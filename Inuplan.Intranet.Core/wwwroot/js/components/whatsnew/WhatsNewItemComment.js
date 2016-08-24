@@ -21,16 +21,17 @@ export class WhatsNewItemComment extends React.Component {
     }
 
     render() {
-        const { imageId, uploadedBy } = this.props;
-        const author = this.fullname();
+        const { imageId, uploadedBy, commentId, author } = this.props;
+        const username = uploadedBy.Username;
+        const name = this.fullname();
         const summary = this.createSummary();
-        const linkToImage = uploadedBy.Username + "/gallery/image/" + imageId;
+        const link = `${username}/gallery/image/${imageId}/comment?id=${commentId}`
         return  <Media.ListItem>
                     <CommentProfile />
                     <Media.Body>
-                        <h5 className="media-heading">{author} <small>{this.when()}</small></h5>
+                        <h5 className="media-heading">{name} <small>{this.when()}</small></h5>
                             <em><span dangerouslySetInnerHTML={summary}></span></em>
-                            <Link to={linkToImage}>Se kommentar</Link>
+                            <Link to={link}>Se kommentar</Link>
                     </Media.Body>
                 </Media.ListItem>
     }

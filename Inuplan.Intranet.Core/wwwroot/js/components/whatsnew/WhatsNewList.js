@@ -14,14 +14,19 @@ export class WhatsNewList extends React.Component {
                 case 1:
                     return  <WhatsNewItemImage
                                 id={item.ID}
-                                item={item.Item}
                                 on={item.On}
+                                imageId={item.Item.ImageID}
+                                filename={item.Item.Filename}
+                                extension={item.Item.Extension}
+                                thumbnail={item.Item.ThumbnailUrl}
+                                preview={item.Item.PreviewUrl}
                                 author={author}
                                 key={itemKey}
                             />
                 case 2:
                     return  <WhatsNewItemComment
                                 id={item.ID}
+                                commentId={item.Item.ID}
                                 text={item.Item.Text}
                                 uploadedBy={item.Item.ImageUploadedBy}
                                 imageId={item.Item.ImageID}
