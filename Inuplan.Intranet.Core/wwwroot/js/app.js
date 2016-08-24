@@ -58,6 +58,7 @@ ReactDOM.render(
                 <Route path=":username/gallery" component={UserImages} onEnter={fetchImages}>
                     <Route path="image/:id" component={SelectedImage} onEnter={selectImage}>
                         <Route path="comments" component={Comments} onEnter={loadComments} />
+                        <Route path="comment" component={SingleComment} />
                     </Route>
                 </Route>
             </Route>

@@ -21,7 +21,6 @@ const mapDispatchToProps = (dispatch) => {
 class UsersContainer extends React.Component {
     componentDidMount() {
         document.title = "Brugere";
-        this.props.getUsers();
     }
 
     render() {
