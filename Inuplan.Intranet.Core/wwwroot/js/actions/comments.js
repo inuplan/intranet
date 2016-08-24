@@ -4,6 +4,7 @@ import { options } from '../constants/constants'
 import { normalizeComment, visitComments, responseHandler, onReject } from '../utilities/utils'
 import { addUser } from './users'
 import { HttpError, setError } from './error'
+import { find } from 'underscore'
 
 export const setSkipComments = (skip) => {
     return {
@@ -58,8 +59,15 @@ export function receivedComments(comments) {
     };
 }
 
+export function addComment(comment) {
+    return {
+        type: T.ADD_COMMENT,
+        comment: comment
+    }
+}
+
 export function fetchComments(imageId, skip, take) {
-    return function(dispatch) {
+    return function(dispatch, getState) {
         const url = globals.urls.comments + "?imageId=" + imageId + "&skip=" + skip + "&take=" + take;
         const handler = responseHandler.bind(this, dispatch);
         return fetch(url, options)
@@ -69,19 +77,24 @@ export function fetchComments(imageId, skip, take) {
                 const pageComments = data.CurrentItems;
 
                 // Set (re-set) info
+                dispatch(receivedComments(undefined));
                 dispatch(setSkipComments(skip));
                 dispatch(setTakeComments(take));
                 dispatch(setCurrentPage(data.CurrentPage));
                 dispatch(setTotalPages(data.TotalPages));
 
-                // Visit every comment and add the user
-                const addAuthor = (c) => {
-                    if(!c.Deleted)
-                        dispatch(addUser(c.Author));
-                }
-                visitComments(pageComments, addAuthor);
+                //const normalize = (c) => {
+                //    if(!c.Deleted) {
+                //        const exists = find(getState().usersInfo.users, (user) => user.ID == c.Author.ID);
+                //        if(!exists) dispatch(addUser(c.Author));
+                //    }
 
-                // Normalize: filter out user
+                //    const normalComment = normalizeComment(c);
+                //    dispatch(addComment(normalComment));
+                //}
+
+                // Visit every comment and normalize
+                //visitComments(pageComments, normalize);
                 const comments = pageComments.map(normalizeComment);
                 dispatch(receivedComments(comments));
             }, onReject);

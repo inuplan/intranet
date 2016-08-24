@@ -1,5 +1,6 @@
 ﻿import React from 'react'
 import { Image } from './Image'
+import { Row, Col } from 'react-bootstrap'
 
 const elementsPerRow = 4;
 
@@ -32,26 +33,22 @@ export default class ImageList extends React.Component {
         const result = this.arrangeArray(images);
         const view = result.map((row, i) => {
             const imgs = row.map((img) => {
-                return (
-                    <div className="col-lg-3" key={img.ImageID}>
-                        <Image
-                            image={img}
-                            canEdit={canEdit}
-                            addSelectedImageId={addSelectedImageId}
-                            removeSelectedImageId={removeSelectedImageId}
-                            imageIsSelected={imageIsSelected}
-                            username={username}
-                        />
-                    </div>
-                );
+                return  <Col lg={3} key={img.ImageID}>
+                            <Image
+                                image={img}
+                                canEdit={canEdit}
+                                addSelectedImageId={addSelectedImageId}
+                                removeSelectedImageId={removeSelectedImageId}
+                                imageIsSelected={imageIsSelected}
+                                username={username}
+                            />
+                        </Col>
             });
 
             const rowId = "rowId" + i;
-            return (
-                <div className="row" key={rowId}>
-                    {imgs}
-                </div>
-            );
+            return  <Row key={rowId}>
+                        {imgs}
+                    </Row>
         });
 
         return view;
@@ -60,9 +57,11 @@ export default class ImageList extends React.Component {
 
     render() {
         const { images } = this.props;
-        return (
-        <div className="row">
-            {this.imagesView(images)}
-        </div>);
+        return  <Row>
+                    {this.imagesView(images)}
+                </Row>
     }
 }
+//<div className="row">
+//            {this.imagesView(images)}
+//        </div>

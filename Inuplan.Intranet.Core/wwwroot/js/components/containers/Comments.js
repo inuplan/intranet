@@ -3,10 +3,16 @@ import { fetchComments, postComment, editComment, deleteComment } from '../../ac
 import { CommentList } from '../comments/CommentList'
 import { find } from 'underscore'
 import { connect } from 'react-redux'
-import { Pagination } from '../comments/Pagination'
+import { PaginationComments } from '../comments/PaginationComments'
 import { CommentForm } from '../comments/CommentForm'
+import { Row, Col } from 'react-bootstrap'
+import { withRouter } from 'react-router'
 
 const mapStateToProps = (state) => {
+    const getUser = (userId) => {
+            return find(state.usersInfo.users, (user) => user.ID == userId);
+    }
+
     return {
         imageId: state.imagesInfo.selectedImageId,
         skip: state.commentsInfo.skip,
@@ -14,28 +20,22 @@ const mapStateToProps = (state) => {
         page: state.commentsInfo.page,
         totalPages: state.commentsInfo.totalPages,
         comments: state.commentsInfo.comments,
-        getUser: (id) => find(state.usersInfo.users, (u) => u.ID == id),
-        canEdit: (userId) => state.usersInfo.currentUserId == userId,
-        userId: state.usersInfo.currentUserId
+        getName: (userId) => {
+            const user = getUser(userId);
+            const { FirstName, LastName } = user;
+            return `${FirstName} ${LastName}`;
+        },
+        owner: getUser(state.imagesInfo.ownerId)
     }
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        loadComments: (imageId, skip, take) => {
-            dispatch(fetchComments(imageId, skip, take));
-        },
-        postReply: (imageId, replyId, text) => {
-            dispatch(postComment(imageId, text, replyId));
-        },
         postComment: (imageId, text) => {
             dispatch(postComment(imageId, text, null));
         },
-        editComment: (imageId, commentId, text) => {
-            dispatch(editComment(commentId, imageId, text));
-        },
-        deleteComment: (imageId, commentId) => {
-            dispatch(deleteComment(commentId, imageId));
+        fetchComments: (imageId, skip, take) => {
+            dispatch(fetchComments(imageId, skip, take));
         }
     }
 }
@@ -43,75 +43,54 @@ const mapDispatchToProps = (dispatch) => {
 class CommentsContainer extends React.Component {
     constructor(props) {
         super(props);
-        this.nextPage = this.nextPage.bind(this);
-        this.getPage = this.getPage.bind(this);
-        this.previousPage = this.previousPage.bind(this);
+        this.pageHandle = this.pageHandle.bind(this);
     }
 
-    nextPage() {
-        const { loadComments, imageId, skip, take } = this.props;
-        const skipNext = skip + take;
-        loadComments(imageId, skipNext, take);
-    }
+    pageHandle(to) {
+        const { owner, imageId, page, skip, take, fetchComments } = this.props;
+        const { push } = this.props.router;
 
-    getPage(page) {
-        const { loadComments, imageId, take } = this.props;
-        const skipPages = page - 1;
+        const username = owner.Username;
+
+        if(page == to) return;
+
+        const url = `/${username}/gallery/image/${imageId}/comments?page=${to}`;
+        push(url);
+
+        const skipPages = to - 1;
         const skipItems = (skipPages * take);
-        loadComments(imageId, skipItems, take);
-    }
-
-    previousPage() {
-        const { loadComments, imageId, skip, take} = this.props;
-        const backSkip = skip - take;
-        loadComments(imageId, backSkip, take);
-    }
-
-    componentDidMount() {
-        const { loadComments, imageId, skip, take } = this.props;
-        loadComments(imageId, skip, take);
+        fetchComments(imageId, skipItems, take);
     }
 
     render() {
-        const { comments, postReply, editComment, postComment,
-                deleteComment, canEdit, getUser,
-                userId, imageId, page, totalPages } = this.props;
+        const { comments, getName, imageId, page, owner, totalPages, postComment } = this.props;
 
-        return (
-            <div>
-                <div className="row">
-                    <div className="col-lg-offset-1 col-lg-11">
-                        <CommentList
-                            comments={comments}
-                            replyHandle={postReply.bind(null, imageId)}
-                            editHandle={editComment.bind(null, imageId)}
-                            deleteHandle={deleteComment.bind(null, imageId)}
-                            canEdit={canEdit}
-                            getUser={getUser}
-                        />
-                    </div>
+        return  <div className="text-left">
+                    <Row>
+                        <Col lgOffset={1} lg={11}>
+                            <CommentList comments={comments} getName={getName} />
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col lgOffset={1} lg={10}>
+                            <PaginationComments
+                                username={owner.Username}
+                                totalPages={totalPages}
+                                page={page}
+                                imageId={imageId}
+                                pageHandle={this.pageHandle}
+                            />
+                        </Col>
+                    </Row>
+                    <hr />
+                    <Row>
+                        <Col lgOffset={1} lg={10}>
+                            <CommentForm postHandle={postComment.bind(null, imageId)}/>
+                        </Col>
+                    </Row>
                 </div>
-                <div className="row text-left">
-                    <Pagination
-                            imageId={imageId}
-                            currentPage={page}
-                            totalPages={totalPages}
-                            next={this.nextPage}
-                            prev={this.previousPage}
-                            getPage={this.getPage}
-                    />
-                </div>
-                <hr />
-                <div className="row text-left">
-                    <div className="col-lg-offset-1 col-lg-10">
-                        <CommentForm
-                            postHandle={postComment.bind(null, imageId)}
-                        />
-                    </div>
-                </div>
-            </div>
-        );
     }
 }
 
-export const Comments = connect(mapStateToProps, mapDispatchToProps)(CommentsContainer);
+const CommentsRedux = connect(mapStateToProps, mapDispatchToProps)(CommentsContainer);
+export const Comments = withRouter(CommentsRedux);

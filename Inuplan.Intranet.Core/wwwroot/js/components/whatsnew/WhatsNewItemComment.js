@@ -2,6 +2,7 @@
 import { CommentProfile } from '../comments/CommentProfile'
 import { formatText, getWords, timeText } from '../../utilities/utils'
 import { Link } from 'react-router'
+import { Media } from 'react-bootstrap'
 
 export class WhatsNewItemComment extends React.Component {
     createSummary() {
@@ -24,14 +25,13 @@ export class WhatsNewItemComment extends React.Component {
         const author = this.fullname();
         const summary = this.createSummary();
         const linkToImage = uploadedBy.Username + "/gallery/image/" + imageId;
-        return  <div>
+        return  <Media.ListItem>
                     <CommentProfile />
-                    <div className="media-body">
+                    <Media.Body>
                         <h5 className="media-heading">{author} <small>{this.when()}</small></h5>
                             <em><span dangerouslySetInnerHTML={summary}></span></em>
-                            <Link to={linkToImage}>Se billede, (hvor kommentaren er)</Link>
-                    </div>
-                    <br />
-                </div>
+                            <Link to={linkToImage}>Se kommentar</Link>
+                    </Media.Body>
+                </Media.ListItem>
     }
 }

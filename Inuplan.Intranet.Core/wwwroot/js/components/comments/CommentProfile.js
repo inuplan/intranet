@@ -1,15 +1,15 @@
 ﻿import React from 'react'
+import { Image, Media } from 'react-bootstrap'
 
 export class CommentProfile extends React.Component {
     render() {
-        return (
-            <div className="media-left">
-                <img className="media-object"
-                    src="/images/person_icon.svg"
-                    data-holder-rendered="true"
-                    style={{ width: "64px", height: "64px" }}
-                />
-                {this.props.children}
-            </div>);
+        return  <Media.Left>
+                    <Image
+                        src="/images/person_icon.svg"
+                        style={{ width: "64px", height: "64px" }}
+                        className="media-object"
+                    />
+                    {this.props.children}
+                </Media.Left>
     }
 }

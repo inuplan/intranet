@@ -6,6 +6,7 @@ import { ImageUpload } from '../images/ImageUpload'
 import ImageList from '../images/ImageList'
 import { find } from 'underscore'
 import { withRouter } from 'react-router'
+import { Row, Col } from 'react-bootstrap'
 
 const mapStateToProps = (state) => {
     const ownerId  = state.imagesInfo.ownerId;
@@ -103,24 +104,22 @@ class UserImagesContainer extends React.Component {
         const { images, getFullname, canEdit, addSelectedImageId, removeSelectedImageId } = this.props;
         const fullName = getFullname(username);
         
-        return (
-            <div className="row">
-                <div className="col-lg-offset-2 col-lg-8">
-                    <h1><span className="text-capitalize">{fullName}'s</span> <small>billede galleri</small></h1>
-                    <hr />
-                    <ImageList
-                        images={images}
-                        canEdit={canEdit}
-                        addSelectedImageId={addSelectedImageId}
-                        removeSelectedImageId={removeSelectedImageId}
-                        imageIsSelected={this.imageIsSelected}
-                        username={username}
-                    />
-                    {this.uploadView()}
-                </div>
-                {this.props.children}
-            </div>
-        );
+        return  <Row>
+                    <Col lgOffset={2} lg={8}>
+                        <h1><span className="text-capitalize">{fullName}'s</span> <small>billede galleri</small></h1>
+                        <hr />
+                        <ImageList
+                            images={images}
+                            canEdit={canEdit}
+                            addSelectedImageId={addSelectedImageId}
+                            removeSelectedImageId={removeSelectedImageId}
+                            imageIsSelected={this.imageIsSelected}
+                            username={username}
+                        />
+                        {this.uploadView()}
+                    </Col>
+                    {this.props.children}
+                </Row>
     }
 }
 
