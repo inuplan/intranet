@@ -15,6 +15,8 @@ const mapStateToProps = (state) => {
 
     return {
         imageId: state.imagesInfo.selectedImageId,
+        skip: state.commentsInfo.skip,
+        take: state.commentsInfo.take,
         page: state.commentsInfo.page,
         totalPages: state.commentsInfo.totalPages,
         comments: state.commentsInfo.comments,
@@ -27,10 +29,41 @@ const mapStateToProps = (state) => {
     }
 }
 
+const mapDispatchToProps = (dispatch) => {
+    return {
+        postComment: (imageId, text) => {
+            dispatch(postComment(imageId, text, null));
+        },
+        fetchComments: (imageId, skip, take) => {
+            dispatch(fetchComments(imageId, skip, take));
+        }
+    }
+}
+
 class CommentsContainer extends React.Component {
-    render() {
-        const { comments, getName, imageId, page, owner, totalPages } = this.props;
+    constructor(props) {
+        super(props);
+        this.pageHandle = this.pageHandle.bind(this);
+    }
+
+    pageHandle(to) {
+        const { owner, imageId, page, skip, take, fetchComments } = this.props;
         const { push } = this.props.router;
+
+        const username = owner.Username;
+
+        if(page == to) return;
+
+        const url = `/${username}/gallery/image/${imageId}/comments?page=${to}`;
+        push(url);
+
+        const skipPages = to - 1;
+        const skipItems = (skipPages * take);
+        fetchComments(imageId, skipItems, take);
+    }
+
+    render() {
+        const { comments, getName, imageId, page, owner, totalPages, postComment } = this.props;
 
         return  <div className="text-left">
                     <Row>
@@ -44,8 +77,8 @@ class CommentsContainer extends React.Component {
                                 username={owner.Username}
                                 totalPages={totalPages}
                                 page={page}
-                                navigateTo={push}
                                 imageId={imageId}
+                                pageHandle={this.pageHandle}
                             />
                         </Col>
                     </Row>
@@ -59,5 +92,5 @@ class CommentsContainer extends React.Component {
     }
 }
 
-const CommentsRedux = connect(mapStateToProps, null)(CommentsContainer);
+const CommentsRedux = connect(mapStateToProps, mapDispatchToProps)(CommentsContainer);
 export const Comments = withRouter(CommentsRedux);

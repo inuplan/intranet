@@ -1,6 +1,7 @@
 ﻿import React from 'react'
 import ReactDOM from 'react-dom'
 import { setSelectedImg, fetchSingleImage, deleteImage } from '../../actions/images'
+import { setSkipComments, setTakeComments } from '../../actions/comments'
 import { setError } from '../../actions/error'
 import { find } from 'underscore'
 import { connect } from 'react-redux'
@@ -52,6 +53,10 @@ const mapDispatchToProps = (dispatch) => {
         },
         deleteImage: (id, username) => {
             dispatch(deleteImage(id, username));
+        },
+        resetComments: () => {
+            dispatch(setSkipComments(undefined));
+            dispatch(setTakeComments(undefined));
         }
     }
 }
@@ -64,12 +69,13 @@ class ModalImage extends React.Component {
     }
 
     close() {
-        const { deselectImage } = this.props;
+        const { deselectImage, resetComments } = this.props;
         const { username } = this.props.params;
         const { push } = this.props.router;
 
         deselectImage();
-        const galleryUrl = '/' + username + '/gallery';
+        const galleryUrl = `/${username}/gallery`;
+        resetComments();
         push(galleryUrl);
     }
 

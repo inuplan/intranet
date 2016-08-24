@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import { connect, Provider } from 'react-redux'
 import { store } from './stores/store'
 import { Router, Route, IndexRoute, browserHistory } from 'react-router'
-import { fetchCurrentUser } from './actions/users'
+import { fetchCurrentUser, fetchUsers } from './actions/users'
 import Main from './components/Main'
 import About from './components/containers/About'
 import Home from './components/containers/Home'
@@ -12,9 +12,10 @@ import UserImages from './components/containers/UserImages'
 import SelectedImage from './components/containers/SelectedImage'
 import { Comments } from './components/containers/Comments'
 import { fetchUserImages, setSelectedImg, fetchSingleImage, setImageOwner } from './actions/images'
-import { fetchComments } from './actions/comments'
+import { fetchComments, setSkipComments, setTakeComments } from './actions/comments'
 
 store.dispatch(fetchCurrentUser(globals.currentUsername));
+store.dispatch(fetchUsers());
 moment.locale('da');
 
 const selectImage = (nextState) => {
@@ -26,6 +27,10 @@ const fetchImages = (nextState) => {
     const username = nextState.params.username;
     store.dispatch(setImageOwner(username));
     store.dispatch(fetchUserImages(username));
+
+    // reset comment state
+    store.dispatch(setSkipComments(undefined));
+    store.dispatch(setTakeComments(undefined));
 }
 
 const loadComments = (nextState) => {
