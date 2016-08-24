@@ -177,3 +177,18 @@ export const decrementCommentCount = (imageId) => {
         imageId: imageId
     }
 }
+
+export const fetchSingleComment = (id) => {
+    return (dispatch, getState) => {
+        const { comments } = globals.urls;
+        const url = `${comments}/GetSingle?id=${id}`;
+        const handler = responseHandler.bind(this, dispatch);
+
+        return fetch(url, options)
+            .then(handler)
+            .then(c => {
+                const comment = normalizeComment(c);
+                dispatch(receivedComments([comment]));
+            }, onReject);
+    }
+}

@@ -62,10 +62,9 @@ namespace Inuplan.WebAPI.Controllers
             return comments.Select(Converters.ToImageCommentDTO).ToList();
         }
 
-        [Route(Name = "GetComment")]
-        public async Task<ImageCommentDTO> GetSingle(int commentId)
+        public async Task<ImageCommentDTO> GetSingle(int id)
         {
-            var comment = await imageCommentRepository.GetSingleByID(commentId);
+            var comment = await imageCommentRepository.GetSingleByID(id);
             var dto = comment.Map(Converters.ToImageCommentDTO);
             return dto.Match(
                 c => c,

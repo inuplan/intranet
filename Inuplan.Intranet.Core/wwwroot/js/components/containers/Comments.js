@@ -10,7 +10,7 @@ import { withRouter } from 'react-router'
 
 const mapStateToProps = (state) => {
     const getUser = (userId) => {
-            return find(state.usersInfo.users, (user) => user.ID == userId);
+        return find(state.usersInfo.users, (user) => user.ID == userId);
     }
 
     return {
