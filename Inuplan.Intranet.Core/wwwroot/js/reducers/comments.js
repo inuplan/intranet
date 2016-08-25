@@ -49,12 +49,22 @@ const totalPages = (state = 0, action) => {
     }
 }
 
+const focusedComment = (state = -1, action) => {
+    switch (action.type) {
+        case T.SET_FOCUSED_COMMENT:
+            return action.id || -1;
+        default:
+            return state;
+    }
+}
+
 const commentsInfo = combineReducers({
     comments,
     skip,
     take,
     page,
-    totalPages
+    totalPages,
+    focusedComment
 })
 
 export default commentsInfo;

@@ -66,6 +66,13 @@ export function addComment(comment) {
     }
 }
 
+export function setFocusedComment(commentId) {
+    return {
+        type: T.SET_FOCUSED_COMMENT,
+        id: commentId
+    }
+}
+
 export function fetchComments(imageId, skip, take) {
     return function(dispatch, getState) {
         const url = globals.urls.comments + "?imageId=" + imageId + "&skip=" + skip + "&take=" + take;
@@ -83,18 +90,7 @@ export function fetchComments(imageId, skip, take) {
                 dispatch(setCurrentPage(data.CurrentPage));
                 dispatch(setTotalPages(data.TotalPages));
 
-                //const normalize = (c) => {
-                //    if(!c.Deleted) {
-                //        const exists = find(getState().usersInfo.users, (user) => user.ID == c.Author.ID);
-                //        if(!exists) dispatch(addUser(c.Author));
-                //    }
-
-                //    const normalComment = normalizeComment(c);
-                //    dispatch(addComment(normalComment));
-                //}
-
-                // Visit every comment and normalize
-                //visitComments(pageComments, normalize);
+                // normalize
                 const comments = pageComments.map(normalizeComment);
                 dispatch(receivedComments(comments));
             }, onReject);
@@ -178,7 +174,7 @@ export const decrementCommentCount = (imageId) => {
     }
 }
 
-export const fetchSingleComment = (id) => {
+export const fetchAndFocusSingleComment = (id) => {
     return (dispatch, getState) => {
         const { comments } = globals.urls;
         const url = `${comments}/GetSingle?id=${id}`;
@@ -189,6 +185,7 @@ export const fetchSingleComment = (id) => {
             .then(c => {
                 const comment = normalizeComment(c);
                 dispatch(receivedComments([comment]));
+                dispatch(setFocusedComment(comment.CommentID));
             }, onReject);
     }
 }
