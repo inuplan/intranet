@@ -1,12 +1,12 @@
 ﻿import React from 'react'
-import { Pagination } from 'react-bootstrap'
+import { Pagination as PaginationBs } from 'react-bootstrap'
 
-export class PaginationComments extends React.Component {
+export class Pagination extends React.Component {
     render() {
         const { totalPages, page, pageHandle } = this.props;
         if(totalPages <= 1) return null;
 
-        return  <Pagination
+        return  <PaginationBs
                     prev next first last ellipsis boundaryLinks
                     items={totalPages}
                     maxButtons={5}

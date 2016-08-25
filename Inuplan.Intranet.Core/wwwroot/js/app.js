@@ -14,6 +14,7 @@ import { Comments } from './components/containers/Comments'
 import { SingleComment } from './components/comments/SingleComment'
 import { fetchUserImages, setSelectedImg, fetchSingleImage, setImageOwner } from './actions/images'
 import { fetchComments, setSkipComments, setTakeComments, fetchAndFocusSingleComment } from './actions/comments'
+import { fetchLatestNews } from './actions/whatsnew'
 
 store.dispatch(fetchCurrentUser(globals.currentUsername));
 store.dispatch(fetchUsers());
@@ -54,11 +55,17 @@ const fetchComment = (nextState) => {
     store.dispatch(fetchAndFocusSingleComment(id));
 }
 
+const fetchWhatsNew = (nextState) => {
+    const getLatest = (skip, take) => store.dispatch(fetchLatestNews(skip, take));
+    const { skip, take } = store.getState().whatsNewInfo;
+    getLatest(skip, take);
+}
+
 ReactDOM.render(
     <Provider store={store}>
         <Router history={browserHistory}>
             <Route path="/" component={Main}>
-                <IndexRoute component={Home} />
+                <IndexRoute component={Home} onEnter={fetchWhatsNew} />
                 <Route path="users" component={Users} />
                 <Route path="about" component={About} />
                 <Route path=":username/gallery" component={UserImages} onEnter={fetchImages}>

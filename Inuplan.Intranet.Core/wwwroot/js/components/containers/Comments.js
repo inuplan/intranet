@@ -3,7 +3,7 @@ import { fetchComments, postComment, editComment, deleteComment } from '../../ac
 import { CommentList } from '../comments/CommentList'
 import { find } from 'underscore'
 import { connect } from 'react-redux'
-import { PaginationComments } from '../comments/PaginationComments'
+import { Pagination } from '../pagination/Pagination'
 import { CommentForm } from '../comments/CommentForm'
 import { Row, Col } from 'react-bootstrap'
 import { withRouter } from 'react-router'
@@ -63,7 +63,7 @@ class CommentsContainer extends React.Component {
     }
 
     render() {
-        const { comments, getName, imageId, page, owner, totalPages, postComment } = this.props;
+        const { comments, getName, imageId, page, totalPages, postComment } = this.props;
 
         return  <div className="text-left">
                     <Row>
@@ -73,11 +73,9 @@ class CommentsContainer extends React.Component {
                     </Row>
                     <Row>
                         <Col lgOffset={1} lg={10}>
-                            <PaginationComments
-                                username={owner.Username}
+                            <Pagination
                                 totalPages={totalPages}
                                 page={page}
-                                imageId={imageId}
                                 pageHandle={this.pageHandle}
                             />
                         </Col>

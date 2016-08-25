@@ -33,7 +33,6 @@ class SingleCommentRedux extends React.Component {
     reload() {
         const { imageId, imageOwner } = this.props;
         const { push } = this.props.router;
-        console.log(imageId);
 
         const path = `/${imageOwner.Username}/gallery/image/${imageId}/comments`;
         push(path);

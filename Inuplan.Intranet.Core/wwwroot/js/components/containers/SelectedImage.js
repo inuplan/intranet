@@ -6,7 +6,7 @@ import { setError } from '../../actions/error'
 import { find } from 'underscore'
 import { connect } from 'react-redux'
 import { withRouter } from 'react-router'
-import { Modal, Image, Button, ButtonToolbar } from 'react-bootstrap'
+import { Modal, Image, Button, ButtonToolbar, Glyphicon } from 'react-bootstrap'
 
 const mapStateToProps = (state) => {
     const ownerId  = state.imagesInfo.ownerId;
@@ -68,6 +68,8 @@ class ModalImage extends React.Component {
         super(props);
         this.deleteImageHandler = this.deleteImageHandler.bind(this); 
         this.close = this.close.bind(this); 
+        this.seeAllCommentsView = this.seeAllCommentsView.bind(this);
+        this.reload = this.reload.bind(this);
     }
 
     close() {
@@ -91,37 +93,55 @@ class ModalImage extends React.Component {
 
     deleteImageView() {
         const { canEdit } = this.props;
-        return (
-            canEdit ?
-            <Button bsStyle="danger" onClick={this.deleteImageHandler}>Slet billede</Button>
-            : null);
+        if(!canEdit) return null;
+        return <Button bsStyle="danger" onClick={this.deleteImageHandler}>Slet billede</Button>;
     }
 
-            render() {
-                const { filename, previewUrl, extension, originalUrl, uploaded, hasImage } = this.props;
-                const show = hasImage();
-                const name = filename + "." + extension;
-                const uploadDate = moment(uploaded);
-                const dateString = "Uploaded d. " + uploadDate.format("D MMM YYYY ") + "kl. " + uploadDate.format("H:mm");
+    reload() {
+        const { id, username } = this.props.params;
+        const { push } = this.props.router;
 
-                return  <Modal show={show} onHide={this.close} bsSize="large" animation={false}>
-                            <Modal.Header closeButton>
-                                <Modal.Title>{name}<span><small> - {dateString}</small></span></Modal.Title>
-                            </Modal.Header>
+        const path = `/${username}/gallery/image/${id}/comments`;
+        push(path);
+    }
 
-                            <Modal.Body>
-                                <a href={originalUrl} target="_blank" rel="noopener">
-                                    <Image src={previewUrl} responsive/>
-                                </a>
-                            </Modal.Body>
+    seeAllCommentsView() {
+        const show = !Boolean(this.props.children);
+        if(!show) return null;
 
-                            <Modal.Footer>
-                                {this.props.children}
-                                <hr />
-                                <ButtonToolbar style={{float: "right"}}>
-                                    {this.deleteImageView()}
-                                    <Button onClick={this.close}>Luk</Button>
-                                </ButtonToolbar>
+        return  <p className="text-center">
+                    <Button onClick={this.reload}>
+                        <Glyphicon glyph="refresh"/> Se alle kommentarer?
+                    </Button>
+                </p>
+    }
+
+    render() {
+        const { filename, previewUrl, extension, originalUrl, uploaded, hasImage } = this.props;
+        const show = hasImage();
+        const name = filename + "." + extension;
+        const uploadDate = moment(uploaded);
+        const dateString = "Uploaded d. " + uploadDate.format("D MMM YYYY ") + "kl. " + uploadDate.format("H:mm");
+
+        return  <Modal show={show} onHide={this.close} bsSize="large" animation={false}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>{name}<span><small> - {dateString}</small></span></Modal.Title>
+                    </Modal.Header>
+
+                    <Modal.Body>
+                        <a href={originalUrl} target="_blank" rel="noopener">
+                            <Image src={previewUrl} responsive/>
+                        </a>
+                    </Modal.Body>
+
+                    <Modal.Footer>
+                        {this.seeAllCommentsView()}
+                        {this.props.children}
+                        <hr />
+                        <ButtonToolbar style={{float: "right"}}>
+                            {this.deleteImageView()}
+                            <Button onClick={this.close}>Luk</Button>
+                        </ButtonToolbar>
                     </Modal.Footer>
                 </Modal>
     }
