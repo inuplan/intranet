@@ -26,6 +26,6 @@ namespace Inuplan.Common.Commands
     public interface IAddImageComment
     {
         void Connect();
-        Task<bool> Insert(Comment comment);
+        Task<bool> Insert(ImageComment comment);
     }
 }

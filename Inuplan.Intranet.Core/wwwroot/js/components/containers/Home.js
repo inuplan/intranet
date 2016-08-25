@@ -1,9 +1,13 @@
 ﻿import React from 'react'
 import { connect } from 'react-redux'
+import WhatsNew from './WhatsNew'
+import { Jumbotron, Grid, Row, Col } from 'react-bootstrap'
 
 const mapStateToProps = (state) => {
+    const user = state.usersInfo.users.filter(u => u.Username.toUpperCase() == globals.currentUsername.toUpperCase())[0];
+    const name = user ? user.FirstName : 'User';
     return {
-        user: state.usersInfo.users.filter(u => u.Username.toUpperCase() == globals.currentUsername.toUpperCase())[0]
+        name: name
     }
 }
 
@@ -13,20 +17,18 @@ class HomeView extends React.Component {
     }
 
     render() {
-        const { user } = this.props;
-        const name = user ? user.FirstName : 'User';
-        return (
-            <div className="row">
-                <div className="col-lg-offset-2 col-lg-8">
-                    <div className="jumbotron">
-                        <h1>Velkommen <small>{name}!</small></h1>
-                        <p className="lead">
-                            Til Inuplans intranet side
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
+        const { name } = this.props;
+        return  <Row>
+                    <Col lgOffset={2} lg={8}>
+                        <Jumbotron>
+                            <h1>Velkommen <small>{name}!</small></h1>
+                            <p className="lead">
+                                Til Inuplans intranet side
+                            </p> 
+                        </Jumbotron>
+                        <WhatsNew />
+                    </Col>
+                </Row>
     }
 }
 

@@ -1,44 +1,41 @@
 ﻿import React from 'react'
 import { connect } from 'react-redux'
-import { fetchUserImages, setSelectedImg, removeModal, requestDeleteImage, uploadImage, addSelectedImageId,  deleteImages, removeSelectedImageId, clearSelectedImageIds } from '../../actions/images'
+import { uploadImage, addSelectedImageId,  deleteImages, removeSelectedImageId, clearSelectedImageIds } from '../../actions/images'
 import { Error } from './Error'
 import { ImageUpload } from '../images/ImageUpload'
 import ImageList from '../images/ImageList'
-import Modal from '../images/Modal'
 import { find } from 'underscore'
 import { withRouter } from 'react-router'
+import { Row, Col } from 'react-bootstrap'
 
 const mapStateToProps = (state) => {
+    const ownerId  = state.imagesInfo.ownerId;
+    const currentId = state.usersInfo.currentUserId;
+    const canEdit = (ownerId > 0 && currentId > 0 && ownerId == currentId);
+
     return {
         images: state.imagesInfo.images,
-        canEdit: (username) => globals.currentUsername == username,
-        getUser: (username) => state.usersInfo.users.filter(u => u.Username.toUpperCase() == username.toUpperCase())[0],
-        selectedImageId: state.imagesInfo.selectedImageId,
-        selectedImageIds: state.imagesInfo.selectedImageIds
+        canEdit: canEdit,
+        selectedImageIds: state.imagesInfo.selectedImageIds,
+        getFullname: (username) => {
+            const user = state.usersInfo.users.filter(u => u.Username.toUpperCase() == username.toUpperCase())[0];
+            const fullname = (user) ? user.FirstName + " " + user.LastName : 'User';
+            return fullname.toLocaleLowerCase();
+        }
     }
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        loadImages: (username) => {
-            dispatch(fetchUserImages(username));
-        },
-        deleteImage: (id, username) => {
-            dispatch(requestDeleteImage(id, username));
-        },
         uploadImage: (username, formData) => {
             dispatch(uploadImage(username, formData));
         },
-        setSelectedImage: (id) => {
-            dispatch(setSelectedImg(id));
-        },
-        deselectImage: () => {
-            dispatch(removeModal());
-        },
         addSelectedImageId: (id) => {
+            // Images to be deleted by selection:
             dispatch(addSelectedImageId(id));
         },
         removeSelectedImageId: (id) => {
+            // Images to be deleted by selection:
             dispatch(removeSelectedImageId(id));
         },
         deleteImages: (username, ids) => {
@@ -60,23 +57,16 @@ class UserImagesContainer extends React.Component {
 
     componentDidMount() {
         const { username } = this.props.params;
-        const { loadImages, router, route } = this.props;
+        const { router, route } = this.props;
 
-        router.setRouteLeaveHook(route, this.clearSelected);
-        loadImages(username);
         document.title = username + "'s billeder";
+        router.setRouteLeaveHook(route, this.clearSelected);
     }
 
     clearSelected() {
         const { clearSelectedImageIds } = this.props;
         clearSelectedImageIds();
         return true;
-    }
-
-    getImage(id) {
-        const { images } = this.props;
-        const image = images.filter(img => img.ImageID == id)[0];
-        return image;
     }
 
     imageIsSelected(checkId) {
@@ -96,11 +86,10 @@ class UserImagesContainer extends React.Component {
     uploadView() {
         const { canEdit, uploadImage, selectedImageIds } = this.props;
         const { username } = this.props.params;
-        const showUpload = canEdit(username);
         const hasImages = selectedImageIds.length > 0;
 
         return (
-            showUpload ? 
+            canEdit ? 
             <ImageUpload
                 uploadImage={uploadImage}
                 username={username}
@@ -110,46 +99,27 @@ class UserImagesContainer extends React.Component {
             : null);
     }
 
-    modalView() {
-        const { selectedImageId, canEdit, deselectImage, deleteImage } = this.props;
-        const { username } = this.props.params;
-        const selected = selectedImageId > 0;
-        const image = () => this.getImage(selectedImageId);
-        return (selected ? 
-            <Modal
-                image={image()}
-                canEdit={canEdit(username)}
-                deselectImage={deselectImage}
-                deleteImage={deleteImage}
-                username={username}
-            />
-            : null);
-    }
-
     render() {
         const { username } = this.props.params;
-        const { images, getUser, setSelectedImage, canEdit, addSelectedImageId, removeSelectedImageId } = this.props;
-        const user = getUser(username);
-        let fullName = user ? user.FirstName + " " + user.LastName : 'User';
+        const { images, getFullname, canEdit, addSelectedImageId, removeSelectedImageId } = this.props;
+        const fullName = getFullname(username);
         
-        return (
-            <div className="row">
-                <div className="col-lg-offset-2 col-lg-8">
-                    <h1><span className="text-capitalize">{fullName.toLowerCase()}'s</span> <small>billede galleri</small></h1>
-                    <hr />
-                    <ImageList
-                        images={images}
-                        selectImage={setSelectedImage}
-                        canEdit={canEdit(username)}
-                        addSelectedImageId={addSelectedImageId}
-                        removeSelectedImageId={removeSelectedImageId}
-                        imageIsSelected={this.imageIsSelected}
-                    />
-                    {this.modalView()}
-                    {this.uploadView()}
-                </div>
-            </div>
-        );
+        return  <Row>
+                    <Col lgOffset={2} lg={8}>
+                        <h1><span className="text-capitalize">{fullName}'s</span> <small>billede galleri</small></h1>
+                        <hr />
+                        <ImageList
+                            images={images}
+                            canEdit={canEdit}
+                            addSelectedImageId={addSelectedImageId}
+                            removeSelectedImageId={removeSelectedImageId}
+                            imageIsSelected={this.imageIsSelected}
+                            username={username}
+                        />
+                        {this.uploadView()}
+                    </Col>
+                    {this.props.children}
+                </Row>
     }
 }
 

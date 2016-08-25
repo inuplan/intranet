@@ -21,31 +21,32 @@
 namespace Inuplan.WebAPI.Controllers
 {
     using Autofac.Extras.Attributed;
+    using Common.Commands;
     using Common.DTOs;
     using Common.Enums;
+    using Common.Models;
     using Common.Repositories;
     using Common.Tools;
-    using Common.Models;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Cors;
-    using System.Linq;
-    using Common.Commands;
 
     [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class ImageCommentController : DefaultController
     {
-        private readonly IVectorRepository<int, Comment> imageCommentRepository;
+        private readonly IVectorRepository<int, ImageComment> imageCommentRepository;
         private readonly IAddImageComment newComment;
         private readonly IDeleteItem removeNews;
 
         public ImageCommentController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
-            IVectorRepository<int, Comment> imageCommentRepository,
+            IVectorRepository<int, ImageComment> imageCommentRepository,
             IAddImageComment newComment,
             IDeleteItem removeNews)
             : base(userDatabaseRepository)
@@ -55,27 +56,26 @@ namespace Inuplan.WebAPI.Controllers
             this.removeNews = removeNews;
         }
 
-        public async Task<List<CommentDTO>> Get(int imageId)
+        public async Task<List<ImageCommentDTO>> Get(int imageId)
         {
             var comments = await imageCommentRepository.Get(imageId);
-            return comments.Select(Converters.ToCommentDTO).ToList();
+            return comments.Select(Converters.ToImageCommentDTO).ToList();
         }
 
-        [Route(Name = "GetComment")]
-        public async Task<CommentDTO> GetSingle(int commentId)
+        public async Task<ImageCommentDTO> GetSingle(int id)
         {
-            var comment = await imageCommentRepository.GetSingleByID(commentId);
-            var dto = comment.Map(Converters.ToCommentDTO);
+            var comment = await imageCommentRepository.GetSingleByID(id);
+            var dto = comment.Map(Converters.ToImageCommentDTO);
             return dto.Match(
                 c => c,
                 () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
         }
 
-        public async Task<Pagination<CommentDTO>> Get(int skip, int take, int imageId)
+        public async Task<Pagination<ImageCommentDTO>> Get(int skip, int take, int imageId)
         {
-            var page = await imageCommentRepository.GetPage(skip, take, imageId);
-            var dtos = page.CurrentItems.Select(Converters.ToCommentDTO).ToList();
-            return new Pagination<CommentDTO>
+            var page = await imageCommentRepository.GetPage(imageId, skip, take);
+            var dtos = page.CurrentItems.Select(Converters.ToImageCommentDTO).ToList();
+            return new Pagination<ImageCommentDTO>
             {
                 CurrentItems = dtos,
                 CurrentPage = page.CurrentPage,
@@ -83,13 +83,19 @@ namespace Inuplan.WebAPI.Controllers
             };
         }
 
-        public async Task<HttpResponseMessage> Post(Comment comment, [FromUri] int imageId, [FromUri] int? replyId = null)
+        public async Task<HttpResponseMessage> Post(ImageComment comment, [FromUri] int? replyId = null)
         {
+            Debug.Assert(comment.ImageID > 0, "Must be associated with a valid image");
+            Func<ImageComment, Task> onCreate = (c) =>
+            {
+                newComment.Connect();
+                return newComment.Insert(c);
+            };
+
             // Set time and owner to current user and time!
-            newComment.Connect();
             comment.PostedOn = DateTime.Now;
             comment.Author = Request.GetOwinContext().Get<User>(Constants.CURRENT_USER);
-            var created = await imageCommentRepository.CreateSingle(comment, c => newComment.Insert(c), imageId, replyId);
+            var created = await imageCommentRepository.CreateSingle(comment, onCreate);
             var response = created.Match(
                 c =>
                 {
@@ -108,14 +114,14 @@ namespace Inuplan.WebAPI.Controllers
             // NOTE: Comments are NOT deleted only set to "null" to keep comment hierarchy
             // Question: Should "deleted" comments be removed from the latest news?
             // Be careful on the client side, take into consideration that Author field could be null!
-            var deleted = await imageCommentRepository.DeleteSingle(commentId, _ => { });
+            var deleted = await imageCommentRepository.DeleteSingle(commentId, _ => Task.FromResult(0));
             var response = deleted ?
                             Request.CreateResponse(HttpStatusCode.NoContent) :
                             Request.CreateResponse(HttpStatusCode.InternalServerError);
             return response;
         }
 
-        public async Task<HttpResponseMessage> Put([FromBody]Comment comment)
+        public async Task<HttpResponseMessage> Put([FromBody]ImageComment comment)
         {
             comment.PostedOn = DateTime.Now;
             var updated = await imageCommentRepository.UpdateSingle(comment.ID, comment);

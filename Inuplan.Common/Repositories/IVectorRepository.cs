@@ -33,7 +33,7 @@ namespace Inuplan.Common.Repositories
         /// </summary>
         /// <param name="entity">The entity to create</param>
         /// <returns>A task of the created entity or <see cref="Option.None"/></returns>
-        Task<Option<E>> CreateSingle(E entity, Action<E> onCreate, params object[] identifiers);
+        Task<Option<E>> CreateSingle(E entity, Func<E, Task> onCreate);
 
         /// <summary>
         /// Retrieves an entity with the key K
@@ -49,7 +49,7 @@ namespace Inuplan.Common.Repositories
         /// <param name="take">The number of items to take</param>
         /// <param name="identifiers">Extra identifiers necessary to select the entities</param>
         /// <returns></returns>
-        Task<Pagination<Comment>> GetPage(int skip, int take, params object[] identifiers);
+        Task<Pagination<ImageComment>> GetPage(int id, int skip, int take);
 
         /// <summary>
         /// Retrieves an entity by the given id
@@ -71,14 +71,14 @@ namespace Inuplan.Common.Repositories
         /// </summary>
         /// <param name="key">The key K</param>
         /// <returns>True if successful otherwise false</returns>
-        Task<bool> DeleteSingle(K key, Action<K> onDelete);
+        Task<bool> DeleteSingle(K key, Func<K, Task> onDelete);
 
         /// <summary>
         /// Deletes all entities related to the key K.
         /// </summary>
         /// <param name="key">The key</param>
         /// <returns>A boolean value indicating success or failure</returns>
-        Task<bool> Delete(K key, Action<K> onDelete);
+        Task<bool> Delete(K key, Func<K, Task> onDelete);
 
         /// <summary>
         /// Returns the count of items with the key <see cref="K"/>

@@ -28,19 +28,35 @@ namespace Inuplan.Common.Tools
 
     public static class Converters
     {
-        public static CommentDTO ToCommentDTO(Comment comment)
+        public static ImageCommentDTO ToImageCommentDTO(ImageComment comment)
         {
-            var replies = comment.Replies ?? new List<Comment>();
-            var replyDtos = replies.Select(ToCommentDTO).ToList();
+            var replies = comment.Replies ?? new List<ImageComment>();
+            var replyDtos = replies.Select(ToImageCommentDTO).ToList();
             var author = (comment.Deleted) ? null : ToUserDTO(comment.Author);
 
-            return new CommentDTO
+            return new ImageCommentDTO
             {
                 ID = comment.ID,
+                ImageID = comment.ImageID,
                 Author = author,
                 Deleted = comment.Deleted,
                 PostedOn = comment.PostedOn,
                 Replies = replyDtos,
+                Text = comment.Text
+            };
+        }
+
+        public static WhatsNewImageCommentDTO ToWhatsNewComment(ImageComment comment, User uploadedBy)
+        {
+            var author = (comment.Deleted) ? null : ToUserDTO(comment.Author);
+            var uploader = ToUserDTO(uploadedBy);
+            return new WhatsNewImageCommentDTO
+            {
+                Author = author,
+                Deleted = comment.Deleted,
+                ID = comment.ID,
+                ImageID = comment.ImageID,
+                ImageUploadedBy = uploader,
                 Text = comment.Text
             };
         }

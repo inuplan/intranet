@@ -47,7 +47,7 @@ namespace Inuplan.DAL.Repositories
             this.connection = connection;
         }
 
-        public async Task<Option<User>> Create(User entity, Action<User> onCreate, params object[] identifiers)
+        public async Task<Option<User>> Create(User entity, Func<User, Task> onCreate, params object[] identifiers)
         {
             try
             {
@@ -71,7 +71,7 @@ namespace Inuplan.DAL.Repositories
 
                 // Return constructed object
                 var result = entity.SomeWhen(u => createdRoles);
-                if (result.HasValue) onCreate(entity);
+                if (result.HasValue) await onCreate(entity);
                 return result;
             }
             catch (SqlException ex)
@@ -81,7 +81,7 @@ namespace Inuplan.DAL.Repositories
             }
         }
 
-        public async Task<bool> Delete(int key, Action<int> onDelete)
+        public async Task<bool> Delete(int key, Func<int, Task> onDelete)
         {
             try
             {
@@ -92,7 +92,7 @@ namespace Inuplan.DAL.Repositories
                     var done = rows == 1;
                     if (done)
                     {
-                        onDelete(key);
+                        await onDelete(key);
                         transactionScope.Complete();
                     }
 
@@ -163,8 +163,8 @@ namespace Inuplan.DAL.Repositories
                     var roleIds = entity.Roles.Select(r => r.ID).ToArray();
 
                     // An update is essentially a delete with create!
-                    var delete = await Delete(key, _ => { });
-                    var create = await Create(entity, _ => { }, roleIds);
+                    var delete = await Delete(key, _ => Task.FromResult(0));
+                    var create = await Create(entity, _ => Task.FromResult(0), roleIds);
                     var success = delete && create.HasValue;
 
                     if (success)

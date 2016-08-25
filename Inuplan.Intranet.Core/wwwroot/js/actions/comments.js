@@ -4,6 +4,7 @@ import { options } from '../constants/constants'
 import { normalizeComment, visitComments, responseHandler, onReject } from '../utilities/utils'
 import { addUser } from './users'
 import { HttpError, setError } from './error'
+import { find } from 'underscore'
 
 export const setSkipComments = (skip) => {
     return {
@@ -58,8 +59,22 @@ export function receivedComments(comments) {
     };
 }
 
+export function addComment(comment) {
+    return {
+        type: T.ADD_COMMENT,
+        comment: comment
+    }
+}
+
+export function setFocusedComment(commentId) {
+    return {
+        type: T.SET_FOCUSED_COMMENT,
+        id: commentId
+    }
+}
+
 export function fetchComments(imageId, skip, take) {
-    return function(dispatch) {
+    return function(dispatch, getState) {
         const url = globals.urls.comments + "?imageId=" + imageId + "&skip=" + skip + "&take=" + take;
         const handler = responseHandler.bind(this, dispatch);
         return fetch(url, options)
@@ -69,56 +84,35 @@ export function fetchComments(imageId, skip, take) {
                 const pageComments = data.CurrentItems;
 
                 // Set (re-set) info
+                dispatch(receivedComments(undefined));
                 dispatch(setSkipComments(skip));
                 dispatch(setTakeComments(take));
                 dispatch(setCurrentPage(data.CurrentPage));
                 dispatch(setTotalPages(data.TotalPages));
 
-                // Visit every comment and add the user
-                const addAuthor = (c) => {
-                    if(!c.Deleted)
-                        dispatch(addUser(c.Author));
-                }
-                visitComments(pageComments, addAuthor);
-
-                // Normalize: filter out user
+                // normalize
                 const comments = pageComments.map(normalizeComment);
                 dispatch(receivedComments(comments));
             }, onReject);
     }
 }
 
-export const postReply = (imageId, replyId, text) => {
-    return function(dispatch, getState) {
-        const { skip, take } = getState().commentsInfo;
-        const url = globals.urls.comments + "?imageId=" + imageId + "&replyId=" + replyId;
-
-        const headers = new Headers();
-        headers.append('Content-Type', 'application/json');
-        const opt = Object.assign({}, options, {
-            method: 'POST',
-            body: JSON.stringify({ Text: text}),
-            headers: headers
-        });
-
-        return fetch(url, opt)
-            .then(() => {
-                dispatch(incrementCommentCount(imageId));
-                dispatch(fetchComments(imageId, skip, take));
-            })
-    }
-}
-
-export const postComment = (imageId, text) => {
+export const postComment = (imageId, text, parentCommentId) => {
     return function (dispatch, getState) {
         const { skip, take } = getState().commentsInfo;
-        const url = globals.urls.comments + "?imageId=" + imageId;
+        const url = globals.urls.comments;
 
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
+        const body =JSON.stringify({ 
+            Text: text,
+            ImageID: imageId,
+            ParentID: parentCommentId
+        });
+
         const opt = Object.assign({}, options, {
             method: 'POST',
-            body: JSON.stringify({ Text: text}),
+            body: body,
             headers: headers
         });
 
@@ -177,5 +171,21 @@ export const decrementCommentCount = (imageId) => {
     return {
         type: T.DECR_COMMENT_COUNT,
         imageId: imageId
+    }
+}
+
+export const fetchAndFocusSingleComment = (id) => {
+    return (dispatch, getState) => {
+        const { comments } = globals.urls;
+        const url = `${comments}/GetSingle?id=${id}`;
+        const handler = responseHandler.bind(this, dispatch);
+
+        return fetch(url, options)
+            .then(handler)
+            .then(c => {
+                const comment = normalizeComment(c);
+                dispatch(receivedComments([comment]));
+                dispatch(setFocusedComment(comment.CommentID));
+            }, onReject);
     }
 }
