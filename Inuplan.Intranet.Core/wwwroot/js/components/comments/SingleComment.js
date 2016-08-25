@@ -1,56 +1,73 @@
 ﻿import React from 'react'
 import { Comment } from './Comment'
 import { connect } from 'react-redux'
-import { Well } from 'react-bootstrap'
+import { Well, Button, Glyphicon } from 'react-bootstrap'
 import { find } from 'underscore'
+import { withRouter } from 'react-router'
+
+const tryGetComment = (comments = [], id) => { return find(comments, (c) => c.CommentID == id); }
+const tryGetUser = (users = [], userId) => { return find(users, (user) => user.ID == userId); }
 
 const mapStateToProps = (state) => {
-    const getUser = (userId) => {
-        const u = find(state.usersInfo.users, (user) => user.ID == userId);
-        return u;
-    }
-
-    const defaultComment = {
-        AuthorID: -1,
-        Text: '',
-        CommentID: -1
-    };
-
-    const comments = state.commentsInfo.comments;
-    const comment = comments[0] || defaultComment;
+    const { comments, focusedComment } = state.commentsInfo;
+    const { users } = state.usersInfo;
 
     return {
         getName: (id) => {
-            const user = getUser(id);
+            const user = tryGetUser(users, id);
+            if(!user) return '';
             return `${user.FirstName} ${user.LastName}`;
         },
-        text: comment.Text,
-        commentId: comment.CommentID,
-        authorId: comment.AuthorID
+        getComment: () => tryGetComment(comments, focusedComment),
+        imageId: state.imagesInfo.selectedImageId,
+        imageOwner: tryGetUser(users, state.imagesInfo.ownerId)
     }
 }
 
 class SingleCommentRedux extends React.Component {
-    render() {
-        const { getName, text, commentId, authorId } = this.props;
-        if(commentId < 0) return null;
+    constructor(props) {
+        super(props);
+        this.reload = this.reload.bind(this);
+    }
 
-        const name = getName(authorId);
+    reload() {
+        const { imageId, imageOwner } = this.props;
+        const { push } = this.props.router;
+        console.log(imageId);
+
+        const path = `/${imageOwner.Username}/gallery/image/${imageId}/comments`;
+        push(path);
+    }
+
+    render() {
+        const { getName, getComment } = this.props;
+        const comment = getComment();
+        if(!comment) return null;
+
+        const { Text, AuthorID, CommentID, PostedOn } = comment;
+        const name = getName(comment.AuthorId);
+
         return  <div className="text-left">
                     <Well>
                         <Comment
                             name={name}
-                            text={text}
-                            commentId={commentId}
+                            text={Text}
+                            commentId={CommentID}
                             replies={[]}
-                            authorId={authorId}
+                            authorId={AuthorID}
+                            postedOn={PostedOn}
                         />
                     </Well>
                     <div>
-                        Se alle kommentarer?
+                        <p className="text-center">
+                            <Button onClick={this.reload}>
+                                <Glyphicon glyph="refresh"/> Se alle kommentarer?
+                            </Button>
+                        </p>
                     </div>
                 </div>
     }
 }
 
-export const SingleComment = connect(mapStateToProps, null)(SingleCommentRedux);
+const SingleCommentConnect = connect(mapStateToProps, null)(SingleCommentRedux);
+export const SingleComment = withRouter(SingleCommentConnect);

@@ -1,7 +1,7 @@
 ﻿import React from 'react'
 import ReactDOM from 'react-dom'
 import { setSelectedImg, fetchSingleImage, deleteImage } from '../../actions/images'
-import { setSkipComments, setTakeComments } from '../../actions/comments'
+import { setSkipComments, setTakeComments, setFocusedComment, receivedComments } from '../../actions/comments'
 import { setError } from '../../actions/error'
 import { find } from 'underscore'
 import { connect } from 'react-redux'
@@ -57,6 +57,8 @@ const mapDispatchToProps = (dispatch) => {
         resetComments: () => {
             dispatch(setSkipComments(undefined));
             dispatch(setTakeComments(undefined));
+            dispatch(setFocusedComment(undefined));
+            dispatch(receivedComments(undefined));
         }
     }
 }

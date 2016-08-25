@@ -13,7 +13,7 @@ import SelectedImage from './components/containers/SelectedImage'
 import { Comments } from './components/containers/Comments'
 import { SingleComment } from './components/comments/SingleComment'
 import { fetchUserImages, setSelectedImg, fetchSingleImage, setImageOwner } from './actions/images'
-import { fetchComments, setSkipComments, setTakeComments, fetchSingleComment } from './actions/comments'
+import { fetchComments, setSkipComments, setTakeComments, fetchAndFocusSingleComment } from './actions/comments'
 
 store.dispatch(fetchCurrentUser(globals.currentUsername));
 store.dispatch(fetchUsers());
@@ -51,7 +51,7 @@ const loadComments = (nextState) => {
 
 const fetchComment = (nextState) => {
     const { id } = nextState.location.query;
-    store.dispatch(fetchSingleComment(id));
+    store.dispatch(fetchAndFocusSingleComment(id));
 }
 
 ReactDOM.render(
@@ -71,6 +71,3 @@ ReactDOM.render(
         </Router>
     </Provider>,
     document.getElementById('content'));
-
-//<Route path="comment/:cid" component={'Single Comment'} onEnter={'fetchSingleCommentChain?'} />
-//<Route path="comments" component={'Comments'} onEnter={'fetchComments'} />
