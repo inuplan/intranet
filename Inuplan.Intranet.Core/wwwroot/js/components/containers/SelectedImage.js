@@ -123,7 +123,7 @@ class ModalImage extends React.Component {
         const uploadDate = moment(uploaded);
         const dateString = "Uploaded d. " + uploadDate.format("D MMM YYYY ") + "kl. " + uploadDate.format("H:mm");
 
-        return  <Modal show={show} onHide={this.close} bsSize="large" animation={false}>
+        return  <Modal show={show} onHide={this.close} bsSize="large" animation={true}>
                     <Modal.Header closeButton>
                         <Modal.Title>{name}<span><small> - {dateString}</small></span></Modal.Title>
                     </Modal.Header>
