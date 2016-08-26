@@ -1,7 +1,0 @@
-
-domain.local/api/user/image/path/to/filename.jpeg
-
-domain/[api]/user/[image]/path/to/filename.jpeg
-
-To have directories or not to have?
- more pros than cons... con = have to write code that supports it.

@@ -16,13 +16,26 @@
 
 namespace Inuplan.WebAPI.App_Start
 {
-    using System.Reflection;
-    using System.Web.Http;
     using Autofac;
+    using Autofac.Extras.Attributed;
     using Autofac.Integration.WebApi;
-    using Owin;
-    using Inuplan.DAL.Repositories;
-    using Inuplan.Common.Repositories;
+    using Common.Commands;
+    using Common.Enums;
+    using Common.Factories;
+    using Common.Models;
+    using Common.Queries;
+    using Common.Repositories;
+    using Controllers;
+    using DAL.Repositories;
+    using DAL.WhatsNew.Commands;
+    using DAL.WhatsNew.Queries;
+    using Image.Factories;
+    using Middlewares;
+    using Properties;
+    using System.Data;
+    using System.Data.SqlClient;
+    using System.DirectoryServices.AccountManagement;
+    using System.Web.Http;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -33,28 +46,89 @@ namespace Inuplan.WebAPI.App_Start
         /// Registers types and instances used in the <code>OWIN</code> application
         /// </summary>
         /// <param name="config">The <see cref="HttpConfiguration"/></param>
-        /// <param name="app">The <code>OWIN</code> application builder</param>
-        public static void RegisterContainer(HttpConfiguration config, IAppBuilder app)
+        public static void RegisterContainer(HttpConfiguration config)
         {
+            // Setup variables
+            var root = Settings.Default.root;
+            var connectionString = GetConnectionString();
+            var domain = Settings.Default.domain;
+
+            // Create builder
             var builder = new ContainerBuilder();
 
-            // Register your Web API controllers.
-            builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
+            // Register connection
+            builder.Register(ctx =>
+            {
+                var connection = new SqlConnection(connectionString);
+                connection.Open();
+                return connection;
+            }).As<IDbConnection>().InstancePerDependency();
 
-            // Register the Autofac filter provider.
-            builder.RegisterWebApiFilterProvider(config);
+            // Register Web API controllers
+            builder.RegisterType<RoleController>().WithAttributeFilter();
+            builder.RegisterType<UserImageController>().WithAttributeFilter();
+            builder.RegisterType<UserController>().WithAttributeFilter();
+            builder.RegisterType<UserRolesController>().WithAttributeFilter();
+            builder.RegisterType<DiagnosticController>().WithAttributeFilter();
+            builder.RegisterType<ImageCommentController>().WithAttributeFilter();
+            builder.RegisterType<WhatsNewController>().WithAttributeFilter();
 
-            // Register types here...
-            builder.RegisterGeneric(typeof(Repository<,>)).As(typeof(IRepository<,>));
+            // Register classes and keys
+            builder.RegisterType<AddImageUpload>().As<IAddImageUpload>();
+            builder.RegisterType<AddImageComment>().As<IAddImageComment>();
+            builder.RegisterType<DeleteItem>().As<IDeleteItem>();
+            builder.RegisterType<GetPage>().As<IGetPage>();
+            builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
+            builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
+            builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
+
+            // Register repositories
+            builder.RegisterType<RoleRepository>().As<IScalarRepository<int, Role>>();
+            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<int, Image>>();
+            builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, ImageComment>>();
+            builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
+            builder.RegisterType<UserRoleRepository>().Keyed<IScalarRepository<int, User>>(ServiceKeys.UserRoleRepository);
+
+            #region "Register Active Directory"
+#if DEBUG
+            builder.RegisterType<Mocks.NoADRepo>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+#else
+            builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+#endif
+            #endregion
+
+            // Use autofac owin pipeline
+            OwinPipeline(builder);
 
             // Build container
             var container = builder.Build();
 
-            // Register Autofac Middleware
-            app.UseAutofacMiddleware(container);
-
             // Set the dependency resolver
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
+        }
+
+        /// <summary>
+        /// Constructs the owin pipeline, from the <see cref="Microsoft.Owin.OwinMiddleware"/> objects.
+        /// </summary>
+        /// <param name="builder">The autofac container builder</param>
+        private static void OwinPipeline(ContainerBuilder builder)
+        {
+            // Owin middleware pipeline - order matters
+            builder.RegisterType<ManageUserMiddleware>().WithAttributeFilter();
+        }
+
+        /// <summary>
+        /// Retrieves the connection string to the database.
+        /// </summary>
+        /// <returns>A connection string</returns>
+        private static string GetConnectionString()
+        {
+#if DEBUG
+            var connectionString = Settings.Default.connectionStringDebug;
+#else
+            var connectionString = Settings.Default.connectionStringRelease;
+#endif
+            return connectionString;
         }
     }
 }

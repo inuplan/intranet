@@ -16,10 +16,11 @@
 
 namespace Inuplan.WebAPI
 {
-    using System;
-    using System.Net.Http;
-    using Inuplan.WebAPI.CLI;
     using Microsoft.Owin.Hosting;
+    using NLog;
+    using Properties;
+    using System;
+    using Topshelf;
 
     /// <summary>
     /// The web API server class
@@ -27,9 +28,14 @@ namespace Inuplan.WebAPI
     public class Program
     {
         /// <summary>
-        /// Default value if somehow no address is provided
+        /// The logger
         /// </summary>
-        private const string DefaultAddress = "http://localhost:9000";
+        private static ILogger Logger = LogManager.GetCurrentClassLogger();
+
+        /// <summary>
+        /// The application web api.
+        /// </summary>
+        private IDisposable application;
 
         /// <summary>
         /// The main function
@@ -37,14 +43,66 @@ namespace Inuplan.WebAPI
         /// <param name="args">Arguments provided through the command-line interface</param>
         public static void Main(string[] args)
         {
-            var input = Parser.Parse(args);
-            var baseAddress = input.ValueOr(DefaultAddress);
-
-            // Start OWIN host 
-            using (WebApp.Start<Startup>(url: baseAddress))
+            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptions;
+            HostFactory.Run(config =>
             {
-                Parser.StartConsole(baseAddress);
-            }
+                config.UseNLog();
+                config.Service<Program>(service =>
+                {
+                    var address = GetAddress();
+                    service.ConstructUsing(name => new Program());
+                    service.WhenStarted(program => program.Start(address));
+                    service.WhenStopped(program => program.Stop());
+                });
+
+                config.RunAsLocalSystem();
+                config.SetDescription(Settings.Default.description);
+                config.SetDisplayName("Inuplan Web API");
+                config.SetServiceName("Inuplan.WebAPI");
+                config.StartAutomatically();
+            });
+        }
+
+        /// <summary>
+        /// Catch and log unhandled exceptions
+        /// </summary>
+        /// <param name="sender">The object sender</param>
+        /// <param name="e">The exception event information</param>
+        private static void UnhandledExceptions(object sender, UnhandledExceptionEventArgs e)
+        {
+            Logger.Error("Sender: {0}, exception object: {1}", sender, e.ExceptionObject);
+        }
+
+        /// <summary>
+        /// Retrieves the address from the settings file
+        /// </summary>
+        /// <returns></returns>
+        private static string GetAddress()
+        {
+#if DEBUG
+            return Settings.Default.addressDebug;
+#else
+            return Settings.Default.addressRelease;
+#endif
+        }
+
+        /// <summary>
+        /// Starts the owin web api with the given arguments.
+        /// </summary>
+        /// <param name="address"></param>
+        public void Start(string address)
+        {
+            Logger.Trace("Starting OWIN katana on: {0}", address);
+            application = WebApp.Start<Startup>(url: address);
+        }
+
+        /// <summary>
+        /// Stops the program
+        /// </summary>
+        public void Stop()
+        {
+            Logger.Trace("Stopping service!");
+            application.Dispose();
         }
     }
 }

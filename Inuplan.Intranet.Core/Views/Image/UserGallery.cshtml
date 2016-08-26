@@ -1,0 +1,39 @@
+﻿@using Inuplan.Intranet.Core.Extensions;
+@{
+    ViewData["Title"] = ViewBag.Username + " Billeder";
+}
+
+@section scripts
+{
+    <environment names="Development">
+        <script src="~/lib/react/react.js"></script>
+        <script src="~/lib/react/react-dom.js"></script>
+        <script src="~/lib/moment/moment.js"></script>
+        <script asp-src-include="~/js/components/**/*.js"></script>
+        <script src="~/lib/marked/lib/marked.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="~/lib/react/react.min.js"></script>
+        <script src="~/lib/react/react-dom.min.js"></script>
+        <script src="~/lib/moment/min/moment-with-locales.min.js"></script>
+        <script src="~/js/components.min.js" asp-append-version="true"></script>
+        <script src="~/lib/marked/marked.min.js"></script>
+    </environment>
+    <script src="~/lib/moment/locale/da.js"></script>
+    <script>
+        moment().locale('da');
+        ReactDOM.render(
+            React.createElement(ImageBox, {
+                username: '@ViewBag.Username',
+                imagesUrl: 'http://localhost:9000/api/userimage/getall',
+                imageUploadUrl: 'http://localhost:9000/api/userimage',
+                commentsUrl: 'http://localhost:9000/api/imagecomment',
+                deleteImageUrl: 'http://localhost:9000/api/userimage',
+                userUrl: 'http://localhost:9000/api/user',
+                me: '@User.Identity.UsernameWithoutDomain()',
+                canEdit: @ViewBag.CanEdit,
+                }),
+            document.getElementById('content')
+        );
+    </script>
+}
