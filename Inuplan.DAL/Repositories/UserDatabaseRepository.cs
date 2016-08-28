@@ -158,32 +158,37 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var sqlUser = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    var sqlUser = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
                         FROM Users
                         WHERE Username = @key";
 
-                var entity = (await connection.QueryAsync<User>(sqlUser, new { key }))
-                            .SingleOrDefault();
+                    var entity = (await connection.QueryAsync<User>(sqlUser, new { key }))
+                                .SingleOrDefault();
 
-                var result = Option.None<User>();
+                    var result = Option.None<User>();
 
-                if (entity != null)
-                {
-                    var sqlRoles = @"SELECT role.ID, role.Name
+                    if (entity != null)
+                    {
+                        var sqlRoles = @"SELECT role.ID, role.Name
                             FROM Roles role INNER JOIN UserRoles u
                             ON role.ID = u.RoleID
                             WHERE UserID = @ID";
 
-                    var roles = await connection.QueryAsync<Role>(sqlRoles, new
-                    {
-                        ID = entity.ID
-                    });
+                        var roles = await connection.QueryAsync<Role>(sqlRoles, new
+                        {
+                            ID = entity.ID
+                        });
 
-                    entity.Roles = roles.ToList();
-                    result = entity.Some();
+                        entity.Roles = roles.ToList();
+                        result = entity.Some();
+
+                        transactionScope.Complete();
+                    }
+
+                    return result;
                 }
-
-                return result;
             }
             catch (SqlException ex)
             {

@@ -124,8 +124,8 @@ namespace Inuplan.WebAPI.Middlewares
                         var created = await userDatabaseRepository.Create(u, _ => Task.FromResult(0));
                         if (!created.HasValue)
                         {
-                        // Error, couldn't create user in DB
-                        Logger.Error("Could not create user {0} in the database!", username);
+                            // Error, couldn't create user in DB
+                            Logger.Error("Could not create user {0} in the database!", username);
                             return true;
                         }
 
