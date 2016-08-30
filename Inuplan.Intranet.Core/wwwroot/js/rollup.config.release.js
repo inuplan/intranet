@@ -3,7 +3,7 @@ import uglify from 'rollup-plugin-uglify'
 
 export default {
   entry: 'app.js',
-  dest: 'bundle-es2015.min.js',
+  dest: 'bundle.min.js',
   format: 'cjs',
   plugins: [
     buble(),
