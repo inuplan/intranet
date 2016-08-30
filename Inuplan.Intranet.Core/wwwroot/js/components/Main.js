@@ -7,9 +7,12 @@ import { connect } from 'react-redux'
 import { Grid, Navbar, Nav } from 'react-bootstrap'
 
 const mapStateToProps = (state) => {
+    const user = state.usersInfo.users.filter(u => u.Username.toUpperCase() == globals.currentUsername.toUpperCase())[0];
+    const name = user ? user.FirstName : 'User';
     return {
         hasError: state.statusInfo.hasError,
-        error: state.statusInfo.errorInfo
+        error: state.statusInfo.errorInfo,
+        name: name
     };
 }
 
@@ -33,6 +36,7 @@ class Shell extends React.Component {
     }
 
     render() {
+        const { name } = this.props;
         return  <Grid fluid={true}>
                     <Navbar>
                         <Navbar.Header>
@@ -49,7 +53,7 @@ class Shell extends React.Component {
                                 <NavLink to="/about">Om</NavLink>                                
                             </Nav>
                             <Navbar.Text pullRight>
-                                Hej, {globals.currentUsername}!
+                                Hej, {name}!
                             </Navbar.Text>
                         </Navbar.Collapse>
 
