@@ -6,7 +6,7 @@ import { setError } from '../../actions/error'
 import { find } from 'underscore'
 import { connect } from 'react-redux'
 import { withRouter } from 'react-router'
-import { Modal, Image, Button, ButtonToolbar, Glyphicon } from 'react-bootstrap'
+import { Modal, Image, Button, ButtonToolbar, Glyphicon, Grid, Row, Col } from 'react-bootstrap'
 
 const mapStateToProps = (state) => {
     const ownerId  = state.imagesInfo.ownerId;
@@ -130,7 +130,7 @@ class ModalImage extends React.Component {
 
                     <Modal.Body>
                         <a href={originalUrl} target="_blank" rel="noopener">
-                            <Image src={previewUrl} responsive/>
+                            <Image src={previewUrl} responsive className="center-block"/>
                         </a>
                     </Modal.Body>
 

@@ -108,7 +108,7 @@ class CommentControlsContainer extends React.Component {
 
                                     <ButtonTooltip bsStyle="primary" onClick={this.deleteHandle} icon="trash" tooltip="slet" mount={mount} />
                                     <ButtonTooltip bsStyle="primary" onClick={this.toggleEdit} icon="pencil" tooltip="ændre" active={edit} mount={mount} />
-                                    <ButtonTooltip bsStyle="primary" onClick={this.toggleReply} icon="envelope" tooltip="svar" active={reply} mount={mount} />
+                                    <ButtonTooltip bsStyle="primary" onClick={this.toggleReply} icon="envelope" tooltip="svar" active={reply} mount={true} />
 
                                 </ButtonGroup>
                             </ButtonToolbar>
@@ -138,7 +138,7 @@ class CommentControlsContainer extends React.Component {
                                 toggle={this.toggleReply}
                                 save={this.replyHandle}
                                 saveText="Svar"
-                                mount={mount}
+                                mount={true}
                             />
                         </Col>
                     </Row>
