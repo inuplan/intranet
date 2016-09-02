@@ -52,6 +52,7 @@ class Shell extends React.Component {
                                 <NavLink to="/users">Brugere</NavLink>
                                 <NavLink to="/about">Om</NavLink>                                
                             </Nav>
+
                             <Navbar.Text pullRight>
                                 Hej, {name}!
                             </Navbar.Text>

@@ -6,7 +6,7 @@ import { ImageUpload } from '../images/ImageUpload'
 import ImageList from '../images/ImageList'
 import { find } from 'underscore'
 import { withRouter } from 'react-router'
-import { Row, Col } from 'react-bootstrap'
+import { Row, Col, Button } from 'react-bootstrap'
 
 const mapStateToProps = (state) => {
     const ownerId  = state.imagesInfo.ownerId;
@@ -88,15 +88,19 @@ class UserImagesContainer extends React.Component {
         const { username } = this.props.params;
         const hasImages = selectedImageIds.length > 0;
 
-        return (
-            canEdit ? 
-            <ImageUpload
-                uploadImage={uploadImage}
-                username={username}
-                deleteSelectedImages={this.deleteSelectedImages}
-                hasImages={hasImages}
-            />
-            : null);
+        if(!canEdit) return null;
+
+        return  <Row>
+                    <br />
+                    <Col lg={4}>
+                        <ImageUpload
+                            uploadImage={uploadImage}
+                            username={username}>
+                                {'\u00A0'}
+                                <Button bsStyle="danger" disabled={!hasImages} onClick={this.deleteSelectedImages}>Slet markeret billeder</Button>
+                        </ImageUpload>
+                    </Col>
+                </Row>
     }
 
     render() {
