@@ -45,23 +45,13 @@ export class ImageUpload extends React.Component {
     }
 
     render() {
-        const { hasImages, deleteSelectedImages } = this.props;
-        return  <Row>
-                    <br />
-                    <Col lg={4}>
-                        <form
-                              onSubmit={this.handleSubmit}
-                              id="form-upload"
-                              enctype="multipart/form-data">
-                                <div className="form-group">
-                                    <label htmlFor="files">Upload filer:</label>
-                                    <input type="file" className="form-control" id="files" name="files" multiple />
-                                </div>
-                                <Button bsStyle="primary" type="submit">Upload</Button>
-                                {'\u00A0'}
-                                <Button bsStyle="danger" disabled={!hasImages} onClick={deleteSelectedImages}>Slet markeret billeder</Button>
-                        </form>
-                    </Col>
-                </Row>
+        return  <form onSubmit={this.handleSubmit} id="form-upload" enctype="multipart/form-data">
+                        <div className="form-group">
+                            <label htmlFor="files">Upload filer:</label>
+                            <input type="file" className="form-control" id="files" name="files" multiple />
+                        </div>
+                    <Button bsStyle="primary" type="submit">Upload</Button>
+                    {this.props.children}
+                </form>
     }
 }
