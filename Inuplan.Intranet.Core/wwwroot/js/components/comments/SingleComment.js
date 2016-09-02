@@ -44,7 +44,7 @@ class SingleCommentRedux extends React.Component {
         if(!comment) return null;
 
         const { Text, AuthorID, CommentID, PostedOn } = comment;
-        const name = getName(comment.AuthorId);
+        const name = getName(comment.AuthorID);
 
         return  <div className="text-left">
                     <Well>
