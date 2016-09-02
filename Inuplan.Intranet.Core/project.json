@@ -61,6 +61,7 @@
       "wwwroot/lib/bootstrap/dist/fonts",
       "wwwroot/lib/moment",
       "wwwroot/images",
+      "wwwroot/css/**/*.min.css",
       "wwwroot/favicon.ico"
     ],
     "exclude": [
@@ -69,7 +70,7 @@
   },
 
   "scripts": {
-    "prepublish": [ "npm run prepublish" ],
+    "prepublish": [ "npm run prepublish", "gulp min:css" ],
     "postpublish": []
   },
   "userSecretsId": "aspnet-Inuplan.Intranet.Core-20160901111153"
