@@ -38,7 +38,7 @@ class Shell extends React.Component {
     render() {
         const { name } = this.props;
         return  <Grid fluid={true}>
-                    <Navbar>
+                    <Navbar fixedTop>
                         <Navbar.Header>
                             <Navbar.Brand>
                                 <Link to="/" className="navbar-brand">Inuplan Intranet</Link>
