@@ -44,25 +44,27 @@ class HomeView extends React.Component {
         const username = globals.currentUsername;
         const { name } = this.props;
         return  <Row>
-                    <Col lgOffset={2} lg={8}>
-                        <Jumbotron>
-                            <h1>Velkommen <small>{name}!</small></h1>
-                            <p className="lead">
-                                Til Inuplans intranet side
-                            </p> 
-
-                        </Jumbotron>
+                    <Jumbotron>
+                        <h1><span>Velkommen <small>{name}!</small></span></h1>
+                        <p className="lead">
+                            Til Inuplans intranet side
+                        </p> 
 
                         <Row>
-                            <Col lg={12}>
+                            <Col lg={4}>
                                 <Panel header={'Du kan uploade billeder til dit eget galleri her'} bsStyle="primary">
                                     <ImageUpload username={username} uploadImage={this.upload} />
                                 </Panel>
                             </Col>
                         </Row>
-
-                        <WhatsNew />
-                    </Col>
+                    </Jumbotron>
+                    <Grid fluid>
+                        <Row>
+                            <Col lgOffset={2} lg={10}>
+                                <WhatsNew />
+                            </Col>
+                        </Row>
+                    </Grid>
                 </Row>
     }
 }
