@@ -1,5 +1,6 @@
 ﻿import React from 'react'
 import { Row, Col } from 'react-bootstrap'
+import { Breadcrumb } from '../breadcrumbs/Breadcrumb'
 
 export default class About extends React.Component {
     componentDidMount() {
@@ -8,6 +9,18 @@ export default class About extends React.Component {
 
     render() {
         return  <Row>
+                    <Row>
+                        <Col lgOffset={2} lg={8}>
+                            <Breadcrumb>
+                                <Breadcrumb.Item href="/">
+                                    Forside
+                                </Breadcrumb.Item>
+                                <Breadcrumb.Item active>
+                                    Om
+                                </Breadcrumb.Item>
+                            </Breadcrumb>
+                        </Col>
+                    </Row>
                     <Col lgOffset={2} lg={8}>
                         <p>
                             Dette er en single page application!

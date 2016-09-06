@@ -7,6 +7,7 @@ import ImageList from '../images/ImageList'
 import { find } from 'underscore'
 import { withRouter } from 'react-router'
 import { Row, Col, Button } from 'react-bootstrap'
+import { Breadcrumb } from '../breadcrumbs/Breadcrumb'
 
 const mapStateToProps = (state) => {
     const ownerId  = state.imagesInfo.ownerId;
@@ -91,7 +92,6 @@ class UserImagesContainer extends React.Component {
         if(!canEdit) return null;
 
         return  <Row>
-                    <br />
                     <Col lg={4}>
                         <ImageUpload
                             uploadImage={uploadImage}
@@ -109,6 +109,18 @@ class UserImagesContainer extends React.Component {
         const fullName = getFullname(username);
         
         return  <Row>
+                    <Row>
+                        <Col lgOffset={2} lg={8}>
+                            <Breadcrumb>
+                                <Breadcrumb.Item href="/">
+                                    Forside
+                                </Breadcrumb.Item>
+                                <Breadcrumb.Item active>
+                                    {username}'s billeder
+                                </Breadcrumb.Item>
+                            </Breadcrumb>
+                        </Col>
+                    </Row>
                     <Col lgOffset={2} lg={8}>
                         <h1><span className="text-capitalize">{fullName}'s</span> <small>billede galleri</small></h1>
                         <hr />
