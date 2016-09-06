@@ -77,7 +77,7 @@ export function deleteImage(id, username) {
     }
 }
 
-export function uploadImage(username, formData) {
+export function uploadImage(username, formData, onSuccess, onError) {
     return function(dispatch) {
         const url = globals.urls.images + "?username=" + username;
         const opt = Object.assign({}, options, {
@@ -89,7 +89,7 @@ export function uploadImage(username, formData) {
 
         return fetch(url, opt)
             .then(handler)
-            .then(() => dispatch(fetchUserImages(username)), onReject);
+            .then(onSuccess, onError);
     }
 }
 

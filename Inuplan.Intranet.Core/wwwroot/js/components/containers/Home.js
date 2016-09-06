@@ -19,8 +19,11 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         uploadImage: (skip, take, username, formData) => {
-            dispatch(uploadImage(username, formData));
-            dispatch(fetchLatestNews(skip, take));
+            const onSuccess = () => {
+                dispatch(fetchLatestNews(skip, take));
+            };
+
+            dispatch(uploadImage(username, formData, onSuccess, () => { }));
         }
     }
 }

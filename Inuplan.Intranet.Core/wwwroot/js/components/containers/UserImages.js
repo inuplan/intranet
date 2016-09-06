@@ -1,6 +1,6 @@
 ﻿import React from 'react'
 import { connect } from 'react-redux'
-import { uploadImage, addSelectedImageId,  deleteImages, removeSelectedImageId, clearSelectedImageIds } from '../../actions/images'
+import { uploadImage, addSelectedImageId,  deleteImages, removeSelectedImageId, clearSelectedImageIds, fetchUserImages } from '../../actions/images'
 import { Error } from './Error'
 import { ImageUpload } from '../images/ImageUpload'
 import ImageList from '../images/ImageList'
@@ -28,7 +28,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
     return {
         uploadImage: (username, formData) => {
-            dispatch(uploadImage(username, formData));
+            dispatch(uploadImage(username, formData, () => { dispatch(fetchUserImages(username)); }, () => { }));
         },
         addSelectedImageId: (id) => {
             // Images to be deleted by selection:
