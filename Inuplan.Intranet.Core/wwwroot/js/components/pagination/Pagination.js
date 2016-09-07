@@ -7,7 +7,7 @@ export class Pagination extends React.Component {
         if(totalPages <= 1) return null;
 
         return  <PaginationBs
-                    prev next first last ellipsis boundaryLinks
+                    prev next ellipsis boundaryLinks
                     items={totalPages}
                     maxButtons={5}
                     activePage={page}
