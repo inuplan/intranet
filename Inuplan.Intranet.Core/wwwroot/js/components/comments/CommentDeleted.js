@@ -1,5 +1,5 @@
 ﻿import React from 'react'
-import { Media } from "react-bootstrap"
+import { Media, Glyphicon  } from "react-bootstrap"
 
 export class CommentDeleted extends React.Component {
     render() {
@@ -9,7 +9,11 @@ export class CommentDeleted extends React.Component {
         return  <Media>
                     <Media.Left style={{ minWidth: "74px" }} />
                     <Media.Body>
-                        <small>slettet</small>
+                        <p className="text-muted comment-deleted">
+                            <span>
+                                <Glyphicon glyph="remove-sign" /> Kommentar slettet
+                            </span>
+                        </p>
                         {replyNodes}
                     </Media.Body>
                 </Media>

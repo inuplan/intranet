@@ -133,19 +133,19 @@ namespace Inuplan.DAL.Repositories
                 // Note: using LEFT JOIN on final projection, since we want to include all the deleted comments where user is null
                 var sqlComments = 
                     @"WITH CommentTree AS(
-                            SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
+                            SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Edited, Deleted, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
                             FROM Comments INNER JOIN ImageComments
                             ON Comments.ID = ImageComments.CommentID
                               WHERE ImageComments.ImageID = @key
 
                             UNION ALL
 
-                            SELECT Reply.Reply, Reply.ID, Reply.PostedOn, Reply.Author, Reply.Text, Reply.Deleted, CommentTree.RowNumber
+                            SELECT Reply.Reply, Reply.ID, Reply.PostedOn, Reply.Author, Reply.Text, Reply.Edited, Reply.Deleted, CommentTree.RowNumber
                             FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.TopID
                             WHERE Reply.Reply IS NOT NULL)
                         SELECT
-                            ParentID, TopID AS ID, Deleted, PostedOn, Text,  /* comment */
-                            ID, FirstName, LastName, Username, Email        /* author */
+                            ParentID, TopID AS ID, Deleted, PostedOn, Text, Edited  /* comment */
+                            ID, FirstName, LastName, Username, Email                /* author */
                         FROM CommentTree
                         LEFT JOIN Users ON CommentTree.AuthorID = Users.ID";
 
@@ -176,7 +176,7 @@ namespace Inuplan.DAL.Repositories
             try
             {
                 var sql = @"SELECT 
-                            c.ID, PostedOn, Text, c.Deleted,
+                            c.ID, PostedOn, Text, c.Deleted, c.Edited,
                             u.ID, FirstName, LastName, Username, Email
                             FROM Comments c LEFT JOIN Users u ON c.Author = u.ID WHERE c.ID = @id";
 
@@ -226,19 +226,19 @@ namespace Inuplan.DAL.Repositories
                 // Note: we use left join because we want the left side (comments) to be included
                 // even if the right side (users) are null.
                 var sql = @"WITH CommentTree AS(
-                                SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
+                                SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, Edited, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
                                 FROM Comments INNER JOIN ImageComments
                                 ON Comments.ID = ImageComments.CommentID
                                   WHERE ImageComments.ImageID = @ImageID
 
                                 UNION ALL
 
-                                SELECT Reply.Reply, Reply.ID, Reply.PostedOn, Reply.Author, Reply.Text, Reply.Deleted, CommentTree.RowNumber
+                                SELECT Reply.Reply, Reply.ID, Reply.PostedOn, Reply.Author, Reply.Text, Reply.Deleted, Reply.Edited, CommentTree.RowNumber
                                 FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.TopID
                                 WHERE Reply.Reply IS NOT NULL)
                             SELECT
-                                ParentID, TopID AS ID, Deleted, PostedOn, Text,    /* comment */
-                                ID, FirstName, LastName, Username, Email            /* author */
+                                ParentID, TopID AS ID, Deleted, PostedOn, Text, Edited,     /* comment */
+                                ID, FirstName, LastName, Username, Email                    /* author */
                             FROM CommentTree
                             LEFT JOIN Users ON CommentTree.AuthorID = Users.ID
                             WHERE RowNumber BETWEEN @From AND @To";
@@ -285,11 +285,13 @@ namespace Inuplan.DAL.Repositories
             {
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    var sql = @"UPDATE Comments SET PostedOn=@PostedOn, Text=@Text WHERE ID=@key";
+                    entity.Edited = true;
+                    var sql = @"UPDATE Comments SET PostedOn=@PostedOn, Text=@Text, Edited=@Edited WHERE ID=@key";
                     var success = (await connection.ExecuteAsync(sql, new
                     {
                         key,
-                        PostedOn = entity.PostedOn,
+                        entity.PostedOn,
+                        entity.Edited,
                         entity.Text
                     })).Equals(1);
 
@@ -436,6 +438,11 @@ namespace Inuplan.DAL.Repositories
             return count;
         }
 
+        /// <summary>
+        /// Helper function that constructs the comment chain.
+        /// </summary>
+        /// <param name="allComments">The comments</param>
+        /// <returns>A list of top-level comments with their child replies</returns>
         private List<ImageComment> ConstructReplies(IEnumerable<ImageComment> allComments)
         {
             // Create the child hierarchy

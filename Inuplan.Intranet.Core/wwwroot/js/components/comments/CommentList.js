@@ -40,6 +40,7 @@ export class CommentList extends React.Component {
                     text={comment.Text}
                     construct={this.constructComment}
                     replies={comment.Replies}
+                    edited={comment.Edited}
                     commentId={comment.CommentID} />
     }
 

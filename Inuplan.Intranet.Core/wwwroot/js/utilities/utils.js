@@ -71,7 +71,8 @@ export const normalizeComment = (comment) => {
         Deleted: comment.Deleted,
         PostedOn: comment.PostedOn,
         Text: comment.Text,
-        Replies: replies
+        Replies: replies,
+        Edited: comment.Edited
     }
 }
 

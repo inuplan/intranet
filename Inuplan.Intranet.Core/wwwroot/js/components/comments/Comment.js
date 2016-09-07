@@ -10,8 +10,13 @@ export class Comment extends React.Component {
         return timeText(postedOn);
     }
 
+    editedView(edited) {
+        if(!edited) return null;
+        return  <span>*</span>
+    }
+
     render() {
-        const { name, text, commentId, replies, construct, authorId } = this.props;
+        const { name, text, commentId, replies, construct, authorId, edited } = this.props;
         const txt = formatText(text);
         const replyNodes = replies.map(reply => construct(reply));
 
@@ -19,7 +24,7 @@ export class Comment extends React.Component {
                     <CommentProfile />
                     <Media.Body>
                         <h5 className="media-heading">
-                            <strong>{name}</strong> <small>sagde {this.ago()}</small>
+                            <strong>{name}</strong> <small>sagde {this.ago()}{this.editedView(edited)}</small> 
                         </h5>
                         <span dangerouslySetInnerHTML={txt}></span>
                         <CommentControls authorId={authorId} commentId={commentId} text={text} />
