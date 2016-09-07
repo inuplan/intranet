@@ -42,7 +42,8 @@ namespace Inuplan.Common.Tools
                 Deleted = comment.Deleted,
                 PostedOn = comment.PostedOn,
                 Replies = replyDtos,
-                Text = comment.Text
+                Text = comment.Text,
+                Edited = comment.Edited
             };
         }
 

@@ -34,6 +34,7 @@ namespace Inuplan.Common.Models
         public DateTime PostedOn { get; set; }
         public User Author { get; set; }
         public string Text { get; set; }
+        public bool Edited { get; set; }
         public List<ImageComment> Replies { get; set; }
     }
 }
