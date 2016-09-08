@@ -21,7 +21,9 @@
 namespace Inuplan.Common.Tools
 {
     using DTOs;
+    using DTOs.Forum;
     using Models;
+    using Models.Forum;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -96,6 +98,52 @@ namespace Inuplan.Common.Tools
             };
 
             return result;
+        }
+
+        public static ThreadPostTitleDTO ToThreadPostTitleDTO(ThreadPostTitle threadTitle)
+        {
+            var author = ToUserDTO(threadTitle.Author);
+            var viewedBy = threadTitle.ViewedBy.Select(ToUserDTO).ToList();
+            return new ThreadPostTitleDTO
+            {
+                Author = author,
+                CommentCount = threadTitle.CommentCount,
+                Deleted = threadTitle.Deleted,
+                ID = threadTitle.ID,
+                IsModified = threadTitle.IsModified,
+                IsPublished = threadTitle.IsPublished,
+                LastModified = threadTitle.LastModified,
+                PublishedOn = threadTitle.PublishedOn,
+                Title = threadTitle.Title,
+                ViewedBy = viewedBy
+            };
+        }
+
+        public static ThreadPostContentDTO ToThreadPostContentDTO(ThreadPostContent threadContent)
+        {
+            var title = ToThreadPostTitleDTO(threadContent.Title);
+            return new ThreadPostContentDTO
+            {
+                Text = threadContent.Text,
+                ThreadID = threadContent.ThreadID,
+                Title = title
+            };
+        }
+
+        public static ThreadPostCommentDTO ToThreadPostCommentDTO(ThreadPostComment threadComment)
+        {
+            var author = ToUserDTO(threadComment.Author);
+            var replies = threadComment.Replies.Select(ToThreadPostCommentDTO).ToList();
+            return new ThreadPostCommentDTO
+            {
+                Author = author,
+                Deleted = threadComment.Deleted,
+                Edited = threadComment.Edited,
+                ID = threadComment.ID,
+                PostedOn = threadComment.PostedOn,
+                Replies = replies,
+                Text = threadComment.Text
+            };
         }
     }
 }
