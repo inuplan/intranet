@@ -35,8 +35,6 @@ namespace Inuplan.DAL.Repositories
     using System.Data.SqlClient;
     using NLog;
     using Common.Tools;
-    using ImageID = System.Int32;
-    using UserID = System.Int32;
 
     /// <summary>
     /// A repository for the images a user has.
