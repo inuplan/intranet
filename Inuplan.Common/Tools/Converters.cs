@@ -113,7 +113,7 @@ namespace Inuplan.Common.Tools
                 IsModified = threadTitle.IsModified,
                 IsPublished = threadTitle.IsPublished,
                 LastModified = threadTitle.LastModified,
-                PublishedOn = threadTitle.PublishedOn,
+                CreatedOn = threadTitle.CreatedOn,
                 Title = threadTitle.Title,
                 ViewedBy = viewedBy
             };
