@@ -143,7 +143,8 @@ namespace Inuplan.Common.Tools
                 ParentID = threadComment.ParentID,
                 PostedOn = threadComment.PostedOn,
                 Replies = replies,
-                Text = threadComment.Text
+                Text = threadComment.Text,
+                ThreadID = threadComment.ThreadID
             };
         }
     }

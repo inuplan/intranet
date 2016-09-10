@@ -26,7 +26,8 @@ namespace Inuplan.Common.Models.Forum
     public class ThreadPostComment
     {
         public int ID { get; set; }
-        public int ParentID { get; set; }
+        public int? ParentID { get; set; }
+        public int ThreadID { get; set; }
         public DateTime PostedOn { get; set; }
         public User Author { get; set; }
         public string Text { get; set; }
