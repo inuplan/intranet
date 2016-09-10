@@ -140,6 +140,7 @@ namespace Inuplan.Common.Tools
                 Deleted = threadComment.Deleted,
                 Edited = threadComment.Edited,
                 ID = threadComment.ID,
+                ParentID = threadComment.ParentID,
                 PostedOn = threadComment.PostedOn,
                 Replies = replies,
                 Text = threadComment.Text
