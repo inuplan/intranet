@@ -25,7 +25,7 @@ namespace Inuplan.Common.Models.Forum
 
     public class ThreadPostTitle
     {
-        public int ID { get; set; }
+        public int ThreadID { get; set; }
         public bool IsPublished { get; set; }
         public DateTime CreatedOn { get; set; }
         public User Author { get; set; }

@@ -109,7 +109,7 @@ namespace Inuplan.Common.Tools
                 Author = author,
                 CommentCount = commentCount,
                 Deleted = threadTitle.Deleted,
-                ID = threadTitle.ID,
+                ID = threadTitle.ThreadID,
                 IsModified = threadTitle.IsModified,
                 IsPublished = threadTitle.IsPublished,
                 LastModified = threadTitle.LastModified,

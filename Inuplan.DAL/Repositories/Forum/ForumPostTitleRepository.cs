@@ -66,7 +66,7 @@ namespace Inuplan.DAL.Repositories.Forum
                     entity.Title
                 });
 
-                entity.ID = id;
+                entity.ThreadID = id;
 
                 if(id > 0)
                 {
@@ -74,7 +74,7 @@ namespace Inuplan.DAL.Repositories.Forum
                     await onCreate(entity);
                 }
 
-                return entity.SomeWhen(e => e.ID > 0);
+                return entity.SomeWhen(e => e.ThreadID > 0);
             }
         }
 
@@ -120,7 +120,7 @@ namespace Inuplan.DAL.Repositories.Forum
                     return e;
                 }, new { key });
 
-                var result = query.Single(e => e.ID == key).SomeWhen(e => e.ID > 0);
+                var result = query.Single(e => e.ThreadID == key).SomeWhen(e => e.ThreadID > 0);
 
                 // Remember to add the viewed result
                 var usersSql = @"SELECT
@@ -173,7 +173,7 @@ namespace Inuplan.DAL.Repositories.Forum
             var groups = viewCollection.GroupBy(g => g.Item2);
             foreach (var group in groups)
             {
-                var title = titles.Single(t => t.ID == group.Key);
+                var title = titles.Single(t => t.ThreadID == group.Key);
                 title.ViewedBy = group.Select(g => g.Item1).ToList();
             }
 
@@ -228,14 +228,14 @@ namespace Inuplan.DAL.Repositories.Forum
                                  ON t.UserID = u.ID
                                  WHERE t.ThreadID = @ThreadID";
 
-            foreach (var ThreadID in titleQuery.Select(t => t.ID))
+            foreach (var ThreadID in titleQuery.Select(t => t.ThreadID))
             {
                 var usersView = await connection.QueryAsync<User>(sqlUserViews, new
                 {
                     ThreadID
                 });
 
-                var title = titleQuery.Single(t => t.ID == ThreadID);
+                var title = titleQuery.Single(t => t.ThreadID == ThreadID);
                 title.ViewedBy = usersView.ToList();
             }
 
