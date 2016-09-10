@@ -26,7 +26,7 @@ namespace Inuplan.Common.Repositories
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    public interface IVectorRepository<K, E>
+    public interface IVectorRepository<K, E> : IDisposable
     {
         /// <summary>
         /// Create an entity in the repository.
