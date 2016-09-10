@@ -479,6 +479,7 @@ namespace Inuplan.DAL.Repositories
                 {
                     // TODO: dispose managed state (managed objects).
                     connection.Dispose();
+                    connection.Close();
                 }
 
                 disposedValue = true;
