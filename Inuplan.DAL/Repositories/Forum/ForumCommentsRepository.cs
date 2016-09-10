@@ -32,9 +32,15 @@ namespace Inuplan.DAL.Repositories.Forum
     using System.Transactions;
     using System.Data.SqlClient;
     using Common.Tools;
+    using NLog;
 
     public class ForumCommentsRepository : IVectorRepository<int, Comment>
     {
+        /// <summary>
+        /// Get current logging framework
+        /// </summary>
+        private static Logger Logger = LogManager.GetCurrentClassLogger();
+
         private readonly IDbConnection connection;
 
         /// <summary>
@@ -114,7 +120,7 @@ namespace Inuplan.DAL.Repositories.Forum
             }
             catch (Exception ex)
             {
-                //Logger.Error(ex);
+                Logger.Error(ex);
                 throw;
             }
         }
@@ -277,7 +283,7 @@ namespace Inuplan.DAL.Repositories.Forum
             }
             catch (SqlException ex)
             {
-                //Logger.Error(ex);
+                Logger.Error(ex);
                 throw;
             }
         }
@@ -330,7 +336,7 @@ namespace Inuplan.DAL.Repositories.Forum
             }
             catch (SqlException ex)
             {
-                //Logger.Error(ex);
+                Logger.Error(ex);
                 throw;
             }
         }
@@ -371,7 +377,7 @@ namespace Inuplan.DAL.Repositories.Forum
             }
             catch (SqlException ex)
             {
-                //Logger.Error(ex);
+                Logger.Error(ex);
                 throw;
             }
         }
@@ -403,7 +409,7 @@ namespace Inuplan.DAL.Repositories.Forum
             }
             catch (SqlException ex)
             {
-                //Logger.Error(ex);
+                Logger.Error(ex);
                 throw;
             }
         }
