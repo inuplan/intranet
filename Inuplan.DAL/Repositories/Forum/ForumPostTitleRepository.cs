@@ -263,9 +263,9 @@ namespace Inuplan.DAL.Repositories.Forum
                     entity.CreatedOn,
                     entity.IsPublished,
                     entity.Deleted,
-                    entity.IsModified,
+                    IsModified = true,
                     entity.Title,
-                    entity.LastModified
+                    LastModified = DateTime.Now
                 });
 
                 if(update == 1)
