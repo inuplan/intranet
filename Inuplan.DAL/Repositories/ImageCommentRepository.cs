@@ -154,7 +154,7 @@ namespace Inuplan.DAL.Repositories
                     return comment;
                 }, new { key });
 
-                var result = ConstructReplies(allComments);
+                var result = Helpers.ConstructReplies(allComments);
                 return result;
             }
             catch (SqlException ex)
@@ -260,7 +260,7 @@ namespace Inuplan.DAL.Repositories
                     ImageID = imageId
                 });
 
-                var items = ConstructReplies(comments);
+                var items = Helpers.ConstructReplies(comments);
                 return Helpers.Paginate(skip, take, total, items);
             }
             catch (SqlException ex)
@@ -434,26 +434,6 @@ namespace Inuplan.DAL.Repositories
             });
 
             return count;
-        }
-
-        /// <summary>
-        /// Helper function that constructs the comment chain.
-        /// </summary>
-        /// <param name="allComments">The comments</param>
-        /// <returns>A list of top-level comments with their child replies</returns>
-        private List<Comment> ConstructReplies(IEnumerable<Comment> allComments)
-        {
-            // Create the child hierarchy
-            var groups = allComments.GroupBy(c => c.ParentID);
-            foreach (var replies in groups)
-            {
-                if (replies.Key == null) continue;
-                var parent = allComments.Single(c => c.ID == replies.Key);
-                parent.Replies = replies.ToList();
-            }
-
-            // Select only top-level comments (since the children are included in the replies)
-            return allComments.Where(c => c.ParentID == null).ToList();
         }
 
         /// <summary>
