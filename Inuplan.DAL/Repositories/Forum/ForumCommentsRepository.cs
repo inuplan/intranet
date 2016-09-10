@@ -20,18 +20,18 @@
 
 namespace Inuplan.DAL.Repositories.Forum
 {
-    using Common.Models.Forum;
     using Common.Repositories;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using Common.Models;
     using Optional;
     using Dapper;
     using System.Data;
     using System.Transactions;
+    using System.Data.SqlClient;
+    using Common.Tools;
 
     public class ForumCommentsRepository : IVectorRepository<int, Comment>
     {
@@ -47,14 +47,76 @@ namespace Inuplan.DAL.Repositories.Forum
             this.connection = connection;
         }
 
-        public Task<int> Count(int key)
+        public async Task<int> Count(int key)
         {
-            throw new NotImplementedException();
+            var sqlComments =
+                @"WITH CommentTree AS(
+                        SELECT Reply AS ReplyID, ID, Deleted
+                        FROM Comments INNER JOIN ThreadComments
+                        ON Comments.ID = ThreadComments.CommentID
+                            WHERE ThreadComments.ThreadID = @key
+
+                        UNION ALL
+
+                        SELECT Reply.Reply, Reply.ID, Reply.Deleted
+                        FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
+                        WHERE Reply.Reply IS NOT NULL)
+                    SELECT Count(*) FROM CommentTree
+                    WHERE Deleted <> 1";
+
+            var count = await connection.ExecuteScalarAsync<int>(sqlComments, new
+            {
+                key
+            });
+
+            return count;
         }
 
-        public Task<Option<Comment>> CreateSingle(Comment entity, Func<Comment, Task> onCreate)
+        public async Task<Option<Comment>> CreateSingle(Comment entity, Func<Comment, Task> onCreate)
         {
-            throw new NotImplementedException();
+            try
+            {
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    var sqlComment = @"INSERT INTO Comments (PostedOn, Author, Text, Reply)
+                                VALUES (@PostedOn, @Author, @Text, @Reply);
+                                SELECT ID FROM Comments WHERE ID = @@IDENTITY;";
+
+                    entity.ID = await connection.ExecuteScalarAsync<int>(sqlComment, new
+                    {
+                        Author = entity.Author.ID,
+                        Reply = entity.ParentID,
+                        entity.PostedOn,
+                        entity.Text,
+                    });
+
+                    var success = entity.ID > 0;
+
+                    if (!entity.ParentID.HasValue)
+                    {
+                        // It is a top comment
+                        var sqlThreadComment = @"INSERT INTO ThreadComments (ThreadID, CommentID) VALUES (@ThreadID, @CommentID)";
+                        success = (await connection.ExecuteAsync(sqlThreadComment, new
+                        {
+                            ThreadID = entity.ContextID,
+                            CommentID = entity.ID,
+                        })).Equals(1);
+                    }
+
+                    if (success)
+                    {
+                        await onCreate(entity);
+                        transactionScope.Complete();
+                    }
+
+                    return entity.SomeWhen(c => success);
+                }
+            }
+            catch (Exception ex)
+            {
+                //Logger.Error(ex);
+                throw;
+            }
         }
 
         public async Task<bool> Delete(int key, Func<int, Task> onDelete)
@@ -118,30 +180,232 @@ namespace Inuplan.DAL.Repositories.Forum
             }
         }
 
-        public Task<bool> DeleteSingle(int key, Func<int, Task> onDelete)
+        public async Task<bool> DeleteSingle(int key, Func<int, Task> onDelete)
         {
-            // The key is a CommentID
-            throw new NotImplementedException();
+            // The key is a thread id
+            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                var sqlIds = @"WITH CommentTree AS(
+                                SELECT Reply AS ReplyID, ID, ThreadID
+                                FROM Comments INNER JOIN ThreadComments
+                                ON Comments.ID = ThreadComments.CommentID
+                                WHERE ThreadComments.ThreadID = @ThreadID
+
+                                UNION ALL
+
+                                SELECT Reply.Reply, Reply.ID, ThreadID
+                                FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
+                                WHERE Reply.Reply IS NOT NULL)
+                            SELECT ID FROM CommentTree";
+                var commentIds = await connection.QueryAsync<int>(sqlIds, new
+                {
+                    ThreadID = key
+                });
+
+                // Delete all comments for the thread:
+                var deleteCommentsSql = @"WITH CommentTree AS(
+                                SELECT Reply AS ReplyID, ID, ThreadID
+                                FROM Comments INNER JOIN ThreadComments
+                                ON Comments.ID = ThreadComments.CommentID
+                                  WHERE ThreadComments.ThreadID = @ThreadID
+
+                                UNION ALL
+
+                                SELECT Reply.Reply, Reply.ID, ThreadID
+                                FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
+                                WHERE Reply.Reply IS NOT NULL)
+                                DELETE c
+                                FROM Comments c
+                                INNER JOIN CommentTree t
+                                ON c.ID = t.ID";
+
+                // Returns the number of affected rows (comments deleted)
+                var deletedComments = await connection.ExecuteAsync(deleteCommentsSql, new
+                {
+                    ThreadID = key
+                });
+
+                var success = commentIds.ToList().Count == deletedComments;
+                if (success)
+                {
+                    foreach (var commentId in commentIds)
+                    {
+                        await onDelete(commentId);
+                    }
+
+                    transactionScope.Complete();
+                }
+
+                return success;
+            }
         }
 
-        public Task<List<Comment>> Get(int key)
+        public async Task<List<Comment>> Get(int key)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // SQL - CTE where first projection (select) is the anchor
+                // the 2nd projection is the recursion
+                // Note: using LEFT JOIN on final projection, since we want to include all the deleted comments where user is null
+                var sqlComments = 
+                    @"WITH CommentTree AS(
+                            SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Edited, Deleted, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
+                            FROM Comments INNER JOIN ThreadComments
+                            ON Comments.ID = ThreadComments.CommentID
+                              WHERE ThreadComments.ThreadID = @key
+
+                            UNION ALL
+
+                            SELECT Reply.Reply, Reply.ID, Reply.PostedOn, Reply.Author, Reply.Text, Reply.Edited, Reply.Deleted, CommentTree.RowNumber
+                            FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.TopID
+                            WHERE Reply.Reply IS NOT NULL)
+                        SELECT
+                            ParentID, TopID AS ID, Deleted, PostedOn, Text, Edited  /* comment */
+                            ID, FirstName, LastName, Username, Email                /* author */
+                        FROM CommentTree
+                        LEFT JOIN Users ON CommentTree.AuthorID = Users.ID";
+
+                var allComments = await connection.QueryAsync<Comment, User, Comment>(sqlComments, (comment, author) =>
+                {
+                    comment.Author = author;
+                    comment.ContextID = key;
+                    return comment;
+                }, new { key });
+
+                var result = Helpers.ConstructReplies(allComments);
+                return result;
+            }
+            catch (SqlException ex)
+            {
+                //Logger.Error(ex);
+                throw;
+            }
         }
 
-        public Task<Pagination<Comment>> GetPage(int id, int skip, int take)
+        public async Task<Pagination<Comment>> GetPage(int id, int skip, int take)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Note: we use left join because we want the left side (comments) to be included
+                // even if the right side (users) are null.
+                var sql = @"WITH CommentTree AS(
+                                SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, Edited, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
+                                FROM Comments INNER JOIN ThreadComments
+                                ON Comments.ID = ThreadComments.CommentID
+                                  WHERE ThreadComments.ThreadID = @ThreadID
+
+                                UNION ALL
+
+                                SELECT Reply.Reply, Reply.ID, Reply.PostedOn, Reply.Author, Reply.Text, Reply.Deleted, Reply.Edited, CommentTree.RowNumber
+                                FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.TopID
+                                WHERE Reply.Reply IS NOT NULL)
+                            SELECT
+                                ParentID, TopID AS ID, Deleted, PostedOn, Text, Edited,     /* comment */
+                                ID, FirstName, LastName, Username, Email                    /* author */
+                            FROM CommentTree
+                            LEFT JOIN Users ON CommentTree.AuthorID = Users.ID
+                            WHERE RowNumber BETWEEN @From AND @To";
+
+                var repliesTo = new List<Tuple<int?, Comment>>();
+                var comments = await connection.QueryAsync<Comment, User, Comment>(sql, (comment, author) =>
+                {
+                    comment.Author = author;
+                    comment.ContextID = id;
+                    return comment;
+                }, new
+                {
+                    ThreadID = id,
+                    From = skip + 1,
+                    To = skip + take,
+                });
+
+                var totalSql = @"SELECT COUNT(*) FROM ThreadComments WHERE ThreadID = @ThreadID;";
+                var total = await connection.ExecuteScalarAsync<int>(totalSql, new
+                {
+                    ThreadID = id
+                });
+
+                var items = Helpers.ConstructReplies(comments);
+                return Helpers.Paginate(skip, take, total, items);
+            }
+            catch (SqlException ex)
+            {
+                //Logger.Error(ex);
+                throw;
+            }
         }
 
-        public Task<Option<Comment>> GetSingleByID(int id)
+        public async Task<Option<Comment>> GetSingleByID(int id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var sql = @"SELECT 
+                            c.ID, PostedOn, Text, c.Deleted, c.Edited,
+                            u.ID, FirstName, LastName, Username, Email
+                            FROM Comments c LEFT JOIN Users u ON c.Author = u.ID WHERE c.ID = @id";
+
+                var comment = (await connection.QueryAsync<Comment, User, Comment>(sql, (c, u) =>
+                {
+                    if (!c.Deleted) c.Author = u;
+                    return c;
+                }, new { id })).Single();
+
+                var threadIdSql = @"WITH parent AS
+                            (
+                                SELECT ID, Reply  from Comments WHERE ID = @id
+                                UNION ALL 
+                                SELECT t.ID, t.Reply FROM parent
+                                INNER JOIN Comments t ON t.id =  parent.Reply
+                            )
+
+                            SELECT TOP 1 i.ThreadID FROM  parent
+                            INNER JOIN ThreadComments i
+                            ON parent.ID = i.CommentID";
+
+                var threadId = await connection.ExecuteScalarAsync<int>(threadIdSql, new { id = comment.ID });
+                comment.ContextID = threadId;
+
+                var result = comment.SomeWhen(c => c != null && c.ID > 0 && c.ContextID > 0);
+
+                return result;
+            }
+            catch (SqlException ex)
+            {
+                //Logger.Error(ex);
+                throw;
+            }
         }
 
-        public Task<bool> UpdateSingle(int key, Comment entity, params object[] identifiers)
+        public async Task<bool> UpdateSingle(int key, Comment entity, params object[] identifiers)
         {
-            throw new NotImplementedException();
+            try
+            {
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    entity.Edited = true;
+                    var sql = @"UPDATE Comments SET PostedOn=@PostedOn, Text=@Text, Edited=@Edited WHERE ID=@key";
+                    var success = (await connection.ExecuteAsync(sql, new
+                    {
+                        key,
+                        entity.PostedOn,
+                        entity.Edited,
+                        entity.Text
+                    })).Equals(1);
+
+                    if (success)
+                    {
+                        transactionScope.Complete();
+                        return true;
+                    }
+
+                    return false;
+                }
+            }
+            catch (SqlException ex)
+            {
+                //Logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>
