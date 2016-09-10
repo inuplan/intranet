@@ -60,7 +60,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <summary>
         /// The repository comments for an image.
         /// </summary>
-        private readonly IVectorRepository<int, ImageComment> imageCommentsRepo;
+        private readonly IVectorRepository<int, Comment> imageCommentsRepo;
         private readonly IAddImageUpload newUpload;
         private readonly IDeleteItem removeNews;
 
@@ -71,7 +71,7 @@ namespace Inuplan.WebAPI.Controllers
         public UserImageController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             IScalarRepository<int, Image> userImageRepository,
-            IVectorRepository<int, ImageComment> imageCommentsRepo,
+            IVectorRepository<int, Comment> imageCommentsRepo,
             ImageHandleFactory imageHandleFactory,
             IAddImageUpload newUpload,
             IDeleteItem removeNews)

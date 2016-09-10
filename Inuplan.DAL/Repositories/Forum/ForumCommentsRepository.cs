@@ -33,7 +33,7 @@ namespace Inuplan.DAL.Repositories.Forum
     using System.Data;
     using System.Transactions;
 
-    public class ForumCommentsRepository : IVectorRepository<int, ThreadPostComment>
+    public class ForumCommentsRepository : IVectorRepository<int, Comment>
     {
         private readonly IDbConnection connection;
 
@@ -52,7 +52,7 @@ namespace Inuplan.DAL.Repositories.Forum
             throw new NotImplementedException();
         }
 
-        public Task<Option<ThreadPostComment>> CreateSingle(ThreadPostComment entity, Func<ThreadPostComment, Task> onCreate)
+        public Task<Option<Comment>> CreateSingle(Comment entity, Func<Comment, Task> onCreate)
         {
             throw new NotImplementedException();
         }
@@ -124,22 +124,22 @@ namespace Inuplan.DAL.Repositories.Forum
             throw new NotImplementedException();
         }
 
-        public Task<List<ThreadPostComment>> Get(int key)
+        public Task<List<Comment>> Get(int key)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Pagination<ImageComment>> GetPage(int id, int skip, int take)
+        public Task<Pagination<Comment>> GetPage(int id, int skip, int take)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Option<ThreadPostComment>> GetSingleByID(int id)
+        public Task<Option<Comment>> GetSingleByID(int id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> UpdateSingle(int key, ThreadPostComment entity, params object[] identifiers)
+        public Task<bool> UpdateSingle(int key, Comment entity, params object[] identifiers)
         {
             throw new NotImplementedException();
         }

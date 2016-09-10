@@ -30,16 +30,16 @@ namespace Inuplan.Common.Tools
 
     public static class Converters
     {
-        public static ImageCommentDTO ToImageCommentDTO(ImageComment comment)
+        public static ImageCommentDTO ToImageCommentDTO(Comment comment)
         {
-            var replies = comment.Replies ?? new List<ImageComment>();
+            var replies = comment.Replies ?? new List<Comment>();
             var replyDtos = replies.Select(ToImageCommentDTO).ToList();
             var author = (comment.Deleted) ? null : ToUserDTO(comment.Author);
 
             return new ImageCommentDTO
             {
                 ID = comment.ID,
-                ImageID = comment.ImageID,
+                ImageID = comment.ContextID,
                 Author = author,
                 Deleted = comment.Deleted,
                 PostedOn = comment.PostedOn,
@@ -49,7 +49,7 @@ namespace Inuplan.Common.Tools
             };
         }
 
-        public static WhatsNewImageCommentDTO ToWhatsNewComment(ImageComment comment, User uploadedBy)
+        public static WhatsNewImageCommentDTO ToWhatsNewComment(Comment comment, User uploadedBy)
         {
             var author = (comment.Deleted) ? null : ToUserDTO(comment.Author);
             var uploader = ToUserDTO(uploadedBy);
@@ -58,7 +58,7 @@ namespace Inuplan.Common.Tools
                 Author = author,
                 Deleted = comment.Deleted,
                 ID = comment.ID,
-                ImageID = comment.ImageID,
+                ImageID = comment.ContextID,
                 ImageUploadedBy = uploader,
                 Text = comment.Text
             };
@@ -130,7 +130,7 @@ namespace Inuplan.Common.Tools
             };
         }
 
-        public static ThreadPostCommentDTO ToThreadPostCommentDTO(ThreadPostComment threadComment)
+        public static ThreadPostCommentDTO ToThreadPostCommentDTO(Comment threadComment)
         {
             var author = ToUserDTO(threadComment.Author);
             var replies = threadComment.Replies.Select(ToThreadPostCommentDTO).ToList();
@@ -144,7 +144,7 @@ namespace Inuplan.Common.Tools
                 PostedOn = threadComment.PostedOn,
                 Replies = replies,
                 Text = threadComment.Text,
-                ThreadID = threadComment.ThreadID
+                ThreadID = threadComment.ContextID
             };
         }
     }

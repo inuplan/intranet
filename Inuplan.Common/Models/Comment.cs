@@ -25,16 +25,16 @@ namespace Inuplan.Common.Models
     using System;
     using System.Collections.Generic;
 
-    public class ImageComment : IIdentifier
+    public class Comment
     {
         public int? ParentID { get; set; }
         public int ID { get; set; }
-        public int ImageID { get; set; }
+        public int ContextID { get; set; }
         public bool Deleted { get; set; }
         public DateTime PostedOn { get; set; }
         public User Author { get; set; }
         public string Text { get; set; }
         public bool Edited { get; set; }
-        public List<ImageComment> Replies { get; set; }
+        public List<Comment> Replies { get; set; }
     }
 }
