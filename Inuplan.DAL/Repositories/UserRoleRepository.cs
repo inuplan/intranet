@@ -148,7 +148,7 @@ namespace Inuplan.DAL.Repositories
             throw new NotSupportedException("Use UserRepository OR RoleRepository!");
         }
 
-        public Task<Pagination<User>> GetPage(int skip, int take, params object[] identifiers)
+        public Task<Pagination<User>> GetPage(int skip, int take, Func<string> sortBy = null, Func<string> orderBy = null, params object[] identifiers)
         {
             throw new NotSupportedException("User UserRepository OR RoleRepository!");
         }

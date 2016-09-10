@@ -35,8 +35,6 @@ namespace Inuplan.DAL.Repositories
     using System.Data.SqlClient;
     using NLog;
     using Common.Tools;
-    using ImageID = System.Int32;
-    using UserID = System.Int32;
 
     /// <summary>
     /// A repository for the images a user has.
@@ -294,10 +292,13 @@ namespace Inuplan.DAL.Repositories
         /// <param name="take">The number of images to take</param>
         /// <param name="identifiers">The user ID to which the image belongs</param>
         /// <returns>A list of images</returns>
-        public async Task<Pagination<Image>> GetPage(int skip, int take, params object[] identifiers)
+        public async Task<Pagination<Image>> GetPage(int skip, int take, Func<string> sortBy = null, Func<string> orderBy = null, params object[] identifiers)
         {
             try
             {
+                sortBy = sortBy ?? new Func<string>(() => "Filename");
+                orderBy = orderBy ?? new Func<string>(() => "ASC");
+
                 var sql = @"SELECT
                             imgID AS ID, Description, Filename, Extension, MimeType, Uploaded,
                             userID AS ID, FirstName, LastName, Username, Email,
@@ -312,7 +313,7 @@ namespace Inuplan.DAL.Repositories
                             prev.ID AS prevID, prev.Path AS prevPath,
                             orig.ID AS origID, orig.Path AS origPath,
                             thumb.ID AS thumbID, thumb.Path AS thumbPath,
-                            ROW_NUMBER() OVER (ORDER BY Filename ASC) AS 'RowNumber'
+                            ROW_NUMBER() OVER (ORDER BY @Sort @Order) AS 'RowNumber'
                         FROM Images img INNER JOIN Users u
                         ON img.Owner = u.ID
 
@@ -329,9 +330,11 @@ namespace Inuplan.DAL.Repositories
                         ) AS seq
                         WHERE seq.RowNumber BETWEEN @From AND @To;";
 
+                var query = sql.Replace("@Sort", sortBy()).Replace("@Order", orderBy());
+
                 var result = await connection.QueryAsync
                                 <Image, User, Common.Models.FileInfo, Common.Models.FileInfo, Common.Models.FileInfo, Image>
-                                (sql, (img, user, preview, original, thumbnail) =>
+                                (query, (img, user, preview, original, thumbnail) =>
                                 {
                                     // Setup file info
                                     preview.Data = new Lazy<byte[]>(() => File.ReadAllBytes(preview.Path));

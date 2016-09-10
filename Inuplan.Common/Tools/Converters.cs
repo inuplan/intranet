@@ -30,16 +30,16 @@ namespace Inuplan.Common.Tools
 
     public static class Converters
     {
-        public static ImageCommentDTO ToImageCommentDTO(ImageComment comment)
+        public static ImageCommentDTO ToImageCommentDTO(Comment comment)
         {
-            var replies = comment.Replies ?? new List<ImageComment>();
+            var replies = comment.Replies ?? new List<Comment>();
             var replyDtos = replies.Select(ToImageCommentDTO).ToList();
             var author = (comment.Deleted) ? null : ToUserDTO(comment.Author);
 
             return new ImageCommentDTO
             {
                 ID = comment.ID,
-                ImageID = comment.ImageID,
+                ImageID = comment.ContextID,
                 Author = author,
                 Deleted = comment.Deleted,
                 PostedOn = comment.PostedOn,
@@ -49,7 +49,7 @@ namespace Inuplan.Common.Tools
             };
         }
 
-        public static WhatsNewImageCommentDTO ToWhatsNewComment(ImageComment comment, User uploadedBy)
+        public static WhatsNewImageCommentDTO ToWhatsNewComment(Comment comment, User uploadedBy)
         {
             var author = (comment.Deleted) ? null : ToUserDTO(comment.Author);
             var uploader = ToUserDTO(uploadedBy);
@@ -58,7 +58,7 @@ namespace Inuplan.Common.Tools
                 Author = author,
                 Deleted = comment.Deleted,
                 ID = comment.ID,
-                ImageID = comment.ImageID,
+                ImageID = comment.ContextID,
                 ImageUploadedBy = uploader,
                 Text = comment.Text
             };
@@ -100,28 +100,28 @@ namespace Inuplan.Common.Tools
             return result;
         }
 
-        public static ThreadPostTitleDTO ToThreadPostTitleDTO(ThreadPostTitle threadTitle)
+        public static ThreadPostTitleDTO ToThreadPostTitleDTO(ThreadPostTitle threadTitle, int commentCount)
         {
             var author = ToUserDTO(threadTitle.Author);
             var viewedBy = threadTitle.ViewedBy.Select(ToUserDTO).ToList();
             return new ThreadPostTitleDTO
             {
                 Author = author,
-                CommentCount = threadTitle.CommentCount,
+                CommentCount = commentCount,
                 Deleted = threadTitle.Deleted,
-                ID = threadTitle.ID,
+                ID = threadTitle.ThreadID,
                 IsModified = threadTitle.IsModified,
                 IsPublished = threadTitle.IsPublished,
                 LastModified = threadTitle.LastModified,
-                PublishedOn = threadTitle.PublishedOn,
+                CreatedOn = threadTitle.CreatedOn,
                 Title = threadTitle.Title,
                 ViewedBy = viewedBy
             };
         }
 
-        public static ThreadPostContentDTO ToThreadPostContentDTO(ThreadPostContent threadContent)
+        public static ThreadPostContentDTO ToThreadPostContentDTO(ThreadPostContent threadContent, int commentCount)
         {
-            var title = ToThreadPostTitleDTO(threadContent.Title);
+            var title = ToThreadPostTitleDTO(threadContent.Title, commentCount);
             return new ThreadPostContentDTO
             {
                 Text = threadContent.Text,
@@ -130,7 +130,7 @@ namespace Inuplan.Common.Tools
             };
         }
 
-        public static ThreadPostCommentDTO ToThreadPostCommentDTO(ThreadPostComment threadComment)
+        public static ThreadPostCommentDTO ToThreadPostCommentDTO(Comment threadComment)
         {
             var author = ToUserDTO(threadComment.Author);
             var replies = threadComment.Replies.Select(ToThreadPostCommentDTO).ToList();
@@ -140,9 +140,11 @@ namespace Inuplan.Common.Tools
                 Deleted = threadComment.Deleted,
                 Edited = threadComment.Edited,
                 ID = threadComment.ID,
+                ParentID = threadComment.ParentID,
                 PostedOn = threadComment.PostedOn,
                 Replies = replies,
-                Text = threadComment.Text
+                Text = threadComment.Text,
+                ThreadID = threadComment.ContextID
             };
         }
     }

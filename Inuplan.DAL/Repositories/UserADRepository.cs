@@ -123,7 +123,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="take">N/A</param>
         /// <exception cref="NotSupportedException">Not supported operation</exception>
         /// <returns>N/A</returns>
-        public Task<Pagination<User>> GetPage(int skip, int take, params object[] identifiers)
+        public Task<Pagination<User>> GetPage(int skip, int take, Func<string> sortBy = null, Func<string> orderBy = null, params object[] identifiers)
         {
             throw new NotSupportedException("Not supported operation!");
         }

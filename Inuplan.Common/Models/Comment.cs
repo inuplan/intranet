@@ -18,19 +18,23 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Models.Forum
+namespace Inuplan.Common.Models
 {
+    using Interfaces;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
 
-    public class ThreadPostComment
+    public class Comment
     {
+        public int? ParentID { get; set; }
         public int ID { get; set; }
+        public int ContextID { get; set; }
+        public bool Deleted { get; set; }
         public DateTime PostedOn { get; set; }
         public User Author { get; set; }
         public string Text { get; set; }
-        public bool Deleted { get; set; }
         public bool Edited { get; set; }
-        public List<ThreadPostComment> Replies { get; set; }
+        public List<Comment> Replies { get; set; }
     }
 }

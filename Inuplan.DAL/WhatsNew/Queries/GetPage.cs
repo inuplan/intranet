@@ -42,10 +42,10 @@ namespace Inuplan.DAL.WhatsNew.Queries
     public class GetPage : IGetPage
     {
         private readonly IDbConnection connection;
-        private readonly IVectorRepository<int, ImageComment> commentRepo;
+        private readonly IVectorRepository<int, Comment> commentRepo;
         private readonly IScalarRepository<int, Image> imageRepo;
 
-        public GetPage(IDbConnection connection, IVectorRepository<int, ImageComment> commentRepo, IScalarRepository<int, Image> imageRepo)
+        public GetPage(IDbConnection connection, IVectorRepository<int, Comment> commentRepo, IScalarRepository<int, Image> imageRepo)
         {
             this.connection = connection;
             this.commentRepo = commentRepo;
@@ -124,7 +124,7 @@ namespace Inuplan.DAL.WhatsNew.Queries
             var comment = commentRepo.GetSingleByID(commentId).Result;
             return comment.Map(c =>
             {
-                var uploader = imageRepo.Get(c.ImageID).Result.ValueOrFailure().Owner;
+                var uploader = imageRepo.Get(c.ContextID).Result.ValueOrFailure().Owner;
                 var dto = Converters.ToWhatsNewComment(c, uploader);
 
                 return new NewsItem

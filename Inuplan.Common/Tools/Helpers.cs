@@ -23,6 +23,7 @@ namespace Inuplan.Common.Tools
     using Models;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
 
     public static class Helpers
@@ -75,6 +76,26 @@ namespace Inuplan.Common.Tools
                 CurrentPage = currentPage,
                 TotalPages = totalPages
             };
+        }
+
+        /// <summary>
+        /// Helper function that constructs the comment chain.
+        /// </summary>
+        /// <param name="allComments">The comments</param>
+        /// <returns>A list of top-level comments with their child replies</returns>
+        public static List<Comment> ConstructReplies(IEnumerable<Comment> allComments)
+        {
+            // Create the child hierarchy
+            var groups = allComments.GroupBy(c => c.ParentID);
+            foreach (var replies in groups)
+            {
+                if (replies.Key == null) continue;
+                var parent = allComments.Single(c => c.ID == replies.Key);
+                parent.Replies = replies.ToList();
+            }
+
+            // Select only top-level comments (since the children are included in the replies)
+            return allComments.Where(c => c.ParentID == null).ToList();
         }
     }
 }

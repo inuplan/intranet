@@ -65,7 +65,7 @@ namespace Inuplan.WebAPI.Mocks
             return Task.FromResult(result);
         }
 
-        public Task<Pagination<User>> GetPage(int skip, int take, params object[] identifiers)
+        public Task<Pagination<User>> GetPage(int skip, int take, Func<string> sortBy = null, Func<string> orderBy = null, params object[] identifiers)
         {
             throw new NotImplementedException();
         }

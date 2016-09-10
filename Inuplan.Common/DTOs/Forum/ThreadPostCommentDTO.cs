@@ -26,6 +26,8 @@ namespace Inuplan.Common.DTOs.Forum
     public class ThreadPostCommentDTO
     {
         public int ID { get; set; }
+        public int? ParentID { get; set; }
+        public int ThreadID { get; set; }
         public DateTime PostedOn { get; set; }
         public UserDTO Author { get; set; }
         public string Text { get; set; }

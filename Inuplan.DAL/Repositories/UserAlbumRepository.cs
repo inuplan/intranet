@@ -226,19 +226,23 @@ namespace Inuplan.DAL.Repositories
             return await Get(id);
         }
 
-        public async Task<Pagination<Album>> GetPage(int skip, int take, params object[] identifiers)
+        public async Task<Pagination<Album>> GetPage(int skip, int take, Func<string> sortBy = null, Func<string> orderBy = null, params object[] identifiers)
         {
             try
             {
+                sortBy = sortBy ?? new Func<string>(() => "ID");
+                orderBy = orderBy ?? new Func<string>(() => "ASC");
+
                 var userID = (int)identifiers[0];
                 Debug.Assert(userID > 0, "Must have a valid user ID!");
                 var sql = @"SELECT ID, Description, Owner, Name FROM
-                            (SELECT *, Row_Number() OVER (ORDER BY ID) AS rn
+                            (SELECT *, Row_Number() OVER (ORDER BY @Sort @Order) AS rn
                             FROM Albums WHERE Owner = @Owner) as seq
                         WHERE seq.rn BETWEEN @From AND @To;";
+                var query = sql.Replace("@Sort", sortBy()).Replace("@Order", orderBy());
 
                 // Album info without images
-                var items = await connection.QueryAsync<Album>(sql, new
+                var items = await connection.QueryAsync<Album>(query, new
                 {
                     Owner = userID,
                     From = skip + 1,

@@ -90,7 +90,7 @@
 
         public async Task<Pagination<Album>> Get(int skip, int take, int userID)
         {
-            var page = await albumRepository.GetPage(skip, take, userID);
+            var page = await albumRepository.GetPage(skip, take, sortBy: null, orderBy: null, identifiers: userID);
             return page;
         }
 

@@ -71,7 +71,7 @@ namespace Inuplan.WebAPI.Controllers
         /// <returns></returns>
         public async Task<Pagination<UserDTO>> Get(int skip, int take)
         {
-            var page = await userDatabaseRepository.GetPage(skip, take);
+            var page = await userDatabaseRepository.GetPage(skip, take, sortBy: null, orderBy: null);
             var dto = Helpers.Paginate(skip, take, page.TotalPages, page.CurrentItems.Select(Converters.ToUserDTO).ToList());
             return dto;
         }

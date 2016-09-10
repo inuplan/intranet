@@ -25,15 +25,14 @@ namespace Inuplan.Common.Models.Forum
 
     public class ThreadPostTitle
     {
-        public int ID { get; set; }
+        public int ThreadID { get; set; }
         public bool IsPublished { get; set; }
-        public DateTime PublishedOn { get; set; }
+        public DateTime CreatedOn { get; set; }
         public User Author { get; set; }
         public bool Deleted { get; set; }
         public bool IsModified { get; set; }
         public string Title { get; set; }
         public DateTime? LastModified { get; set; }
-        public int CommentCount { get; set; }
         public List<User> ViewedBy { get; set; }
     }
 }

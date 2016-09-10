@@ -64,6 +64,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repositories\Forum\ForumCommentsRepository.cs" />
+    <Compile Include="Repositories\Forum\ForumPostContentRepository.cs" />
+    <Compile Include="Repositories\Forum\ForumPostTitleRepository.cs" />
     <Compile Include="Repositories\ImageCommentRepository.cs" />
     <Compile Include="Repositories\RoleRepository.cs" />
     <Compile Include="Repositories\UserAlbumRepository.cs" />
