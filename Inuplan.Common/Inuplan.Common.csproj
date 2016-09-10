@@ -70,14 +70,12 @@
     <Compile Include="Factories\ImageHandleFactory.cs" />
     <Compile Include="Handlers\IImageHandler.cs" />
     <Compile Include="Models\Album.cs" />
-    <Compile Include="Models\ImageComment.cs" />
     <Compile Include="Models\FileInfo.cs" />
     <Compile Include="Models\Image.cs" />
     <Compile Include="Models\Interfaces\IIdentifier.cs" />
     <Compile Include="Models\NewsItem.cs" />
     <Compile Include="Models\Pagination.cs" />
     <Compile Include="Models\Role.cs" />
-    <Compile Include="Models\Forum\ThreadPostComment.cs" />
     <Compile Include="Models\Forum\ThreadPostContent.cs" />
     <Compile Include="Models\Forum\ThreadPostTitle.cs" />
     <Compile Include="Models\User.cs" />
