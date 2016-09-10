@@ -100,14 +100,14 @@ namespace Inuplan.Common.Tools
             return result;
         }
 
-        public static ThreadPostTitleDTO ToThreadPostTitleDTO(ThreadPostTitle threadTitle)
+        public static ThreadPostTitleDTO ToThreadPostTitleDTO(ThreadPostTitle threadTitle, int commentCount)
         {
             var author = ToUserDTO(threadTitle.Author);
             var viewedBy = threadTitle.ViewedBy.Select(ToUserDTO).ToList();
             return new ThreadPostTitleDTO
             {
                 Author = author,
-                CommentCount = threadTitle.CommentCount,
+                CommentCount = commentCount,
                 Deleted = threadTitle.Deleted,
                 ID = threadTitle.ID,
                 IsModified = threadTitle.IsModified,
@@ -119,9 +119,9 @@ namespace Inuplan.Common.Tools
             };
         }
 
-        public static ThreadPostContentDTO ToThreadPostContentDTO(ThreadPostContent threadContent)
+        public static ThreadPostContentDTO ToThreadPostContentDTO(ThreadPostContent threadContent, int commentCount)
         {
-            var title = ToThreadPostTitleDTO(threadContent.Title);
+            var title = ToThreadPostTitleDTO(threadContent.Title, commentCount);
             return new ThreadPostContentDTO
             {
                 Text = threadContent.Text,
