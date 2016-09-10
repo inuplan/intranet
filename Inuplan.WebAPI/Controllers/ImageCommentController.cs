@@ -40,13 +40,13 @@ namespace Inuplan.WebAPI.Controllers
     [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class ImageCommentController : DefaultController
     {
-        private readonly IVectorRepository<int, ImageComment> imageCommentRepository;
+        private readonly IVectorRepository<int, Comment> imageCommentRepository;
         private readonly IAddImageComment newComment;
         private readonly IDeleteItem removeNews;
 
         public ImageCommentController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
-            IVectorRepository<int, ImageComment> imageCommentRepository,
+            IVectorRepository<int, Comment> imageCommentRepository,
             IAddImageComment newComment,
             IDeleteItem removeNews)
             : base(userDatabaseRepository)
@@ -83,10 +83,10 @@ namespace Inuplan.WebAPI.Controllers
             };
         }
 
-        public async Task<HttpResponseMessage> Post(ImageComment comment, [FromUri] int? replyId = null)
+        public async Task<HttpResponseMessage> Post(Comment comment, [FromUri] int? replyId = null)
         {
-            Debug.Assert(comment.ImageID > 0, "Must be associated with a valid image");
-            Func<ImageComment, Task> onCreate = (c) =>
+            Debug.Assert(comment.ContextID > 0, "Must be associated with a valid image");
+            Func<Comment, Task> onCreate = (c) =>
             {
                 newComment.Connect();
                 return newComment.Insert(c);
@@ -121,7 +121,7 @@ namespace Inuplan.WebAPI.Controllers
             return response;
         }
 
-        public async Task<HttpResponseMessage> Put([FromBody]ImageComment comment)
+        public async Task<HttpResponseMessage> Put([FromBody]Comment comment)
         {
             comment.PostedOn = DateTime.Now;
             var updated = await imageCommentRepository.UpdateSingle(comment.ID, comment);

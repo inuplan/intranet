@@ -49,7 +49,7 @@ namespace Inuplan.Common.Repositories
         /// <param name="take">The number of items to take</param>
         /// <param name="identifiers">Extra identifiers necessary to select the entities</param>
         /// <returns></returns>
-        Task<Pagination<ImageComment>> GetPage(int id, int skip, int take);
+        Task<Pagination<Comment>> GetPage(int id, int skip, int take);
 
         /// <summary>
         /// Retrieves an entity by the given id

@@ -46,7 +46,7 @@ namespace Inuplan.DAL.WhatsNew.Commands
             }
         }
 
-        public async Task<bool> Insert(ImageComment comment)
+        public async Task<bool> Insert(Comment comment)
         {
             Debug.Assert(comment.ID > 0, "Must have a valid comment id!");
 
