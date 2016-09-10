@@ -37,6 +37,11 @@ namespace Inuplan.DAL.Repositories.Forum
     {
         private readonly IDbConnection connection;
 
+        /// <summary>
+        /// The disposed pattern
+        /// </summary>
+        private bool disposedValue = false;
+
         public ForumCommentsRepository(IDbConnection connection)
         {
             this.connection = connection;
@@ -137,6 +142,33 @@ namespace Inuplan.DAL.Repositories.Forum
         public Task<bool> UpdateSingle(int key, ThreadPostComment entity, params object[] identifiers)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// The dispose pattern
+        /// </summary>
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+        }
+
+        /// <summary>
+        /// Disposing
+        /// </summary>
+        /// <param name="disposing">Determines whether this resource is being disposed</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    connection.Dispose();
+                    connection.Close();
+                }
+
+                disposedValue = true;
+            }
         }
     }
 }
