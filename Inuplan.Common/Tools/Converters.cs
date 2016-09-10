@@ -100,7 +100,7 @@ namespace Inuplan.Common.Tools
             return result;
         }
 
-        public static ThreadPostTitleDTO ToThreadPostTitleDTO(ThreadPostTitle threadTitle, int commentCount)
+        public static ThreadPostTitleDTO ToThreadPostTitleDTO(ThreadPostTitle threadTitle, int commentCount = 0)
         {
             var author = ToUserDTO(threadTitle.Author);
             var viewedBy = threadTitle.ViewedBy.Select(ToUserDTO).ToList();
