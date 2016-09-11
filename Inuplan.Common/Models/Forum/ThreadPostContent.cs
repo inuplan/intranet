@@ -24,7 +24,7 @@ namespace Inuplan.Common.Models.Forum
 
     public class ThreadPostContent
     {
-        public ThreadPostTitle Title { get; set; }
+        public ThreadPostTitle Header { get; set; }
         public int ThreadID { get; set; }
         public string Text { get; set; }
     }

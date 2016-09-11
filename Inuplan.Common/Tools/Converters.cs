@@ -121,12 +121,12 @@ namespace Inuplan.Common.Tools
 
         public static ThreadPostContentDTO ToThreadPostContentDTO(ThreadPostContent threadContent, int commentCount)
         {
-            var title = ToThreadPostTitleDTO(threadContent.Title, commentCount);
+            var header = ToThreadPostTitleDTO(threadContent.Header, commentCount);
             return new ThreadPostContentDTO
             {
                 Text = threadContent.Text,
                 ThreadID = threadContent.ThreadID,
-                Title = title
+                Header = header
             };
         }
 
