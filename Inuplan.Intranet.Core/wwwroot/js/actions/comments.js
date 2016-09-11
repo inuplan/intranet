@@ -106,7 +106,7 @@ export const postComment = (imageId, text, parentCommentId) => {
         headers.append('Content-Type', 'application/json');
         const body =JSON.stringify({ 
             Text: text,
-            ImageID: imageId,
+            ContextID: imageId,
             ParentID: parentCommentId
         });
 
