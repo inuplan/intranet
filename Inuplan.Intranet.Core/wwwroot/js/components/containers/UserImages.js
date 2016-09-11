@@ -82,6 +82,7 @@ class UserImagesContainer extends React.Component {
         const { selectedImageIds, deleteImages } = this.props;
         const { username } = this.props.params;
         deleteImages(username, selectedImageIds);
+        this.clearSelected();
     }
 
     uploadView() {

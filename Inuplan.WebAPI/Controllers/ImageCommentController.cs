@@ -114,7 +114,7 @@ namespace Inuplan.WebAPI.Controllers
             // NOTE: Comments are NOT deleted only set to "null" to keep comment hierarchy
             // Question: Should "deleted" comments be removed from the latest news?
             // Be careful on the client side, take into consideration that Author field could be null!
-            var deleted = await imageCommentRepository.DeleteSingle(commentId, _ => Task.FromResult(0));
+            var deleted = await imageCommentRepository.DeleteSingle(commentId, id => removeNews.Remove(id));
             var response = deleted ?
                             Request.CreateResponse(HttpStatusCode.NoContent) :
                             Request.CreateResponse(HttpStatusCode.InternalServerError);
