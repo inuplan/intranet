@@ -112,6 +112,7 @@ namespace Inuplan.Common.Tools
                 ID = threadTitle.ThreadID,
                 IsModified = threadTitle.IsModified,
                 IsPublished = threadTitle.IsPublished,
+                Sticky = threadTitle.Sticky,
                 LastModified = threadTitle.LastModified,
                 CreatedOn = threadTitle.CreatedOn,
                 Title = threadTitle.Title,

@@ -27,6 +27,7 @@ namespace Inuplan.Common.Models.Forum
     {
         public int ThreadID { get; set; }
         public bool IsPublished { get; set; }
+        public bool Sticky { get; set; }
         public DateTime CreatedOn { get; set; }
         public User Author { get; set; }
         public bool Deleted { get; set; }
