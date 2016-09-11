@@ -193,6 +193,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\DefaultController.cs" />
     <Compile Include="Controllers\DiagnosticController.cs" />
+    <Compile Include="Controllers\Forum\ForumPostController.cs" />
     <Compile Include="Controllers\Forum\ForumTitleController.cs" />
     <Compile Include="Controllers\ImageCommentController.cs" />
     <Compile Include="Controllers\RoleController.cs" />

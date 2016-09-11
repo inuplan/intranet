@@ -76,6 +76,7 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<ImageCommentController>().WithAttributeFilter();
             builder.RegisterType<WhatsNewController>().WithAttributeFilter();
             builder.RegisterType<ForumTitleController>().WithAttributeFilter();
+            builder.RegisterType<ForumPostController>().WithAttributeFilter();
 
             // Register classes and keys
             builder.RegisterType<AddImageUpload>().As<IAddImageUpload>();
