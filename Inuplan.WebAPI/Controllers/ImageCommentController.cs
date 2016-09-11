@@ -83,7 +83,7 @@ namespace Inuplan.WebAPI.Controllers
             };
         }
 
-        public async Task<HttpResponseMessage> Post(Comment comment, [FromUri] int? replyId = null)
+        public async Task<HttpResponseMessage> Post(Comment comment)
         {
             Debug.Assert(comment.ContextID > 0, "Must be associated with a valid image");
             Func<Comment, Task> onCreate = (c) =>
