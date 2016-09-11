@@ -24,6 +24,8 @@ ReactDOM.render(
         <Router history={browserHistory}>
             <Route path="/" component={Main}>
                 <IndexRoute component={Home} onEnter={fetchWhatsNew} />
+                <Route path="forum" component={Forum}>
+                </Route>
                 <Route path="users" component={Users} />
                 <Route path="about" component={About} />
                 <Route path=":username/gallery" component={UserImages} onEnter={fetchImages}>

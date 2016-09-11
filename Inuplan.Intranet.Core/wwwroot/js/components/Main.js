@@ -49,6 +49,7 @@ class Shell extends React.Component {
                         <Navbar.Collapse>
                             <Nav>
                                 <IndexNavLink to="/">Forside</IndexNavLink>
+                                <NavLink to="/forum">Forum</NavLink>
                                 <NavLink to="/users">Brugere</NavLink>
                                 <NavLink to="/about">Om</NavLink>                                
                             </Nav>
