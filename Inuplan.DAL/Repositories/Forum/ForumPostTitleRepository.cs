@@ -56,14 +56,13 @@ namespace Inuplan.DAL.Repositories.Forum
                             VALUES (@CreatedOn, @IsPublished, @AuthorID, @Deleted, @Title);
                             SELECT ID FROM ThreadTitles WHERE ID = @@IDENTITY;";
 
-                var createdOn = DateTime.Now;
                 var id = await connection.ExecuteScalarAsync<int>(sql, new
                 {
-                    CreatedOn = createdOn,
-                    entity.IsPublished,
+                    CreatedOn = entity.CreatedOn,
+                    IsPublished = entity.IsPublished,
                     AuthorID = entity.Author.ID,
-                    entity.Deleted,
-                    entity.Title
+                    Deleted = entity.Deleted,
+                    Title = entity.Title
                 });
 
                 entity.ThreadID = id;
@@ -107,7 +106,7 @@ namespace Inuplan.DAL.Repositories.Forum
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var sql = @"SELECT
-                                t.ID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, /* ThreadPostTitle */
+                                t.ID AS ThreadID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, /* ThreadPostTitle */
                                 u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName                                                   /* Author */
                             FROM ThreadTitles t
                             LEFT JOIN Users u
@@ -191,7 +190,7 @@ namespace Inuplan.DAL.Repositories.Forum
             orderBy = orderBy ?? new Func<string>(() => "ASC");
 
             var sql = @"SELECT
-                            ID, CreatedOn, Published, Deleted,IsModified, Title, LastModified,
+                            ID AS ThreadID, CreatedOn, Published, Deleted,IsModified, Title, LastModified,
                             UserID AS ID, FirstName,  LastName,  Username,  Email,  DisplayName
                         FROM
                         (

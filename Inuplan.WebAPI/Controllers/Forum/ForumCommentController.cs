@@ -18,14 +18,28 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Models.Forum
+namespace Inuplan.WebAPI.Controllers.Forum
 {
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Autofac.Extras.Attributed;
+    using Common.Enums;
+    using Common.Models;
+    using Common.Repositories;
 
-    public class ThreadPostContent
+    public class ForumCommentController : DefaultController
     {
-        public ThreadPostTitle Header { get; set; }
-        public int ThreadID { get; set; }
-        public string Text { get; set; }
+        private readonly IVectorRepository<int, Comment> forumCommentRepository;
+
+        public ForumCommentController(
+            [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
+            [WithKey(ServiceKeys.ForumCommentsRepository)] IVectorRepository<int, Comment> forumCommentRepository
+        ) : base(userDatabaseRepository)
+        {
+            this.forumCommentRepository = forumCommentRepository;
+        }
     }
 }

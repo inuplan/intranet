@@ -47,20 +47,20 @@ namespace Inuplan.DAL.Repositories.Forum
 
         public async Task<Option<ThreadPostContent>> Create(ThreadPostContent entity, Func<ThreadPostContent, Task> onCreate, params object[] identifiers)
         {
-            Debug.Assert(entity.Title.ThreadID > 0, "Must have a valid thread ID given");
+            Debug.Assert(entity.Header.ThreadID > 0, "Must have a valid thread ID given");
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var sql = @"INSERT INTO ThreadContents (ID, Text) VALUES (@ID, @Text)";
                 var rows = await connection.ExecuteAsync(sql, new
                 {
-                    ID = entity.Title.ThreadID,
+                    ID = entity.Header.ThreadID,
                     Text = entity.Text
                 });
 
                 var created = rows == 1;
                 if(created)
                 {
-                    entity.ThreadID = entity.Title.ThreadID;
+                    entity.ThreadID = entity.Header.ThreadID;
                     await onCreate(entity);
                     transactionScope.Complete();
                 }
@@ -80,9 +80,10 @@ namespace Inuplan.DAL.Repositories.Forum
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var sql = @"SELECT
-                                t.ID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, /* ThreadPostTitle */
-                                c.ID, c.Text,                                                                                                       /* ThreadPostContent */
-                                u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName                                                   /* Author */
+                                t.ID AS ThreadID, t.CreatedOn, t.Published, t.Author AS AuthorID,
+                                t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified,       /* ThreadPostTitle */
+                                c.ID AS ThreadID, c.Text,                                           /* ThreadPostContent */
+                                u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName   /* Author */
                             FROM ThreadTitles t
                             INNER JOIN ThreadContents c
                             ON c.ID = t.ID
@@ -93,9 +94,9 @@ namespace Inuplan.DAL.Repositories.Forum
                 var query = await connection.QueryAsync<ThreadPostTitle, ThreadPostContent, User, ThreadPostContent>(sql, (e, c, u) =>
                 {
                     e.Author = u;
-                    c.Title = e;
+                    c.Header = e;
                     return c;
-                }, new { key });
+                }, new { key }, splitOn: "ThreadID,ID");
 
                 var result = query.Single(e => e.ThreadID == key).SomeWhen(e => e.ThreadID > 0);
 
@@ -109,7 +110,7 @@ namespace Inuplan.DAL.Repositories.Forum
                 var viewQuery = await connection.QueryAsync<User>(usersSql, new { key });
                 result.Map(c =>
                 {
-                    c.Title.ViewedBy = viewQuery.ToList();
+                    c.Header.ViewedBy = viewQuery.ToList();
                     return c;
                 });
 
@@ -125,8 +126,8 @@ namespace Inuplan.DAL.Repositories.Forum
         public async Task<List<ThreadPostContent>> GetAll(params object[] identifiers)
         {
             var sql = @"SELECT
-                                t.ID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, /* ThreadPostTitle */
-                                c.ID, c.Text,                                                                                                       /* ThreadPostContent */
+                                t.ID AS ThreadID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, /* ThreadPostTitle */
+                                c.ID AS ThreadID, c.Text,                                                                                                       /* ThreadPostContent */
                                 u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName                                                   /* Author */
                             FROM ThreadTitles t
                             INNER JOIN ThreadContents c
@@ -134,7 +135,12 @@ namespace Inuplan.DAL.Repositories.Forum
                             LEFT JOIN Users u
                             ON t.Author = u.ID";
 
-            var query = await connection.QueryAsync<ThreadPostContent>(sql);
+            var query = await connection.QueryAsync<ThreadPostTitle, ThreadPostContent, User, ThreadPostContent>(sql, (t, c, u) =>
+            {
+                c.Header = t;
+                t.Author = u;
+                return c;
+            }, splitOn: "ThreadID,ID");
 
             var result = query.ToList();
 
@@ -149,7 +155,7 @@ namespace Inuplan.DAL.Repositories.Forum
             foreach (var content in result)
             {
                 var users = await connection.QueryAsync<User>(usersSql, new { key = content.ThreadID });
-                content.Title.ViewedBy = users.ToList();
+                content.Header.ViewedBy = users.ToList();
             }
 
             return result;
@@ -166,8 +172,8 @@ namespace Inuplan.DAL.Repositories.Forum
             orderBy = orderBy ?? new Func<string>(() => "ASC");
 
             var sql = @"SELECT
-                            ID, CreatedOn, Published, Deleted,IsModified, Title, LastModified,
-                            ContentID AS ID, Text,
+                            ID AS ThreadID, CreatedOn, Published, Deleted,IsModified, Title, LastModified,
+                            ContentID AS ThreadID, Text,
                             UserID AS ID, FirstName,  LastName,  Username,  Email,  DisplayName
                         FROM
                         (
@@ -192,13 +198,13 @@ namespace Inuplan.DAL.Repositories.Forum
             var titleQuery = await connection.QueryAsync<ThreadPostTitle, ThreadPostContent, User, ThreadPostContent>(query, (t, c, u) =>
             {
                 t.Author = u;
-                c.Title = t;
+                c.Header = t;
                 return c;
             }, new
             {
                 From = skip + 1,
                 To = skip + take
-            });
+            }, splitOn: "ThreadID,ID");
 
             var sqlUserViews = @"SELECT
                                     u.ID, FirstName,  LastName,  Username,  Email,  DisplayName,
@@ -216,7 +222,7 @@ namespace Inuplan.DAL.Repositories.Forum
                 });
 
                 var content = titleQuery.Single(t => t.ThreadID == ThreadID);
-                content.Title.ViewedBy = usersView.ToList();
+                content.Header.ViewedBy = usersView.ToList();
             }
 
             var countSql = @"SELECT COUNT(*) FROM ThreadTitles";

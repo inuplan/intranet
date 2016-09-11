@@ -92,8 +92,8 @@ namespace Inuplan.DAL.Repositories.Forum
                     {
                         Author = entity.Author.ID,
                         Reply = entity.ParentID,
-                        entity.PostedOn,
-                        entity.Text,
+                        PostedOn = entity.PostedOn,
+                        Text = entity.Text,
                     });
 
                     var success = entity.ID > 0;

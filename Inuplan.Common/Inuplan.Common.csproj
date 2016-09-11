@@ -65,6 +65,8 @@
     <Compile Include="DTOs\ProfileImageDTO.cs" />
     <Compile Include="DTOs\UserDTO.cs" />
     <Compile Include="DTOs\WhatsNewImageCommentDTO.cs" />
+    <Compile Include="Enums\ForumOrderBy.cs" />
+    <Compile Include="Enums\ForumSortBy.cs" />
     <Compile Include="Enums\NewsType.cs" />
     <Compile Include="Enums\ServiceKeys.cs" />
     <Compile Include="Factories\ImageHandleFactory.cs" />

@@ -58,7 +58,7 @@ namespace Inuplan.Common.Repositories
         /// <param name="skip">The number of entities to skip</param>
         /// <param name="take">The number of entities to retrieve</param>
         /// <returns>A list of entities</returns>
-        Task<Pagination<E>> GetPage(int skip, int take, Func<string> sortBy, Func<string> orderBy, params object[] identifiers);
+        Task<Pagination<E>> GetPage(int skip, int take, Func<string> sortBy = null, Func<string> orderBy = null, params object[] identifiers);
 
         /// <summary>
         /// Retrieves every entity in the repository

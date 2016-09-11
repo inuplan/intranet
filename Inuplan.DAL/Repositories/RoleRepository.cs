@@ -53,7 +53,10 @@ namespace Inuplan.DAL.Repositories
             try
             {
                 var sql = @"INSERT INTO Roles (Name) Values (@Name);SELECT ID FROM Roles WHERE ID = @@IDENTITY;";
-                entity.ID = await connection.ExecuteScalarAsync<int>(sql, entity);
+                entity.ID = await connection.ExecuteScalarAsync<int>(sql, new
+                {
+                    Name = entity.Name
+                });
                 var result = entity.SomeWhen(e => e.ID > 0);
                 if (result.HasValue) await onCreate(entity);
                 return result;

@@ -22,7 +22,7 @@ namespace Inuplan.Common.DTOs.Forum
 {
     public class ThreadPostContentDTO
     {
-        public ThreadPostTitleDTO Title { get; set; }
+        public ThreadPostTitleDTO Header { get; set; }
         public int ThreadID { get; set; }
         public string Text { get; set; }
     }
