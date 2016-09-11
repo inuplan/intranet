@@ -325,7 +325,6 @@ namespace Inuplan.WebAPI.Controllers
                 return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot delete another user's image");
             }
 
-            removeNews.Connect();
             var deleteComments = await imageCommentsRepo.Delete(id, commentId => removeNews.Remove(commentId));
             var deleted = await userImageRepository.Delete(id, k => removeNews.Remove(k));
 

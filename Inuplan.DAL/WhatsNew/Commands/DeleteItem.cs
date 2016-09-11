@@ -34,14 +34,6 @@ namespace Inuplan.DAL.WhatsNew.Commands
             this.connection = connection;
         }
 
-        public void Connect()
-        {
-            if (connection.State == ConnectionState.Closed)
-            {
-                connection.Open();
-            }
-        }
-
         public async Task<bool> Remove(int id)
         {
             var sql = "DELETE FROM WhatsNew WHERE TargetID = @ID";
