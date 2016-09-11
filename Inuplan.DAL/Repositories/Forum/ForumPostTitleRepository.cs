@@ -52,8 +52,8 @@ namespace Inuplan.DAL.Repositories.Forum
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var sql = @"INSERT INTO ThreadTitles
-                            (CreatedOn, Published, Author, Deleted, Title)
-                            VALUES (@CreatedOn, @IsPublished, @AuthorID, @Deleted, @Title);
+                            (CreatedOn, Published, Author, Deleted, Title, Sticky)
+                            VALUES (@CreatedOn, @IsPublished, @AuthorID, @Deleted, @Title, @Sticky);
                             SELECT ID FROM ThreadTitles WHERE ID = @@IDENTITY;";
 
                 var id = await connection.ExecuteScalarAsync<int>(sql, new
@@ -62,7 +62,8 @@ namespace Inuplan.DAL.Repositories.Forum
                     IsPublished = entity.IsPublished,
                     AuthorID = entity.Author.ID,
                     Deleted = entity.Deleted,
-                    Title = entity.Title
+                    Title = entity.Title,
+                    Sticky = entity.Sticky
                 });
 
                 entity.ThreadID = id;
@@ -106,8 +107,11 @@ namespace Inuplan.DAL.Repositories.Forum
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var sql = @"SELECT
-                                t.ID AS ThreadID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, /* ThreadPostTitle */
-                                u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName                                                   /* Author */
+                                t.ID AS ThreadID, t.CreatedOn, t.Published,                 /* ThreadPostTitle */
+                                t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified,
+                                t.Title, t.LastModified, t.Sticky,
+                                u.ID, u.FirstName, u.LastName, u.Username, u.Email,         /* Author */
+                                u.DisplayName
                             FROM ThreadTitles t
                             LEFT JOIN Users u
                             ON t.Author = u.ID
@@ -147,7 +151,7 @@ namespace Inuplan.DAL.Repositories.Forum
         public async Task<List<ThreadPostTitle>> GetAll(params object[] identifiers)
         {
             var sqlTitles = @"SELECT
-                                t.ID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, /* ThreadPostTitle */
+                                t.ID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, t.Sticky, /* ThreadPostTitle */
                                 u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName                                                   /* Author */
                             FROM ThreadTitles t
                             LEFT JOIN Users u
@@ -190,14 +194,14 @@ namespace Inuplan.DAL.Repositories.Forum
             orderBy = orderBy ?? new Func<string>(() => "ASC");
 
             var sql = @"SELECT
-                            ID AS ThreadID, CreatedOn, Published, Deleted,IsModified, Title, LastModified,
+                            ID AS ThreadID, CreatedOn, Published, Deleted,IsModified, Title, LastModified, Sticky,
                             UserID AS ID, FirstName,  LastName,  Username,  Email,  DisplayName
                         FROM
                         (
                             SELECT
-                                t.ID, CreatedOn, Published, Author AS AuthorID, Deleted, Modified AS IsModified, Title, LastModified,
+                                t.ID, CreatedOn, Published, Author AS AuthorID, Deleted, Modified AS IsModified, Title, LastModified, Sticky,
                                 u.ID AS UserID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName,
-                                ROW_NUMBER() OVER (ORDER BY @Sort @Order) AS 'RowNumber'
+                                ROW_NUMBER() OVER (ORDER BY Sticky DESC, @Sort @Order) AS 'RowNumber'
                             FROM ThreadTitles t
                             
                             LEFT JOIN Users u
