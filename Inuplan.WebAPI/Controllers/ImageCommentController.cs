@@ -96,17 +96,10 @@ namespace Inuplan.WebAPI.Controllers
             comment.PostedOn = DateTime.Now;
             comment.Author = Request.GetOwinContext().Get<User>(Constants.CURRENT_USER);
             var created = await imageCommentRepository.CreateSingle(comment, onCreate);
-            var response = created.Match(
-                c =>
-                {
-                    var r = Request.CreateResponse(HttpStatusCode.Created, c);
-                    var route = Url.Route("GetComment", new { id = c.ID });
-                    r.Headers.Location = new Uri(route, UriKind.Relative);
-                    return r;
-                },
-                () => Request.CreateResponse(HttpStatusCode.InternalServerError));
 
-            return response;
+            return created.Match(
+                c => Request.CreateResponse(HttpStatusCode.Created, c),
+                () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }
 
         public async Task<HttpResponseMessage> Delete(int commentId)
