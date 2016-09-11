@@ -27,11 +27,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
     using Common.Models.Forum;
     using Common.Repositories;
     using Common.Tools;
-    using Extensions;
-    using Optional.Unsafe;
     using System.Linq;
-    using System.Net;
-    using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
 
@@ -51,6 +47,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
         }
 
         [HttpGet]
+        // localhost:9000/api/forumtitle?skip=0&take=10&sortBy=LastModified&orderBy=Asc
         public async Task<Pagination<ThreadPostTitleDTO>> Get(int skip, int take, ForumSortBy sortBy = ForumSortBy.CreatedOn, ForumOrderBy orderBy = ForumOrderBy.Asc)
         {
             var titles = await threadTitleRepository.GetPage(skip, take, () => sortBy.ToString(), () => orderBy.ToString());
@@ -60,44 +57,6 @@ namespace Inuplan.WebAPI.Controllers.Forum
             });
 
             return Helpers.Paginate(skip, take, titles.TotalPages, titleDtos.ToList());
-        }
-
-        [HttpPost]
-        public async Task<HttpResponseMessage> Post([FromBody] ThreadPostTitle title)
-        {
-            var user = Request.GetUser().ValueOrFailure("No user found. Must be logged in to post forum thread.");
-
-            title.Author = user;
-
-            var created = await threadTitleRepository.Create(title, (t) => Task.FromResult(0));
-            return created.Match(c =>
-            {
-                return Request.CreateResponse(HttpStatusCode.Created);
-            },
-            () =>
-            {
-                return Request.CreateResponse(HttpStatusCode.InternalServerError);
-            });
-        }
-
-        [HttpDelete]
-        public async Task<HttpResponseMessage> Delete(int id)
-        {
-            // Check if same author
-            var thread = await threadTitleRepository.Get(id);
-            var isAuthorized = thread.Map(t => AuthorizeToUsername(t.Author.Username)).ValueOr(false);
-            if (!isAuthorized) return Request.CreateResponse(HttpStatusCode.Unauthorized);
-
-            // First delete all comments belonging to the thread
-            var deleteAllComments = await forumCommentRepository.Delete(id, (threadId) => Task.FromResult(0));
-            if (!deleteAllComments) return Request.CreateResponse(HttpStatusCode.InternalServerError);
-
-            // Delete the actual thread. Note if error occurs here we cannot rollback!
-            var delete = await threadTitleRepository.Delete(id, (threadId) => Task.FromResult(0));
-            if (!delete) return Request.CreateResponse(HttpStatusCode.InternalServerError);
-
-            // Deleted
-            return Request.CreateResponse(HttpStatusCode.NoContent);
         }
     }
 }
