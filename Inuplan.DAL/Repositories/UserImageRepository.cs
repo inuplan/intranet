@@ -112,11 +112,11 @@ namespace Inuplan.DAL.Repositories
                             Thumbnail = entity.Thumbnail.ID,
                             Original = entity.Original.ID,
                             Owner = entity.Owner.ID,
-                            entity.Description,
-                            entity.Filename,
-                            entity.Extension,
-                            entity.MimeType,
-                            entity.Uploaded
+                            Description = entity.Description,
+                            Filename = entity.Filename,
+                            Extension = entity.Extension,
+                            MimeType = entity.MimeType,
+                            Uploaded = entity.Uploaded
                         });
 
                         entity.ID = imageID;

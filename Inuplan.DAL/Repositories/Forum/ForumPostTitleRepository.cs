@@ -56,14 +56,13 @@ namespace Inuplan.DAL.Repositories.Forum
                             VALUES (@CreatedOn, @IsPublished, @AuthorID, @Deleted, @Title);
                             SELECT ID FROM ThreadTitles WHERE ID = @@IDENTITY;";
 
-                var createdOn = DateTime.Now;
                 var id = await connection.ExecuteScalarAsync<int>(sql, new
                 {
-                    CreatedOn = createdOn,
-                    entity.IsPublished,
+                    CreatedOn = entity.CreatedOn,
+                    IsPublished = entity.IsPublished,
                     AuthorID = entity.Author.ID,
-                    entity.Deleted,
-                    entity.Title
+                    Deleted = entity.Deleted,
+                    Title = entity.Title
                 });
 
                 entity.ThreadID = id;
