@@ -80,9 +80,10 @@ namespace Inuplan.DAL.Repositories.Forum
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var sql = @"SELECT
-                                t.ID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, /* ThreadPostTitle */
-                                c.ID, c.Text,                                                                                                       /* ThreadPostContent */
-                                u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName                                                   /* Author */
+                                t.ID AS ThreadID, t.CreatedOn, t.Published, t.Author AS AuthorID,
+                                t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified,       /* ThreadPostTitle */
+                                c.ID AS ThreadID, c.Text,                                           /* ThreadPostContent */
+                                u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName   /* Author */
                             FROM ThreadTitles t
                             INNER JOIN ThreadContents c
                             ON c.ID = t.ID
@@ -95,7 +96,7 @@ namespace Inuplan.DAL.Repositories.Forum
                     e.Author = u;
                     c.Header = e;
                     return c;
-                }, new { key });
+                }, new { key }, splitOn: "ThreadID,ID");
 
                 var result = query.Single(e => e.ThreadID == key).SomeWhen(e => e.ThreadID > 0);
 
@@ -125,8 +126,8 @@ namespace Inuplan.DAL.Repositories.Forum
         public async Task<List<ThreadPostContent>> GetAll(params object[] identifiers)
         {
             var sql = @"SELECT
-                                t.ID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, /* ThreadPostTitle */
-                                c.ID, c.Text,                                                                                                       /* ThreadPostContent */
+                                t.ID AS ThreadID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, /* ThreadPostTitle */
+                                c.ID AS ThreadID, c.Text,                                                                                                       /* ThreadPostContent */
                                 u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName                                                   /* Author */
                             FROM ThreadTitles t
                             INNER JOIN ThreadContents c
@@ -134,7 +135,12 @@ namespace Inuplan.DAL.Repositories.Forum
                             LEFT JOIN Users u
                             ON t.Author = u.ID";
 
-            var query = await connection.QueryAsync<ThreadPostContent>(sql);
+            var query = await connection.QueryAsync<ThreadPostTitle, ThreadPostContent, User, ThreadPostContent>(sql, (t, c, u) =>
+            {
+                c.Header = t;
+                t.Author = u;
+                return c;
+            }, splitOn: "ThreadID,ID");
 
             var result = query.ToList();
 
@@ -166,8 +172,8 @@ namespace Inuplan.DAL.Repositories.Forum
             orderBy = orderBy ?? new Func<string>(() => "ASC");
 
             var sql = @"SELECT
-                            ID, CreatedOn, Published, Deleted,IsModified, Title, LastModified,
-                            ContentID AS ID, Text,
+                            ID AS ThreadID, CreatedOn, Published, Deleted,IsModified, Title, LastModified,
+                            ContentID AS ThreadID, Text,
                             UserID AS ID, FirstName,  LastName,  Username,  Email,  DisplayName
                         FROM
                         (
@@ -198,7 +204,7 @@ namespace Inuplan.DAL.Repositories.Forum
             {
                 From = skip + 1,
                 To = skip + take
-            });
+            }, splitOn: "ThreadID,ID");
 
             var sqlUserViews = @"SELECT
                                     u.ID, FirstName,  LastName,  Username,  Email,  DisplayName,
