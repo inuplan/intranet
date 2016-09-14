@@ -17,6 +17,34 @@ export const setThreadTitles = (titles) => {
     }
 }
 
+export const setTotalPages = (totalPages) => {
+    return {
+        type: T.SET_TOTAL_PAGES_THREADS,
+        totalPages: totalPages
+    }
+}
+
+export const setPage = (page) => {
+    return {
+        type: T.SET_PAGE_THREADS,
+        page: page
+    }
+}
+
+export const setSkip = (skip) => {
+    return {
+        type: T.SET_SKIP_THREADS,
+        skip: skip
+    }
+}
+
+export const setTake = (take) => {
+    return {
+        type: T.SET_TAKE_THREADS,
+        take: take
+    }
+}
+
 export const fetchThreads = (skip = 0, take = 10) => {
     return function(dispatch) {
         const forum = globals.urls.forumtitle;
@@ -28,6 +56,10 @@ export const fetchThreads = (skip = 0, take = 10) => {
                 // Unprocessed forum titles
                 const pageForumTitles = data.CurrentItems;
                 const forumTitles = pageForumTitles.map(normalizeThreadTitle);
+
+                // Set info
+                dispatch(setTotalPages(data.TotalPages));
+                dispatch(setPage(data.CurrentPage));
 
                 // Set threads
                 dispatch(setThreadTitles(forumTitles));
