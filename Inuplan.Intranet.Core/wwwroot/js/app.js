@@ -13,7 +13,7 @@ import SelectedImage from './components/containers/SelectedImage'
 import Forum from './components/containers/Forum'
 import { Comments } from './components/containers/Comments'
 import { SingleComment } from './components/comments/SingleComment'
-import { selectImage, fetchImages, loadComments, fetchComment, fetchWhatsNew } from './utilities/onstartup'
+import { fetchForum, selectImage, fetchImages, loadComments, fetchComment, fetchWhatsNew } from './utilities/onstartup'
 
 store.dispatch(fetchCurrentUser(globals.currentUsername));
 store.dispatch(fetchUsers());

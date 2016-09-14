@@ -2,6 +2,7 @@
 import { fetchUserImages, setSelectedImg, setImageOwner } from '../actions/images'
 import { fetchComments, setSkipComments, setTakeComments, fetchAndFocusSingleComment } from '../actions/comments'
 import { fetchLatestNews } from '../actions/whatsnew'
+import { fetchThreads } from '../actions/forum'
 
 export const selectImage = (nextState) => {
     const imageId = nextState.params.id;
@@ -42,4 +43,10 @@ export const fetchWhatsNew = (nextState) => {
     const getLatest = (skip, take) => store.dispatch(fetchLatestNews(skip, take));
     const { skip, take } = store.getState().whatsNewInfo;
     getLatest(skip, take);
+}
+
+export const fetchForum = (nextState) => {
+    const { skip, take } = store.getState().forumInfo.titlesInfo;
+    store.dispatch(fetchThreads(skip, take));
+
 }

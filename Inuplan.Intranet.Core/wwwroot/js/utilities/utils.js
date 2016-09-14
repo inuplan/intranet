@@ -111,6 +111,24 @@ export const normalizeLatest = (latest) => {
     }
 }
 
+export const normalizeThreadTitle = (title) => {
+    const viewedBy = title.ViewedBy.map(user => user.ID);
+    return {
+        ID: title.ID,
+        IsPublished: title.IsPublished,
+        Sticky: title.Sticky,
+        CreatedOn: title.CreatedOn,
+        AuthorID: title.Author.ID,
+        Deleted: title.Deleted,
+        IsModified: title.IsModified,
+        Title: title.Title,
+        LastModified: title.LastModified,
+        LatestComment: title.LatestComment,
+        CommentCount: title.CommentCount,
+        ViewedBy: viewedBy,
+    }
+}
+
 export const visitComments = (comments, func) => {
     const getReplies = (c) => c.Replies ? c.Replies : [];
     for (var i = 0; i < comments.length; i++) {
