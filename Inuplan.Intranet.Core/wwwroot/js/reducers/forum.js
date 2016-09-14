@@ -13,7 +13,7 @@ const postComments = (state = [], action) => {
 
 const skipThreads = (state = 0, action) => {
     switch (action.type) {
-        case T.SET_SKIP_THREAD:
+        case T.SET_SKIP_THREADS:
             return action.skip;
         default:
             return state;
