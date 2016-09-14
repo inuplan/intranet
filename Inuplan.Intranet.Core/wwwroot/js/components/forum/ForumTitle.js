@@ -27,9 +27,10 @@ export class ForumTitle extends React.Component {
         const { title, getAuthor } = this.props;
         const name = getAuthor(title.AuthorID);
         const commentDate = title.LatestComment ? TimeText(title.LatestComment) : 'Ingen kommentarer';
+        const css = title.Sticky ? "thread thread-pinned" : "thread";
 
         return  <a href="#">
-                    <Row className="thread">
+                    <Row className={css}>
                         <Col lg={1} className="text-center">{this.stickyIcon(title.Sticky)}</Col>
                         <Col lg={5}>
                             <h4><span className="text-capitalize">{title.Title}</span></h4>

@@ -44,6 +44,18 @@
     color: #2c3e50;
 }
 
+.thread-pinned {
+    border-bottom-width: 1px;
+    border-bottom-style: inset;
+    border-bottom-color: #f3f3f3;
+    background: #2c3e50;
+    color: white;
+}
+
+.thread-pinned:hover {
+    color: #2c3e50;
+}
+
 .thread:hover {
     background-color: #f3f3f3;
 }
