@@ -60,6 +60,12 @@ export function fetchUsers() {
         const handler = responseHandler.bind(this, dispatch);
         return fetch(globals.urls.users, options)
             .then(handler)
-            .then(users => dispatch(recievedUsers(users)), onReject);
+            .then(users => {
+                const obj = users.reduce((res, user) => {
+                    res[user.ID] = user;
+                    return res;
+                }, {});
+                dispatch(recievedUsers(obj));
+            }, onReject);
     }
 }

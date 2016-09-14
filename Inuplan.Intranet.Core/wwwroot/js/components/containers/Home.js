@@ -5,9 +5,10 @@ import { ImageUpload } from '../images/ImageUpload'
 import { uploadImage } from '../../actions/images'
 import { fetchLatestNews } from '../../actions/whatsnew'
 import { Jumbotron, Grid, Row, Col, Panel } from 'react-bootstrap'
+import { values } from 'underscore'
 
 const mapStateToProps = (state) => {
-    const user = state.usersInfo.users.filter(u => u.Username.toUpperCase() == globals.currentUsername.toUpperCase())[0];
+    const user = values(state.usersInfo.users).filter(u => u.Username.toUpperCase() == globals.currentUsername.toUpperCase())[0];
     const name = user ? user.FirstName : 'User';
     return {
         name: name,

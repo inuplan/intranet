@@ -5,9 +5,10 @@ import { Error } from './containers/Error'
 import { clearError } from '../actions/error'
 import { connect } from 'react-redux'
 import { Grid, Navbar, Nav } from 'react-bootstrap'
+import { values } from 'underscore'
 
 const mapStateToProps = (state) => {
-    const user = state.usersInfo.users.filter(u => u.Username.toUpperCase() == globals.currentUsername.toUpperCase())[0];
+    const user = values(state.usersInfo.users).filter(u => u.Username.toUpperCase() == globals.currentUsername.toUpperCase())[0];
     const name = user ? user.FirstName : 'User';
     return {
         hasError: state.statusInfo.hasError,

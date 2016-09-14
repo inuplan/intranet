@@ -10,19 +10,17 @@ import { Row, Col, Button } from 'react-bootstrap'
 import { Breadcrumb } from '../breadcrumbs/Breadcrumb'
 
 const mapStateToProps = (state) => {
-    const ownerId  = state.imagesInfo.ownerId;
+    const { ownerId } = state.imagesInfo;
     const currentId = state.usersInfo.currentUserId;
     const canEdit = (ownerId > 0 && currentId > 0 && ownerId == currentId);
+    const user = state.usersInfo.users[ownerId];
+    const fullName = user ? `${user.FirstName} ${user.LastName}` : '';
 
     return {
         images: state.imagesInfo.images,
         canEdit: canEdit,
         selectedImageIds: state.imagesInfo.selectedImageIds,
-        getFullname: (username) => {
-            const user = state.usersInfo.users.filter(u => u.Username.toUpperCase() == username.toUpperCase())[0];
-            const fullname = (user) ? user.FirstName + " " + user.LastName : 'User';
-            return fullname.toLocaleLowerCase();
-        }
+        fullName: fullName,
     }
 }
 
@@ -106,8 +104,7 @@ class UserImagesContainer extends React.Component {
 
     render() {
         const { username } = this.props.params;
-        const { images, getFullname, canEdit, addSelectedImageId, removeSelectedImageId } = this.props;
-        const fullName = getFullname(username);
+        const { images, fullName, canEdit, addSelectedImageId, removeSelectedImageId } = this.props;
         
         return  <Row>
                     <Row>
@@ -123,7 +120,7 @@ class UserImagesContainer extends React.Component {
                         </Col>
                     </Row>
                     <Col lgOffset={2} lg={8}>
-                        <h1><span className="text-capitalize">{fullName}'s</span> <small>billede galleri</small></h1>
+                        <h1><span className="text-capitalize">{fullName}</span>'s <small>billede galleri</small></h1>
                         <hr />
                         <ImageList
                             images={images}
