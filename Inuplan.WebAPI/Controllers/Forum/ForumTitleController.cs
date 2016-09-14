@@ -58,7 +58,12 @@ namespace Inuplan.WebAPI.Controllers.Forum
                 return Converters.ToThreadPostTitleDTO(t, commentCount.Result);
             });
 
-            return Helpers.Paginate(skip, take, titles.TotalPages, titleDtos.ToList());
+            return new Pagination<ThreadPostTitleDTO>
+            {
+                CurrentItems = titleDtos.ToList(),
+                CurrentPage = titles.CurrentPage,
+                TotalPages = titles.TotalPages
+            };
         }
     }
 }

@@ -195,7 +195,7 @@ namespace Inuplan.DAL.Repositories.Forum
             orderBy = orderBy ?? new Func<string>(() => "ASC");
 
             var sql = @"SELECT
-                            ID AS ThreadID, CreatedOn, Published, Deleted,IsModified, Title, LastModified, Sticky, LatestComment,
+                            ID AS ThreadID, CreatedOn, Published AS IsPublished, Deleted,IsModified, Title, LastModified, Sticky, LatestComment,
                             UserID AS ID, FirstName,  LastName,  Username,  Email,  DisplayName
                         FROM
                         (
@@ -207,6 +207,8 @@ namespace Inuplan.DAL.Repositories.Forum
                             
                             LEFT JOIN Users u
                             ON t.Author = u.ID
+
+                            WHERE t.Published = 1
                             ) AS seq
                         WHERE seq.RowNumber BETWEEN @From AND @To";
 
@@ -243,7 +245,7 @@ namespace Inuplan.DAL.Repositories.Forum
                 title.ViewedBy = usersView.ToList();
             }
 
-            var countSql = @"SELECT COUNT(*) FROM ThreadTitles";
+            var countSql = @"SELECT COUNT(*) FROM ThreadTitles WHERE ThreadTitles.Published = 1";
             var total = await connection.ExecuteScalarAsync<int>(countSql);
 
             return Helpers.Paginate(skip, take, total, titleQuery.ToList());
