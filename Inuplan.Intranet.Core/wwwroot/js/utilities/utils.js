@@ -219,3 +219,14 @@ export const put = (obj, key, value) => {
     kv[key] = value;
     return kv;
 }
+
+export const objMap = (arr, key, val) => {
+    const obj = arr.reduce((res, item) => {
+        const k = key(item);
+        const v = val(item);
+        res[k] = v;
+        return res;
+    }, {});
+
+    return obj
+}
