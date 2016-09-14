@@ -38,4 +38,19 @@
     border-bottom-color: #2c3e50;
 }
 
+.thread {
+    padding-top: 17px;
+    padding-bottom: 15px;
+    color: #2c3e50;
+}
+
+.thread:hover {
+    background-color: #f3f3f3;
+}
+
+.sticky [class*="glyphicon-"] {
+    margin-top: 8px;
+    -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
 }
