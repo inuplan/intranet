@@ -1,12 +1,12 @@
 ﻿import { combineReducers } from 'redux'
 import * as T from '../constants/types'
+import { put } from '../utilities/utils'
 
 const users = (state = {}, action) => {
     switch (action.type) {
         case T.ADD_USER:
-            let kv = Object.assign({}, state);
-            kv[action.user.ID] = action.user;
-            return kv;
+            const users = put(state, action.user.ID, action.user);
+            return users;
         case T.RECIEVED_USERS:
             return action.users;
         default:
