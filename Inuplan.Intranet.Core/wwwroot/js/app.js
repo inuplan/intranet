@@ -27,6 +27,7 @@ ReactDOM.render(
                 <IndexRoute component={Home} onEnter={fetchWhatsNew} />
                 <Route path="forum" component={Forum} onEnter={fetchForum}>
                     <Route path="threads" component={ForumList}/>
+                    <Route path="post/:id" component={ForumList}/>
                 </Route>
                 <Route path="users" component={Users} />
                 <Route path="about" component={About} />
