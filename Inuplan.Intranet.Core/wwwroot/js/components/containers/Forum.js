@@ -1,8 +1,11 @@
 ﻿import React from 'react'
 import { Row, Col } from 'react-bootstrap'
-import { Breadcrumb } from '../breadcrumbs/Breadcrumb'
 
 export default class Forum extends React.Component {
+    componentDidMount() {
+        document.title = "Forum";
+    }
+
     render() {
         return  <Row>
                     <Col lgOffset={2} lg={8}>
