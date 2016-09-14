@@ -84,7 +84,7 @@ export function fetchComments(imageId, skip, take) {
                 const pageComments = data.CurrentItems;
 
                 // Set (re-set) info
-                dispatch(receivedComments(undefined));
+                //dispatch(receivedComments(undefined));
                 dispatch(setSkipComments(skip));
                 dispatch(setTakeComments(take));
                 dispatch(setCurrentPage(data.CurrentPage));
