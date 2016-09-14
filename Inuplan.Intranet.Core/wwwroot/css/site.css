@@ -29,3 +29,13 @@
 .comment-deleted span.glyphicon {
     margin-right: 7px;
 }
+
+.thread-head {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    padding-top: 17px;
+    padding-bottom: 15px;
+    border-bottom-color: #2c3e50;
+}
+
+}

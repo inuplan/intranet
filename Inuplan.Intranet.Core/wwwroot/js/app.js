@@ -11,6 +11,7 @@ import Users from './components/containers/Users'
 import UserImages from './components/containers/UserImages'
 import SelectedImage from './components/containers/SelectedImage'
 import Forum from './components/containers/Forum'
+import ForumList from './components/containers/ForumList'
 import { Comments } from './components/containers/Comments'
 import { SingleComment } from './components/comments/SingleComment'
 import { fetchForum, selectImage, fetchImages, loadComments, fetchComment, fetchWhatsNew } from './utilities/onstartup'
@@ -24,7 +25,8 @@ ReactDOM.render(
         <Router history={browserHistory}>
             <Route path="/" component={Main}>
                 <IndexRoute component={Home} onEnter={fetchWhatsNew} />
-                <Route path="forum" component={Forum}>
+                <Route path="forum" component={Forum} onEnter={fetchForum}>
+                    <Route path="threads" component={ForumList}/>
                 </Route>
                 <Route path="users" component={Users} />
                 <Route path="about" component={About} />
