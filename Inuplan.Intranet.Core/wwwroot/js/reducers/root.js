@@ -4,13 +4,15 @@ import imagesInfo from './images'
 import commentsInfo from './comments'
 import statusInfo from './status'
 import whatsNewInfo from './whatsnew'
+import forumInfo from './forum'
 
 const rootReducer = combineReducers({
     usersInfo,
     imagesInfo,
     commentsInfo,
     statusInfo,
-    whatsNewInfo
+    whatsNewInfo,
+    forumInfo
 })
 
 export default rootReducer
