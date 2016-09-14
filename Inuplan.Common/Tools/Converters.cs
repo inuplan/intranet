@@ -113,6 +113,7 @@ namespace Inuplan.Common.Tools
                 IsModified = threadTitle.IsModified,
                 IsPublished = threadTitle.IsPublished,
                 Sticky = threadTitle.Sticky,
+                LatestComment = threadTitle.LatestComment,
                 LastModified = threadTitle.LastModified,
                 CreatedOn = threadTitle.CreatedOn,
                 Title = threadTitle.Title,

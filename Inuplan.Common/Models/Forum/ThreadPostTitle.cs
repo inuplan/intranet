@@ -34,6 +34,7 @@ namespace Inuplan.Common.Models.Forum
         public bool IsModified { get; set; }
         public string Title { get; set; }
         public DateTime? LastModified { get; set; }
+        public DateTime? LatestComment { get; set; }
         public List<User> ViewedBy { get; set; }
     }
 }
