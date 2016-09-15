@@ -5,7 +5,7 @@ import * as T from '../constants/types'
 const comments = (state = {}, action) => {
     switch (action.type) {
         case T.RECIEVED_COMMENTS:
-            return action.comments;
+            return action.comments || {};
         case T.ADD_COMMENT:
             const obj = put(state, action.key, action.val);
             return obj;
