@@ -81,19 +81,19 @@ class ForumListContainer extends React.Component {
                     <Col lg={12}>
                         <Row className="thread-head">
                             <Col lg={1}>
-                                Info
+                                <strong>Info</strong>
                             </Col>
                             <Col lg={5}>
-                                Titel
+                                <strong>Titel</strong>
                             </Col>
                             <Col lg={2} className="text-center">
-                                Dato
+                                <strong>Dato</strong>
                             </Col>
                             <Col lg={2} className="text-center">
-                                Set af
+                                <strong>Set af</strong>
                             </Col>
                             <Col lg={2} className="text-center">
-                                Seneste kommentar
+                                <strong>Seneste kommentar</strong>
                             </Col>
                         </Row>
                         {this.threadViews()}
