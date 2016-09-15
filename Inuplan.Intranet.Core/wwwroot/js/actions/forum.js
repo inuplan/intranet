@@ -134,6 +134,20 @@ export const updatePost = (id, post, cb) => {
     }
 }
 
+export const deletePost = (id, cb) => {
+    return function(dispatch) {
+        const url = `${globals.urls.forumpost}?id=${id}`;
+        const opt = Object.assign({}, options, {
+            method: 'DELETE'
+        });
+
+        const handler = responseHandler.bind(this, dispatch);
+        return fetch(url, opt)
+            .then(handler)
+            .then(cb, onReject);
+    }
+}
+
 // post: ThreadPostContent
 export const postThread = (cb, post) => {
     return function(dispatch) {
