@@ -21,9 +21,6 @@
 namespace Inuplan.WebAPI.Controllers.Forum
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using Autofac.Extras.Attributed;
     using Common.Enums;
@@ -96,21 +93,34 @@ namespace Inuplan.WebAPI.Controllers.Forum
                 () => { throw new HttpResponseException(HttpStatusCode.InternalServerError); });
         }
 
+        [HttpPut]
+        public async Task<HttpResponseMessage> Put([FromUri] int id, ThreadPostContent post)
+        {
+            var titleUpdate = await titleRepository.Update(id, post.Header);
+            if (!titleUpdate) return Request.CreateResponse(HttpStatusCode.InternalServerError);
+
+            var contentUpdate = await postRepository.Update(id, post);
+            if (!contentUpdate) return Request.CreateResponse(HttpStatusCode.InternalServerError);
+
+            // 204 Updated
+            return Request.CreateResponse(HttpStatusCode.NoContent);
+        }
+
         [HttpDelete]
         // localhost:9000/api/forumpost?postId=8
-        public async Task<HttpResponseMessage> Delete(int postId)
+        public async Task<HttpResponseMessage> Delete(int id)
         {
             // Check if same author
-            var thread = await titleRepository.Get(postId);
+            var thread = await titleRepository.Get(id);
             var isAuthorized = thread.Map(t => AuthorizeToUsername(t.Author.Username)).ValueOr(false);
             if (!isAuthorized) return Request.CreateResponse(HttpStatusCode.Unauthorized);
 
             // First delete all comments belonging to the thread
-            var deleteAllComments = await forumCommentRepository.Delete(postId, (threadId) => Task.FromResult(0));
+            var deleteAllComments = await forumCommentRepository.Delete(id, (threadId) => Task.FromResult(0));
             if (!deleteAllComments) return Request.CreateResponse(HttpStatusCode.InternalServerError);
 
             // Delete the actual thread. Note if error occurs here we cannot rollback!
-            var delete = await titleRepository.Delete(postId, (threadId) => Task.FromResult(0));
+            var delete = await titleRepository.Delete(id, (threadId) => Task.FromResult(0));
             if (!delete) return Request.CreateResponse(HttpStatusCode.InternalServerError);
 
             // Deleted
