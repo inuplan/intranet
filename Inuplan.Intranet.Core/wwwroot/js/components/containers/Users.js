@@ -4,10 +4,11 @@ import { fetchUsers } from '../../actions/users'
 import { UserList } from '../users/UserList'
 import { Row, Col, PageHeader } from 'react-bootstrap'
 import { Breadcrumb } from '../breadcrumbs/Breadcrumb'
+import { values } from 'underscore'
 
 const mapUsersToProps = (state) => {
     return {
-        users: state.usersInfo.users
+        users: values(state.usersInfo.users)
     };
 }
 

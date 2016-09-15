@@ -4,23 +4,22 @@ import { connect } from 'react-redux'
 import { Well, Button, Glyphicon } from 'react-bootstrap'
 import { find } from 'underscore'
 import { withRouter } from 'react-router'
-
-const tryGetComment = (comments = [], id) => { return find(comments, (c) => c.CommentID == id); }
-const tryGetUser = (users = [], userId) => { return find(users, (user) => user.ID == userId); }
+import { objMap } from '../../utilities/utils'
 
 const mapStateToProps = (state) => {
     const { comments, focusedComment } = state.commentsInfo;
     const { users } = state.usersInfo;
+    const { ownerId, selectedImageId } = state.imagesInfo;
 
     return {
         getName: (id) => {
-            const user = tryGetUser(users, id);
-            if(!user) return '';
-            return `${user.FirstName} ${user.LastName}`;
+            const author = users[id];
+            return `${author.FirstName} ${author.LastName}`;
         },
-        getComment: () => tryGetComment(comments, focusedComment),
-        imageId: state.imagesInfo.selectedImageId,
-        imageOwner: tryGetUser(users, state.imagesInfo.ownerId)
+        focusedId: focusedComment,
+        focused: comments[0],
+        imageId: selectedImageId,
+        imageOwner: users[ownerId].Username
     }
 }
 
@@ -34,17 +33,16 @@ class SingleCommentRedux extends React.Component {
         const { imageId, imageOwner } = this.props;
         const { push } = this.props.router;
 
-        const path = `/${imageOwner.Username}/gallery/image/${imageId}/comments`;
+        const path = `/${imageOwner}/gallery/image/${imageId}/comments`;
         push(path);
     }
 
     render() {
-        const { getName, getComment } = this.props;
-        const comment = getComment();
-        if(!comment) return null;
+        const { focusedId } = this.props;
+        if(focusedId < 0) return null;
 
-        const { Text, AuthorID, CommentID, PostedOn } = comment;
-        const name = getName(comment.AuthorID);
+        const { Text, AuthorID, CommentID, PostedOn } = this.props.focused;
+        const name = this.props.getName(AuthorID);
 
         return  <div className="text-left">
                     <Well>

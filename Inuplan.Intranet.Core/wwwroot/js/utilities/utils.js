@@ -213,3 +213,20 @@ export const responseHandler = (dispatch, response) => {
 }
 
 export const onReject = () => { }
+
+export const put = (obj, key, value) => {
+    let kv = Object.assign({}, obj);
+    kv[key] = value;
+    return kv;
+}
+
+export const objMap = (arr, key, val) => {
+    const obj = arr.reduce((res, item) => {
+        const k = key(item);
+        const v = val(item);
+        res[k] = v;
+        return res;
+    }, {});
+
+    return obj
+}

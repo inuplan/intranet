@@ -163,14 +163,14 @@ export const deleteComment = (commentId, imageId) => {
 export const incrementCommentCount = (imageId) => {
     return {
         type: T.INCR_COMMENT_COUNT,
-        imageId: imageId
+        key: imageId
     }
 }
 
 export const decrementCommentCount = (imageId) => {
     return {
         type: T.DECR_COMMENT_COUNT,
-        imageId: imageId
+        key: imageId
     }
 }
 

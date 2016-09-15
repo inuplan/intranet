@@ -42,14 +42,15 @@
     padding-top: 17px;
     padding-bottom: 15px;
     color: #2c3e50;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: #2c3e50;
 }
 
-.thread-pinned {
+.thread-pinned:last-child {
     border-bottom-width: 1px;
-    border-bottom-style: inset;
-    border-bottom-color: #f3f3f3;
-    background: #2c3e50;
-    color: white;
+    border-bottom-style: solid;
+    border-bottom-color: #2c3e50;
 }
 
 .thread-pinned:hover {
@@ -62,7 +63,7 @@
 
 .sticky [class*="glyphicon-"] {
     margin-top: 8px;
-    -webkit-transform: rotate(45deg);
-    -moz-transform: rotate(45deg);
-    -o-transform: rotate(45deg);
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
 }

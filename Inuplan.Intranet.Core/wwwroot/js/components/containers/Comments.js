@@ -1,7 +1,7 @@
 ﻿import React from 'react'
 import { fetchComments, postComment, editComment, deleteComment } from '../../actions/comments'
 import { CommentList } from '../comments/CommentList'
-import { find } from 'underscore'
+import { find, values, sortBy } from 'underscore'
 import { connect } from 'react-redux'
 import { Pagination } from '../pagination/Pagination'
 import { CommentForm } from '../comments/CommentForm'
@@ -21,11 +21,11 @@ const mapStateToProps = (state) => {
         totalPages: state.commentsInfo.totalPages,
         comments: state.commentsInfo.comments,
         getName: (userId) => {
-            const user = getUser(userId);
+            const user = state.usersInfo.users[userId];
             const { FirstName, LastName } = user;
             return `${FirstName} ${LastName}`;
         },
-        owner: getUser(state.imagesInfo.ownerId)
+        owner: state.usersInfo.users[state.imagesInfo.ownerId]
     }
 }
 

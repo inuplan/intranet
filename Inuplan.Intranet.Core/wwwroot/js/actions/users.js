@@ -3,7 +3,7 @@ import _ from 'underscore'
 import * as T from '../constants/types'
 import { options } from '../constants/constants'
 import { HttpError, setError } from './error'
-import { responseHandler, onReject } from '../utilities/utils'
+import { objMap, responseHandler, onReject } from '../utilities/utils'
 
 const getUrl = (username) => globals.urls.users + '?username=' + username;
 
@@ -60,6 +60,11 @@ export function fetchUsers() {
         const handler = responseHandler.bind(this, dispatch);
         return fetch(globals.urls.users, options)
             .then(handler)
-            .then(users => dispatch(recievedUsers(users)), onReject);
+            .then(users => {
+                const getKey = (user) => user.ID;
+                const getValue = (user) => user;
+                const obj = objMap(users, getKey, getValue);
+                dispatch(recievedUsers(obj));
+            }, onReject);
     }
 }
