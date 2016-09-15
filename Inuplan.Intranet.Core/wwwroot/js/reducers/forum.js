@@ -56,9 +56,9 @@ const selectedThread = (state = -1, action) => {
     }
 }
 
-const editPostId = (state = -1, action) => {
+const selectedPostId = (state = -1, action) => {
     switch (action.type) {
-        case T.EDIT_POST_ID:
+        case T.SET_SELECTED_POST_ID:
             return action.id;
         default:
             return state;
@@ -105,7 +105,7 @@ const titlesInfo = combineReducers({
 const forumInfo = combineReducers({
     titlesInfo,
     postContent,
-    editPostId
+    selectedPostId
 })
 
 export default forumInfo;

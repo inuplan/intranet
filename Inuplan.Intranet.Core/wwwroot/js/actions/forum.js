@@ -66,9 +66,9 @@ export const setPostContent = (content) => {
     }
 }
 
-export const setEditPostId = (id) => {
+export const setSelectedPostId = (id) => {
     return {
-        type: T.EDIT_POST_ID,
+        type: T.SET_SELECTED_POST_ID,
         id: id
     }
 }
