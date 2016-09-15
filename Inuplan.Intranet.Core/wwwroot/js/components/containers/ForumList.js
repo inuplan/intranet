@@ -15,7 +15,7 @@ const mapStateToProps = (state) => {
         page: state.forumInfo.titlesInfo.page,
         totalPages: state.forumInfo.titlesInfo.totalPages,
         getAuthor: (id) => {
-            const user = find(state.usersInfo.users, (user) => user.ID == id);
+            const user = state.usersInfo.users[id];
             return `${user.FirstName} ${user.LastName}`;
         },
     }
