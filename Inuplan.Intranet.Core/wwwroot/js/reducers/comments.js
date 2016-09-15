@@ -1,13 +1,14 @@
 ﻿import { combineReducers } from 'redux'
-import { union } from '../utilities/utils'
+import { union, put } from '../utilities/utils'
 import * as T from '../constants/types'
 
-const comments = (state = [], action) => {
+const comments = (state = {}, action) => {
     switch (action.type) {
         case T.RECIEVED_COMMENTS:
-            return action.comments || [];
+            return action.comments;
         case T.ADD_COMMENT:
-            return union(state, [action.comment], (c1, c2) => c1.CommentID == c2.CommentID);
+            const obj = put(state, action.key, action.val);
+            return obj;
         default:
             return state;
     }
