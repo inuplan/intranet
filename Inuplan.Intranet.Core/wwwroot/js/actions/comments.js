@@ -1,7 +1,7 @@
 ﻿import * as T from '../constants/types'
 import fetch from 'isomorphic-fetch';
 import { options } from '../constants/constants'
-import { put, objMap, normalizeComment, visitComments, responseHandler, onReject } from '../utilities/utils'
+import { normalizeComment, visitComments, responseHandler, onReject } from '../utilities/utils'
 import { addUser } from './users'
 import { HttpError, setError } from './error'
 import { find } from 'underscore'
@@ -62,8 +62,7 @@ export function receivedComments(comments) {
 export function addComment(comment) {
     return {
         type: T.ADD_COMMENT,
-        key: comment.CommentID,
-        val: comment
+        comment: comment
     }
 }
 
@@ -93,8 +92,7 @@ export function fetchComments(imageId, skip, take) {
 
                 // normalize
                 const comments = pageComments.map(normalizeComment);
-                const obj = objMap(comments, (c) => c.CommentID, (c) => c);
-                dispatch(receivedComments(obj));
+                dispatch(receivedComments(comments));
             }, onReject);
     }
 }
@@ -186,8 +184,7 @@ export const fetchAndFocusSingleComment = (id) => {
             .then(handler)
             .then(c => {
                 const comment = normalizeComment(c);
-                const obj = put({}, comment.CommentID, comment);
-                dispatch(receivedComments(obj));
+                dispatch(receivedComments([comment]));
                 dispatch(setFocusedComment(comment.CommentID));
             }, onReject);
     }

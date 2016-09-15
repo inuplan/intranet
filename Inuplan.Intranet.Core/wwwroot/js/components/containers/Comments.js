@@ -1,7 +1,7 @@
 ﻿import React from 'react'
 import { fetchComments, postComment, editComment, deleteComment } from '../../actions/comments'
 import { CommentList } from '../comments/CommentList'
-import { find, values } from 'underscore'
+import { find, values, sortBy } from 'underscore'
 import { connect } from 'react-redux'
 import { Pagination } from '../pagination/Pagination'
 import { CommentForm } from '../comments/CommentForm'
@@ -19,7 +19,7 @@ const mapStateToProps = (state) => {
         take: state.commentsInfo.take,
         page: state.commentsInfo.page,
         totalPages: state.commentsInfo.totalPages,
-        comments: values(state.commentsInfo.comments),
+        comments: state.commentsInfo.comments,
         getName: (userId) => {
             const user = state.usersInfo.users[userId];
             const { FirstName, LastName } = user;

@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import { Well, Button, Glyphicon } from 'react-bootstrap'
 import { find } from 'underscore'
 import { withRouter } from 'react-router'
+import { objMap } from '../../utilities/utils'
 
 const mapStateToProps = (state) => {
     const { comments, focusedComment } = state.commentsInfo;
@@ -16,7 +17,7 @@ const mapStateToProps = (state) => {
             return `${author.FirstName} ${author.LastName}`;
         },
         focusedId: focusedComment,
-        focused: comments[focusedComment],
+        focused: comments[0],
         imageId: selectedImageId,
         imageOwner: users[ownerId].Username
     }
