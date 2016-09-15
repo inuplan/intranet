@@ -1,6 +1,6 @@
 ﻿import { combineReducers } from 'redux'
 import * as T from '../constants/types'
-import { omit, values } from 'underscore'
+import { filter, omit, values } from 'underscore'
 import { put, union } from '../utilities/utils'
 
 const ownerId = (state = -1, action) => {
