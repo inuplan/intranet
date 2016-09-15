@@ -1,6 +1,7 @@
 ﻿import React from 'react'
 import { Row, Col, Glyphicon, OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { timeText } from '../../utilities/utils'
+import { Link } from 'react-router'
 
 export class ForumTitle extends React.Component {
     dateView(date) {
@@ -11,7 +12,6 @@ export class ForumTitle extends React.Component {
 
     tooltipView() {
         return  <Tooltip id="tooltip">Vigtig</Tooltip>
-
     }
 
     stickyIcon(show) {
@@ -24,12 +24,13 @@ export class ForumTitle extends React.Component {
     }
 
     render() {
-        const { title, getAuthor } = this.props;
+        const { title, getAuthor, onClick } = this.props;
         const name = getAuthor(title.AuthorID);
         const commentDate = title.LatestComment ? TimeText(title.LatestComment) : 'Ingen kommentarer';
         const css = title.Sticky ? "thread thread-pinned" : "thread";
+        const path = `/forum/post/${title.ID}`;
 
-        return  <a href="#">
+        return  <Link to={path}>
                     <Row className={css}>
                         <Col lg={1} className="text-center">{this.stickyIcon(title.Sticky)}</Col>
                         <Col lg={5}>
@@ -46,6 +47,6 @@ export class ForumTitle extends React.Component {
                             <p>{commentDate}</p>
                         </Col>
                     </Row>
-                </a>
+                </Link>
     }
 }

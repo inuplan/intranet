@@ -59,16 +59,16 @@ namespace Inuplan.WebAPI.Controllers.Forum
         }
 
         [HttpGet]
-        // localhost:9000/api/forumpost?postId=10
-        public async Task<ThreadPostContentDTO> Get(int postId)
+        // localhost:9000/api/forumpost?id=10
+        public async Task<ThreadPostContentDTO> Get(int id)
         {
-            var post = await postRepository.Get(postId);
+            var post = await postRepository.Get(id);
 
             // TODO: Add User to ViewedBy...
             var result = post.Map(p =>
             {
-                var commentCount = forumCommentRepository.Count(postId).Result;
-                var title = titleRepository.Get(postId);
+                var commentCount = forumCommentRepository.Count(id).Result;
+                var title = titleRepository.Get(id);
                 p.Header = title.Result.ValueOrFailure();
                 return Converters.ToThreadPostContentDTO(p, commentCount);
             });

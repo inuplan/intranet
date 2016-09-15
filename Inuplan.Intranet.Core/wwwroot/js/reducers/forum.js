@@ -49,6 +49,17 @@ const totalPagesThread = (state = 1, action) => {
 
 const selectedThread = (state = -1, action) => {
     switch (action.type) {
+        case T.SET_SELECTEDTHREAD_ID:
+            return action.id;
+        default:
+            return state;
+    }
+}
+
+const editPostId = (state = -1, action) => {
+    switch (action.type) {
+        case T.EDIT_POST_ID:
+            return action.id;
         default:
             return state;
     }
@@ -64,6 +75,8 @@ const selectedThread = (state = -1, action) => {
 
 const titles = (state = [], action) => {
     switch (action.type) {
+        case T.ADD_THREAD_TITLE:
+            return union(state, [action.title], (t1, t2) => t1.ID == t2.ID);
         case T.SET_THREAD_TITLES:
             return action.titles;
         default:
@@ -73,6 +86,8 @@ const titles = (state = [], action) => {
 
 const postContent = (state = "", action) => {
     switch (action.type) {
+        case T.SET_POST_CONTENT:
+            return action.content;
         default:
             return state;
     }
@@ -89,7 +104,8 @@ const titlesInfo = combineReducers({
 
 const forumInfo = combineReducers({
     titlesInfo,
-    postContent
+    postContent,
+    editPostId
 })
 
 export default forumInfo;

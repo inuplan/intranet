@@ -92,12 +92,12 @@ export class ForumForm extends React.Component {
                                     
                                         <FormGroup controlId="formPostTitle" validationState={this.getValidation()}>
                                             <ControlLabel>Titel</ControlLabel>
-                                            <FormControl type="text" placeholder="Titel på indlæg..." onChange={this.handleTitleChange.bind(this)}/>
+                                            <FormControl type="text" placeholder="Titel på indlæg..." onChange={this.handleTitleChange.bind(this)} value={this.state.Title}/>
                                         </FormGroup>
 
                                         <FormGroup controlId="formPostContent">
                                             <ControlLabel>Indl&aelig;g</ControlLabel>
-                                            <FormControl componentClass="textarea" placeholder="Skriv besked her..." onChange={this.handleTextChange.bind(this)} rows="8" />
+                                            <FormControl componentClass="textarea" placeholder="Skriv besked her..." onChange={this.handleTextChange.bind(this)} value={this.state.Text} rows="8" />
                                         </FormGroup>
 
                                         <FormGroup controlId="formPostSticky">

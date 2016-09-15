@@ -10,6 +10,13 @@ export const setPostComments = (comments) => {
     }
 }
 
+export const addThreadTitle = (title) => {
+    return {
+        type: T.ADD_THREAD_TITLE,
+        title: title
+    }
+}
+
 export const setThreadTitles = (titles) => {
     return {
         type: T.SET_THREAD_TITLES,
@@ -45,6 +52,27 @@ export const setTake = (take) => {
     }
 }
 
+export const setSelectedThread = (id) => {
+    return {
+        type: T.SET_SELECTEDTHREAD_ID,
+        id: id
+    }
+}
+
+export const setPostContent = (content) => {
+    return {
+        type: T.SET_POST_CONTENT,
+        content: content
+    }
+}
+
+export const setEditPostId = (id) => {
+    return {
+        type: T.EDIT_POST_ID,
+        id: id
+    }
+}
+
 export const fetchThreads = (skip = 0, take = 10) => {
     return function(dispatch) {
         const forum = globals.urls.forumtitle;
@@ -58,12 +86,32 @@ export const fetchThreads = (skip = 0, take = 10) => {
                 const forumTitles = pageForumTitles.map(normalizeThreadTitle);
 
                 // Set info
+                dispatch(setSkip(skip));
+                dispatch(setTake(take));
                 dispatch(setTotalPages(data.TotalPages));
                 dispatch(setPage(data.CurrentPage));
 
                 // Set threads
                 dispatch(setThreadTitles(forumTitles));
             }, onReject);
+    }
+}
+
+export const fetchPost = (id) => {
+    return function(dispatch) {
+        const forum = globals.urls.forumpost;
+        const url = `${forum}?id=${id}`;
+        const handler = responseHandler.bind(this, dispatch);
+        return fetch(url, options)
+            .then(handler)
+            .then(data => {
+                const content = data.Text;
+                const title = normalizeThreadTitle(data.Header);
+
+                dispatch(setSelectedThread(data.ThreadID));
+                dispatch(addThreadTitle(title));
+                dispatch(setPostContent(content));
+            })
     }
 }
 

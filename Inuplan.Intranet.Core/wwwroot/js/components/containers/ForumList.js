@@ -3,7 +3,7 @@ import { Row, Col, ButtonGroup, Button } from 'react-bootstrap'
 import { ForumTitle } from '../forum/ForumTitle'
 import { connect } from 'react-redux'
 import { find } from 'underscore'
-import { fetchThreads, postThread } from '../../actions/forum'
+import { fetchThreads, postThread, setSelectedThread } from '../../actions/forum'
 import { Pagination } from '../pagination/Pagination'
 import { ForumForm } from '../forum/ForumForm'
 
@@ -28,6 +28,9 @@ const mapDispatchToProps = (dispatch) => {
         },
         postThread: (cb, post) => {
             dispatch(postThread(cb, post));
+        },
+        setSelectedThread: (id) => {
+            dispatch(setSelectedThread(id));
         }
     }
 }
@@ -52,10 +55,13 @@ class ForumListContainer extends React.Component {
     }
 
     threadViews() {
-        const { threads, getAuthor } = this.props;
+        const { threads, getAuthor, setSelectedThread } = this.props;
         return threads.map(thread => {
             const id = `thread_${thread.ID}`;
-            return <ForumTitle title={thread} key={id} getAuthor={getAuthor} />
+            return <ForumTitle
+                        title={thread}
+                        key={id}
+                        getAuthor={getAuthor} />
         });
     }
 

@@ -14,7 +14,8 @@ import Forum from './components/containers/Forum'
 import ForumList from './components/containers/ForumList'
 import { Comments } from './components/containers/Comments'
 import { SingleComment } from './components/comments/SingleComment'
-import { fetchForum, selectImage, fetchImages, loadComments, fetchComment, fetchWhatsNew } from './utilities/onstartup'
+import { ForumPost } from './components/forum/ForumPost'
+import { fetchForum, selectImage, fetchImages, loadComments, fetchComment, fetchWhatsNew, fetchSinglePost } from './utilities/onstartup'
 
 store.dispatch(fetchCurrentUser(globals.currentUsername));
 store.dispatch(fetchUsers());
@@ -27,7 +28,7 @@ ReactDOM.render(
                 <IndexRoute component={Home} onEnter={fetchWhatsNew} />
                 <Route path="forum" component={Forum} onEnter={fetchForum}>
                     <Route path="threads" component={ForumList}/>
-                    <Route path="post/:id" component={ForumList}/>
+                    <Route path="post/:id" component={ForumPost} onEnter={fetchSinglePost}/>
                 </Route>
                 <Route path="users" component={Users} />
                 <Route path="about" component={About} />
