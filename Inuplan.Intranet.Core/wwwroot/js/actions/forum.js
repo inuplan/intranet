@@ -115,6 +115,25 @@ export const fetchPost = (id) => {
     }
 }
 
+export const updatePost = (id, post, cb) => {
+    return function(dispatch) {
+        const url = `${globals.urls.forumpost}?id=${id}`;
+        const headers = new Headers();
+        headers.append('Content-Type', 'application/json');
+        const handler = responseHandler.bind(this, dispatch);
+
+        const opt = Object.assign({}, options, {
+            method: 'PUT',
+            body: JSON.stringify(post),
+            headers: headers
+        });
+
+        return fetch(url, opt)
+            .then(handler)
+            .then(cb, onReject);
+    }
+}
+
 // post: ThreadPostContent
 export const postThread = (cb, post) => {
     return function(dispatch) {
