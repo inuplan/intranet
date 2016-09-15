@@ -8,6 +8,7 @@ import { find } from 'underscore'
 import { withRouter } from 'react-router'
 import { Row, Col, Button } from 'react-bootstrap'
 import { Breadcrumb } from '../breadcrumbs/Breadcrumb'
+import { values, sortBy } from 'underscore'
 
 const mapStateToProps = (state) => {
     const { ownerId } = state.imagesInfo;
@@ -15,9 +16,10 @@ const mapStateToProps = (state) => {
     const canEdit = (ownerId > 0 && currentId > 0 && ownerId == currentId);
     const user = state.usersInfo.users[ownerId];
     const fullName = user ? `${user.FirstName} ${user.LastName}` : '';
+    const images = sortBy(values(state.imagesInfo.images), (img) => -img.ImageID);
 
     return {
-        images: state.imagesInfo.images,
+        images: images,
         canEdit: canEdit,
         selectedImageIds: state.imagesInfo.selectedImageIds,
         fullName: fullName,
