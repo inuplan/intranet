@@ -35,3 +35,13 @@ export class Comment extends React.Component {
                 </Media>
     }
 }
+
+Comment.propTypes = {
+    name: React.PropTypes.string.isRequired,
+    text: React.PropTypes.string.isRequired,
+    commentId: React.PropTypes.number.isRequired,
+    replies: React.PropTypes.arrayOf(React.PropTypes.object),
+    construct: React.PropTypes.func.isRequired,
+    authorId: React.PropTypes.number.isRequired,
+    edited: React.PropTypes.bool.isRequired
+}
