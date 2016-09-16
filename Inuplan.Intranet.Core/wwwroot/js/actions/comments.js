@@ -124,11 +124,9 @@ export const postComment = (imageId, text, parentCommentId) => {
     }
 }
 
-export const editComment = (commentId, imageId, text) => {
+export const editComment = (commentId, imageId, text, cb) => {
     return function(dispatch, getState) {
-        const { skip, take } = getState().commentsInfo;
-        const url = globals.urls.comments + "?imageId=" + imageId;
-
+        const url = `${globals.urls.comments}?imageId=${imageId}`;
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
         const opt = Object.assign({}, options, {
@@ -138,9 +136,7 @@ export const editComment = (commentId, imageId, text) => {
         });
 
         return fetch(url, opt)
-            .then(() => {
-                dispatch(fetchComments(imageId, skip, take));
-            }, onReject);
+            .then(cb, onReject);
     }
 }
 

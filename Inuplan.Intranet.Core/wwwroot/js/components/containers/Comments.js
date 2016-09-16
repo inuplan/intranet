@@ -38,7 +38,7 @@ const mapDispatchToProps = (dispatch) => {
         fetchComments: (imageId, skip, take) => {
             dispatch(fetchComments(imageId, skip, take));
         },
-        editComment: (commentId, contextId, text) => dispatch(editComment(commentId, contextId, text)),
+        editHandle: (commentId, contextId, text, cb) => dispatch(editComment(commentId, contextId, text, cb)),
         deleteHandle: (commentId, contextId, cb) => dispatch(deleteComment(commentId, contextId, cb)),
         replyComment: (contextId, text, parentId) => dispatch(postComment(contextId, text, parentId)),
         loadComments: (contextId, skip, take) => {
@@ -52,6 +52,7 @@ class CommentsContainer extends React.Component {
         super(props);
         this.pageHandle = this.pageHandle.bind(this);
         this.deleteComment = this.deleteComment.bind(this);
+        this.editComment = this.editComment.bind(this);
     }
 
     pageHandle(to) {
@@ -76,12 +77,19 @@ class CommentsContainer extends React.Component {
         deleteHandle(commentId, contextId, cb);
     }
 
+    editComment(commentId, contextId, text) {
+        const { loadComments, skip, take, editHandle } = this.props;
+        const cb = () => loadComments(contextId, skip, take);
+        editHandle(commentId, contextId, text, cb);
+    }
+
     render() {
         const { canEdit, comments, getName, imageId, page, totalPages, postComment } = this.props;
         const { skip, take, editComment, replyComment } = this.props;
-        let props = { skip, take, editComment, replyComment };
+        let props = { skip, take, replyComment };
         props = Object.assign({}, props, {
-            deleteComment: this.deleteComment
+            deleteComment: this.deleteComment,
+            editComment: this.editComment
         });
 
 
