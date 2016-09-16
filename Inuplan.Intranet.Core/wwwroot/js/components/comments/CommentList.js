@@ -53,3 +53,8 @@ export class CommentList extends React.Component {
                 </Media.List>
     }
 }
+
+CommentList.propTypes = {
+    comments: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
+    getName: React.PropTypes.func.isRequired
+}
