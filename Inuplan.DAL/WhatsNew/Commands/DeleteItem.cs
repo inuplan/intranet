@@ -21,6 +21,7 @@
 namespace Inuplan.DAL.WhatsNew.Commands
 {
     using Common.Commands;
+    using Common.Enums;
     using Dapper;
     using System.Data;
     using System.Threading.Tasks;
@@ -34,12 +35,13 @@ namespace Inuplan.DAL.WhatsNew.Commands
             this.connection = connection;
         }
 
-        public async Task<bool> Remove(int id)
+        public async Task<bool> Remove(int id, NewsType ofType)
         {
-            var sql = "DELETE FROM WhatsNew WHERE TargetID = @ID";
+            var sql = "DELETE FROM WhatsNew WHERE TargetID = @ID AND Event = @Type";
             var removed = await connection.ExecuteAsync(sql, new
             {
-                ID = id
+                ID = id,
+                Type = ofType,
             });
 
             return removed > 0;

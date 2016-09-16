@@ -2,6 +2,7 @@
 import { Row, Col } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import { find } from 'underscore'
+import { getFullName } from '../../utilities/utils'
 
 const mapStateToProps = (state) => {
     const selected = state.forumInfo.titlesInfo.selectedThread;
@@ -9,19 +10,17 @@ const mapStateToProps = (state) => {
         selected: selected,
         title: find(state.forumInfo.titlesInfo.titles, (title) => title.ID == selected),
         text: state.forumInfo.postContent,
-        getAuthor: (id) => {
-            const user = find(state.usersInfo.users, (user) => user.ID == id);
-            return `${user.FirstName} ${user.LastName}`;
-        },
+        getUser: (id) => state.usersInfo.users[id];
     }
 }
 
 class ForumPostContainer extends React.Component {
     render() {
-        const { selected, title, text, getAuthor } = this.props;
+        const { selected, title, text, getUser } = this.props;
         if(selected < 0) return null;
 
-        const author = getAuthor(title.AuthorID);
+        const user = getUser(title.AuthorID);
+        const author = getFullName(user);
         return  <Row>
                     <Row>
                         <Col lg={12}>

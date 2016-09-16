@@ -20,6 +20,11 @@ var curry = function(f, nargs, args) {
 
 export default curry;
 
+export const getFullName = (user, none = '') => {
+    if(!user) return none;
+    return `${user.FirstName} ${user.LastName}`;
+}
+
 const countComment = (topComment) => {
     let count = 1;
     let removed = 0;
