@@ -38,6 +38,11 @@ class ForumPostContainer extends React.Component {
                             </p>
                         </Col>
                     </Row>
+                    <Row>
+                        <Col lg={12}>
+                            {this.props.children}
+                        </Col>
+                    </Row>
                 </Row>
     }
 }
