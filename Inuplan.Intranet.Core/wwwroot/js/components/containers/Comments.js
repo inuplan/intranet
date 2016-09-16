@@ -1,7 +1,6 @@
 ﻿import React from 'react'
 import { fetchComments, postComment, editComment, deleteComment } from '../../actions/comments'
 import { CommentList } from '../comments/CommentList'
-import { find, values, sortBy } from 'underscore'
 import { connect } from 'react-redux'
 import { Pagination } from '../pagination/Pagination'
 import { CommentForm } from '../comments/CommentForm'
@@ -9,10 +8,6 @@ import { Row, Col } from 'react-bootstrap'
 import { withRouter } from 'react-router'
 
 const mapStateToProps = (state) => {
-    const getUser = (userId) => {
-        return find(state.usersInfo.users, (user) => user.ID == userId);
-    }
-
     return {
         canEdit: (id) => state.usersInfo.currentUserId == id,
         imageId: state.imagesInfo.selectedImageId,
