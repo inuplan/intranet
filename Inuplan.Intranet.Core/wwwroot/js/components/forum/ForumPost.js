@@ -10,7 +10,7 @@ const mapStateToProps = (state) => {
         selected: selected,
         title: find(state.forumInfo.titlesInfo.titles, (title) => title.ID == selected),
         text: state.forumInfo.postContent,
-        getUser: (id) => state.usersInfo.users[id];
+        getUser: (id) => state.usersInfo.users[id],
     }
 }
 
