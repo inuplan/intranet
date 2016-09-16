@@ -84,7 +84,6 @@ export function fetchComments(imageId, skip, take) {
                 const pageComments = data.CurrentItems;
 
                 // Set (re-set) info
-                //dispatch(receivedComments(undefined));
                 dispatch(setSkipComments(skip));
                 dispatch(setTakeComments(take));
                 dispatch(setCurrentPage(data.CurrentPage));
@@ -97,9 +96,8 @@ export function fetchComments(imageId, skip, take) {
     }
 }
 
-export const postComment = (imageId, text, parentCommentId) => {
-    return function (dispatch, getState) {
-        const { skip, take } = getState().commentsInfo;
+export const postComment = (imageId, text, parentCommentId, cb) => {
+    return function (dispatch) {
         const url = globals.urls.comments;
 
         const headers = new Headers();
@@ -117,18 +115,16 @@ export const postComment = (imageId, text, parentCommentId) => {
         });
 
         return fetch(url, opt)
+            .then(cb)
             .then(() => {
                 dispatch(incrementCommentCount(imageId));
-                dispatch(fetchComments(imageId, skip, take));
             }, onReject);
     }
 }
 
-export const editComment = (commentId, imageId, text) => {
+export const editComment = (commentId, imageId, text, cb) => {
     return function(dispatch, getState) {
-        const { skip, take } = getState().commentsInfo;
-        const url = globals.urls.comments + "?imageId=" + imageId;
-
+        const url = `${globals.urls.comments}?imageId=${imageId}`;
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
         const opt = Object.assign({}, options, {
@@ -138,25 +134,20 @@ export const editComment = (commentId, imageId, text) => {
         });
 
         return fetch(url, opt)
-            .then(() => {
-                dispatch(fetchComments(imageId, skip, take));
-            }, onReject);
+            .then(cb, onReject);
     }
 }
 
-export const deleteComment = (commentId, imageId) => {
+export const deleteComment = (commentId, imageId, cb) => {
     return function(dispatch, getState) {
-        const { skip, take } = getState().commentsInfo;
         const url = globals.urls.comments + "?commentId=" + commentId;
         const opt = Object.assign({}, options, {
             method: 'DELETE'
         });
 
         return fetch(url, opt)
-            .then(() => {
-                dispatch(fetchComments(imageId, skip, take));
-                dispatch(decrementCommentCount(imageId));
-            }, onReject);
+            .then(() => dispatch(decrementCommentCount(imageId)))
+            .then(cb);
     }
 }
 

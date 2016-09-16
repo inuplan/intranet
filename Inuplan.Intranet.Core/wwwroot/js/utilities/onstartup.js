@@ -5,7 +5,7 @@ import { fetchLatestNews } from '../actions/whatsnew'
 import { fetchThreads, fetchPost } from '../actions/forum'
 
 export const selectImage = (nextState) => {
-    const imageId = nextState.params.id;
+    const imageId = Number(nextState.params.id);
     store.dispatch(setSelectedImg(imageId));
 }
 
@@ -21,7 +21,7 @@ export const fetchImages = (nextState) => {
 
 export const loadComments = (nextState) => {
     const { username, id } = nextState.params;
-    const { page } = nextState.location.query;
+    const page = Number(nextState.location.query.page);
     const { skip, take } = store.getState().commentsInfo;
 
     if(!page) {
@@ -35,7 +35,7 @@ export const loadComments = (nextState) => {
 }
 
 export const fetchComment = (nextState) => {
-    const { id } = nextState.location.query;
+    const id = Number(nextState.location.query.id);
     store.dispatch(fetchAndFocusSingleComment(id));
 }
 
