@@ -55,10 +55,10 @@ const mapDispatchToProps = (dispatch) => {
             dispatch(deleteImage(id, username));
         },
         resetComments: () => {
-            dispatch(setSkipComments(undefined));
-            dispatch(setTakeComments(undefined));
-            dispatch(setFocusedComment(undefined));
-            dispatch(receivedComments(undefined));
+            dispatch(setSkipComments(0));
+            dispatch(setTakeComments(10));
+            dispatch(setFocusedComment(-1));
+            dispatch(receivedComments([]));
         }
     }
 }

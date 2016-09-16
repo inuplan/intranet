@@ -30,7 +30,9 @@ namespace Inuplan.WebAPI.Controllers.Forum
     using System.Linq;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using System.Web.Http.Cors;
 
+    [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class ForumTitleController : DefaultController
     {
         private readonly IScalarRepository<int, ThreadPostTitle> threadTitleRepository;
@@ -48,7 +50,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
 
         [HttpGet]
         // localhost:9000/api/forumtitle?skip=0&take=10&sortBy=LastModified&orderBy=Asc
-        public async Task<Pagination<ThreadPostTitleDTO>> Get(int skip, int take, ForumSortBy sortBy = ForumSortBy.CreatedOn, ForumOrderBy orderBy = ForumOrderBy.Asc)
+        public async Task<Pagination<ThreadPostTitleDTO>> Get(int skip, int take, ForumSortBy sortBy = ForumSortBy.CreatedOn, ForumOrderBy orderBy = ForumOrderBy.Desc)
         {
             var titles = await threadTitleRepository.GetPage(skip, take, () => sortBy.ToString(), () => orderBy.ToString());
             var titleDtos = titles.CurrentItems.Select(t => {
@@ -56,7 +58,12 @@ namespace Inuplan.WebAPI.Controllers.Forum
                 return Converters.ToThreadPostTitleDTO(t, commentCount.Result);
             });
 
-            return Helpers.Paginate(skip, take, titles.TotalPages, titleDtos.ToList());
+            return new Pagination<ThreadPostTitleDTO>
+            {
+                CurrentItems = titleDtos.ToList(),
+                CurrentPage = titles.CurrentPage,
+                TotalPages = titles.TotalPages
+            };
         }
     }
 }

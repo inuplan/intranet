@@ -3,63 +3,107 @@ import { Comment } from './Comment'
 import { connect } from 'react-redux'
 import { Well, Button, Glyphicon } from 'react-bootstrap'
 import { find } from 'underscore'
+import { fetchAndFocusSingleComment, postComment, editComment, deleteComment } from '../../actions/comments'
 import { withRouter } from 'react-router'
-
-const tryGetComment = (comments = [], id) => { return find(comments, (c) => c.CommentID == id); }
-const tryGetUser = (users = [], userId) => { return find(users, (user) => user.ID == userId); }
+import { objMap } from '../../utilities/utils'
 
 const mapStateToProps = (state) => {
     const { comments, focusedComment } = state.commentsInfo;
     const { users } = state.usersInfo;
+    const { ownerId, selectedImageId } = state.imagesInfo;
 
     return {
         getName: (id) => {
-            const user = tryGetUser(users, id);
-            if(!user) return '';
-            return `${user.FirstName} ${user.LastName}`;
+            const author = users[id];
+            return `${author.FirstName} ${author.LastName}`;
         },
-        getComment: () => tryGetComment(comments, focusedComment),
-        imageId: state.imagesInfo.selectedImageId,
-        imageOwner: tryGetUser(users, state.imagesInfo.ownerId)
+        focusedId: focusedComment,
+        focused: comments[0],
+        imageId: selectedImageId,
+        imageOwner: users[ownerId].Username,
+        canEdit: (id) => state.usersInfo.currentUserId == id,
+        skip: state.commentsInfo.skip,
+        take: state.commentsInfo.take,
+    }
+}
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        editHandle: (commentId, contextId, text, cb) => dispatch(editComment(commentId, contextId, text, cb)),
+        deleteHandle: (commentId, contextId, cb) => dispatch(deleteComment(commentId, contextId, cb)),
+        replyHandle: (contextId, text, parentId, cb) => dispatch(postComment(contextId, text, parentId, cb)),
+        focusComment: (id) => dispatch(fetchAndFocusSingleComment(id))
     }
 }
 
 class SingleCommentRedux extends React.Component {
     constructor(props) {
         super(props);
-        this.reload = this.reload.bind(this);
+        this.allComments = this.allComments.bind(this);
+        this.deleteComment = this.deleteComment.bind(this);
+        this.editComment = this.editComment.bind(this);
+        this.replyComment = this.replyComment.bind(this);
     }
 
-    reload() {
+    allComments() {
         const { imageId, imageOwner } = this.props;
         const { push } = this.props.router;
 
-        const path = `/${imageOwner.Username}/gallery/image/${imageId}/comments`;
+        const path = `/${imageOwner}/gallery/image/${imageId}/comments`;
         push(path);
     }
 
-    render() {
-        const { getName, getComment } = this.props;
-        const comment = getComment();
-        if(!comment) return null;
+    deleteComment(commentId, contextId) {
+        const { deleteHandle } = this.props;
 
-        const { Text, AuthorID, CommentID, PostedOn } = comment;
-        const name = getName(comment.AuthorID);
+        deleteHandle(commentId, contextId, this.allComments);
+    }
+
+    editComment(commentId, contextId, text) {
+        const { editHandle, focusComment } = this.props;
+        const cb = () => focusComment(commentId);
+        editHandle(commentId, contextId, text, cb);
+    }
+
+    replyComment(contextId, text, parentId) {
+        const { replyHandle } = this.props;
+        replyHandle(contextId, text, parentId, this.allComments);
+    }
+
+    render() {
+        const { focusedId } = this.props;
+        if(focusedId < 0) return null;
+
+        const { Text, AuthorID, CommentID, PostedOn, Edited } = this.props.focused;
+        const { canEdit, imageId } = this.props;
+        const { skip, take } = this.props;
+        let props = { skip, take };
+        props = Object.assign({}, props, {
+            deleteComment: this.deleteComment,
+            editComment: this.editComment,
+            replyComment: this.replyComment
+        });
+
+        const name = this.props.getName(AuthorID);
 
         return  <div className="text-left">
                     <Well>
                         <Comment
+                            contextId={imageId}
                             name={name}
                             text={Text}
                             commentId={CommentID}
                             replies={[]}
+                            canEdit={canEdit}
                             authorId={AuthorID}
                             postedOn={PostedOn}
+                            edited={Edited}
+                            {...props}
                         />
                     </Well>
                     <div>
                         <p className="text-center">
-                            <Button onClick={this.reload}>
+                            <Button onClick={this.allComments}>
                                 <Glyphicon glyph="refresh"/> Se alle kommentarer?
                             </Button>
                         </p>
@@ -68,5 +112,5 @@ class SingleCommentRedux extends React.Component {
     }
 }
 
-const SingleCommentConnect = connect(mapStateToProps, null)(SingleCommentRedux);
+const SingleCommentConnect = connect(mapStateToProps, mapDispatchToProps)(SingleCommentRedux);
 export const SingleComment = withRouter(SingleCommentConnect);

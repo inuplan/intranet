@@ -29,3 +29,41 @@
 .comment-deleted span.glyphicon {
     margin-right: 7px;
 }
+
+.thread-head {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    padding-top: 17px;
+    padding-bottom: 15px;
+    border-bottom-color: #2c3e50;
+}
+
+.thread {
+    padding-top: 17px;
+    padding-bottom: 15px;
+    color: #2c3e50;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: #2c3e50;
+}
+
+.thread-pinned:last-child {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: #2c3e50;
+}
+
+.thread-pinned:hover {
+    color: #2c3e50;
+}
+
+.thread:hover {
+    background-color: #f3f3f3;
+}
+
+.sticky [class*="glyphicon-"] {
+    margin-top: 8px;
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+}

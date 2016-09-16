@@ -20,6 +20,11 @@ var curry = function(f, nargs, args) {
 
 export default curry;
 
+export const getFullName = (user, none = '') => {
+    if(!user) return none;
+    return `${user.FirstName} ${user.LastName}`;
+}
+
 const countComment = (topComment) => {
     let count = 1;
     let removed = 0;
@@ -111,6 +116,24 @@ export const normalizeLatest = (latest) => {
     }
 }
 
+export const normalizeThreadTitle = (title) => {
+    const viewedBy = title.ViewedBy.map(user => user.ID);
+    return {
+        ID: title.ID,
+        IsPublished: title.IsPublished,
+        Sticky: title.Sticky,
+        CreatedOn: title.CreatedOn,
+        AuthorID: title.Author.ID,
+        Deleted: title.Deleted,
+        IsModified: title.IsModified,
+        Title: title.Title,
+        LastModified: title.LastModified,
+        LatestComment: title.LatestComment,
+        CommentCount: title.CommentCount,
+        ViewedBy: viewedBy,
+    }
+}
+
 export const visitComments = (comments, func) => {
     const getReplies = (c) => c.Replies ? c.Replies : [];
     for (var i = 0; i < comments.length; i++) {
@@ -195,3 +218,20 @@ export const responseHandler = (dispatch, response) => {
 }
 
 export const onReject = () => { }
+
+export const put = (obj, key, value) => {
+    let kv = Object.assign({}, obj);
+    kv[key] = value;
+    return kv;
+}
+
+export const objMap = (arr, key, val) => {
+    const obj = arr.reduce((res, item) => {
+        const k = key(item);
+        const v = val(item);
+        res[k] = v;
+        return res;
+    }, {});
+
+    return obj
+}

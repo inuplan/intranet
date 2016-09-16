@@ -27,11 +27,13 @@ namespace Inuplan.Common.DTOs.Forum
     {
         public int ID { get; set; }
         public bool IsPublished { get; set; }
+        public bool Sticky { get; set; }
         public DateTime CreatedOn { get; set; }
         public UserDTO Author { get; set; }
         public bool Deleted { get; set; }
         public bool IsModified { get; set; }
         public string Title { get; set; }
+        public DateTime? LatestComment { get; set; }
         public DateTime? LastModified { get; set; }
         public int CommentCount { get; set; }
         public List<UserDTO> ViewedBy { get; set; }

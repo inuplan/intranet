@@ -1,5 +1,5 @@
 ﻿import React from 'react'
-import { find } from 'underscore'
+import { values, sortBy } from 'underscore'
 import { connect } from 'react-redux'
 import { fetchLatestNews } from '../../actions/whatsnew'
 import { WhatsNewList } from '../WhatsNew/WhatsNewList'
@@ -9,9 +9,7 @@ import { Pagination } from '../pagination/Pagination'
 const mapStateToProps = (state) => {
     return {
         items: state.whatsNewInfo.items,
-        getUser: (id) => find(state.usersInfo.users, (user) => {
-            return user.ID == id;
-        }),
+        getUser: (id) => state.usersInfo.users[id],
         skip: state.whatsNewInfo.skip,
         take: state.whatsNewInfo.take,
         totalPages: state.whatsNewInfo.totalPages,

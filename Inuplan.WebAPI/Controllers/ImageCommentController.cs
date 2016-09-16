@@ -96,17 +96,10 @@ namespace Inuplan.WebAPI.Controllers
             comment.PostedOn = DateTime.Now;
             comment.Author = Request.GetOwinContext().Get<User>(Constants.CURRENT_USER);
             var created = await imageCommentRepository.CreateSingle(comment, onCreate);
-            var response = created.Match(
-                c =>
-                {
-                    var r = Request.CreateResponse(HttpStatusCode.Created, c);
-                    var route = Url.Route("GetComment", new { id = c.ID });
-                    r.Headers.Location = new Uri(route, UriKind.Relative);
-                    return r;
-                },
-                () => Request.CreateResponse(HttpStatusCode.InternalServerError));
 
-            return response;
+            return created.Match(
+                c => Request.CreateResponse(HttpStatusCode.Created, c),
+                () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }
 
         public async Task<HttpResponseMessage> Delete(int commentId)
@@ -114,7 +107,7 @@ namespace Inuplan.WebAPI.Controllers
             // NOTE: Comments are NOT deleted only set to "null" to keep comment hierarchy
             // Question: Should "deleted" comments be removed from the latest news?
             // Be careful on the client side, take into consideration that Author field could be null!
-            var deleted = await imageCommentRepository.DeleteSingle(commentId, _ => Task.FromResult(0));
+            var deleted = await imageCommentRepository.DeleteSingle(commentId, id => removeNews.Remove(id, NewsType.ImageComment));
             var response = deleted ?
                             Request.CreateResponse(HttpStatusCode.NoContent) :
                             Request.CreateResponse(HttpStatusCode.InternalServerError);

@@ -11,6 +11,7 @@ namespace Inuplan.Common.Enums
         CreatedOn,
         LastModified,
         Author,
-        Title
+        Title,
+        LatestComment
     }
 }

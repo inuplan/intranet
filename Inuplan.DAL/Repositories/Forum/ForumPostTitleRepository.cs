@@ -52,8 +52,8 @@ namespace Inuplan.DAL.Repositories.Forum
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var sql = @"INSERT INTO ThreadTitles
-                            (CreatedOn, Published, Author, Deleted, Title)
-                            VALUES (@CreatedOn, @IsPublished, @AuthorID, @Deleted, @Title);
+                            (CreatedOn, Published, Author, Deleted, Title, Sticky, LatestComment)
+                            VALUES (@CreatedOn, @IsPublished, @AuthorID, @Deleted, @Title, @Sticky, @LatestComment);
                             SELECT ID FROM ThreadTitles WHERE ID = @@IDENTITY;";
 
                 var id = await connection.ExecuteScalarAsync<int>(sql, new
@@ -62,7 +62,9 @@ namespace Inuplan.DAL.Repositories.Forum
                     IsPublished = entity.IsPublished,
                     AuthorID = entity.Author.ID,
                     Deleted = entity.Deleted,
-                    Title = entity.Title
+                    Title = entity.Title,
+                    Sticky = entity.Sticky,
+                    LatestComment = entity.LatestComment
                 });
 
                 entity.ThreadID = id;
@@ -106,8 +108,11 @@ namespace Inuplan.DAL.Repositories.Forum
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var sql = @"SELECT
-                                t.ID AS ThreadID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, /* ThreadPostTitle */
-                                u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName                                                   /* Author */
+                                t.ID AS ThreadID, t.CreatedOn, t.Published,                 /* ThreadPostTitle */
+                                t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified,
+                                t.Title, t.LastModified, t.Sticky, t.LatestComment,
+                                u.ID, u.FirstName, u.LastName, u.Username, u.Email,         /* Author */
+                                u.DisplayName
                             FROM ThreadTitles t
                             LEFT JOIN Users u
                             ON t.Author = u.ID
@@ -147,7 +152,7 @@ namespace Inuplan.DAL.Repositories.Forum
         public async Task<List<ThreadPostTitle>> GetAll(params object[] identifiers)
         {
             var sqlTitles = @"SELECT
-                                t.ID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, /* ThreadPostTitle */
+                                t.ID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, t.Sticky, t.LatestComment, /* ThreadPostTitle */
                                 u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName                                                   /* Author */
                             FROM ThreadTitles t
                             LEFT JOIN Users u
@@ -190,18 +195,20 @@ namespace Inuplan.DAL.Repositories.Forum
             orderBy = orderBy ?? new Func<string>(() => "ASC");
 
             var sql = @"SELECT
-                            ID AS ThreadID, CreatedOn, Published, Deleted,IsModified, Title, LastModified,
+                            ID AS ThreadID, CreatedOn, Published AS IsPublished, Deleted,IsModified, Title, LastModified, Sticky, LatestComment,
                             UserID AS ID, FirstName,  LastName,  Username,  Email,  DisplayName
                         FROM
                         (
                             SELECT
-                                t.ID, CreatedOn, Published, Author AS AuthorID, Deleted, Modified AS IsModified, Title, LastModified,
+                                t.ID, CreatedOn, Published, Author AS AuthorID, Deleted, Modified AS IsModified, Title, LastModified, Sticky, LatestComment,
                                 u.ID AS UserID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName,
-                                ROW_NUMBER() OVER (ORDER BY @Sort @Order) AS 'RowNumber'
+                                ROW_NUMBER() OVER (ORDER BY Sticky DESC, LatestComment DESC, @Sort @Order) AS 'RowNumber'
                             FROM ThreadTitles t
                             
                             LEFT JOIN Users u
                             ON t.Author = u.ID
+
+                            WHERE t.Published = 1
                             ) AS seq
                         WHERE seq.RowNumber BETWEEN @From AND @To";
 
@@ -238,7 +245,7 @@ namespace Inuplan.DAL.Repositories.Forum
                 title.ViewedBy = usersView.ToList();
             }
 
-            var countSql = @"SELECT COUNT(*) FROM ThreadTitles";
+            var countSql = @"SELECT COUNT(*) FROM ThreadTitles WHERE ThreadTitles.Published = 1";
             var total = await connection.ExecuteScalarAsync<int>(countSql);
 
             return Helpers.Paginate(skip, take, total, titleQuery.ToList());
@@ -254,17 +261,19 @@ namespace Inuplan.DAL.Repositories.Forum
                                 Deleted = @Deleted AND
                                 Modified = @IsModified AND
                                 Title = @Title AND
-                                LastModified = @LastModified
+                                LastModified = @LastModified AND
+                                LatestComment = @LatestComment
                            WHERE ID = @ID";
 
                 var update = await connection.ExecuteAsync(sql, new
                 {
-                    entity.CreatedOn,
-                    entity.IsPublished,
-                    entity.Deleted,
+                    CreatedOn = entity.CreatedOn,
+                    IsPublished = entity.IsPublished,
+                    Deleted = entity.Deleted,
                     IsModified = true,
-                    entity.Title,
-                    LastModified = DateTime.Now
+                    Title =entity.Title,
+                    LastModified = DateTime.Now,
+                    LatestComment = entity.LatestComment
                 });
 
                 if(update == 1)
