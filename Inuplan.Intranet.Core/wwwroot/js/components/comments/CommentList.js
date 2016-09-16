@@ -30,10 +30,13 @@ export class CommentList extends React.Component {
                         construct={this.constructComment}
                         replies={comment.Replies} />
 
-        const { getName } = this.props;
+        const { contextId, getName, canEdit } = this.props;
+        const { skip, take, editComment, deleteComment, replyComment } = this.props;
+        const props = { skip, take, editComment, deleteComment, replyComment };
         const name = getName(comment.AuthorID);
         return  <Comment
                     key={key} 
+                    contextId={contextId}
                     name={name}
                     postedOn={comment.PostedOn}
                     authorId={comment.AuthorID}                             
@@ -41,7 +44,10 @@ export class CommentList extends React.Component {
                     construct={this.constructComment}
                     replies={comment.Replies}
                     edited={comment.Edited}
-                    commentId={comment.CommentID} />
+                    canEdit={canEdit}
+                    commentId={comment.CommentID}
+                    {...props}
+                />
     }
 
     render() {
@@ -56,5 +62,6 @@ export class CommentList extends React.Component {
 
 CommentList.propTypes = {
     comments: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
-    getName: React.PropTypes.func.isRequired
+    getName: React.PropTypes.func.isRequired,
+    canEdit: React.PropTypes.func.isRequired,
 }

@@ -14,6 +14,7 @@ const mapStateToProps = (state) => {
     }
 
     return {
+        canEdit: (id) => state.usersInfo.currentUserId == id,
         imageId: state.imagesInfo.selectedImageId,
         skip: state.commentsInfo.skip,
         take: state.commentsInfo.take,
@@ -36,6 +37,12 @@ const mapDispatchToProps = (dispatch) => {
         },
         fetchComments: (imageId, skip, take) => {
             dispatch(fetchComments(imageId, skip, take));
+        },
+        editComment: (commentId, contextId, text) => dispatch(editComment(commentId, contextId, text)),
+        deleteHandle: (commentId, contextId, cb) => dispatch(deleteComment(commentId, contextId, cb)),
+        replyComment: (contextId, text, parentId) => dispatch(postComment(contextId, text, parentId)),
+        loadComments: (contextId, skip, take) => {
+            dispatch(fetchComments(contextId, skip, take));
         }
     }
 }
@@ -44,6 +51,7 @@ class CommentsContainer extends React.Component {
     constructor(props) {
         super(props);
         this.pageHandle = this.pageHandle.bind(this);
+        this.deleteComment = this.deleteComment.bind(this);
     }
 
     pageHandle(to) {
@@ -62,13 +70,31 @@ class CommentsContainer extends React.Component {
         fetchComments(imageId, skipItems, take);
     }
 
+    deleteComment(commentId, contextId) {
+        const { deleteHandle, loadComments, skip, take } = this.props;
+        const cb = () => loadComments(contextId, skip, take);
+        deleteHandle(commentId, contextId, cb);
+    }
+
     render() {
-        const { comments, getName, imageId, page, totalPages, postComment } = this.props;
+        const { canEdit, comments, getName, imageId, page, totalPages, postComment } = this.props;
+        const { skip, take, editComment, replyComment } = this.props;
+        let props = { skip, take, editComment, replyComment };
+        props = Object.assign({}, props, {
+            deleteComment: this.deleteComment
+        });
+
 
         return  <div className="text-left">
                     <Row>
                         <Col lgOffset={1} lg={11}>
-                            <CommentList comments={comments} getName={getName} />
+                            <CommentList
+                                contextId={imageId}
+                                comments={comments}
+                                getName={getName}
+                                canEdit={canEdit}
+                                {...props}
+                            />
                         </Col>
                     </Row>
                     <Row>

@@ -144,19 +144,16 @@ export const editComment = (commentId, imageId, text) => {
     }
 }
 
-export const deleteComment = (commentId, imageId) => {
+export const deleteComment = (commentId, imageId, cb) => {
     return function(dispatch, getState) {
-        const { skip, take } = getState().commentsInfo;
         const url = globals.urls.comments + "?commentId=" + commentId;
         const opt = Object.assign({}, options, {
             method: 'DELETE'
         });
 
         return fetch(url, opt)
-            .then(() => {
-                dispatch(fetchComments(imageId, skip, take));
-                dispatch(decrementCommentCount(imageId));
-            }, onReject);
+            .then(() => dispatch(decrementCommentCount(imageId)))
+            .then(cb);
     }
 }
 
