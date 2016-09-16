@@ -97,9 +97,8 @@ export function fetchComments(imageId, skip, take) {
     }
 }
 
-export const postComment = (imageId, text, parentCommentId) => {
-    return function (dispatch, getState) {
-        const { skip, take } = getState().commentsInfo;
+export const postComment = (imageId, text, parentCommentId, cb) => {
+    return function (dispatch) {
         const url = globals.urls.comments;
 
         const headers = new Headers();
@@ -117,9 +116,9 @@ export const postComment = (imageId, text, parentCommentId) => {
         });
 
         return fetch(url, opt)
+            .then(cb)
             .then(() => {
                 dispatch(incrementCommentCount(imageId));
-                dispatch(fetchComments(imageId, skip, take));
             }, onReject);
     }
 }
