@@ -27,8 +27,8 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        postComment: (imageId, text) => {
-            dispatch(postComment(imageId, text, null));
+        postHandle: (imageId, text, cb) => {
+            dispatch(postComment(imageId, text, null, cb));
         },
         fetchComments: (imageId, skip, take) => {
             dispatch(fetchComments(imageId, skip, take));
@@ -49,6 +49,7 @@ class CommentsContainer extends React.Component {
         this.deleteComment = this.deleteComment.bind(this);
         this.editComment = this.editComment.bind(this);
         this.replyComment = this.replyComment.bind(this);
+        this.postComment = this.postComment.bind(this);
     }
 
     pageHandle(to) {
@@ -85,8 +86,14 @@ class CommentsContainer extends React.Component {
         replyHandle(contextId, text, parentId, cb);
     }
 
+    postComment(text) {
+        const { imageId, loadComments, skip, take, postHandle } = this.props;
+        const cb = () => loadComments(imageId, skip, take);
+        postHandle(imageId, text, cb);
+    }
+
     render() {
-        const { canEdit, comments, getName, imageId, page, totalPages, postComment } = this.props;
+        const { canEdit, comments, getName, imageId, page, totalPages } = this.props;
         const { skip, take } = this.props;
         let props = { skip, take };
         props = Object.assign({}, props, {
@@ -120,7 +127,7 @@ class CommentsContainer extends React.Component {
                     <hr />
                     <Row>
                         <Col lgOffset={1} lg={10}>
-                            <CommentForm postHandle={postComment.bind(null, imageId)}/>
+                            <CommentForm postHandle={this.postComment}/>
                         </Col>
                     </Row>
                 </div>
