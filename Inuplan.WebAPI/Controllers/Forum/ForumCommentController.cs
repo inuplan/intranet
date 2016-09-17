@@ -23,12 +23,19 @@ namespace Inuplan.WebAPI.Controllers.Forum
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using Autofac.Extras.Attributed;
     using Common.Enums;
     using Common.Models;
     using Common.Repositories;
+    using Common.DTOs.Forum;
+    using Common.Tools;
+    using System.Web.Http;
+    using System.Net;
+    using System.Net.Http;
+    using System.Diagnostics;
+    using Extensions;
+    using Optional.Unsafe;
 
     public class ForumCommentController : DefaultController
     {
@@ -40,6 +47,66 @@ namespace Inuplan.WebAPI.Controllers.Forum
         ) : base(userDatabaseRepository)
         {
             this.forumCommentRepository = forumCommentRepository;
+        }
+
+        [HttpGet]
+        public async Task<List<ThreadPostCommentDTO>> Get(int postId)
+        {
+            var comments = await forumCommentRepository.Get(postId);
+            return comments.Select(Converters.ToThreadPostCommentDTO).ToList();
+        }
+
+        [HttpGet]
+        public async Task<ThreadPostCommentDTO> GetSingle(int id)
+        {
+            var comment = await forumCommentRepository.GetSingleByID(id);
+            return comment.Match(c => Converters.ToThreadPostCommentDTO(c),
+                () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
+        }
+
+        [HttpGet]
+        public async Task<Pagination<ThreadPostCommentDTO>> Get(int skip, int take, int postId)
+        {
+            var page = await forumCommentRepository.GetPage(postId, skip, take);
+            var items = page.CurrentItems.Select(Converters.ToThreadPostCommentDTO).ToList();
+            return new Pagination<ThreadPostCommentDTO>
+            {
+                CurrentItems = items,
+                CurrentPage = page.CurrentPage,
+                TotalPages = page.TotalPages
+            };
+        }
+
+        [HttpPost]
+        public async Task<HttpResponseMessage> Post(Comment comment)
+        {
+            Debug.Assert(comment.ContextID > 0, "Must be associated with a forum post");
+            comment.PostedOn = DateTime.Now;
+            comment.Author = Request.GetUser().ValueOrFailure();
+            var created = await forumCommentRepository.CreateSingle(comment, (c) => Task.FromResult(0));
+
+            return created.Match(
+                c => Request.CreateResponse(HttpStatusCode.Created, c),
+                () => Request.CreateResponse(HttpStatusCode.InternalServerError));
+        }
+
+        [HttpDelete]
+        public async Task<HttpResponseMessage> Delete(int id)
+        {
+            var deleted = await forumCommentRepository.DeleteSingle(id, (cid) => Task.FromResult(0));
+            return deleted ?
+                Request.CreateResponse(HttpStatusCode.NoContent)
+                : Request.CreateResponse(HttpStatusCode.InternalServerError);
+        }
+
+        [HttpPut]
+        public async Task<HttpResponseMessage> Put(Comment comment)
+        {
+            comment.PostedOn = DateTime.Now;
+            var updated = await forumCommentRepository.UpdateSingle(comment.ID, comment);
+            return updated ?
+                Request.CreateResponse(HttpStatusCode.NoContent)
+                : Request.CreateResponse(HttpStatusCode.InternalServerError);
         }
     }
 }
