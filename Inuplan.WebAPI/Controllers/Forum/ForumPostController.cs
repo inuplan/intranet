@@ -94,8 +94,19 @@ namespace Inuplan.WebAPI.Controllers.Forum
         }
 
         [HttpPut]
+        public async Task<HttpResponseMessage> Put([FromUri] int postId, [FromUri] bool read)
+        {
+            // Set current user to 'READ' post
+            throw new NotImplementedException();
+        }
+
+        [HttpPut]
         public async Task<HttpResponseMessage> Put([FromUri] int id, ThreadPostContent post)
         {
+            var title = (await titleRepository.GetByID(id)).ValueOrFailure();
+            post.Header.CreatedOn = title.CreatedOn;
+            post.Header.ThreadID = id;
+            post.ThreadID = id;
             var titleUpdate = await titleRepository.Update(id, post.Header);
             if (!titleUpdate) return Request.CreateResponse(HttpStatusCode.InternalServerError);
 
