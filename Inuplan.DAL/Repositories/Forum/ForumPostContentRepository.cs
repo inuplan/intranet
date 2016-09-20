@@ -246,7 +246,7 @@ namespace Inuplan.DAL.Repositories.Forum
                 });
 
                 var modifySql = @"UPDATE ThreadTitles SET
-                                    Modified = @Modified AND
+                                    Modified = @Modified,
                                     LastModified = @LastModified
                                   WHERE ID = @ID";
                 var modify = await connection.ExecuteAsync(modifySql, new

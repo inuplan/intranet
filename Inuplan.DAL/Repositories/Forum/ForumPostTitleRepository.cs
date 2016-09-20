@@ -208,7 +208,7 @@ namespace Inuplan.DAL.Repositories.Forum
                             LEFT JOIN Users u
                             ON t.Author = u.ID
 
-                            WHERE t.Published = 1
+                            WHERE t.Published = 1 AND t.Deleted <> 1
                             ) AS seq
                         WHERE seq.RowNumber BETWEEN @From AND @To";
 
@@ -256,13 +256,14 @@ namespace Inuplan.DAL.Repositories.Forum
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var sql = @"UPDATE ThreadTitles SET
-                                CreatedOn = @CreatedOn AND
-                                Published = @IsPublished AND
-                                Deleted = @Deleted AND
-                                Modified = @IsModified AND
-                                Title = @Title AND
-                                LastModified = @LastModified AND
-                                LatestComment = @LatestComment
+                                CreatedOn = @CreatedOn,
+                                Published = @IsPublished,
+                                Deleted = @Deleted,
+                                Modified = @IsModified,
+                                Title = @Title,
+                                LastModified = @LastModified,
+                                LatestComment = @LatestComment,
+                                Sticky = @Sticky
                            WHERE ID = @ID";
 
                 var update = await connection.ExecuteAsync(sql, new
@@ -273,7 +274,9 @@ namespace Inuplan.DAL.Repositories.Forum
                     IsModified = true,
                     Title =entity.Title,
                     LastModified = DateTime.Now,
-                    LatestComment = entity.LatestComment
+                    LatestComment = entity.LatestComment,
+                    Sticky = entity.Sticky,
+                    ID = key,
                 });
 
                 if(update == 1)
