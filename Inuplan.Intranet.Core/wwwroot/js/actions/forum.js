@@ -108,9 +108,9 @@ export const fetchPost = (id) => {
                 const content = data.Text;
                 const title = normalizeThreadTitle(data.Header);
 
-                dispatch(setSelectedThread(data.ThreadID));
                 dispatch(addThreadTitle(title));
                 dispatch(setPostContent(content));
+                dispatch(setSelectedThread(data.ThreadID));
             })
     }
 }
@@ -129,7 +129,6 @@ export const updatePost = (id, post, cb) => {
         });
 
         return fetch(url, opt)
-            .then(handler)
             .then(cb, onReject);
     }
 }
@@ -143,7 +142,6 @@ export const deletePost = (id, cb) => {
 
         const handler = responseHandler.bind(this, dispatch);
         return fetch(url, opt)
-            .then(handler)
             .then(cb, onReject);
     }
 }

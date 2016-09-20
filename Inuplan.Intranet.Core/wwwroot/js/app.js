@@ -1,9 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { connect, Provider } from 'react-redux'
-import { store } from './stores/store'
-import { Router, Route, IndexRoute, browserHistory } from 'react-router'
-import { fetchCurrentUser, fetchUsers } from './actions/users'
 import Main from './components/Main'
 import About from './components/containers/About'
 import Home from './components/containers/Home'
@@ -11,11 +7,15 @@ import Users from './components/containers/Users'
 import UserImages from './components/containers/UserImages'
 import SelectedImage from './components/containers/SelectedImage'
 import Forum from './components/containers/Forum'
+import ForumPost from './components/forum/ForumPost'
 import ForumList from './components/containers/ForumList'
 import { Comments } from './components/containers/Comments'
 import { SingleComment } from './components/comments/SingleComment'
-import { ForumPost } from './components/forum/ForumPost'
+import { fetchCurrentUser, fetchUsers } from './actions/users'
 import { fetchForum, selectImage, fetchImages, loadComments, fetchComment, fetchWhatsNew, fetchSinglePost } from './utilities/onstartup'
+import { connect, Provider } from 'react-redux'
+import { store } from './stores/store'
+import { Router, Route, IndexRoute, browserHistory } from 'react-router'
 
 store.dispatch(fetchCurrentUser(globals.currentUsername));
 store.dispatch(fetchUsers());
@@ -26,8 +26,8 @@ ReactDOM.render(
         <Router history={browserHistory}>
             <Route path="/" component={Main}>
                 <IndexRoute component={Home} onEnter={fetchWhatsNew} />
-                <Route path="forum" component={Forum} onEnter={fetchForum}>
-                    <Route path="threads" component={ForumList}/>
+                <Route path="forum" component={Forum}>
+                    <Route path="threads" component={ForumList} onEnter={fetchForum}/>
                     <Route path="post/:id" component={ForumPost} onEnter={fetchSinglePost}>
                     </Route>
                 </Route>

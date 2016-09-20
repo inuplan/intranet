@@ -5,9 +5,14 @@ import { Link } from 'react-router'
 
 export class ForumTitle extends React.Component {
     dateView(date) {
-        const dayMonthYear = moment(date).format("D MMMM YYYY");
-        const time = moment(date).format("H:mm");
+        const dayMonthYear = moment(date).format("D/MM/YY");
         return `${dayMonthYear}`;
+    }
+
+    modifiedView(modifiedOn) {
+        if(!modifiedOn) return null;
+        const modifiedDate = moment(modifiedOn).format("D/MM/YY-H:mm");
+        return `${modifiedDate}`;
     }
 
     tooltipView() {
@@ -21,6 +26,18 @@ export class ForumTitle extends React.Component {
                         <Glyphicon glyph="pushpin" />
                     </OverlayTrigger>
                 </p>
+    }
+
+    dateModifiedView(title) {
+        const created = this.dateView(title.CreatedOn);
+        const updated = this.modifiedView(title.LastModified);
+        if(!updated) return <span>{created}</span>
+
+        const updateText = `${updated}`;
+        return  <span>
+                    {created}<br />
+                    ({updated})
+                </span>
     }
 
     render() {
@@ -37,8 +54,8 @@ export class ForumTitle extends React.Component {
                             <h4><span className="text-capitalize">{title.Title}</span></h4>
                             <small>Af: {name}</small>
                         </Col>
-                        <Col lg={2} className="text-center text-capitalize">
-                            <p>{this.dateView(title.CreatedOn)}</p>
+                        <Col lg={2} className="text-left">
+                            <p>{this.dateModifiedView(title)}</p>
                         </Col>
                         <Col lg={2} className="text-center">
                             <p>{title.ViewedBy.length}</p>

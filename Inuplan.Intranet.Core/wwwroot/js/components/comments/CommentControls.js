@@ -131,7 +131,7 @@ class CollapseTextArea extends React.Component {
     }
 }
 
-class ButtonTooltip extends React.Component {
+export class ButtonTooltip extends React.Component {
     render() {
         const { tooltip, onClick, icon, bsStyle, active, mount } = this.props;
         let overlayTip = <Tooltip id="tooltip">{tooltip}</Tooltip>;

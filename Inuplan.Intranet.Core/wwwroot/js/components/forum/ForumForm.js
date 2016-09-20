@@ -14,6 +14,20 @@ export class ForumForm extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
+    componentWillReceiveProps(nextProps) {
+        const { edit } = nextProps;
+        if(edit) {
+            // Normalized thread title
+            // with Text property
+            this.setState({
+                Title: edit.Title,
+                Text: edit.Text,
+                Sticky: edit.Sticky,
+                IsPublished: edit.IsPublished
+            });
+        }
+    }
+
     handleTitleChange(e) {
         this.setState({ Title: e.target.value });
     }
@@ -71,20 +85,17 @@ export class ForumForm extends React.Component {
     }
 
     clearState() {
-        this.setState({
-            Title: '',
-            Text: '',
-            Sticky: false,
-            IsPublished: true,
-        });
     }
 
     render() {
-        const { show } = this.props;
+        const { show, edit } = this.props;
+        const readMode = Boolean(!edit);
+        const title =  readMode ? 'Skriv nyt indlæg' : 'Ændre indlæg';
+        const btnSubmit = readMode ? 'Skriv indlæg' : 'Gem ændringer';
         return  <Modal show={show} onHide={this.closeHandle.bind(this)} bsSize="lg">
                     <form>
                         <Modal.Header closeButton>
-                            <Modal.Title>Skriv nyt indl&aelig;g</Modal.Title>
+                            <Modal.Title>{title}</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
                             <Row>
@@ -112,7 +123,7 @@ export class ForumForm extends React.Component {
                         </Modal.Body>
                         <Modal.Footer>
                             <Button bsStyle="default" onClick={this.closeHandle.bind(this)}>Luk</Button>
-                            <Button bsStyle="primary" type="submit" onClick={this.handleSubmit}>Nyt indl&aelig;g</Button>
+                            <Button bsStyle="primary" type="submit" onClick={this.handleSubmit}>{btnSubmit}</Button>
                         </Modal.Footer>
                     </form>
                 </Modal>
