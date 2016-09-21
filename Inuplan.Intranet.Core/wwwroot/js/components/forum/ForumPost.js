@@ -60,6 +60,8 @@ class ForumPostContainer extends React.Component {
                 IsPublished: nextProps.title.IsPublished,
             }
         });
+
+        document.title = nextProps.title.Title;
     }
 
     getCreatedOnText(createdOn, modifiedOn) {
