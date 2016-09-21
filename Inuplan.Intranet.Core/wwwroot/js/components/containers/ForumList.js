@@ -46,6 +46,10 @@ class ForumListContainer extends React.Component {
         this.close = this.close.bind(this);
     }
 
+    componentDidMount() {
+        document.title = "Inuplan Forum";
+    }
+
     pageHandle(to) {
         const { fetchThreads, page, take } = this.props;
 
