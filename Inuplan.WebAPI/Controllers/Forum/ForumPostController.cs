@@ -96,7 +96,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
         [HttpPut]
         public async Task<HttpResponseMessage> Put([FromUri] int postId, [FromUri] bool read)
         {
-            // Set current user to 'READ' post
+            // Set current user to 'READ' if true otherwise 'UNREAD'
             throw new NotImplementedException();
         }
 
