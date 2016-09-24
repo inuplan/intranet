@@ -36,7 +36,9 @@ namespace Inuplan.WebAPI.Controllers.Forum
     using System.Diagnostics;
     using Extensions;
     using Optional.Unsafe;
+    using System.Web.Http.Cors;
 
+    [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class ForumCommentController : DefaultController
     {
         private readonly IVectorRepository<int, Comment> forumCommentRepository;
