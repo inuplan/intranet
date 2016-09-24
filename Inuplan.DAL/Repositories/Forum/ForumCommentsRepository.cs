@@ -188,61 +188,31 @@ namespace Inuplan.DAL.Repositories.Forum
 
         public async Task<bool> DeleteSingle(int key, Func<int, Task> onDelete)
         {
-            // The key is a thread id
-            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                var sqlIds = @"WITH CommentTree AS(
-                                SELECT Reply AS ReplyID, ID, ThreadID
-                                FROM Comments INNER JOIN ThreadComments
-                                ON Comments.ID = ThreadComments.CommentID
-                                WHERE ThreadComments.ThreadID = @ThreadID
-
-                                UNION ALL
-
-                                SELECT Reply.Reply, Reply.ID, ThreadID
-                                FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
-                                WHERE Reply.Reply IS NOT NULL)
-                            SELECT ID FROM CommentTree";
-                var commentIds = await connection.QueryAsync<int>(sqlIds, new
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    ThreadID = key
-                });
-
-                // Delete all comments for the thread:
-                var deleteCommentsSql = @"WITH CommentTree AS(
-                                SELECT Reply AS ReplyID, ID, ThreadID
-                                FROM Comments INNER JOIN ThreadComments
-                                ON Comments.ID = ThreadComments.CommentID
-                                  WHERE ThreadComments.ThreadID = @ThreadID
-
-                                UNION ALL
-
-                                SELECT Reply.Reply, Reply.ID, ThreadID
-                                FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
-                                WHERE Reply.Reply IS NOT NULL)
-                                DELETE c
-                                FROM Comments c
-                                INNER JOIN CommentTree t
-                                ON c.ID = t.ID";
-
-                // Returns the number of affected rows (comments deleted)
-                var deletedComments = await connection.ExecuteAsync(deleteCommentsSql, new
-                {
-                    ThreadID = key
-                });
-
-                var success = commentIds.ToList().Count == deletedComments;
-                if (success)
-                {
-                    foreach (var commentId in commentIds)
+                    // Note: only removes identifying marks so that any child-branches aren't left hanging 
+                    var sqlDelete = @"UPDATE Comments SET Author=NULL, Text=NULL, Deleted=@Deleted WHERE ID=@ID";
+                    var deleted = (await connection.ExecuteAsync(sqlDelete, new
                     {
-                        await onDelete(commentId);
+                        Deleted = true,
+                        ID = key,
+                    })).Equals(1);
+
+                    if (deleted)
+                    {
+                        await onDelete(key);
+                        transactionScope.Complete();
                     }
 
-                    transactionScope.Complete();
+                    return deleted;
                 }
-
-                return success;
+            }
+            catch (SqlException ex)
+            {
+                Logger.Error(ex);
+                throw;
             }
         }
 
