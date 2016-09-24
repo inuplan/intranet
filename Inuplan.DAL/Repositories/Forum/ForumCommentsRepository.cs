@@ -265,7 +265,7 @@ namespace Inuplan.DAL.Repositories.Forum
                 // Note: we use left join because we want the left side (comments) to be included
                 // even if the right side (users) are null.
                 var sql = @"WITH CommentTree AS(
-                                SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, Edited, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
+                                SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, Edited, ROW_NUMBER() OVER(ORDER BY PostedOn ASC) AS RowNumber
                                 FROM Comments INNER JOIN ThreadComments
                                 ON Comments.ID = ThreadComments.CommentID
                                   WHERE ThreadComments.ThreadID = @ThreadID
