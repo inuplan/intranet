@@ -52,7 +52,7 @@ class HomeView extends React.Component {
                         <h1><span>Velkommen <small>{name}!</small></span></h1>
                         <p className="lead">
                             Til Inuplans intranet side
-                        </p> 
+                        </p>
 
                         <Row>
                             <Col lg={4}>

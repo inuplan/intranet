@@ -36,7 +36,9 @@ namespace Inuplan.WebAPI.Controllers.Forum
     using System.Diagnostics;
     using Extensions;
     using Optional.Unsafe;
+    using System.Web.Http.Cors;
 
+    [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class ForumCommentController : DefaultController
     {
         private readonly IVectorRepository<int, Comment> forumCommentRepository;
@@ -91,9 +93,9 @@ namespace Inuplan.WebAPI.Controllers.Forum
         }
 
         [HttpDelete]
-        public async Task<HttpResponseMessage> Delete(int id)
+        public async Task<HttpResponseMessage> Delete(int commentId)
         {
-            var deleted = await forumCommentRepository.DeleteSingle(id, (cid) => Task.FromResult(0));
+            var deleted = await forumCommentRepository.DeleteSingle(commentId, (cid) => Task.FromResult(0));
             return deleted ?
                 Request.CreateResponse(HttpStatusCode.NoContent)
                 : Request.CreateResponse(HttpStatusCode.InternalServerError);

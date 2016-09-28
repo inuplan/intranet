@@ -49,7 +49,7 @@ namespace Inuplan.Common.Tools
             };
         }
 
-        public static WhatsNewImageCommentDTO ToWhatsNewComment(Comment comment, User uploadedBy)
+        public static WhatsNewImageCommentDTO ToWhatsNewComment(Comment comment, User uploadedBy, string filename)
         {
             var author = (comment.Deleted) ? null : ToUserDTO(comment.Author);
             var uploader = ToUserDTO(uploadedBy);
@@ -60,7 +60,8 @@ namespace Inuplan.Common.Tools
                 ID = comment.ID,
                 ImageID = comment.ContextID,
                 ImageUploadedBy = uploader,
-                Text = comment.Text
+                Text = comment.Text,
+                Filename = filename,
             };
         }
 
@@ -100,7 +101,7 @@ namespace Inuplan.Common.Tools
             return result;
         }
 
-        public static ThreadPostTitleDTO ToThreadPostTitleDTO(ThreadPostTitle threadTitle, int commentCount = 0)
+        public static ThreadPostTitleDTO ToThreadPostTitleDTO(ThreadPostTitle threadTitle, Comment latest, int commentCount = 0)
         {
             var author = ToUserDTO(threadTitle.Author);
             var viewedBy = threadTitle.ViewedBy.Select(ToUserDTO).ToList();
@@ -113,7 +114,7 @@ namespace Inuplan.Common.Tools
                 IsModified = threadTitle.IsModified,
                 IsPublished = threadTitle.IsPublished,
                 Sticky = threadTitle.Sticky,
-                LatestComment = threadTitle.LatestComment,
+                LatestComment = latest,
                 LastModified = threadTitle.LastModified,
                 CreatedOn = threadTitle.CreatedOn,
                 Title = threadTitle.Title,
@@ -121,9 +122,9 @@ namespace Inuplan.Common.Tools
             };
         }
 
-        public static ThreadPostContentDTO ToThreadPostContentDTO(ThreadPostContent threadContent, int commentCount)
+        public static ThreadPostContentDTO ToThreadPostContentDTO(ThreadPostContent threadContent, Comment latest, int commentCount)
         {
-            var header = ToThreadPostTitleDTO(threadContent.Header, commentCount);
+            var header = ToThreadPostTitleDTO(threadContent.Header, latest, commentCount);
             return new ThreadPostContentDTO
             {
                 Text = threadContent.Text,
@@ -134,8 +135,9 @@ namespace Inuplan.Common.Tools
 
         public static ThreadPostCommentDTO ToThreadPostCommentDTO(Comment threadComment)
         {
-            var author = ToUserDTO(threadComment.Author);
-            var replies = threadComment.Replies.Select(ToThreadPostCommentDTO).ToList();
+            var replies = threadComment.Replies ?? new List<Comment>();
+            var repliesDto = replies.Select(ToThreadPostCommentDTO).ToList();
+            var author = (threadComment.Deleted) ? null : ToUserDTO(threadComment.Author);
             return new ThreadPostCommentDTO
             {
                 Author = author,
@@ -143,7 +145,7 @@ namespace Inuplan.Common.Tools
                 Edited = threadComment.Edited,
                 ID = threadComment.ID,
                 PostedOn = threadComment.PostedOn,
-                Replies = replies,
+                Replies = repliesDto,
                 Text = threadComment.Text,
                 ThreadID = threadComment.ContextID
             };

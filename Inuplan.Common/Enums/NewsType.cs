@@ -42,5 +42,10 @@ namespace Inuplan.Common.Enums
         /// Represents a comment has happened
         /// </summary>
         ImageComment = 1 << 1,
+
+        /// <summary>
+        /// Represents that a forum thread post has happened
+        /// </summary>
+        ThreadPost = 1 << 2,
     }
 }

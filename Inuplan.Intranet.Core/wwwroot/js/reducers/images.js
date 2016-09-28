@@ -22,14 +22,14 @@ const images = (state = {}, action) => {
         case T.REMOVE_IMAGE:
             const removed = omit(state, action.key);
             return removed;
-        case T.INCR_COMMENT_COUNT:
+        case T.INCR_IMG_COMMENT_COUNT:
             return values(state).map(img => {
                 if(img.ImageID == action.key) {
                     img.CommentCount++;
                 }
                 return img;
             });
-        case T.DECR_COMMENT_COUNT:
+        case T.DECR_IMG_COMMENT_COUNT:
             return values(state).map(img => {
                 if(img.ImageID == action.key) {
                     img.CommentCount--;

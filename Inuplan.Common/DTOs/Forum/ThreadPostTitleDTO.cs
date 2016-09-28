@@ -20,6 +20,7 @@
 
 namespace Inuplan.Common.DTOs.Forum
 {
+    using Models;
     using System;
     using System.Collections.Generic;
 
@@ -33,7 +34,7 @@ namespace Inuplan.Common.DTOs.Forum
         public bool Deleted { get; set; }
         public bool IsModified { get; set; }
         public string Title { get; set; }
-        public DateTime? LatestComment { get; set; }
+        public Comment LatestComment { get; set; }
         public DateTime? LastModified { get; set; }
         public int CommentCount { get; set; }
         public List<UserDTO> ViewedBy { get; set; }

@@ -26,7 +26,7 @@ export class CommentList extends React.Component {
 
         if (comment.Deleted)
             return  <CommentDeleted
-                        key={key} 
+                        key={key}
                         construct={this.constructComment}
                         replies={comment.Replies} />
 
@@ -35,11 +35,11 @@ export class CommentList extends React.Component {
         const props = { skip, take, editComment, deleteComment, replyComment };
         const name = getName(comment.AuthorID);
         return  <Comment
-                    key={key} 
+                    key={key}
                     contextId={contextId}
                     name={name}
                     postedOn={comment.PostedOn}
-                    authorId={comment.AuthorID}                             
+                    authorId={comment.AuthorID}
                     text={comment.Text}
                     construct={this.constructComment}
                     replies={comment.Replies}
@@ -61,7 +61,13 @@ export class CommentList extends React.Component {
 }
 
 CommentList.propTypes = {
-    comments: React.PropTypes.arrayOf(React.PropTypes.object).isRequired,
-    getName: React.PropTypes.func.isRequired,
-    canEdit: React.PropTypes.func.isRequired,
+    comments: React.PropTypes.arrayOf(React.PropTypes.object),
+    contextId: React.PropTypes.number,
+    getName: React.PropTypes.func,
+    canEdit: React.PropTypes.func,
+    skip: React.PropTypes.number,
+    take: React.PropTypes.number,
+    editComment: React.PropTypes.func.isRequired,
+    deleteComment: React.PropTypes.func.isRequired, 
+    replyComment: React.PropTypes.func.isRequired,
 }

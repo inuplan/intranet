@@ -55,7 +55,14 @@ namespace Inuplan.WebAPI.Controllers.Forum
             var titles = await threadTitleRepository.GetPage(skip, take, () => sortBy.ToString(), () => orderBy.ToString());
             var titleDtos = titles.CurrentItems.Select(t => {
                 var commentCount = forumCommentRepository.Count(t.ThreadID);
-                return Converters.ToThreadPostTitleDTO(t, commentCount.Result);
+
+                Comment latest = null;
+                if (t.LatestComment.HasValue)
+                {
+                    latest = forumCommentRepository.GetSingleByID(t.LatestComment.Value).Result.ValueOr(alternative: null);
+                }
+
+                return Converters.ToThreadPostTitleDTO(t, latest, commentCount.Result);
             });
 
             return new Pagination<ThreadPostTitleDTO>

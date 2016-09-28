@@ -80,7 +80,7 @@ namespace Inuplan.DAL.Repositories.Forum
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var sql = @"SELECT
-                                t.ID AS ThreadID, t.CreatedOn, t.Published, t.Author AS AuthorID,
+                                t.ID AS ThreadID, t.CreatedOn, t.Published AS IsPublished, t.Author AS AuthorID, Sticky,
                                 t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified,       /* ThreadPostTitle */
                                 c.ID AS ThreadID, c.Text,                                           /* ThreadPostContent */
                                 u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName   /* Author */
@@ -246,7 +246,7 @@ namespace Inuplan.DAL.Repositories.Forum
                 });
 
                 var modifySql = @"UPDATE ThreadTitles SET
-                                    Modified = @Modified AND
+                                    Modified = @Modified,
                                     LastModified = @LastModified
                                   WHERE ID = @ID";
                 var modify = await connection.ExecuteAsync(modifySql, new

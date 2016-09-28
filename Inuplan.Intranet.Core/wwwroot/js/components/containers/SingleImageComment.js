@@ -1,11 +1,11 @@
 ﻿import React from 'react'
-import { Comment } from './Comment'
+import { Comment } from '../comments/Comment'
 import { connect } from 'react-redux'
 import { Well, Button, Glyphicon } from 'react-bootstrap'
 import { find } from 'underscore'
 import { fetchAndFocusSingleComment, postComment, editComment, deleteComment } from '../../actions/comments'
 import { withRouter } from 'react-router'
-import { objMap } from '../../utilities/utils'
+import { objMap, getImageCommentsPageUrl, getImageCommentsDeleteUrl } from '../../utilities/utils'
 
 const mapStateToProps = (state) => {
     const { comments, focusedComment } = state.commentsInfo;
@@ -29,9 +29,18 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        editHandle: (commentId, contextId, text, cb) => dispatch(editComment(commentId, contextId, text, cb)),
-        deleteHandle: (commentId, contextId, cb) => dispatch(deleteComment(commentId, contextId, cb)),
-        replyHandle: (contextId, text, parentId, cb) => dispatch(postComment(contextId, text, parentId, cb)),
+        editHandle: (commentId, imageId, text, cb) => {
+            const url = globals.urls.imagecomments;
+            dispatch(editComment(url, commentId, text, cb));
+        },
+        deleteHandle: (commentId, cb) => {
+            const url = getImageCommentsDeleteUrl(commentId);
+            dispatch(deleteComment(url, cb));
+        },
+        replyHandle: (imageId, text, parentId, cb) => {
+            const url = globals.urls.imagecomments;
+            dispatch(postComment(url, imageId, text, parentId, cb));
+        },
         focusComment: (id) => dispatch(fetchAndFocusSingleComment(id))
     }
 }
@@ -56,7 +65,7 @@ class SingleCommentRedux extends React.Component {
     deleteComment(commentId, contextId) {
         const { deleteHandle } = this.props;
 
-        deleteHandle(commentId, contextId, this.allComments);
+        deleteHandle(commentId, this.allComments);
     }
 
     editComment(commentId, contextId, text) {
@@ -113,4 +122,5 @@ class SingleCommentRedux extends React.Component {
 }
 
 const SingleCommentConnect = connect(mapStateToProps, mapDispatchToProps)(SingleCommentRedux);
-export const SingleComment = withRouter(SingleCommentConnect);
+const SingleImageComment = withRouter(SingleCommentConnect);
+export default SingleImageComment;

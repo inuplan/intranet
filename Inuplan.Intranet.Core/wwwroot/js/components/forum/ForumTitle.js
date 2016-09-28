@@ -1,13 +1,18 @@
 ﻿import React from 'react'
 import { Row, Col, Glyphicon, OverlayTrigger, Tooltip } from 'react-bootstrap'
-import { timeText } from '../../utilities/utils'
+import { timeText, formatText, getWords } from '../../utilities/utils'
 import { Link } from 'react-router'
 
 export class ForumTitle extends React.Component {
     dateView(date) {
-        const dayMonthYear = moment(date).format("D MMMM YYYY");
-        const time = moment(date).format("H:mm");
+        const dayMonthYear = moment(date).format("D/MM/YY");
         return `${dayMonthYear}`;
+    }
+
+    modifiedView(modifiedOn) {
+        if(!modifiedOn) return null;
+        const modifiedDate = moment(modifiedOn).format("D/MM/YY-H:mm");
+        return `${modifiedDate}`;
     }
 
     tooltipView() {
@@ -23,12 +28,33 @@ export class ForumTitle extends React.Component {
                 </p>
     }
 
+    dateModifiedView(title) {
+        const created = this.dateView(title.CreatedOn);
+        const updated = this.modifiedView(title.LastModified);
+        if(!updated) return <span>{created}</span>
+
+        const updateText = `${updated}`;
+        return  <span>
+                    {created}<br />
+                    ({updated})
+                </span>
+    }
+
+    createSummary() {
+        const { title } = this.props;
+        if(!title.LatestComment) return 'Ingen kommentarer';
+
+        if(title.LatestComment.Deleted) return 'Kommentar slettet';
+        const text = title.LatestComment.Text;
+        return getWords(text, 5);
+    }
+
     render() {
         const { title, getAuthor, onClick } = this.props;
         const name = getAuthor(title.AuthorID);
-        const commentDate = title.LatestComment ? TimeText(title.LatestComment) : 'Ingen kommentarer';
+        const latestComment  = this.createSummary();
         const css = title.Sticky ? "thread thread-pinned" : "thread";
-        const path = `/forum/post/${title.ID}`;
+        const path = `/forum/post/${title.ID}/comments`;
 
         return  <Link to={path}>
                     <Row className={css}>
@@ -37,14 +63,14 @@ export class ForumTitle extends React.Component {
                             <h4><span className="text-capitalize">{title.Title}</span></h4>
                             <small>Af: {name}</small>
                         </Col>
-                        <Col lg={2} className="text-center text-capitalize">
-                            <p>{this.dateView(title.CreatedOn)}</p>
+                        <Col lg={2} className="text-left">
+                            <p>{this.dateModifiedView(title)}</p>
                         </Col>
                         <Col lg={2} className="text-center">
                             <p>{title.ViewedBy.length}</p>
                         </Col>
                         <Col lg={2} className="text-center">
-                            <p>{commentDate}</p>
+                            <p>{latestComment}</p>
                         </Col>
                     </Row>
                 </Link>

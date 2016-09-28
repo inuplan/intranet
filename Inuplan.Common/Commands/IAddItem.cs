@@ -20,12 +20,11 @@
 
 namespace Inuplan.Common.Commands
 {
-    using Models;
+    using Enums;
     using System.Threading.Tasks;
 
-    public interface IAddImageComment
+    public interface IAddItem
     {
-        void Connect();
-        Task<bool> Insert(Comment comment);
+        Task<int> AddItem(int id, NewsType itemType);
     }
 }

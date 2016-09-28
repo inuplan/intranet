@@ -41,18 +41,18 @@ namespace Inuplan.WebAPI.Controllers
     public class ImageCommentController : DefaultController
     {
         private readonly IVectorRepository<int, Comment> imageCommentRepository;
-        private readonly IAddImageComment newComment;
+        private readonly IAddItem whatsNew;
         private readonly IDeleteItem removeNews;
 
         public ImageCommentController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             IVectorRepository<int, Comment> imageCommentRepository,
-            IAddImageComment newComment,
+            IAddItem whatsNew,
             IDeleteItem removeNews)
             : base(userDatabaseRepository)
         {
             this.imageCommentRepository = imageCommentRepository;
-            this.newComment = newComment;
+            this.whatsNew = whatsNew;
             this.removeNews = removeNews;
         }
 
@@ -88,8 +88,7 @@ namespace Inuplan.WebAPI.Controllers
             Debug.Assert(comment.ContextID > 0, "Must be associated with a valid image");
             Func<Comment, Task> onCreate = (c) =>
             {
-                newComment.Connect();
-                return newComment.Insert(c);
+                return whatsNew.AddItem(c.ID, NewsType.ImageComment);
             };
 
             // Set time and owner to current user and time!

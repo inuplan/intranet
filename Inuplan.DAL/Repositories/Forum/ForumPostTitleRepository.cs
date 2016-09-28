@@ -108,7 +108,7 @@ namespace Inuplan.DAL.Repositories.Forum
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var sql = @"SELECT
-                                t.ID AS ThreadID, t.CreatedOn, t.Published,                 /* ThreadPostTitle */
+                                t.ID AS ThreadID, t.CreatedOn, t.Published AS IsPublished,                 /* ThreadPostTitle */
                                 t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified,
                                 t.Title, t.LastModified, t.Sticky, t.LatestComment,
                                 u.ID, u.FirstName, u.LastName, u.Username, u.Email,         /* Author */
@@ -152,7 +152,7 @@ namespace Inuplan.DAL.Repositories.Forum
         public async Task<List<ThreadPostTitle>> GetAll(params object[] identifiers)
         {
             var sqlTitles = @"SELECT
-                                t.ID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, t.Sticky, t.LatestComment, /* ThreadPostTitle */
+                                t.ID, t.CreatedOn, t.Published AS IsPublished, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, t.Sticky, t.LatestComment, /* ThreadPostTitle */
                                 u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName                                                   /* Author */
                             FROM ThreadTitles t
                             LEFT JOIN Users u
@@ -202,13 +202,13 @@ namespace Inuplan.DAL.Repositories.Forum
                             SELECT
                                 t.ID, CreatedOn, Published, Author AS AuthorID, Deleted, Modified AS IsModified, Title, LastModified, Sticky, LatestComment,
                                 u.ID AS UserID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName,
-                                ROW_NUMBER() OVER (ORDER BY Sticky DESC, LatestComment DESC, @Sort @Order) AS 'RowNumber'
+                                ROW_NUMBER() OVER (ORDER BY Sticky DESC, @Sort @Order, LatestComment DESC) AS 'RowNumber'
                             FROM ThreadTitles t
                             
                             LEFT JOIN Users u
                             ON t.Author = u.ID
 
-                            WHERE t.Published = 1
+                            WHERE t.Published = 1 AND t.Deleted <> 1
                             ) AS seq
                         WHERE seq.RowNumber BETWEEN @From AND @To";
 
@@ -256,13 +256,14 @@ namespace Inuplan.DAL.Repositories.Forum
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var sql = @"UPDATE ThreadTitles SET
-                                CreatedOn = @CreatedOn AND
-                                Published = @IsPublished AND
-                                Deleted = @Deleted AND
-                                Modified = @IsModified AND
-                                Title = @Title AND
-                                LastModified = @LastModified AND
-                                LatestComment = @LatestComment
+                                CreatedOn = @CreatedOn,
+                                Published = @IsPublished,
+                                Deleted = @Deleted,
+                                Modified = @IsModified,
+                                Title = @Title,
+                                LastModified = @LastModified,
+                                LatestComment = @LatestComment,
+                                Sticky = @Sticky
                            WHERE ID = @ID";
 
                 var update = await connection.ExecuteAsync(sql, new
@@ -273,7 +274,9 @@ namespace Inuplan.DAL.Repositories.Forum
                     IsModified = true,
                     Title =entity.Title,
                     LastModified = DateTime.Now,
-                    LatestComment = entity.LatestComment
+                    LatestComment = entity.LatestComment,
+                    Sticky = entity.Sticky,
+                    ID = key,
                 });
 
                 if(update == 1)

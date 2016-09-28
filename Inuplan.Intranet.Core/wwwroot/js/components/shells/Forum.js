@@ -2,10 +2,6 @@
 import { Row, Col } from 'react-bootstrap'
 
 export default class Forum extends React.Component {
-    componentDidMount() {
-        document.title = "Forum";
-    }
-
     render() {
         return  <Row>
                     <Col lgOffset={2} lg={8}>

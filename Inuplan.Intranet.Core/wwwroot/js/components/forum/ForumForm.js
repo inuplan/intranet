@@ -14,6 +14,18 @@ export class ForumForm extends React.Component {
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
+    componentWillReceiveProps(nextProps) {
+        const { edit } = nextProps;
+        if(edit) {
+            this.setState({
+                Title: edit.Title,
+                Text: edit.Text,
+                Sticky: edit.Sticky,
+                IsPublished: edit.IsPublished
+            });
+        }
+    }
+
     handleTitleChange(e) {
         this.setState({ Title: e.target.value });
     }
@@ -48,9 +60,6 @@ export class ForumForm extends React.Component {
         // Do whatever work here...
         const post = this.transformToDTO(this.state);
         onSubmit(post);
-
-        // Before closing remember to clear state:
-        this.clearState();
         close();
     }
 
@@ -66,33 +75,26 @@ export class ForumForm extends React.Component {
 
     closeHandle() {
         const { close } = this.props;
-        this.clearState();
         close();
     }
 
-    clearState() {
-        this.setState({
-            Title: '',
-            Text: '',
-            Sticky: false,
-            IsPublished: true,
-        });
-    }
-
     render() {
-        const { show } = this.props;
+        const { show, edit } = this.props;
+        const readMode = Boolean(!edit);
+        const title =  readMode ? 'Skriv nyt indlæg' : 'Ændre indlæg';
+        const btnSubmit = readMode ? 'Skriv indlæg' : 'Gem ændringer';
         return  <Modal show={show} onHide={this.closeHandle.bind(this)} bsSize="lg">
                     <form>
                         <Modal.Header closeButton>
-                            <Modal.Title>Skriv nyt indl&aelig;g</Modal.Title>
+                            <Modal.Title>{title}</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
                             <Row>
                                 <Col lg={12}>
-                                    
+
                                         <FormGroup controlId="formPostTitle" validationState={this.getValidation()}>
-                                            <ControlLabel>Titel</ControlLabel>
-                                            <FormControl type="text" placeholder="Titel på indlæg..." onChange={this.handleTitleChange.bind(this)} value={this.state.Title}/>
+                                            <ControlLabel>Overskrift</ControlLabel>
+                                            <FormControl type="text" placeholder="Overskrift på indlæg..." onChange={this.handleTitleChange.bind(this)} value={this.state.Title}/>
                                         </FormGroup>
 
                                         <FormGroup controlId="formPostContent">
@@ -102,7 +104,6 @@ export class ForumForm extends React.Component {
 
                                         <FormGroup controlId="formPostSticky">
                                             <ButtonGroup>
-                                                <Button bsStyle="success" bsSize="small" active={this.state.IsPublished} onClick={this.handlePublished.bind(this)}><Glyphicon glyph="file" />Udgiv indl&aelig;g</Button>
                                                 <Button bsStyle="success" bsSize="small" active={this.state.Sticky} onClick={this.handleSticky.bind(this)}><Glyphicon glyph="pushpin" /> Vigtig</Button>
                                             </ButtonGroup>
                                         </FormGroup>
@@ -112,9 +113,10 @@ export class ForumForm extends React.Component {
                         </Modal.Body>
                         <Modal.Footer>
                             <Button bsStyle="default" onClick={this.closeHandle.bind(this)}>Luk</Button>
-                            <Button bsStyle="primary" type="submit" onClick={this.handleSubmit}>Nyt indl&aelig;g</Button>
+                            <Button bsStyle="primary" type="submit" onClick={this.handleSubmit}>{btnSubmit}</Button>
                         </Modal.Footer>
                     </form>
                 </Modal>
     }
 }
+//                                                <!--/*<Button bsStyle="success" bsSize="small" active={this.state.IsPublished} onClick={this.handlePublished.bind(this)}><Glyphicon glyph="file" />Udgiv indl&aelig;g</Button>*/-->

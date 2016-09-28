@@ -1,6 +1,7 @@
 ﻿import { combineReducers } from 'redux'
 import { union } from '../utilities/utils'
 import * as T from '../constants/types'
+import { filter } from 'underscore'
 
 const postComments = (state = [], action) => {
     switch (action.type) {
@@ -56,29 +57,15 @@ const selectedThread = (state = -1, action) => {
     }
 }
 
-const selectedPostId = (state = -1, action) => {
-    switch (action.type) {
-        case T.SET_SELECTED_POST_ID:
-            return action.id;
-        default:
-            return state;
-    }
-}
-
-//const postCommentsInfo = combineReducers({
-//    postComments,
-//    skip,
-//    take,
-//    page,
-//    totalPages
-//})
-
 const titles = (state = [], action) => {
     switch (action.type) {
         case T.ADD_THREAD_TITLE:
             return union(state, [action.title], (t1, t2) => t1.ID == t2.ID);
         case T.SET_THREAD_TITLES:
             return action.titles;
+        case T.UPDATE_THREAD_TITLE:
+            const removed = filter(state, (title) => title.ID != action.id);
+            return [...removed, action.title];
         default:
             return state;
     }
@@ -104,8 +91,7 @@ const titlesInfo = combineReducers({
 
 const forumInfo = combineReducers({
     titlesInfo,
-    postContent,
-    selectedPostId
+    postContent
 })
 
 export default forumInfo;

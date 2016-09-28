@@ -83,6 +83,7 @@ export const normalizeComment = (comment) => {
 
 export const normalizeLatest = (latest) => {
     let item = null;
+    let authorId = -1;
     if(latest.Type == 1) {
         // Image - omit Author and CommentCount
         const image = latest.Item;
@@ -95,6 +96,7 @@ export const normalizeLatest = (latest) => {
             ThumbnailUrl: image.ThumbnailUrl,
             Uploaded: image.Uploaded
         };
+        authorId = latest.Item.Author.ID;
     }
     else if (latest.Type == 2) {
         // Comment - omit Author and Deleted and Replies
@@ -103,8 +105,21 @@ export const normalizeLatest = (latest) => {
             ID: comment.ID,
             Text: comment.Text,
             ImageID: comment.ImageID,
-            ImageUploadedBy: comment.ImageUploadedBy
+            ImageUploadedBy: comment.ImageUploadedBy,
+            Filename: comment.Filename
         };
+        authorId = latest.Item.Author.ID;
+    }
+    else if (latest.Type == 4) {
+        const post = latest.Item;
+        item = {
+            ID: post.ThreadID,
+            Title: post.Header.Title,
+            Text: post.Text,
+            Sticky: post.Header.Sticky,
+            CommentCount: post.Header.CommentCount
+        }
+        authorId = post.Header.Author.ID;
     }
 
     return {
@@ -112,12 +127,13 @@ export const normalizeLatest = (latest) => {
         Type: latest.Type,
         Item: item,
         On: latest.On,
-        AuthorID: latest.Item.Author.ID
+        AuthorID: authorId,
     }
 }
 
 export const normalizeThreadTitle = (title) => {
     const viewedBy = title.ViewedBy.map(user => user.ID);
+    const latestComment = title.LatestComment ? normalizeComment(title.LatestComment) : null;
     return {
         ID: title.ID,
         IsPublished: title.IsPublished,
@@ -128,7 +144,7 @@ export const normalizeThreadTitle = (title) => {
         IsModified: title.IsModified,
         Title: title.Title,
         LastModified: title.LastModified,
-        LatestComment: title.LatestComment,
+        LatestComment: latestComment,
         CommentCount: title.CommentCount,
         ViewedBy: viewedBy,
     }
@@ -164,11 +180,21 @@ export function union(arr1, arr2, equalityFunc) {
     return union;
 }
 
-export const userEquality = (user1, user2) => {
-    if(!user2 || !user1) return false;
-    return user1.ID == user2.ID;
+export const getImageCommentsPageUrl = (imageId, skip, take) => {
+    return `${globals.urls.imagecomments}?imageId=${imageId}&skip=${skip}&take=${take}`;
 }
 
+export const getImageCommentsDeleteUrl = (commentId) => {
+    return `${globals.urls.imagecomments}?commentId=${commentId}`;
+}
+
+export const getForumCommentsPageUrl = (postId, skip, take) => {
+    return `${globals.urls.forumcomments}?postId=${postId}&skip=${skip}&take=${take}`;
+}
+
+export const getForumCommentsDeleteUrl = (commentId) => {
+    return `${globals.urls.forumcomments}?commentId=${commentId}`;
+}
 
 export const formatText = (text) => {
     if (!text) return;
