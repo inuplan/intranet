@@ -61,7 +61,7 @@ export function fetchLatestNews(skip, take) {
                 dispatch(setPage(page.CurrentPage));
                 dispatch(setTotalPages(page.TotalPages));
 
-                const normalized = items.filter(item => Boolean(item.Item.Author)).map(normalizeLatest);
+                const normalized = items.map(normalizeLatest);
                 dispatch(addLatest(normalized));
             }, onReject);
     }

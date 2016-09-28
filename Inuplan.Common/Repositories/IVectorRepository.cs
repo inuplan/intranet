@@ -26,7 +26,7 @@ namespace Inuplan.Common.Repositories
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    public interface IVectorRepository<K, E>
+    public interface IVectorRepository<K, E> : IDisposable
     {
         /// <summary>
         /// Create an entity in the repository.
@@ -49,7 +49,7 @@ namespace Inuplan.Common.Repositories
         /// <param name="take">The number of items to take</param>
         /// <param name="identifiers">Extra identifiers necessary to select the entities</param>
         /// <returns></returns>
-        Task<Pagination<ImageComment>> GetPage(int id, int skip, int take);
+        Task<Pagination<Comment>> GetPage(int id, int skip, int take);
 
         /// <summary>
         /// Retrieves an entity by the given id

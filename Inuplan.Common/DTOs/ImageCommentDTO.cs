@@ -20,7 +20,6 @@
 
 namespace Inuplan.Common.DTOs
 {
-    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
 
@@ -32,6 +31,7 @@ namespace Inuplan.Common.DTOs
         public DateTime PostedOn { get; set; }
         public UserDTO Author { get; set; }
         public string Text { get; set; }
+        public bool Edited { get; set; }
         public List<ImageCommentDTO> Replies { get; set; }
     }
 }

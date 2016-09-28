@@ -18,22 +18,14 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Models
+namespace Inuplan.Common.Commands
 {
-    using Interfaces;
-    using Newtonsoft.Json;
-    using System;
-    using System.Collections.Generic;
+    using Models;
+    using System.Threading.Tasks;
 
-    public class ImageComment : IIdentifier
+    public interface IMarkPost
     {
-        public int? ParentID { get; set; }
-        public int ID { get; set; }
-        public int ImageID { get; set; }
-        public bool Deleted { get; set; }
-        public DateTime PostedOn { get; set; }
-        public User Author { get; set; }
-        public string Text { get; set; }
-        public List<ImageComment> Replies { get; set; }
+        Task<bool> ReadPost(User user, int postId);
+        Task<bool> UnreadPost(User user, int postId);
     }
 }

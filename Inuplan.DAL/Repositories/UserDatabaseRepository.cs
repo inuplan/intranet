@@ -204,19 +204,24 @@ namespace Inuplan.DAL.Repositories
         /// <param name="skip">The number of users to skip</param>
         /// <param name="take">The number of users to take</param>
         /// <returns>An awaitable list of users</returns>
-        public async Task<Pagination<User>> GetPage(int skip, int take, params object[] identifiers)
+        public async Task<Pagination<User>> GetPage(int skip, int take, Func<string> sortBy = null, Func<string> orderBy = null, params object[] identifiers)
         {
             try
             {
+                sortBy = sortBy ?? new Func<string>(() => "Username");
+                orderBy = orderBy ?? new Func<string>(() => "ASC");
+
                 var sql = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
                         FROM
                         (
-                            SELECT tmp.*, ROW_NUMBER() OVER (ORDER BY Username ASC) AS 'RowNumber'
+                            SELECT tmp.*, ROW_NUMBER() OVER (ORDER BY @Sort @Order) AS 'RowNumber'
                             FROM Users AS tmp
                         ) AS seq
                         WHERE seq.RowNumber BETWEEN @From AND @To";
 
-                var result = (await connection.QueryAsync<User>(sql, new
+                var query = sql.Replace("@Sort", sortBy()).Replace("@Order", orderBy());
+
+                var result = (await connection.QueryAsync<User>(query, new
                 {
                     From = skip + 1,
                     To = (skip + take)

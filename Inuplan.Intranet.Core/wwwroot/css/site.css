@@ -1,3 +1,95 @@
 ﻿body {
     padding-top: 70px;
 }
+
+.container-fluid > .row > .jumbotron {
+    background-image: url(../images/inuplan_banner.jpg);
+    width: 100%;
+    height: 450px;
+    background-size: cover;
+    border-radius: 0px;
+}
+
+.container-fluid > .row > .jumbotron > h1 span {
+    background-color: cornsilk;
+    padding-left: 10px;
+    padding-right: 10px;
+    opacity: 0.9;
+}
+
+.container-fluid > .row > .jumbotron > p.lead {
+    color: cornsilk;
+}
+
+.comment-deleted {
+    padding-top: 9px;
+    padding-bottom: 9px;
+}
+
+.comment-deleted span.glyphicon {
+    margin-right: 7px;
+}
+
+.thread-head {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    padding-top: 17px;
+    padding-bottom: 15px;
+    border-bottom-color: #2c3e50;
+}
+
+.thread {
+    padding-top: 17px;
+    padding-bottom: 15px;
+    color: #2c3e50;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: #2c3e50;
+}
+
+.thread-pinned:last-child {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: #2c3e50;
+}
+
+.thread-pinned:hover {
+    color: #2c3e50;
+}
+
+.thread:hover {
+    background-color: #f3f3f3;
+}
+
+.sticky [class*="glyphicon-"] {
+    margin-top: 8px;
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+}
+
+.forum-content {
+    margin-top: 1.7em;
+    line-height: 1.8em;
+    padding-bottom: 1.7em;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+.forum-editbar {
+    margin-top: 1.5em;
+}
+
+.forum-comments-list {
+    margin-bottom: 1.6em;
+}
+
+.forum-comments-heading {
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
+
+.whatsnewItem:hover {
+    background-color: #f3f3f3;
+
+}

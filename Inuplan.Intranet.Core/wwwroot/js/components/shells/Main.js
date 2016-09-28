@@ -1,13 +1,14 @@
 ﻿import React from 'react'
 import { Link, IndexLink } from 'react-router'
-import { NavLink, IndexNavLink } from './wrappers/Links'
-import { Error } from './containers/Error'
-import { clearError } from '../actions/error'
+import { NavLink, IndexNavLink } from '../wrappers/Links'
+import { Error } from '../containers/Error'
+import { clearError } from '../../actions/error'
 import { connect } from 'react-redux'
 import { Grid, Navbar, Nav } from 'react-bootstrap'
+import { values } from 'underscore'
 
 const mapStateToProps = (state) => {
-    const user = state.usersInfo.users.filter(u => u.Username.toUpperCase() == globals.currentUsername.toUpperCase())[0];
+    const user = values(state.usersInfo.users).filter(u => u.Username.toUpperCase() == globals.currentUsername.toUpperCase())[0];
     const name = user ? user.FirstName : 'User';
     return {
         hasError: state.statusInfo.hasError,
@@ -49,6 +50,7 @@ class Shell extends React.Component {
                         <Navbar.Collapse>
                             <Nav>
                                 <IndexNavLink to="/">Forside</IndexNavLink>
+                                <NavLink to="/forum">Forum</NavLink>
                                 <NavLink to="/users">Brugere</NavLink>
                                 <NavLink to="/about">Om</NavLink>                                
                             </Nav>

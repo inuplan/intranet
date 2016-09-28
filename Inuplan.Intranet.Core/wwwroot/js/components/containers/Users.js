@@ -3,10 +3,12 @@ import { connect } from 'react-redux'
 import { fetchUsers } from '../../actions/users'
 import { UserList } from '../users/UserList'
 import { Row, Col, PageHeader } from 'react-bootstrap'
+import { Breadcrumb } from '../breadcrumbs/Breadcrumb'
+import { values } from 'underscore'
 
 const mapUsersToProps = (state) => {
     return {
-        users: state.usersInfo.users
+        users: values(state.usersInfo.users)
     };
 }
 
@@ -26,6 +28,18 @@ class UsersContainer extends React.Component {
     render() {
         const { users } = this.props;
         return  <Row>
+                    <Row>
+                        <Col lgOffset={2} lg={8}>
+                            <Breadcrumb>
+                                <Breadcrumb.Item href="/">
+                                    Forside
+                                </Breadcrumb.Item>
+                                <Breadcrumb.Item active>
+                                    Brugere
+                                </Breadcrumb.Item>
+                            </Breadcrumb>
+                        </Col>
+                    </Row>
                     <Col lgOffset={2} lg={8}>
                         <PageHeader>
                             Inuplan's <small>brugere</small>

@@ -53,7 +53,10 @@ namespace Inuplan.DAL.Repositories
             try
             {
                 var sql = @"INSERT INTO Roles (Name) Values (@Name);SELECT ID FROM Roles WHERE ID = @@IDENTITY;";
-                entity.ID = await connection.ExecuteScalarAsync<int>(sql, entity);
+                entity.ID = await connection.ExecuteScalarAsync<int>(sql, new
+                {
+                    Name = entity.Name
+                });
                 var result = entity.SomeWhen(e => e.ID > 0);
                 if (result.HasValue) await onCreate(entity);
                 return result;
@@ -118,17 +121,22 @@ namespace Inuplan.DAL.Repositories
         {
             return Get(id);
         }
-
-        public async Task<Pagination<Role>> GetPage(int skip, int take, params object[] identifiers)
+        public async Task<Pagination<Role>> GetPage(int skip, int take, Func<string> sortBy = null, Func<string> orderBy = null, params object[] identifiers)
         {
             try
             {
+                sortBy = sortBy ?? new Func<string>(() => "ID");
+                orderBy = orderBy ?? new Func<string>(() => "ASC");
+
                 var sql = @"SELECT ID, Name FROM
-                            (SELECT ID, Name, Row_Number() OVER (ORDER BY ID) AS rownumber
+                            (SELECT ID, Name, Row_Number() OVER (ORDER BY @Sort @Order) AS rownumber
                             FROM Roles) AS seq
                         WHERE seq.rownumber BETWEEN @From AND @To;";
+                var query = sql
+                                .Replace(@"@Sort", sortBy())
+                                .Replace(@"@Order", orderBy());
 
-                var roles = await connection.QueryAsync<Role>(sql, new
+                var roles = await connection.QueryAsync<Role>(query, new
                 {
                     From = skip + 1,
                     To = skip + take,

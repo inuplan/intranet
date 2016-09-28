@@ -26,21 +26,28 @@ export class CommentList extends React.Component {
 
         if (comment.Deleted)
             return  <CommentDeleted
-                        key={key} 
+                        key={key}
                         construct={this.constructComment}
                         replies={comment.Replies} />
 
-        const { getName } = this.props;
+        const { contextId, getName, canEdit } = this.props;
+        const { skip, take, editComment, deleteComment, replyComment } = this.props;
+        const props = { skip, take, editComment, deleteComment, replyComment };
         const name = getName(comment.AuthorID);
         return  <Comment
-                    key={key} 
+                    key={key}
+                    contextId={contextId}
                     name={name}
                     postedOn={comment.PostedOn}
-                    authorId={comment.AuthorID}                             
+                    authorId={comment.AuthorID}
                     text={comment.Text}
                     construct={this.constructComment}
                     replies={comment.Replies}
-                    commentId={comment.CommentID} />
+                    edited={comment.Edited}
+                    canEdit={canEdit}
+                    commentId={comment.CommentID}
+                    {...props}
+                />
     }
 
     render() {
@@ -51,4 +58,16 @@ export class CommentList extends React.Component {
                     {nodes}
                 </Media.List>
     }
+}
+
+CommentList.propTypes = {
+    comments: React.PropTypes.arrayOf(React.PropTypes.object),
+    contextId: React.PropTypes.number,
+    getName: React.PropTypes.func,
+    canEdit: React.PropTypes.func,
+    skip: React.PropTypes.number,
+    take: React.PropTypes.number,
+    editComment: React.PropTypes.func.isRequired,
+    deleteComment: React.PropTypes.func.isRequired, 
+    replyComment: React.PropTypes.func.isRequired,
 }

@@ -18,14 +18,23 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Commands
+namespace Inuplan.Common.Models.Forum
 {
-    using Models;
-    using System.Threading.Tasks;
+    using System;
+    using System.Collections.Generic;
 
-    public interface IAddImageComment
+    public class ThreadPostTitle
     {
-        void Connect();
-        Task<bool> Insert(ImageComment comment);
+        public int ThreadID { get; set; }
+        public bool IsPublished { get; set; }
+        public bool Sticky { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public User Author { get; set; }
+        public bool Deleted { get; set; }
+        public bool IsModified { get; set; }
+        public string Title { get; set; }
+        public DateTime? LastModified { get; set; }
+        public int? LatestComment { get; set; }
+        public List<User> ViewedBy { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Inuplan.Common.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,6 @@ namespace Inuplan.Common.Commands
 {
     public interface IDeleteItem
     {
-        void Connect();
-        Task<bool> Remove(int id);
+        Task<bool> Remove(int id, NewsType ofType);
     }
 }

@@ -1,7 +1,7 @@
 ﻿import { combineReducers } from 'redux'
 import * as T from '../constants/types'
-import { filter } from 'underscore'
-import { union } from '../utilities/utils'
+import { filter, omit, values } from 'underscore'
+import { put, union } from '../utilities/utils'
 
 const ownerId = (state = -1, action) => {
     switch (action.type) {
@@ -12,24 +12,26 @@ const ownerId = (state = -1, action) => {
     }
 }
 
-const images = (state = [], action) => {
+const images = (state = {}, action) => {
     switch (action.type) {
         case T.ADD_IMAGE:
-            return union(state, [action.image], (img1, img2) => img1.ImageID == img2.ImageID);
+            const obj = put(state, action.key, action.val);
+            return obj;
         case T.RECIEVED_USER_IMAGES:
             return action.images;
         case T.REMOVE_IMAGE:
-            return state.filter(img => img.ImageID != action.id);
-        case T.INCR_COMMENT_COUNT:
-            return state.map(img => {
-                if(img.ImageID == action.imageId) {
+            const removed = omit(state, action.key);
+            return removed;
+        case T.INCR_IMG_COMMENT_COUNT:
+            return values(state).map(img => {
+                if(img.ImageID == action.key) {
                     img.CommentCount++;
                 }
                 return img;
             });
-        case T.DECR_COMMENT_COUNT:
-            return state.map(img => {
-                if(img.ImageID == action.imageId) {
+        case T.DECR_IMG_COMMENT_COUNT:
+            return values(state).map(img => {
+                if(img.ImageID == action.key) {
                     img.CommentCount--;
                 }
                 return img;

@@ -40,19 +40,19 @@ namespace Inuplan.WebAPI.Controllers
     [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class ImageCommentController : DefaultController
     {
-        private readonly IVectorRepository<int, ImageComment> imageCommentRepository;
-        private readonly IAddImageComment newComment;
+        private readonly IVectorRepository<int, Comment> imageCommentRepository;
+        private readonly IAddItem whatsNew;
         private readonly IDeleteItem removeNews;
 
         public ImageCommentController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
-            IVectorRepository<int, ImageComment> imageCommentRepository,
-            IAddImageComment newComment,
+            IVectorRepository<int, Comment> imageCommentRepository,
+            IAddItem whatsNew,
             IDeleteItem removeNews)
             : base(userDatabaseRepository)
         {
             this.imageCommentRepository = imageCommentRepository;
-            this.newComment = newComment;
+            this.whatsNew = whatsNew;
             this.removeNews = removeNews;
         }
 
@@ -83,30 +83,22 @@ namespace Inuplan.WebAPI.Controllers
             };
         }
 
-        public async Task<HttpResponseMessage> Post(ImageComment comment, [FromUri] int? replyId = null)
+        public async Task<HttpResponseMessage> Post(Comment comment)
         {
-            Debug.Assert(comment.ImageID > 0, "Must be associated with a valid image");
-            Func<ImageComment, Task> onCreate = (c) =>
+            Debug.Assert(comment.ContextID > 0, "Must be associated with a valid image");
+            Func<Comment, Task> onCreate = (c) =>
             {
-                newComment.Connect();
-                return newComment.Insert(c);
+                return whatsNew.AddItem(c.ID, NewsType.ImageComment);
             };
 
             // Set time and owner to current user and time!
             comment.PostedOn = DateTime.Now;
             comment.Author = Request.GetOwinContext().Get<User>(Constants.CURRENT_USER);
             var created = await imageCommentRepository.CreateSingle(comment, onCreate);
-            var response = created.Match(
-                c =>
-                {
-                    var r = Request.CreateResponse(HttpStatusCode.Created, c);
-                    var route = Url.Route("GetComment", new { id = c.ID });
-                    r.Headers.Location = new Uri(route, UriKind.Relative);
-                    return r;
-                },
-                () => Request.CreateResponse(HttpStatusCode.InternalServerError));
 
-            return response;
+            return created.Match(
+                c => Request.CreateResponse(HttpStatusCode.Created, c),
+                () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }
 
         public async Task<HttpResponseMessage> Delete(int commentId)
@@ -114,14 +106,14 @@ namespace Inuplan.WebAPI.Controllers
             // NOTE: Comments are NOT deleted only set to "null" to keep comment hierarchy
             // Question: Should "deleted" comments be removed from the latest news?
             // Be careful on the client side, take into consideration that Author field could be null!
-            var deleted = await imageCommentRepository.DeleteSingle(commentId, _ => Task.FromResult(0));
+            var deleted = await imageCommentRepository.DeleteSingle(commentId, id => removeNews.Remove(id, NewsType.ImageComment));
             var response = deleted ?
                             Request.CreateResponse(HttpStatusCode.NoContent) :
                             Request.CreateResponse(HttpStatusCode.InternalServerError);
             return response;
         }
 
-        public async Task<HttpResponseMessage> Put([FromBody]ImageComment comment)
+        public async Task<HttpResponseMessage> Put([FromBody]Comment comment)
         {
             comment.PostedOn = DateTime.Now;
             var updated = await imageCommentRepository.UpdateSingle(comment.ID, comment);

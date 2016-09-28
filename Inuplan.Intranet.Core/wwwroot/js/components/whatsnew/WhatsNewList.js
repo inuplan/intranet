@@ -1,6 +1,7 @@
 ﻿import React from 'react'
 import { WhatsNewItemImage } from './WhatsNewItemImage'
 import { WhatsNewItemComment } from './WhatsNewItemComment'
+import { WhatsNewForumPost } from './WhatsNewForumPost'
 import { Media } from 'react-bootstrap'
 
 export class WhatsNewList extends React.Component {
@@ -8,8 +9,8 @@ export class WhatsNewList extends React.Component {
         const { items, getUser } = this.props;
         const generateKey = (id) => "whatsnew_" + id;
         return items.map(item => {
-            const author = getUser(item.AuthorID);
             const itemKey = generateKey(item.ID);
+            const author = getUser(item.AuthorID);
             switch (item.Type) {
                 case 1:
                     return  <WhatsNewItemImage
@@ -32,6 +33,18 @@ export class WhatsNewList extends React.Component {
                                 imageId={item.Item.ImageID}
                                 on={item.On}
                                 author={author}
+                                filename={item.Item.Filename}
+                                key={itemKey}
+                            />
+                case 4:
+                    return  <WhatsNewForumPost
+                                on={item.On}
+                                author={author}
+                                title={item.Item.Title}
+                                text={item.Item.Text}
+                                sticky={item.Item.Sticky}
+                                postId={item.Item.ID}
+                                commentCount={item.Item.CommentCount}
                                 key={itemKey}
                             />
             }

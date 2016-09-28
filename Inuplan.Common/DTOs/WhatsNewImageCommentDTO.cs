@@ -14,5 +14,6 @@ namespace Inuplan.Common.DTOs
         public UserDTO Author { get; set; }
         public string Text { get; set; }
         public UserDTO ImageUploadedBy { get; set; }
+        public string Filename { get; set; }
     }
 }

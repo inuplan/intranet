@@ -18,15 +18,25 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Commands
+namespace Inuplan.Common.DTOs.Forum
 {
     using Models;
     using System;
-    using System.Threading.Tasks;
+    using System.Collections.Generic;
 
-    public interface IAddImageUpload : IDisposable
+    public class ThreadPostTitleDTO
     {
-        void Connect();
-        Task<bool> Insert(Image image);
+        public int ID { get; set; }
+        public bool IsPublished { get; set; }
+        public bool Sticky { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public UserDTO Author { get; set; }
+        public bool Deleted { get; set; }
+        public bool IsModified { get; set; }
+        public string Title { get; set; }
+        public Comment LatestComment { get; set; }
+        public DateTime? LastModified { get; set; }
+        public int CommentCount { get; set; }
+        public List<UserDTO> ViewedBy { get; set; }
     }
 }

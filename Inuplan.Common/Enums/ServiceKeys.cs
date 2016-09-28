@@ -70,5 +70,20 @@ namespace Inuplan.Common.Enums
         /// Key for the ImageCommentsRepository
         /// </summary>
         ImageCommentsRepository,
+
+        /// <summary>
+        /// Key for the ThreadPostTitleRepository
+        /// </summary>
+        ThreadPostTitleRepository,
+
+        /// <summary>
+        /// Key for the ThreadPostContentRepository
+        /// </summary>
+        ThreadPostContentRepository,
+
+        /// <summary>
+        /// Key for the ForumCommentsRepository
+        /// </summary>
+        ForumCommentsRepository,
     }
 }

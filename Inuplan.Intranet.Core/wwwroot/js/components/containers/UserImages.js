@@ -1,34 +1,35 @@
 ﻿import React from 'react'
 import { connect } from 'react-redux'
-import { uploadImage, addSelectedImageId,  deleteImages, removeSelectedImageId, clearSelectedImageIds } from '../../actions/images'
+import { uploadImage, addSelectedImageId,  deleteImages, removeSelectedImageId, clearSelectedImageIds, fetchUserImages } from '../../actions/images'
 import { Error } from './Error'
 import { ImageUpload } from '../images/ImageUpload'
 import ImageList from '../images/ImageList'
 import { find } from 'underscore'
 import { withRouter } from 'react-router'
 import { Row, Col, Button } from 'react-bootstrap'
+import { Breadcrumb } from '../breadcrumbs/Breadcrumb'
+import { values, sortBy } from 'underscore'
 
 const mapStateToProps = (state) => {
-    const ownerId  = state.imagesInfo.ownerId;
+    const { ownerId } = state.imagesInfo;
     const currentId = state.usersInfo.currentUserId;
     const canEdit = (ownerId > 0 && currentId > 0 && ownerId == currentId);
+    const user = state.usersInfo.users[ownerId];
+    const fullName = user ? `${user.FirstName} ${user.LastName}` : '';
+    const images = sortBy(values(state.imagesInfo.images), (img) => -img.ImageID);
 
     return {
-        images: state.imagesInfo.images,
+        images: images,
         canEdit: canEdit,
         selectedImageIds: state.imagesInfo.selectedImageIds,
-        getFullname: (username) => {
-            const user = state.usersInfo.users.filter(u => u.Username.toUpperCase() == username.toUpperCase())[0];
-            const fullname = (user) ? user.FirstName + " " + user.LastName : 'User';
-            return fullname.toLocaleLowerCase();
-        }
+        fullName: fullName,
     }
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
         uploadImage: (username, formData) => {
-            dispatch(uploadImage(username, formData));
+            dispatch(uploadImage(username, formData, () => { dispatch(fetchUserImages(username)); }, () => { }));
         },
         addSelectedImageId: (id) => {
             // Images to be deleted by selection:
@@ -81,6 +82,7 @@ class UserImagesContainer extends React.Component {
         const { selectedImageIds, deleteImages } = this.props;
         const { username } = this.props.params;
         deleteImages(username, selectedImageIds);
+        this.clearSelected();
     }
 
     uploadView() {
@@ -91,7 +93,6 @@ class UserImagesContainer extends React.Component {
         if(!canEdit) return null;
 
         return  <Row>
-                    <br />
                     <Col lg={4}>
                         <ImageUpload
                             uploadImage={uploadImage}
@@ -105,12 +106,23 @@ class UserImagesContainer extends React.Component {
 
     render() {
         const { username } = this.props.params;
-        const { images, getFullname, canEdit, addSelectedImageId, removeSelectedImageId } = this.props;
-        const fullName = getFullname(username);
+        const { images, fullName, canEdit, addSelectedImageId, removeSelectedImageId } = this.props;
         
         return  <Row>
+                    <Row>
+                        <Col lgOffset={2} lg={8}>
+                            <Breadcrumb>
+                                <Breadcrumb.Item href="/">
+                                    Forside
+                                </Breadcrumb.Item>
+                                <Breadcrumb.Item active>
+                                    {username}'s billeder
+                                </Breadcrumb.Item>
+                            </Breadcrumb>
+                        </Col>
+                    </Row>
                     <Col lgOffset={2} lg={8}>
-                        <h1><span className="text-capitalize">{fullName}'s</span> <small>billede galleri</small></h1>
+                        <h1><span className="text-capitalize">{fullName}</span>'s <small>billede galleri</small></h1>
                         <hr />
                         <ImageList
                             images={images}

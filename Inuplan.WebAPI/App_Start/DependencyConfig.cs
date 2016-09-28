@@ -23,10 +23,14 @@ namespace Inuplan.WebAPI.App_Start
     using Common.Enums;
     using Common.Factories;
     using Common.Models;
+    using Common.Models.Forum;
     using Common.Queries;
     using Common.Repositories;
     using Controllers;
+    using Controllers.Forum;
+    using DAL.ForumPost.Commands;
     using DAL.Repositories;
+    using DAL.Repositories.Forum;
     using DAL.WhatsNew.Commands;
     using DAL.WhatsNew.Queries;
     using Image.Factories;
@@ -72,11 +76,14 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<DiagnosticController>().WithAttributeFilter();
             builder.RegisterType<ImageCommentController>().WithAttributeFilter();
             builder.RegisterType<WhatsNewController>().WithAttributeFilter();
+            builder.RegisterType<ForumTitleController>().WithAttributeFilter();
+            builder.RegisterType<ForumPostController>().WithAttributeFilter();
+            builder.RegisterType<ForumCommentController>().WithAttributeFilter();
 
             // Register classes and keys
-            builder.RegisterType<AddImageUpload>().As<IAddImageUpload>();
-            builder.RegisterType<AddImageComment>().As<IAddImageComment>();
+            builder.RegisterType<AddWhatsNewItem>().As<IAddItem>();
             builder.RegisterType<DeleteItem>().As<IDeleteItem>();
+            builder.RegisterType<MarkPost>().As<IMarkPost>();
             builder.RegisterType<GetPage>().As<IGetPage>();
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
@@ -85,9 +92,12 @@ namespace Inuplan.WebAPI.App_Start
             // Register repositories
             builder.RegisterType<RoleRepository>().As<IScalarRepository<int, Role>>();
             builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<int, Image>>();
-            builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, ImageComment>>();
+            builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, Comment>>();
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
             builder.RegisterType<UserRoleRepository>().Keyed<IScalarRepository<int, User>>(ServiceKeys.UserRoleRepository);
+            builder.RegisterType<ForumPostTitleRepository>().Keyed<IScalarRepository<int, ThreadPostTitle>>(ServiceKeys.ThreadPostTitleRepository);
+            builder.RegisterType<ForumPostContentRepository>().Keyed<IScalarRepository<int, ThreadPostContent>>(ServiceKeys.ThreadPostContentRepository);
+            builder.RegisterType<ForumCommentsRepository>().Keyed<IVectorRepository<int, Comment>>(ServiceKeys.ForumCommentsRepository);
 
             #region "Register Active Directory"
 #if DEBUG

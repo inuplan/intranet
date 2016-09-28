@@ -1,29 +1,7 @@
 ﻿import React from 'react'
-import { editComment, deleteComment, postComment, fetchComments } from '../../actions/comments'
 import { Row, Col, ButtonToolbar, ButtonGroup, OverlayTrigger, Button, Glyphicon, Tooltip, Collapse, FormGroup, FormControl } from 'react-bootstrap'
-import { connect } from 'react-redux'
 
-const mapStateToProps = (state) => {
-    return {
-        canEdit: (id) => state.usersInfo.currentUserId == id,
-        imageId: state.imagesInfo.selectedImageId,
-        skip: state.commentsInfo.skip,
-        take: state.commentsInfo.take,
-    }
-}
-
-const mapDispatchToProps = (dispatch) => {
-    return {
-        editComment: (commentId, imageId, text) => dispatch(editComment(commentId, imageId, text)),
-        deleteComment: (commentId, imageId) => dispatch(deleteComment(commentId, imageId)),
-        replyComment: (imageId, text, parentId) => dispatch(postComment(imageId, text, parentId)),
-        loadComments: (imageId, skip, take) => {
-            dispatch(fetchComments(imageId, skip, take));
-        }
-    }
-}
-
-class CommentControlsContainer extends React.Component {
+export class CommentControls extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -42,11 +20,6 @@ class CommentControlsContainer extends React.Component {
 
         this.handleTextChange = this.handleTextChange.bind(this);
         this.handleReplyChange = this.handleReplyChange.bind(this);
-    }
-
-    reload() {
-        const { loadComments, imageId, skip, take } = this.props;
-        loadComments(imageId, skip, take)
     }
 
     handleTextChange(e) {
@@ -72,27 +45,24 @@ class CommentControlsContainer extends React.Component {
     }
 
     deleteHandle() {
-        const { deleteComment, commentId, imageId } = this.props;
-        deleteComment(commentId, imageId);
-        this.reload();
+        const { deleteComment, commentId, contextId } = this.props;
+        deleteComment(commentId, contextId);
     }
 
     editHandle() {
-        const { editComment, imageId, commentId } = this.props;
+        const { editComment, contextId, commentId } = this.props;
         const { text } = this.state;
 
         this.setState({ edit: false });
-        editComment(commentId, imageId, text);
-        this.reload();
+        editComment(commentId, contextId, text);
     }
 
     replyHandle() {
-        const { commentId, imageId, replyComment } = this.props;
+        const { commentId, contextId, replyComment } = this.props;
         const { replyText } = this.state;
 
         this.setState({ reply: false, replyText: '' });
-        replyComment(imageId, replyText, commentId);
-        this.reload();
+        replyComment(contextId, replyText, commentId);
     }
 
     render() {
@@ -146,8 +116,6 @@ class CommentControlsContainer extends React.Component {
     }
 }
 
-export const CommentControls = connect(mapStateToProps, mapDispatchToProps)(CommentControlsContainer);
-
 class CollapseTextArea extends React.Component {
     render() {
         const { show, id, value, onChange, toggle, save, saveText, mount } = this.props;
@@ -156,14 +124,16 @@ class CollapseTextArea extends React.Component {
                     <FormGroup controlId={id}>
                         <FormControl componentClass="textarea" value={value} onChange={onChange} rows="4" />
                         <br />
-                        <Button onClick={toggle}>Luk</Button>
-                        <Button type="submit" bsStyle="info" onClick={save}>{saveText}</Button>
+                        <ButtonToolbar>
+                            <Button onClick={toggle}>Luk</Button>
+                            <Button type="submit" bsStyle="info" onClick={save}>{saveText}</Button>
+                        </ButtonToolbar>
                     </FormGroup>
                 </Collapse>
     }
 }
 
-class ButtonTooltip extends React.Component {
+export class ButtonTooltip extends React.Component {
     render() {
         const { tooltip, onClick, icon, bsStyle, active, mount } = this.props;
         let overlayTip = <Tooltip id="tooltip">{tooltip}</Tooltip>;

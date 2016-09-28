@@ -21,66 +21,45 @@
 namespace Inuplan.DAL.WhatsNew.Commands
 {
     using Common.Commands;
-    using Common.Enums;
-    using Common.Models;
-    using Dapper;
     using System;
+    using System.Threading.Tasks;
+    using Common.Enums;
     using System.Data;
     using System.Diagnostics;
-    using System.Threading.Tasks;
     using System.Transactions;
+    using Dapper;
 
-    public class AddImageUpload : IAddImageUpload
+    public class AddWhatsNewItem : IAddItem
     {
         private readonly IDbConnection connection;
-        private bool disposedValue = false;
 
-        public AddImageUpload(IDbConnection connection)
+        public AddWhatsNewItem(IDbConnection connection)
         {
             this.connection = connection;
         }
 
-        public void Connect()
+        public async Task<int> AddItem(int id, NewsType itemType)
         {
-            if(connection.State == ConnectionState.Closed)
+            Debug.Assert(id > 0, "Must have a valid ID");
+            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                connection.Open();
-            }
-        }
-
-        public async Task<bool> Insert(Image image)
-        {
-            Debug.Assert(image.ID > 0, "Must have a valid image id!");
-            var sqlItem = @"INSERT INTO WhatsNew (TimeOn, Event, TargetID) VALUES (@TimeOn, @Event, @TargetID);
+                var sql = @"INSERT INTO WhatsNew (TimeOn, Event, TargetID) VALUES(@TimeOn, @Event, @TargetID);
                             SELECT ID FROM WhatsNew WHERE ID = @@IDENTITY";
-            var itemId = await connection.ExecuteScalarAsync<int>(sqlItem, new
-            {
-                TimeOn = DateTime.Now,
-                Event = NewsType.ImageUpload,
-                TargetID = image.ID
-            });
 
-            return itemId > 0;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
+                var itemId = await connection.ExecuteScalarAsync<int>(sql, new
                 {
-                    // TODO: dispose managed state (managed objects).
-                    connection.Dispose();
+                    TimeOn = DateTime.Now,
+                    Event = itemType,
+                    TargetID = id,
+                });
+
+                if (itemId > 0)
+                {
+                    transactionScope.Complete();
                 }
 
-                disposedValue = true;
+                return itemId;
             }
-        }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
         }
     }
 }

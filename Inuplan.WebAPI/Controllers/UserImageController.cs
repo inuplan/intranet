@@ -60,8 +60,8 @@ namespace Inuplan.WebAPI.Controllers
         /// <summary>
         /// The repository comments for an image.
         /// </summary>
-        private readonly IVectorRepository<int, ImageComment> imageCommentsRepo;
-        private readonly IAddImageUpload newUpload;
+        private readonly IVectorRepository<int, Comment> imageCommentsRepo;
+        private readonly IAddItem whatsNew;
         private readonly IDeleteItem removeNews;
 
         /// <summary>
@@ -71,16 +71,16 @@ namespace Inuplan.WebAPI.Controllers
         public UserImageController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             IScalarRepository<int, Image> userImageRepository,
-            IVectorRepository<int, ImageComment> imageCommentsRepo,
+            IVectorRepository<int, Comment> imageCommentsRepo,
             ImageHandleFactory imageHandleFactory,
-            IAddImageUpload newUpload,
+            IAddItem whatsNew,
             IDeleteItem removeNews)
             : base(userDatabaseRepository)
         {
             this.userImageRepository = userImageRepository;
             this.imageCommentsRepo = imageCommentsRepo;
             this.imageHandleFactory = imageHandleFactory;
-            this.newUpload = newUpload;
+            this.whatsNew = whatsNew;
             this.removeNews = removeNews;
         }
 
@@ -108,7 +108,6 @@ namespace Inuplan.WebAPI.Controllers
             // Proceed - everything OK
             var provider = await Request.Content.ReadAsMultipartAsync(new MultipartMemoryStreamProvider());
             var bag = new ConcurrentBag<Image>();
-            newUpload.Connect();
 
             var tasks = provider.Contents.Select(async file =>
             {
@@ -129,7 +128,7 @@ namespace Inuplan.WebAPI.Controllers
 
             var save = bag.Select(async image =>
             {
-                var created = await userImageRepository.Create(image, img => newUpload.Insert(img));
+                var created = await userImageRepository.Create(image, img => whatsNew.AddItem(img.ID, NewsType.ImageUpload));
                 created.Match(
                     (img) =>
                     {
@@ -325,9 +324,8 @@ namespace Inuplan.WebAPI.Controllers
                 return Request.CreateResponse(HttpStatusCode.Unauthorized, "Cannot delete another user's image");
             }
 
-            removeNews.Connect();
-            var deleteComments = await imageCommentsRepo.Delete(id, commentId => removeNews.Remove(commentId));
-            var deleted = await userImageRepository.Delete(id, k => removeNews.Remove(k));
+            var deleteComments = await imageCommentsRepo.Delete(id, commentId => removeNews.Remove(commentId, NewsType.ImageComment));
+            var deleted = await userImageRepository.Delete(id, k => removeNews.Remove(k, NewsType.ImageUpload));
 
             return deleted ?
                 Request.CreateResponse(HttpStatusCode.OK, "Image deleted") :
@@ -347,8 +345,8 @@ namespace Inuplan.WebAPI.Controllers
             var success = true;
             foreach (var id in imageIds)
             {
-                var deleteComments = await imageCommentsRepo.Delete(id, commentId => removeNews.Remove(commentId));
-                var deleteImage = await userImageRepository.Delete(id, imageId => removeNews.Remove(imageId));
+                var deleteComments = await imageCommentsRepo.Delete(id, commentId => removeNews.Remove(commentId, NewsType.ImageComment));
+                var deleteImage = await userImageRepository.Delete(id, imageId => removeNews.Remove(imageId, NewsType.ImageUpload));
 
                 Logger.Info("Image: {0}, deleted: {1}", id, deleteImage);
 

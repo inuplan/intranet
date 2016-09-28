@@ -4,7 +4,7 @@ import { options } from '../constants/constants'
 import { addUser } from './users'
 import { normalizeImage } from '../utilities/utils'
 import { HttpError, setError } from './error'
-import { responseHandler, onReject } from '../utilities/utils'
+import { objMap, responseHandler, onReject } from '../utilities/utils'
 import { find } from 'underscore'
 
 export function setImagesOwner(id) {
@@ -31,14 +31,15 @@ export const setSelectedImg = (id) => {
 export function addImage(img) {
     return {
         type: T.ADD_IMAGE,
-        image: img
+        key: img.ImageID,
+        val: img
     };
 }
 
 export function removeImage(id) {
     return {
         type: T.REMOVE_IMAGE,
-        id: id
+        key: id
     };
 }
 
@@ -62,6 +63,20 @@ export function clearSelectedImageIds() {
     };
 }
 
+export const incrementCommentCount = (imageId) => {
+    return {
+        type: T.INCR_IMG_COMMENT_COUNT,
+        key: imageId
+    }
+}
+
+export const decrementCommentCount = (imageId) => {
+    return {
+        type: T.DECR_IMG_COMMENT_COUNT,
+        key: imageId
+    }
+}
+
 export function deleteImage(id, username) {
     return function(dispatch) {
         const url = globals.urls.images + "?username=" + username + "&id=" + id;
@@ -77,7 +92,7 @@ export function deleteImage(id, username) {
     }
 }
 
-export function uploadImage(username, formData) {
+export function uploadImage(username, formData, onSuccess, onError) {
     return function(dispatch) {
         const url = globals.urls.images + "?username=" + username;
         const opt = Object.assign({}, options, {
@@ -89,7 +104,7 @@ export function uploadImage(username, formData) {
 
         return fetch(url, opt)
             .then(handler)
-            .then(() => dispatch(fetchUserImages(username)), onReject);
+            .then(onSuccess, onError);
     }
 }
 
@@ -101,7 +116,8 @@ export function fetchUserImages(username) {
 
         const onSuccess = (data) => {
             const normalized = data.map(normalizeImage).reverse();
-            dispatch(recievedUserImages(normalized));
+            const obj = objMap(normalized, (img) => img.ImageID, (img) => img);
+            dispatch(recievedUserImages(obj));
         }
 
         return fetch(url, options)
@@ -155,20 +171,6 @@ export function setImageOwner(username) {
                 });
         }
     }
-}
-
-const promiseGetImage = (id, getState) => {
-    return new Promise( (resolve, reject) => {
-        const images = getState().imagesInfo.images;
-        const image = find(images, (img) => img.ImageID == id);
-
-        if(image) {
-            resolve(image);
-        }
-        else {
-            reject(Error("Image does not exist locally!"));
-        }
-    });
 }
 
 export function fetchSingleImage(id) {
