@@ -24,13 +24,15 @@ export class CommentForm extends React.Component {
     }
 
     render() {
-        return (
-            <form onSubmit={this.postComment}>
-                <label htmlFor="remark">Kommentar</label>
-                <textarea className="form-control" onChange={this.handleTextChange} value={this.state.Text} placeholder="Skriv kommentar her..." id="remark" rows="4"></textarea>
-                <br />
-                <button type="submit" className="btn btn-primary">Send</button>
-            </form>
-        );
+        return  <form onSubmit={this.postComment}>
+                    <label htmlFor="remark">Kommentar</label>
+                    <textarea className="form-control" onChange={this.handleTextChange} value={this.state.Text} placeholder="Skriv kommentar her..." id="remark" rows="4"></textarea>
+                    <br />
+                    <button type="submit" className="btn btn-primary">Send</button>
+                </form>
     }
+}
+
+CommentForm.propTypes = {
+    postHandle: React.PropTypes.func.isRequired
 }

@@ -108,7 +108,7 @@ namespace Inuplan.DAL.Repositories.Forum
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
                 var sql = @"SELECT
-                                t.ID AS ThreadID, t.CreatedOn, t.Published,                 /* ThreadPostTitle */
+                                t.ID AS ThreadID, t.CreatedOn, t.Published AS IsPublished,                 /* ThreadPostTitle */
                                 t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified,
                                 t.Title, t.LastModified, t.Sticky, t.LatestComment,
                                 u.ID, u.FirstName, u.LastName, u.Username, u.Email,         /* Author */
@@ -152,7 +152,7 @@ namespace Inuplan.DAL.Repositories.Forum
         public async Task<List<ThreadPostTitle>> GetAll(params object[] identifiers)
         {
             var sqlTitles = @"SELECT
-                                t.ID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, t.Sticky, t.LatestComment, /* ThreadPostTitle */
+                                t.ID, t.CreatedOn, t.Published AS IsPublished, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, t.Sticky, t.LatestComment, /* ThreadPostTitle */
                                 u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName                                                   /* Author */
                             FROM ThreadTitles t
                             LEFT JOIN Users u
@@ -202,7 +202,7 @@ namespace Inuplan.DAL.Repositories.Forum
                             SELECT
                                 t.ID, CreatedOn, Published, Author AS AuthorID, Deleted, Modified AS IsModified, Title, LastModified, Sticky, LatestComment,
                                 u.ID AS UserID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName,
-                                ROW_NUMBER() OVER (ORDER BY Sticky DESC, LatestComment DESC, @Sort @Order) AS 'RowNumber'
+                                ROW_NUMBER() OVER (ORDER BY Sticky DESC, @Sort @Order, LatestComment DESC) AS 'RowNumber'
                             FROM ThreadTitles t
                             
                             LEFT JOIN Users u

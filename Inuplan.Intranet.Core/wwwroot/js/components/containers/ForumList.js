@@ -94,13 +94,13 @@ class ForumListContainer extends React.Component {
                                 <strong>Info</strong>
                             </Col>
                             <Col lg={5}>
-                                <strong>Titel</strong>
+                                <strong>Overskrift</strong>
                             </Col>
                             <Col lg={2} className="text-center">
                                 <strong>Dato</strong>
                             </Col>
                             <Col lg={2} className="text-center">
-                                <strong>Set af</strong>
+                                <strong>L&aelig;st af</strong>
                             </Col>
                             <Col lg={2} className="text-center">
                                 <strong>Seneste kommentar</strong>

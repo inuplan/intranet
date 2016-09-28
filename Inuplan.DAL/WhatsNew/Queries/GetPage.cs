@@ -20,10 +20,8 @@
 
 namespace Inuplan.DAL.WhatsNew.Queries
 {
-    using Common.DTOs;
     using Common.Enums;
     using Common.Models;
-    using Common.Models.Interfaces;
     using Common.Queries;
     using Common.Repositories;
     using Common.Tools;
@@ -31,10 +29,12 @@ namespace Inuplan.DAL.WhatsNew.Queries
     using Optional;
     using Optional.Unsafe;
     using System;
-    using System.Collections.Generic;
     using System.Data;
     using System.Linq;
     using System.Threading.Tasks;
+    using Autofac.Features.Indexed;
+    using Common.Models.Forum;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Implements a query for the latest news
@@ -43,29 +43,59 @@ namespace Inuplan.DAL.WhatsNew.Queries
     {
         private readonly IDbConnection connection;
         private readonly IVectorRepository<int, Comment> commentRepo;
+        private readonly IVectorRepository<int, Comment> forumCommentRepo;
         private readonly IScalarRepository<int, Image> imageRepo;
+        private readonly IScalarRepository<int, ThreadPostContent> threadRepo;
 
-        public GetPage(IDbConnection connection, IVectorRepository<int, Comment> commentRepo, IScalarRepository<int, Image> imageRepo)
+        public GetPage(
+            IDbConnection connection,
+            IVectorRepository<int, Comment> commentRepo,
+            IScalarRepository<int, Image> imageRepo,
+            IIndex<ServiceKeys, IScalarRepository<int, ThreadPostContent>> threadRepoIndex,
+            IIndex<ServiceKeys, IVectorRepository<int, Comment>> forumCommentRepoIndex
+        )
         {
             this.connection = connection;
             this.commentRepo = commentRepo;
             this.imageRepo = imageRepo;
+            threadRepo = threadRepoIndex[ServiceKeys.ThreadPostContentRepository];
+            forumCommentRepo = forumCommentRepoIndex[ServiceKeys.ForumCommentsRepository];
         }
 
         public async Task<Pagination<NewsItem>> Page(NewsType filter, int skip, int take, Func<Image, string, string> getUrl)
         {
-            var num = (byte)(filter & (NewsType.ImageUpload | NewsType.ImageComment));
             var sql = @"SELECT * FROM
                             (SELECT *
                             FROM WhatsNew
-                            WHERE Event <= @num ) seq
+                            WHERE %) seq
                         ORDER BY TimeOn DESC
                         OFFSET @skip ROWS
                         FETCH NEXT @take ROWS ONLY";
 
+            var where = new List<string>();
+            if(filter.HasFlag(NewsType.ImageUpload))
+            {
+                where.Add("EVENT = 1");
+            }
+            if(filter.HasFlag(NewsType.ImageComment))
+            {
+                where.Add("EVENT = 2");
+            }
+            if(filter.HasFlag(NewsType.ThreadPost))
+            {
+                where.Add("EVENT = 4");
+            }
+
+            if(filter == NewsType.Nothing)
+            {
+                return null;
+            }
+
+            var condition = where.Aggregate((res, next) => res + " OR " + next);
+            sql = sql.Replace("%", condition);
+
             var result = await connection.QueryAsync(sql, new
             {
-                num,
                 skip,
                 take
             });
@@ -84,6 +114,8 @@ namespace Inuplan.DAL.WhatsNew.Queries
                         return FetchImage(id, on, targetId, getUrl);
                     case NewsType.ImageComment:
                         return FetchComment(id, on, targetId);
+                    case NewsType.ThreadPost:
+                        return FetchThreadPost(id, on, targetId);
                 }
 
                 throw new IndexOutOfRangeException("Type enum out of bounds");
@@ -120,12 +152,13 @@ namespace Inuplan.DAL.WhatsNew.Queries
 
         private Option<NewsItem> FetchComment(int id, DateTime on, int commentId)
         {
-            // TODO: Get the ImageID from the database
             var comment = commentRepo.GetSingleByID(commentId).Result;
             return comment.Map(c =>
             {
-                var uploader = imageRepo.Get(c.ContextID).Result.ValueOrFailure().Owner;
-                var dto = Converters.ToWhatsNewComment(c, uploader);
+                var image = imageRepo.Get(c.ContextID).Result.ValueOrFailure();
+                var uploader = image.Owner;
+                var filename = image.Filename + "." + image.Extension;
+                var dto = Converters.ToWhatsNewComment(c, uploader, filename);
 
                 return new NewsItem
                 {
@@ -133,6 +166,30 @@ namespace Inuplan.DAL.WhatsNew.Queries
                     Type = NewsType.ImageComment,
                     On = on,
                     Item = dto
+                };
+            });
+        }
+
+        private Option<NewsItem> FetchThreadPost(int id, DateTime on, int threadId)
+        {
+            var post = threadRepo.Get(threadId).Result;
+            return post.Map(p =>
+            {
+                Comment latest = null;
+                if(p.Header.LatestComment.HasValue)
+                {
+                    latest = forumCommentRepo.GetSingleByID(p.Header.LatestComment.Value).Result.ValueOr(alternative: null);
+                }
+
+                var count = forumCommentRepo.Count(p.ThreadID).Result;
+                var dto = Converters.ToThreadPostContentDTO(p, latest, count);
+
+                return new NewsItem
+                {
+                    ID = id,
+                    Item = dto,
+                    On = on,
+                    Type = NewsType.ThreadPost
                 };
             });
         }

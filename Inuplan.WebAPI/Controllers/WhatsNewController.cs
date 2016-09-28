@@ -26,7 +26,6 @@ namespace Inuplan.WebAPI.Controllers
     using Common.Queries;
     using Common.Repositories;
     using Common.Tools;
-    using System;
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Cors;
@@ -45,14 +44,8 @@ namespace Inuplan.WebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<Pagination<NewsItem>> Get(int skip, int take, bool comments = true, bool imageUploads = true)
+        public async Task<Pagination<NewsItem>> Get(int skip, int take, NewsType filter = NewsType.ImageComment | NewsType.ImageUpload | NewsType.ThreadPost)
         {
-            var filter = NewsType.Nothing;
-            if (comments && imageUploads) filter = NewsType.ImageUpload | NewsType.ImageComment;
-            else if (comments) filter = NewsType.ImageComment;
-            else if (imageUploads) filter = NewsType.ImageUpload;
-            else throw new NotSupportedException();
-
             var page = await whatsNew.Page(filter, skip, take, ImageUrl);
             return page;
         }

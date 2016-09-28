@@ -35,6 +35,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
     using System.Web.Http;
     using Extensions;
     using System.Web.Http.Cors;
+    using Common.Commands;
 
     [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class ForumPostController : DefaultController
@@ -42,17 +43,26 @@ namespace Inuplan.WebAPI.Controllers.Forum
         private readonly IVectorRepository<int, Comment> forumCommentRepository;
         private readonly IScalarRepository<int, ThreadPostContent> postRepository;
         private readonly IScalarRepository<int, ThreadPostTitle> titleRepository;
+        private readonly IMarkPost markPost;
+        private readonly IAddItem whatsNew;
+        private readonly IDeleteItem remove;
 
         public ForumPostController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             [WithKey(ServiceKeys.ThreadPostContentRepository)] IScalarRepository<int, ThreadPostContent> postRepository,
             [WithKey(ServiceKeys.ThreadPostTitleRepository)] IScalarRepository<int, ThreadPostTitle> titleRepository,
-            [WithKey(ServiceKeys.ForumCommentsRepository)] IVectorRepository<int, Comment> forumCommentRepository
+            [WithKey(ServiceKeys.ForumCommentsRepository)] IVectorRepository<int, Comment> forumCommentRepository,
+            IAddItem whatsNew,
+            IDeleteItem remove,
+            IMarkPost markPost
         ) : base(userDatabaseRepository)
         {
             this.postRepository = postRepository;
             this.forumCommentRepository = forumCommentRepository;
             this.titleRepository = titleRepository;
+            this.whatsNew = whatsNew;
+            this.remove = remove;
+            this.markPost = markPost;
         }
 
         [HttpGet]
@@ -67,7 +77,15 @@ namespace Inuplan.WebAPI.Controllers.Forum
                 var commentCount = forumCommentRepository.Count(id).Result;
                 var title = titleRepository.Get(id);
                 p.Header = title.Result.ValueOrFailure();
-                return Converters.ToThreadPostContentDTO(p, commentCount);
+
+                Comment latest = null;
+                if(p.Header.LatestComment.HasValue)
+                {
+                    var someComment = forumCommentRepository.GetSingleByID(p.Header.LatestComment.Value).Result;
+                    latest = someComment.Filter(c => !c.Deleted).ValueOr(alternative: null);
+                }
+
+                return Converters.ToThreadPostContentDTO(p, latest, commentCount);
             });
 
             return result.Match(p => p, () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
@@ -85,8 +103,8 @@ namespace Inuplan.WebAPI.Controllers.Forum
             post.Header.CreatedOn = DateTime.Now;
             var titleCreated = await titleRepository.Create(post.Header, (t) => Task.FromResult(0));
 
-            // TODO: Add Whatsnew Item on post created!
-            var result = titleCreated.FlatMap(t => postRepository.Create(post, p => Task.FromResult(0)).Result);
+            // Add Whatsnew Item on post created!
+            var result = titleCreated.FlatMap(t => postRepository.Create(post, p => whatsNew.AddItem(p.ThreadID, NewsType.ThreadPost)).Result);
 
             return result.Match(
                 c => Request.CreateResponse(HttpStatusCode.Created),
@@ -96,8 +114,22 @@ namespace Inuplan.WebAPI.Controllers.Forum
         [HttpPut]
         public async Task<HttpResponseMessage> Put([FromUri] int postId, [FromUri] bool read)
         {
-            // Set current user to 'READ' if true otherwise 'UNREAD'
-            throw new NotImplementedException();
+            var user = Request.GetUser();
+            var result = await user.Map(u =>
+            {
+                if (read)
+                {
+                    return markPost.ReadPost(u, postId);
+                }
+                else
+                {
+                    return markPost.UnreadPost(u, postId);
+                }
+            }).ValueOr(Task.FromResult(false));
+
+            var response = result ? Request.CreateResponse(HttpStatusCode.OK)
+                : Request.CreateResponse(HttpStatusCode.InternalServerError);
+            return response;
         }
 
         [HttpPut]
@@ -131,7 +163,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
             if (!deleteAllComments) return Request.CreateResponse(HttpStatusCode.InternalServerError);
 
             // Delete the actual thread. Note if error occurs here we cannot rollback!
-            var delete = await titleRepository.Delete(id, (threadId) => Task.FromResult(0));
+            var delete = await titleRepository.Delete(id, (threadId) => remove.Remove(threadId, NewsType.ThreadPost));
             if (!delete) return Request.CreateResponse(HttpStatusCode.InternalServerError);
 
             // Deleted

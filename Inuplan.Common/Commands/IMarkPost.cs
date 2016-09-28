@@ -21,12 +21,11 @@
 namespace Inuplan.Common.Commands
 {
     using Models;
-    using System;
     using System.Threading.Tasks;
 
-    public interface IAddImageUpload : IDisposable
+    public interface IMarkPost
     {
-        void Connect();
-        Task<bool> Insert(Image image);
+        Task<bool> ReadPost(User user, int postId);
+        Task<bool> UnreadPost(User user, int postId);
     }
 }

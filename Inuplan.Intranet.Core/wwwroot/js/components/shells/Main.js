@@ -1,8 +1,8 @@
 ﻿import React from 'react'
 import { Link, IndexLink } from 'react-router'
-import { NavLink, IndexNavLink } from './wrappers/Links'
-import { Error } from './containers/Error'
-import { clearError } from '../actions/error'
+import { NavLink, IndexNavLink } from '../wrappers/Links'
+import { Error } from '../containers/Error'
+import { clearError } from '../../actions/error'
 import { connect } from 'react-redux'
 import { Grid, Navbar, Nav } from 'react-bootstrap'
 import { values } from 'underscore'
@@ -50,7 +50,7 @@ class Shell extends React.Component {
                         <Navbar.Collapse>
                             <Nav>
                                 <IndexNavLink to="/">Forside</IndexNavLink>
-                                <NavLink to="/forum/threads">Forum</NavLink>
+                                <NavLink to="/forum">Forum</NavLink>
                                 <NavLink to="/users">Brugere</NavLink>
                                 <NavLink to="/about">Om</NavLink>                                
                             </Nav>

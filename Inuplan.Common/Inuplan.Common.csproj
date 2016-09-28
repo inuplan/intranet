@@ -51,9 +51,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\IAddImageComment.cs" />
-    <Compile Include="Commands\IAddImageUpload.cs" />
+    <Compile Include="Commands\IAddItem.cs" />
     <Compile Include="Commands\IDeleteItem.cs" />
+    <Compile Include="Commands\IMarkPost.cs" />
     <Compile Include="DTOs\BaseDTO.cs" />
     <Compile Include="DTOs\ClaimsDTO.cs" />
     <Compile Include="DTOs\Forum\ThreadPostCommentDTO.cs" />

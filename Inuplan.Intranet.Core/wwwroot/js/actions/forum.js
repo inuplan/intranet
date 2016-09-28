@@ -10,6 +10,14 @@ export const setPostComments = (comments) => {
     }
 }
 
+export const updateThreadTitle = (title) => {
+    return {
+        type: T.UPDATE_THREAD_TITLE,
+        id: title.ID,
+        title: title,
+    }
+}
+
 export const addThreadTitle = (title) => {
     return {
         type: T.ADD_THREAD_TITLE,
@@ -66,10 +74,14 @@ export const setPostContent = (content) => {
     }
 }
 
-export const setSelectedPostId = (id) => {
-    return {
-        type: T.SET_SELECTED_POST_ID,
-        id: id
+export const markPost = (postId, read, cb) => {
+    return function(dispatch) {
+        const url = `${globals.urls.forumpost}?postId=${postId}&read=${read}`;
+        const opt = Object.assign({}, options, {
+            method: 'PUT'
+        });
+        return fetch(url, opt)
+            .then(cb, onReject);
     }
 }
 
@@ -108,7 +120,7 @@ export const fetchPost = (id) => {
                 const content = data.Text;
                 const title = normalizeThreadTitle(data.Header);
 
-                dispatch(addThreadTitle(title));
+                dispatch(updateThreadTitle(title));
                 dispatch(setPostContent(content));
                 dispatch(setSelectedThread(data.ThreadID));
             })

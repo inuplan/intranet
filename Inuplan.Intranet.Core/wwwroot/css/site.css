@@ -79,3 +79,17 @@
 .forum-editbar {
     margin-top: 1.5em;
 }
+
+.forum-comments-list {
+    margin-bottom: 1.6em;
+}
+
+.forum-comments-heading {
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
+
+.whatsnewItem:hover {
+    background-color: #f3f3f3;
+
+}

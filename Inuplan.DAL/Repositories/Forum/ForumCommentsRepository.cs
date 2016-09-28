@@ -109,6 +109,16 @@ namespace Inuplan.DAL.Repositories.Forum
                         })).Equals(1);
                     }
 
+                    // Then set the latest comment for the thread to this comment
+                    var updateSql = @"UPDATE ThreadTitles SET LatestComment=@ID WHERE ID=@ThreadID";
+                    var update = await connection.ExecuteAsync(updateSql, new
+                    {
+                        ID = entity.ID,
+                        ThreadID = entity.ContextID
+                    });
+
+                    success = success && (update == 1);
+
                     if (success)
                     {
                         await onCreate(entity);

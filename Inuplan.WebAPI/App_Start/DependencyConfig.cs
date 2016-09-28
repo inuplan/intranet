@@ -28,6 +28,7 @@ namespace Inuplan.WebAPI.App_Start
     using Common.Repositories;
     using Controllers;
     using Controllers.Forum;
+    using DAL.ForumPost.Commands;
     using DAL.Repositories;
     using DAL.Repositories.Forum;
     using DAL.WhatsNew.Commands;
@@ -80,9 +81,9 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<ForumCommentController>().WithAttributeFilter();
 
             // Register classes and keys
-            builder.RegisterType<AddImageUpload>().As<IAddImageUpload>();
-            builder.RegisterType<AddImageComment>().As<IAddImageComment>();
+            builder.RegisterType<AddWhatsNewItem>().As<IAddItem>();
             builder.RegisterType<DeleteItem>().As<IDeleteItem>();
+            builder.RegisterType<MarkPost>().As<IMarkPost>();
             builder.RegisterType<GetPage>().As<IGetPage>();
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();

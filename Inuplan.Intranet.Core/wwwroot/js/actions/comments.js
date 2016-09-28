@@ -73,9 +73,8 @@ export function setFocusedComment(commentId) {
     }
 }
 
-export function fetchComments(imageId, skip, take) {
-    return function(dispatch, getState) {
-        const url = globals.urls.comments + "?imageId=" + imageId + "&skip=" + skip + "&take=" + take;
+export function fetchComments(url, skip, take) {
+    return function(dispatch) {
         const handler = responseHandler.bind(this, dispatch);
         return fetch(url, options)
             .then(handler)
@@ -96,15 +95,13 @@ export function fetchComments(imageId, skip, take) {
     }
 }
 
-export const postComment = (imageId, text, parentCommentId, cb) => {
+export const postComment = (url, contextId, text, parentCommentId, cb) => {
     return function (dispatch) {
-        const url = globals.urls.comments;
-
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
-        const body =JSON.stringify({ 
+        const body =JSON.stringify({
             Text: text,
-            ContextID: imageId,
+            ContextID: contextId,
             ParentID: parentCommentId
         });
 
@@ -115,21 +112,17 @@ export const postComment = (imageId, text, parentCommentId, cb) => {
         });
 
         return fetch(url, opt)
-            .then(cb)
-            .then(() => {
-                dispatch(incrementCommentCount(imageId));
-            }, onReject);
+            .then(cb, onReject);
     }
 }
 
-export const editComment = (commentId, imageId, text, cb) => {
+export const editComment = (url, commentId, text, cb) => {
     return function(dispatch, getState) {
-        const url = `${globals.urls.comments}?imageId=${imageId}`;
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
         const opt = Object.assign({}, options, {
             method: 'PUT',
-            body: JSON.stringify({ ID: commentId, Text: text}),
+            body: JSON.stringify({ ID: commentId, Text: text }),
             headers: headers
         });
 
@@ -138,37 +131,20 @@ export const editComment = (commentId, imageId, text, cb) => {
     }
 }
 
-export const deleteComment = (commentId, imageId, cb) => {
+export const deleteComment = (url, cb) => {
     return function(dispatch, getState) {
-        const url = globals.urls.comments + "?commentId=" + commentId;
         const opt = Object.assign({}, options, {
             method: 'DELETE'
         });
 
         return fetch(url, opt)
-            .then(() => dispatch(decrementCommentCount(imageId)))
             .then(cb);
-    }
-}
-
-export const incrementCommentCount = (imageId) => {
-    return {
-        type: T.INCR_COMMENT_COUNT,
-        key: imageId
-    }
-}
-
-export const decrementCommentCount = (imageId) => {
-    return {
-        type: T.DECR_COMMENT_COUNT,
-        key: imageId
     }
 }
 
 export const fetchAndFocusSingleComment = (id) => {
     return (dispatch, getState) => {
-        const { comments } = globals.urls;
-        const url = `${comments}/GetSingle?id=${id}`;
+        const url = `${globals.urls.imagecomments}/GetSingle?id=${id}`;
         const handler = responseHandler.bind(this, dispatch);
 
         return fetch(url, options)

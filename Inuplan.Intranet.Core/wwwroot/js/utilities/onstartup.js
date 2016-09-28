@@ -1,8 +1,16 @@
 ﻿import { store } from '../stores/store'
+import { fetchCurrentUser, fetchUsers } from '../actions/users'
 import { fetchUserImages, setSelectedImg, setImageOwner } from '../actions/images'
 import { fetchComments, setSkipComments, setTakeComments, fetchAndFocusSingleComment } from '../actions/comments'
 import { fetchLatestNews } from '../actions/whatsnew'
 import { fetchThreads, fetchPost } from '../actions/forum'
+import { getImageCommentsPageUrl, getForumCommentsPageUrl } from '../utilities/utils'
+
+export const init = () => {
+    store.dispatch(fetchCurrentUser(globals.currentUsername));
+    store.dispatch(fetchUsers());
+    moment.locale('da');
+}
 
 export const selectImage = (nextState) => {
     const imageId = Number(nextState.params.id);
@@ -24,13 +32,14 @@ export const loadComments = (nextState) => {
     const page = Number(nextState.location.query.page);
     const { skip, take } = store.getState().commentsInfo;
 
+    const url = getImageCommentsPageUrl(id, skip, take);
     if(!page) {
-        store.dispatch(fetchComments(id, skip, take));
+        store.dispatch(fetchComments(url, skip, take));
     }
     else {
         const skipPages = page - 1;
         const skipItems = (skipPages * take);
-        store.dispatch(fetchComments(id, skipItems, take));
+        store.dispatch(fetchComments(url, skipItems, take));
     }
 }
 
@@ -52,5 +61,13 @@ export const fetchForum = (nextState) => {
 
 export const fetchSinglePost = (nextState) => {
     const { id } = nextState.params;
-    store.dispatch(fetchPost(id));
+    store.dispatch(fetchPost(Number(id)));
+}
+
+export const fetchPostComments = (nextState) => {
+    const { id } = nextState.params;
+    const { skip, take } = store.getState().commentsInfo;
+
+    const url = getForumCommentsPageUrl(id, skip, take);
+    store.dispatch(fetchComments(url, skip, take));
 }

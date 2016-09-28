@@ -1,6 +1,6 @@
 ﻿import React from 'react'
 import { Row, Col, Glyphicon, OverlayTrigger, Tooltip } from 'react-bootstrap'
-import { timeText } from '../../utilities/utils'
+import { timeText, formatText, getWords } from '../../utilities/utils'
 import { Link } from 'react-router'
 
 export class ForumTitle extends React.Component {
@@ -40,12 +40,21 @@ export class ForumTitle extends React.Component {
                 </span>
     }
 
+    createSummary() {
+        const { title } = this.props;
+        if(!title.LatestComment) return 'Ingen kommentarer';
+
+        if(title.LatestComment.Deleted) return 'Kommentar slettet';
+        const text = title.LatestComment.Text;
+        return getWords(text, 5);
+    }
+
     render() {
         const { title, getAuthor, onClick } = this.props;
         const name = getAuthor(title.AuthorID);
-        const commentDate = title.LatestComment ? TimeText(title.LatestComment) : 'Ingen kommentarer';
+        const latestComment  = this.createSummary();
         const css = title.Sticky ? "thread thread-pinned" : "thread";
-        const path = `/forum/post/${title.ID}`;
+        const path = `/forum/post/${title.ID}/comments`;
 
         return  <Link to={path}>
                     <Row className={css}>
@@ -61,7 +70,7 @@ export class ForumTitle extends React.Component {
                             <p>{title.ViewedBy.length}</p>
                         </Col>
                         <Col lg={2} className="text-center">
-                            <p>{commentDate}</p>
+                            <p>{latestComment}</p>
                         </Col>
                     </Row>
                 </Link>

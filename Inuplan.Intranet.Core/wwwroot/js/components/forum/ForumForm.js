@@ -17,8 +17,6 @@ export class ForumForm extends React.Component {
     componentWillReceiveProps(nextProps) {
         const { edit } = nextProps;
         if(edit) {
-            // Normalized thread title
-            // with Text property
             this.setState({
                 Title: edit.Title,
                 Text: edit.Text,
@@ -62,9 +60,6 @@ export class ForumForm extends React.Component {
         // Do whatever work here...
         const post = this.transformToDTO(this.state);
         onSubmit(post);
-
-        // Before closing remember to clear state:
-        this.clearState();
         close();
     }
 
@@ -80,11 +75,7 @@ export class ForumForm extends React.Component {
 
     closeHandle() {
         const { close } = this.props;
-        this.clearState();
         close();
-    }
-
-    clearState() {
     }
 
     render() {
@@ -100,10 +91,10 @@ export class ForumForm extends React.Component {
                         <Modal.Body>
                             <Row>
                                 <Col lg={12}>
-                                    
+
                                         <FormGroup controlId="formPostTitle" validationState={this.getValidation()}>
-                                            <ControlLabel>Titel</ControlLabel>
-                                            <FormControl type="text" placeholder="Titel på indlæg..." onChange={this.handleTitleChange.bind(this)} value={this.state.Title}/>
+                                            <ControlLabel>Overskrift</ControlLabel>
+                                            <FormControl type="text" placeholder="Overskrift på indlæg..." onChange={this.handleTitleChange.bind(this)} value={this.state.Title}/>
                                         </FormGroup>
 
                                         <FormGroup controlId="formPostContent">
@@ -113,7 +104,6 @@ export class ForumForm extends React.Component {
 
                                         <FormGroup controlId="formPostSticky">
                                             <ButtonGroup>
-                                                <Button bsStyle="success" bsSize="small" active={this.state.IsPublished} onClick={this.handlePublished.bind(this)}><Glyphicon glyph="file" />Udgiv indl&aelig;g</Button>
                                                 <Button bsStyle="success" bsSize="small" active={this.state.Sticky} onClick={this.handleSticky.bind(this)}><Glyphicon glyph="pushpin" /> Vigtig</Button>
                                             </ButtonGroup>
                                         </FormGroup>
@@ -129,3 +119,4 @@ export class ForumForm extends React.Component {
                 </Modal>
     }
 }
+//                                                <!--/*<Button bsStyle="success" bsSize="small" active={this.state.IsPublished} onClick={this.handlePublished.bind(this)}><Glyphicon glyph="file" />Udgiv indl&aelig;g</Button>*/-->

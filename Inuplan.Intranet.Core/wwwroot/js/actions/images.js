@@ -63,6 +63,20 @@ export function clearSelectedImageIds() {
     };
 }
 
+export const incrementCommentCount = (imageId) => {
+    return {
+        type: T.INCR_IMG_COMMENT_COUNT,
+        key: imageId
+    }
+}
+
+export const decrementCommentCount = (imageId) => {
+    return {
+        type: T.DECR_IMG_COMMENT_COUNT,
+        key: imageId
+    }
+}
+
 export function deleteImage(id, username) {
     return function(dispatch) {
         const url = globals.urls.images + "?username=" + username + "&id=" + id;
