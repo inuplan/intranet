@@ -58,25 +58,38 @@ namespace Inuplan.WebAPI.Controllers.Forum
         // localhost:9000/api/forumtitle?skip=0&take=10&sortBy=LastModified&orderBy=Asc
         public async Task<Pagination<ThreadPostTitleDTO>> Get(int skip, int take, ForumSortBy sortBy = ForumSortBy.CreatedOn, ForumOrderBy orderBy = ForumOrderBy.Desc)
         {
-            var titles = await threadTitleRepository.GetPage(skip, take, () => sortBy.ToString(), () => orderBy.ToString());
-            var titleDtos = titles.CurrentItems.Select(t => {
-                var commentCount = forumCommentRepository.Count(t.ThreadID);
-
-                Comment latest = null;
-                if (t.LatestComment.HasValue)
-                {
-                    latest = forumCommentRepository.GetSingleByID(t.LatestComment.Value).Result.ValueOr(alternative: null);
-                }
-
-                return Converters.ToThreadPostTitleDTO(t, latest, commentCount.Result);
-            });
-
-            return new Pagination<ThreadPostTitleDTO>
+            try
             {
-                CurrentItems = titleDtos.ToList(),
-                CurrentPage = titles.CurrentPage,
-                TotalPages = titles.TotalPages
-            };
+                logger.Trace("----- BEGIN Get page method ------");
+                logger.Trace("Forumtitle?skip={0}&take={1}&sortBy={2}&orderBy={3}", skip, take, sortBy, orderBy);
+                var titles = await threadTitleRepository.GetPage(skip, take, () => sortBy.ToString(), () => orderBy.ToString());
+
+                var titleDtos = titles.CurrentItems.Select(t =>
+                {
+                    var commentCount = forumCommentRepository.Count(t.ThreadID);
+
+                    Comment latest = null;
+                    if (t.LatestComment.HasValue)
+                    {
+                        latest = forumCommentRepository.GetSingleByID(t.LatestComment.Value).Result.ValueOr(alternative: null);
+                    }
+
+                    return Converters.ToThreadPostTitleDTO(t, latest, commentCount.Result);
+                });
+
+                logger.Trace("----- END Get page method ------");
+                return new Pagination<ThreadPostTitleDTO>
+                {
+                    CurrentItems = titleDtos.ToList(),
+                    CurrentPage = titles.CurrentPage,
+                    TotalPages = titles.TotalPages
+                };
+            }
+            catch (System.Exception ex)
+            {
+                logger.Error(ex);
+                throw;
+            }
         }
     }
 }
