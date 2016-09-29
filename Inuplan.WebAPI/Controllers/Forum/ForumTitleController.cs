@@ -59,7 +59,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
         {
             try
             {
-                logger.Trace("----- BEGIN Get page method ------");
+                logger.Trace("----- BEGIN Get page method: ForumTitleController ------");
                 logger.Trace("Forumtitle?skip={0}&take={1}&sortBy={2}&orderBy={3}", skip, take, sortBy, orderBy);
                 var titles = await threadTitleRepository.GetPage(skip, take, () => sortBy.ToString(), () => orderBy.ToString());
 
@@ -76,7 +76,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
                     return Converters.ToThreadPostTitleDTO(t, latest, commentCount.Result);
                 });
 
-                logger.Trace("----- END Get page method ------");
+                logger.Trace("----- END Get page method: ForumTitleController ------");
                 return new Pagination<ThreadPostTitleDTO>
                 {
                     CurrentItems = titleDtos.ToList(),
