@@ -206,7 +206,7 @@
     <Compile Include="Extensions\HttpRequestMessageExtensions.cs" />
     <Compile Include="Image\Factories\HandleFactory.cs" />
     <Compile Include="Image\Handle.cs" />
-    <Compile Include="Logger\NLogService.cs" />
+    <Compile Include="Logger\NLogServiceWrapper.cs" />
     <Compile Include="Middlewares\ManageUserMiddleware.cs" />
     <Compile Include="Mocks\NoADRepo.cs" />
     <Compile Include="Program.cs" />

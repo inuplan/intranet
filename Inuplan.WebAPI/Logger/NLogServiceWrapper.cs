@@ -20,23 +20,56 @@
 
 namespace Inuplan.WebAPI.Logger
 {
+    using System;
     using NLog;
 
-    public class NLogService<T>
+    public class NLogServiceWrapper<T> : Common.Logger.ILogger<T>
     {
         private readonly ILogger logger;
 
-        public NLogService()
+        public NLogServiceWrapper()
         {
             logger = LogManager.GetLogger(typeof(T).FullName);
         }
 
-        public ILogger Logger
+        public void Debug(string message)
         {
-            get
-            {
-                return logger;
-            }
+            logger.Debug(message);
+        }
+
+        public void Debug(string message, params object[] args)
+        {
+            logger.Debug(message, args);
+        }
+
+        public void Error(string message)
+        {
+            logger.Error(message);
+        }
+
+        public void Error(Exception ex)
+        {
+            logger.Error(ex);
+        }
+
+        public void Info(string message)
+        {
+            logger.Info(message);
+        }
+
+        public void Info(string message, params object[] args)
+        {
+            logger.Info(message, args);
+        }
+
+        public void Trace(string message)
+        {
+            logger.Trace(message);
+        }
+
+        public void Trace(string message, params object[] args)
+        {
+            logger.Trace(message, args);
         }
     }
 }

@@ -23,12 +23,11 @@ namespace Inuplan.WebAPI.Controllers.Forum
     using Autofac.Extras.Attributed;
     using Common.DTOs.Forum;
     using Common.Enums;
+    using Common.Logger;
     using Common.Models;
     using Common.Models.Forum;
     using Common.Repositories;
     using Common.Tools;
-    using Logger;
-    using NLog;
     using System.Linq;
     using System.Threading.Tasks;
     using System.Web.Http;
@@ -39,19 +38,19 @@ namespace Inuplan.WebAPI.Controllers.Forum
     {
         private readonly IScalarRepository<int, ThreadPostTitle> threadTitleRepository;
         private readonly IVectorRepository<int, Comment> forumCommentRepository;
-        private readonly ILogger logger;
+        private readonly ILogger<ForumTitleController> logger;
 
         public ForumTitleController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             [WithKey(ServiceKeys.ThreadPostTitleRepository)] IScalarRepository<int, ThreadPostTitle> threadTitleRepository,
             [WithKey(ServiceKeys.ForumCommentsRepository)] IVectorRepository<int, Comment> forumCommentRepository,
-            NLogService<ForumTitleController> logService
+            ILogger<ForumTitleController> logger
             )
             : base(userDatabaseRepository)
         {
             this.threadTitleRepository = threadTitleRepository;
             this.forumCommentRepository = forumCommentRepository;
-            logger = logService.Logger;
+            this.logger = logger;
         }
 
         [HttpGet]
