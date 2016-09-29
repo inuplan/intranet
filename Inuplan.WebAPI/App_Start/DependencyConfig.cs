@@ -34,7 +34,9 @@ namespace Inuplan.WebAPI.App_Start
     using DAL.WhatsNew.Commands;
     using DAL.WhatsNew.Queries;
     using Image.Factories;
+    using Logger;
     using Middlewares;
+    using NLog;
     using Properties;
     using System.Data;
     using System.Data.SqlClient;
@@ -88,6 +90,7 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterInstance(root).Keyed<string>(ServiceKeys.RootPath);
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
+            builder.RegisterGeneric(typeof(NLogService<>)).InstancePerLifetimeScope();
 
             // Register repositories
             builder.RegisterType<RoleRepository>().As<IScalarRepository<int, Role>>();
