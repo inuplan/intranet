@@ -71,6 +71,7 @@
     <Compile Include="Enums\ServiceKeys.cs" />
     <Compile Include="Factories\ImageHandleFactory.cs" />
     <Compile Include="Handlers\IImageHandler.cs" />
+    <Compile Include="Logger\ILogger.cs" />
     <Compile Include="Models\Album.cs" />
     <Compile Include="Models\Comment.cs" />
     <Compile Include="Models\FileInfo.cs" />

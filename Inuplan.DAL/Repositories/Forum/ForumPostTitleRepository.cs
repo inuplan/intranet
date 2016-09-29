@@ -25,7 +25,6 @@ namespace Inuplan.DAL.Repositories.Forum
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using Common.Models;
     using Optional;
@@ -34,16 +33,19 @@ namespace Inuplan.DAL.Repositories.Forum
     using System.Transactions;
     using System.Diagnostics;
     using Common.Tools;
+    using Common.Logger;
 
     public class ForumPostTitleRepository : IScalarRepository<int, ThreadPostTitle>
     {
         private readonly IDbConnection connection;
 
         private bool disposedValue = false;
+        private readonly ILogger<ForumPostTitleRepository> logger;
 
-        public ForumPostTitleRepository(IDbConnection connection)
+        public ForumPostTitleRepository(IDbConnection connection, ILogger<ForumPostTitleRepository> logger)
         {
             this.connection = connection;
+            this.logger = logger;
         }
 
         public async Task<Option<ThreadPostTitle>> Create(ThreadPostTitle entity, Func<ThreadPostTitle, Task> onCreate, params object[] identifiers)
@@ -191,10 +193,13 @@ namespace Inuplan.DAL.Repositories.Forum
 
         public async Task<Pagination<ThreadPostTitle>> GetPage(int skip, int take, Func<string> sortBy = null, Func<string> orderBy = null, params object[] identifiers)
         {
-            sortBy = sortBy ?? new Func<string>(() => "CreatedOn");
-            orderBy = orderBy ?? new Func<string>(() => "ASC");
+            try
+            {
+                logger.Trace("----- BEGIN Get page method: ForumPostTitleRepository ------");
+                sortBy = sortBy ?? new Func<string>(() => "CreatedOn");
+                orderBy = orderBy ?? new Func<string>(() => "ASC");
 
-            var sql = @"SELECT
+                var sql = @"SELECT
                             ID AS ThreadID, CreatedOn, Published AS IsPublished, Deleted,IsModified, Title, LastModified, Sticky, LatestComment,
                             UserID AS ID, FirstName,  LastName,  Username,  Email,  DisplayName
                         FROM
@@ -212,21 +217,21 @@ namespace Inuplan.DAL.Repositories.Forum
                             ) AS seq
                         WHERE seq.RowNumber BETWEEN @From AND @To";
 
-            var query = sql
-                        .Replace("@Sort", sortBy())
-                        .Replace("@Order", orderBy());
+                var query = sql
+                            .Replace("@Sort", sortBy())
+                            .Replace("@Order", orderBy());
 
-            var titleQuery = await connection.QueryAsync<ThreadPostTitle, User, ThreadPostTitle>(query, (t, u) =>
-            {
-                t.Author = u;
-                return t;
-            }, new
-            {
-                From = skip + 1,
-                To = skip + take
-            });
+                var titleQuery = await connection.QueryAsync<ThreadPostTitle, User, ThreadPostTitle>(query, (t, u) =>
+                {
+                    t.Author = u;
+                    return t;
+                }, new
+                {
+                    From = skip + 1,
+                    To = skip + take
+                });
 
-            var sqlUserViews = @"SELECT
+                var sqlUserViews = @"SELECT
                                     u.ID, FirstName,  LastName,  Username,  Email,  DisplayName,
                                     t.ThreadID
                                  FROM ThreadUserViews t
@@ -234,21 +239,28 @@ namespace Inuplan.DAL.Repositories.Forum
                                  ON t.UserID = u.ID
                                  WHERE t.ThreadID = @ThreadID";
 
-            foreach (var ThreadID in titleQuery.Select(t => t.ThreadID))
-            {
-                var usersView = await connection.QueryAsync<User>(sqlUserViews, new
+                foreach (var ThreadID in titleQuery.Select(t => t.ThreadID))
                 {
-                    ThreadID
-                });
+                    var usersView = await connection.QueryAsync<User>(sqlUserViews, new
+                    {
+                        ThreadID
+                    });
 
-                var title = titleQuery.Single(t => t.ThreadID == ThreadID);
-                title.ViewedBy = usersView.ToList();
+                    var title = titleQuery.Single(t => t.ThreadID == ThreadID);
+                    title.ViewedBy = usersView.ToList();
+                }
+
+                var countSql = @"SELECT COUNT(*) FROM ThreadTitles WHERE ThreadTitles.Published = 1";
+                var total = await connection.ExecuteScalarAsync<int>(countSql);
+
+                logger.Trace("----- END Get page method: ForumPostTitleRepository ------");
+                return Helpers.Paginate(skip, take, total, titleQuery.ToList());
             }
-
-            var countSql = @"SELECT COUNT(*) FROM ThreadTitles WHERE ThreadTitles.Published = 1";
-            var total = await connection.ExecuteScalarAsync<int>(countSql);
-
-            return Helpers.Paginate(skip, take, total, titleQuery.ToList());
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+                throw;
+            }
         }
 
         public async Task<bool> Update(int key, ThreadPostTitle entity)

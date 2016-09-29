@@ -23,6 +23,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
     using Autofac.Extras.Attributed;
     using Common.DTOs.Forum;
     using Common.Enums;
+    using Common.Logger;
     using Common.Models;
     using Common.Models.Forum;
     using Common.Repositories;
@@ -37,40 +38,57 @@ namespace Inuplan.WebAPI.Controllers.Forum
     {
         private readonly IScalarRepository<int, ThreadPostTitle> threadTitleRepository;
         private readonly IVectorRepository<int, Comment> forumCommentRepository;
+        private readonly ILogger<ForumTitleController> logger;
 
         public ForumTitleController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             [WithKey(ServiceKeys.ThreadPostTitleRepository)] IScalarRepository<int, ThreadPostTitle> threadTitleRepository,
-            [WithKey(ServiceKeys.ForumCommentsRepository)] IVectorRepository<int, Comment> forumCommentRepository)
+            [WithKey(ServiceKeys.ForumCommentsRepository)] IVectorRepository<int, Comment> forumCommentRepository,
+            ILogger<ForumTitleController> logger
+            )
             : base(userDatabaseRepository)
         {
             this.threadTitleRepository = threadTitleRepository;
             this.forumCommentRepository = forumCommentRepository;
+            this.logger = logger;
         }
 
         [HttpGet]
         // localhost:9000/api/forumtitle?skip=0&take=10&sortBy=LastModified&orderBy=Asc
         public async Task<Pagination<ThreadPostTitleDTO>> Get(int skip, int take, ForumSortBy sortBy = ForumSortBy.CreatedOn, ForumOrderBy orderBy = ForumOrderBy.Desc)
         {
-            var titles = await threadTitleRepository.GetPage(skip, take, () => sortBy.ToString(), () => orderBy.ToString());
-            var titleDtos = titles.CurrentItems.Select(t => {
-                var commentCount = forumCommentRepository.Count(t.ThreadID);
-
-                Comment latest = null;
-                if (t.LatestComment.HasValue)
-                {
-                    latest = forumCommentRepository.GetSingleByID(t.LatestComment.Value).Result.ValueOr(alternative: null);
-                }
-
-                return Converters.ToThreadPostTitleDTO(t, latest, commentCount.Result);
-            });
-
-            return new Pagination<ThreadPostTitleDTO>
+            try
             {
-                CurrentItems = titleDtos.ToList(),
-                CurrentPage = titles.CurrentPage,
-                TotalPages = titles.TotalPages
-            };
+                logger.Trace("----- BEGIN Get page method: ForumTitleController ------");
+                logger.Trace("Forumtitle?skip={0}&take={1}&sortBy={2}&orderBy={3}", skip, take, sortBy, orderBy);
+                var titles = await threadTitleRepository.GetPage(skip, take, () => sortBy.ToString(), () => orderBy.ToString());
+
+                var titleDtos = titles.CurrentItems.Select(t =>
+                {
+                    var commentCount = forumCommentRepository.Count(t.ThreadID);
+
+                    Comment latest = null;
+                    if (t.LatestComment.HasValue)
+                    {
+                        latest = forumCommentRepository.GetSingleByID(t.LatestComment.Value).Result.ValueOr(alternative: null);
+                    }
+
+                    return Converters.ToThreadPostTitleDTO(t, latest, commentCount.Result);
+                });
+
+                logger.Trace("----- END Get page method: ForumTitleController ------");
+                return new Pagination<ThreadPostTitleDTO>
+                {
+                    CurrentItems = titleDtos.ToList(),
+                    CurrentPage = titles.CurrentPage,
+                    TotalPages = titles.TotalPages
+                };
+            }
+            catch (System.Exception ex)
+            {
+                logger.Error(ex);
+                throw;
+            }
         }
     }
 }
