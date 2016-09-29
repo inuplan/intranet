@@ -6,10 +6,10 @@
       <Value Profile="(Default)">Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=IntranetDB;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;MultipleActiveResultSets=True</Value>
     </Setting>
     <Setting Name="connectionStringRelease" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">Data Source=NUUS07\INTRANETDB;Initial Catalog=IntranetDB;User ID=intranetdb;Password=NGsDGzjUCY</Value>
+      <Value Profile="(Default)">Data Source=NUUS07\INTRANETDB;Initial Catalog=IntranetDB;User ID=intranetdb;Password=NGsDGzjUCY;MultipleActiveResultSets=true;</Value>
     </Setting>
     <Setting Name="root" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">c:\tmp</Value>
+      <Value Profile="(Default)">C:\uploads\images</Value>
     </Setting>
     <Setting Name="domain" Type="System.String" Scope="Application">
       <Value Profile="(Default)">inuplan.local</Value>

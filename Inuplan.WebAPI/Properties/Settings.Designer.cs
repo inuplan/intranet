@@ -37,7 +37,7 @@ namespace Inuplan.WebAPI.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Data Source=NUUS07\\INTRANETDB;Initial Catalog=IntranetDB;User ID=intranetdb;Passw" +
-            "ord=NGsDGzjUCY")]
+            "ord=NGsDGzjUCY;MultipleActiveResultSets=true;")]
         public string connectionStringRelease {
             get {
                 return ((string)(this["connectionStringRelease"]));
@@ -46,7 +46,7 @@ namespace Inuplan.WebAPI.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("c:\\tmp")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\uploads\\images")]
         public string root {
             get {
                 return ((string)(this["root"]));
