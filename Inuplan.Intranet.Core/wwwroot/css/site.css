@@ -89,7 +89,11 @@
     padding-bottom: 1em;
 }
 
-.whatsnewItem:hover {
-    background-color: #f3f3f3;
+.whatsnewItem p {
+    font-size: medium;
+    padding-bottom: 0.4em;
+}
 
+.comment-profile {
+    padding-top: 1em;
 }
