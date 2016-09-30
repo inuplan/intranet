@@ -2,7 +2,7 @@
 import { values, sortBy } from 'underscore'
 import { connect } from 'react-redux'
 import { fetchLatestNews } from '../../actions/whatsnew'
-import { WhatsNewList } from '../WhatsNew/WhatsNewList'
+import { WhatsNewList } from '../whatsnew/WhatsNewList'
 import { Row, Col } from 'react-bootstrap'
 import { Pagination } from '../pagination/Pagination'
 
