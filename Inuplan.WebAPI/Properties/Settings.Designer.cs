@@ -118,5 +118,17 @@ namespace Inuplan.WebAPI.Properties {
                 return ((bool)(this["enableCORS"]));
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("9001")]
+        public int webSocketPort {
+            get {
+                return ((int)(this["webSocketPort"]));
+            }
+            set {
+                this["webSocketPort"] = value;
+            }
+        }
     }
 }

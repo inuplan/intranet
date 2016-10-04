@@ -42,6 +42,7 @@ namespace Inuplan.WebAPI.App_Start
     using System.Data.SqlClient;
     using System.DirectoryServices.AccountManagement;
     using System.Web.Http;
+    using WebSocketServices;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -109,6 +110,9 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
 #endif
             #endregion
+
+            // Register web socket services
+            builder.RegisterType<LatestActionItemBroadcastService>();
 
             // Use autofac owin pipeline
             OwinPipeline(builder);
