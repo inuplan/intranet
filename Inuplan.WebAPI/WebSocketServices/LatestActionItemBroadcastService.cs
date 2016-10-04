@@ -26,6 +26,8 @@ namespace Inuplan.WebAPI.WebSocketServices
 
     public class LatestActionItemBroadcastService : WebSocketBehavior
     {
+        public new WebSocketSessionManager Sessions { get; set; }
+
         public void NewImageComment(ImageCommentDTO comment)
         {
             var action = new

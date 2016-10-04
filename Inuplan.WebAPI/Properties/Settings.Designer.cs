@@ -136,5 +136,17 @@ namespace Inuplan.WebAPI.Properties {
                 return ((string)(this["serverIP"]));
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("/latest")]
+        public string webSocketServiceLatest {
+            get {
+                return ((string)(this["webSocketServiceLatest"]));
+            }
+            set {
+                this["webSocketServiceLatest"] = value;
+            }
+        }
     }
 }

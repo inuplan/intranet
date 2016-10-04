@@ -27,25 +27,26 @@ namespace Inuplan.WebAPI.App_Start
 
     public static class WebSocketConfig
     {
-        private static WebSocketServer socket;
+        public static WebSocketServer Socket { get; private set; }
 
         public static void Start()
         {
             // url:      ws://10.18.0.217:9001
-            socket = new WebSocketServer(GetServerIP(), Settings.Default.webSocketPort);
+            Socket = new WebSocketServer(GetServerIP(), Settings.Default.webSocketPort);
             AddServices();
-            socket.Start();
+            Socket.Start();
         }
 
         private static void AddServices()
         {
             // Must be relative urls!
-            socket.AddWebSocketService<LatestActionItemBroadcastService>("/latest");
+            Socket.AddWebSocketService<LatestActionItemBroadcastService>(Settings.Default.webSocketServiceLatest);
+            Socket.AddWebSocketService<Echo>("/echo");
         }
 
         public static void Stop()
         {
-            socket.Stop();
+            Socket.Stop();
         }
 
         private static IPAddress GetServerIP()
