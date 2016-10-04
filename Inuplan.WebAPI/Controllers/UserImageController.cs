@@ -40,6 +40,7 @@ namespace Inuplan.WebAPI.Controllers
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Cors;
+    using WebSocketServices;
 
     /// <summary>
     /// Image file controller
@@ -63,6 +64,7 @@ namespace Inuplan.WebAPI.Controllers
         private readonly IVectorRepository<int, Comment> imageCommentsRepo;
         private readonly IAddItem whatsNew;
         private readonly IDeleteItem removeNews;
+        private readonly LatestActionItemBroadcastService webSocketService;
 
         /// <summary>
         /// Instantiates a new <see cref="UserImageController"/> instance.
@@ -74,7 +76,9 @@ namespace Inuplan.WebAPI.Controllers
             IVectorRepository<int, Comment> imageCommentsRepo,
             ImageHandleFactory imageHandleFactory,
             IAddItem whatsNew,
-            IDeleteItem removeNews)
+            IDeleteItem removeNews,
+            LatestActionItemBroadcastService webSocketService
+            )
             : base(userDatabaseRepository)
         {
             this.userImageRepository = userImageRepository;
@@ -82,6 +86,7 @@ namespace Inuplan.WebAPI.Controllers
             this.imageHandleFactory = imageHandleFactory;
             this.whatsNew = whatsNew;
             this.removeNews = removeNews;
+            this.webSocketService = webSocketService;
         }
 
         /// <summary>
@@ -128,7 +133,14 @@ namespace Inuplan.WebAPI.Controllers
 
             var save = bag.Select(async image =>
             {
-                var created = await userImageRepository.Create(image, img => whatsNew.AddItem(img.ID, NewsType.ImageUpload));
+                var onCreated = new Func<Image, Task>(img =>
+                {
+                    var dto = Construct(img);
+                    webSocketService.NewImage(dto);
+                    return whatsNew.AddItem(img.ID, NewsType.ImageUpload);
+                });
+
+                var created = await userImageRepository.Create(image, onCreated);
                 created.Match(
                     (img) =>
                     {
