@@ -11,7 +11,10 @@
                 whatsnew: 'http://beta-intranet:9000/api/whatsnew',
                 forumtitle: 'http://beta-intranet:9000/api/forumtitle',
                 forumpost: 'http://beta-intranet:9000/api/forumpost',
-                forumcomments: 'http://beta-intranet:9000/api/forumcomment'
+                forumcomments: 'http://beta-intranet:9000/api/forumcomment',
+                websocket: {
+                    latest: 'ws://10.18.0.217:9001/latest,
+                },
             },
             currentUsername: '@ViewBag.Username'
         };
@@ -28,7 +31,10 @@
                 whatsnew: 'http://localhost:9000/api/whatsnew',
                 forumtitle: 'http://localhost:9000/api/forumtitle',
                 forumpost: 'http://localhost:9000/api/forumpost',
-                forumcomments: 'http://localhost:9000/api/forumcomment'
+                forumcomments: 'http://localhost:9000/api/forumcomment',
+                websocket: {
+                    latest: 'ws://127.0.0.1:9001/latest',
+                },
             },
             currentUsername: '@ViewBag.Username'
         };
