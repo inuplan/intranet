@@ -36,6 +36,7 @@ namespace Inuplan.WebAPI.Controllers
     using System.Threading.Tasks;
     using System.Web.Http;
     using System.Web.Http.Cors;
+    using WebSocketServices;
 
     [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class ImageCommentController : DefaultController
@@ -43,17 +44,21 @@ namespace Inuplan.WebAPI.Controllers
         private readonly IVectorRepository<int, Comment> imageCommentRepository;
         private readonly IAddItem whatsNew;
         private readonly IDeleteItem removeNews;
+        private readonly LatestActionItemBroadcastService webSocketService;
 
         public ImageCommentController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             IVectorRepository<int, Comment> imageCommentRepository,
             IAddItem whatsNew,
-            IDeleteItem removeNews)
+            IDeleteItem removeNews,
+            LatestActionItemBroadcastService webSocketService
+            )
             : base(userDatabaseRepository)
         {
             this.imageCommentRepository = imageCommentRepository;
             this.whatsNew = whatsNew;
             this.removeNews = removeNews;
+            this.webSocketService = webSocketService;
         }
 
         public async Task<List<ImageCommentDTO>> Get(int imageId)
@@ -88,6 +93,8 @@ namespace Inuplan.WebAPI.Controllers
             Debug.Assert(comment.ContextID > 0, "Must be associated with a valid image");
             Func<Comment, Task> onCreate = (c) =>
             {
+                var dto = Converters.ToImageCommentDTO(c);
+                webSocketService.NewImageComment(dto);
                 return whatsNew.AddItem(c.ID, NewsType.ImageComment);
             };
 
