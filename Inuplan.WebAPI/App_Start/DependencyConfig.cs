@@ -42,6 +42,8 @@ namespace Inuplan.WebAPI.App_Start
     using System.Data.SqlClient;
     using System.DirectoryServices.AccountManagement;
     using System.Web.Http;
+    using WebSocketServices;
+    using WebSocketSharp.Server;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -109,6 +111,18 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
 #endif
             #endregion
+
+            // Register web socket services
+            builder.Register(ctx => WebSocketConfig.Socket).SingleInstance();
+            builder.Register(ctx => {
+                var socket = ctx.Resolve<WebSocketServer>();
+                WebSocketServiceHost host;
+                socket.WebSocketServices.TryGetServiceHost(Settings.Default.webSocketServiceLatest, out host);
+                return new LatestActionItemBroadcastService
+                {
+                    Sessions = host.Sessions
+                };
+            });
 
             // Use autofac owin pipeline
             OwinPipeline(builder);
