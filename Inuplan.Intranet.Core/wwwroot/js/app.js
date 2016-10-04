@@ -1,17 +1,17 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import Main from './components/shells/Main'
-import About from './components/containers/About'
 import Home from './components/containers/Home'
+import Forum from './components/shells/Forum'
+import ForumList from './components/containers/ForumList'
+import ForumPost from './components/containers/ForumPost'
+import ForumComments from './components/containers/ForumComments'
 import Users from './components/containers/Users'
 import UserImages from './components/containers/UserImages'
 import SelectedImage from './components/containers/SelectedImage'
-import Forum from './components/shells/Forum'
-import ForumPost from './components/containers/ForumPost'
-import ForumList from './components/containers/ForumList'
 import ImageComments from './components/containers/ImageComments'
 import SingleImageComment from './components/containers/SingleImageComment'
-import ForumComments from './components/containers/ForumComments'
+import About from './components/containers/About'
 import { init, fetchForum, selectImage, fetchImages, loadComments, fetchComment, fetchWhatsNew, fetchSinglePost, fetchPostComments } from './utilities/onstartup'
 import { Router, Route, IndexRoute, browserHistory } from 'react-router'
 import { connect, Provider } from 'react-redux'
@@ -31,13 +31,13 @@ ReactDOM.render(
                     </Route>
                 </Route>
                 <Route path="users" component={Users} />
-                <Route path="about" component={About} />
                 <Route path=":username/gallery" component={UserImages} onEnter={fetchImages}>
                     <Route path="image/:id" component={SelectedImage} onEnter={selectImage}>
                         <Route path="comments" component={ImageComments} onEnter={loadComments} />
                         <Route path="comment" component={SingleImageComment} onEnter={fetchComment} />
                     </Route>
                 </Route>
+                <Route path="about" component={About} />
             </Route>
         </Router>
     </Provider>,

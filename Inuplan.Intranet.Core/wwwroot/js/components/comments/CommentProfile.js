@@ -3,7 +3,7 @@ import { Image, Media } from 'react-bootstrap'
 
 export class CommentProfile extends React.Component {
     render() {
-        return  <Media.Left>
+        return  <Media.Left className="comment-profile">
                     <Image
                         src="/images/person_icon.svg"
                         style={{ width: "64px", height: "64px" }}
