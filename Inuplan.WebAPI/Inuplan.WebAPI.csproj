@@ -187,6 +187,10 @@
       <HintPath>..\packages\Topshelf.NLog.4.0.1\lib\net452\Topshelf.NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="websocket-sharp, Version=1.0.2.59611, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
+      <HintPath>..\packages\WebSocketSharp.1.0.3-rc11\lib\websocket-sharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\DependencyConfig.cs" />
@@ -218,6 +222,7 @@
     </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="WebSocketServices\LatestActionItemBroadcastService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">
