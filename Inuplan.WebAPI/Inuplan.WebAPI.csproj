@@ -223,6 +223,7 @@
     </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="WebSocketServices\Echo.cs" />
     <Compile Include="WebSocketServices\LatestActionItemBroadcastService.cs" />
   </ItemGroup>
   <ItemGroup>
