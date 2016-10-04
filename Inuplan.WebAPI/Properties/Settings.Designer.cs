@@ -119,15 +119,21 @@ namespace Inuplan.WebAPI.Properties {
             }
         }
         
-        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("9001")]
         public int webSocketPort {
             get {
                 return ((int)(this["webSocketPort"]));
             }
-            set {
-                this["webSocketPort"] = value;
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10.18.0.217")]
+        public string serverIP {
+            get {
+                return ((string)(this["serverIP"]));
             }
         }
     }

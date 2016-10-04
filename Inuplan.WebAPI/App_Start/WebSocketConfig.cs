@@ -21,6 +21,7 @@
 namespace Inuplan.WebAPI.App_Start
 {
     using Properties;
+    using System.Net;
     using WebSocketServices;
     using WebSocketSharp.Server;
 
@@ -30,15 +31,16 @@ namespace Inuplan.WebAPI.App_Start
 
         public static void Start()
         {
-            // url:      ws://nuus07:9001
-            socket = new WebSocketServer(GetSocketPort());
+            // url:      ws://10.18.0.217:9001
+            socket = new WebSocketServer(GetServerIP(), Settings.Default.webSocketPort);
             AddServices();
             socket.Start();
         }
 
         private static void AddServices()
         {
-            socket.AddWebSocketService<LatestActionItemBroadcastService>("latest");
+            // Must be relative urls!
+            socket.AddWebSocketService<LatestActionItemBroadcastService>("/latest");
         }
 
         public static void Stop()
@@ -46,9 +48,13 @@ namespace Inuplan.WebAPI.App_Start
             socket.Stop();
         }
 
-        private static int GetSocketPort()
+        private static IPAddress GetServerIP()
         {
-            return Settings.Default.webSocketPort;
+#if DEBUG
+            return IPAddress.Loopback;
+#else
+            return IPAddress.Parse(Settings.Default.serverIP);
+#endif
         }
     }
 }
