@@ -36,6 +36,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
     using Extensions;
     using System.Web.Http.Cors;
     using Common.Commands;
+    using WebSocketServices;
 
     [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class ForumPostController : DefaultController
@@ -46,6 +47,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
         private readonly IMarkPost markPost;
         private readonly IAddItem whatsNew;
         private readonly IDeleteItem remove;
+        private readonly LatestActionItemBroadcastService webSocketService;
 
         public ForumPostController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
@@ -54,7 +56,8 @@ namespace Inuplan.WebAPI.Controllers.Forum
             [WithKey(ServiceKeys.ForumCommentsRepository)] IVectorRepository<int, Comment> forumCommentRepository,
             IAddItem whatsNew,
             IDeleteItem remove,
-            IMarkPost markPost
+            IMarkPost markPost,
+            LatestActionItemBroadcastService webSocketService
         ) : base(userDatabaseRepository)
         {
             this.postRepository = postRepository;
@@ -63,6 +66,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
             this.whatsNew = whatsNew;
             this.remove = remove;
             this.markPost = markPost;
+            this.webSocketService = webSocketService;
         }
 
         [HttpGet]
@@ -104,7 +108,14 @@ namespace Inuplan.WebAPI.Controllers.Forum
             var titleCreated = await titleRepository.Create(post.Header, (t) => Task.FromResult(0));
 
             // Add Whatsnew Item on post created!
-            var result = titleCreated.FlatMap(t => postRepository.Create(post, p => whatsNew.AddItem(p.ThreadID, NewsType.ThreadPost)).Result);
+            var onCreate = new Func<ThreadPostContent, Task>(p =>
+           {
+               var dto = Converters.ToThreadPostContentDTO(p, null, 0);
+               webSocketService.NewForumThread(dto);
+               return whatsNew.AddItem(p.ThreadID, NewsType.ThreadPost);
+           });
+
+            var result = titleCreated.FlatMap(t => postRepository.Create(post, onCreate).Result);
 
             return result.Match(
                 c => Request.CreateResponse(HttpStatusCode.Created),
