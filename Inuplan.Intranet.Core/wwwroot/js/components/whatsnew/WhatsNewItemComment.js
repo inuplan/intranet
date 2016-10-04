@@ -28,7 +28,7 @@ export class WhatsNewItemComment extends React.Component {
         const summary = this.createSummary();
         const link = `${username}/gallery/image/${imageId}/comment?id=${commentId}`
         return  <WhatsNewTooltip tooltip="Kommentar">
-                    <Media.ListItem className="whatsnewItem">
+                    <Media.ListItem className="whatsnewItem hover-shadow">
                         <CommentProfile />
                         <Media.Body>
                             <blockquote>

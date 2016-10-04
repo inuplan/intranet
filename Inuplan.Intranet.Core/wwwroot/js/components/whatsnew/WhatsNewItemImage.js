@@ -24,7 +24,7 @@ export class WhatsNewItemImage extends React.Component {
         const name = `${author.FirstName} ${author.LastName}`;
 
         return  <WhatsNewTooltip tooltip="Uploadet billede">
-                    <Media.ListItem className="whatsnewItem">
+                    <Media.ListItem className="whatsnewItem hover-shadow">
                         <CommentProfile />
                         <Media.Body>
                             <blockquote>

@@ -31,7 +31,7 @@ export class WhatsNewForumPost extends React.Component {
         const name = this.fullname();
         const link = `forum/post/${postId}/comments`;
          return <WhatsNewTooltip tooltip="Forum indlæg">
-                    <Media.ListItem className="whatsnewItem">
+                    <Media.ListItem className="whatsnewItem hover-shadow">
                         <CommentProfile />
                         <Media.Body>
                             <blockquote>
