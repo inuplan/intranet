@@ -40,7 +40,7 @@ const totalPages = (state = 0, action) => {
 
 const items = (state = [], action) => {
     switch (action.type) {
-        case T.ADD_LATEST:
+        case T.SET_LATEST:
             return action.latest || [];
         default:
             return state;

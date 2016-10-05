@@ -104,7 +104,7 @@ namespace Inuplan.Common.Tools
         public static ThreadPostTitleDTO ToThreadPostTitleDTO(ThreadPostTitle threadTitle, Comment latest, int commentCount = 0)
         {
             var author = ToUserDTO(threadTitle.Author);
-            var viewedBy = threadTitle.ViewedBy.Select(ToUserDTO).ToList();
+            var viewedBy = threadTitle.ViewedBy == null ? new List<UserDTO>() : threadTitle.ViewedBy.Select(ToUserDTO).ToList();
             return new ThreadPostTitleDTO
             {
                 Author = author,
