@@ -115,7 +115,10 @@ namespace Inuplan.WebAPI.Controllers.Forum
                return whatsNew.AddItem(p.ThreadID, NewsType.ThreadPost);
            });
 
-            var result = titleCreated.FlatMap(t => postRepository.Create(post, onCreate).Result);
+            var result = titleCreated.FlatMap(t =>
+            {
+                return postRepository.Create(post, onCreate).Result;
+            });
 
             return result.Match(
                 c => Request.CreateResponse(HttpStatusCode.Created),
