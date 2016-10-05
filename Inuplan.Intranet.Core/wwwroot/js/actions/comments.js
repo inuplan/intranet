@@ -73,6 +73,11 @@ export function setFocusedComment(commentId) {
     }
 }
 
+export function newCommentFromServer(comment) {
+    const normalize = normalizeComment(comment);
+    return addComment(normalize);
+}
+
 export function fetchComments(url, skip, take) {
     return function(dispatch) {
         const handler = responseHandler.bind(this, dispatch);

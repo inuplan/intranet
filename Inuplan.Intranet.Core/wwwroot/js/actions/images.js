@@ -77,6 +77,11 @@ export const decrementCommentCount = (imageId) => {
     }
 }
 
+export const newImageFromServer = (image) => {
+    const normalized = normalizeImage(image);
+    return addImage(normalized);
+}
+
 export function deleteImage(id, username) {
     return function(dispatch) {
         const url = globals.urls.images + "?username=" + username + "&id=" + id;
