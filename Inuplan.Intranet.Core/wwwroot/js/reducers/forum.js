@@ -60,7 +60,7 @@ const selectedThread = (state = -1, action) => {
 const titles = (state = [], action) => {
     switch (action.type) {
         case T.ADD_THREAD_TITLE:
-            return union(state, [action.title], (t1, t2) => t1.ID == t2.ID);
+            return union([action.title], state, (t1, t2) => t1.ID == t2.ID);
         case T.SET_THREAD_TITLES:
             return action.titles;
         case T.UPDATE_THREAD_TITLE:
