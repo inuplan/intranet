@@ -33,45 +33,61 @@ namespace Inuplan.DAL.Repositories.Forum
     using System.Transactions;
     using System.Diagnostics;
     using Common.Tools;
+    using Common.Logger;
+    using System.Data.SqlClient;
 
     public class ForumPostContentRepository : IScalarRepository<int, ThreadPostContent>
     {
         private readonly IDbConnection connection;
+        private readonly ILogger<ForumPostContentRepository> logger;
 
         private bool disposedValue;
 
-        public ForumPostContentRepository(IDbConnection connection)
+        public ForumPostContentRepository(
+            IDbConnection connection,
+            ILogger<ForumPostContentRepository> logger
+        )
         {
             this.connection = connection;
+            this.logger = logger;
         }
 
         public async Task<Option<ThreadPostContent>> Create(ThreadPostContent entity, Func<ThreadPostContent, Task> onCreate, params object[] identifiers)
         {
-            Debug.Assert(entity.Header.ThreadID > 0, "Must have a valid thread ID given");
-            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                var sql = @"INSERT INTO ThreadContents (ID, Text) VALUES (@ID, @Text)";
-                var rows = await connection.ExecuteAsync(sql, new
+                Debug.Assert(entity.Header.ThreadID > 0, "Must have a valid thread ID given");
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    ID = entity.Header.ThreadID,
-                    Text = entity.Text
-                });
+                    var sql = @"INSERT INTO ThreadContents (ID, Text) VALUES (@ID, @Text)";
+                    var rows = await connection.ExecuteAsync(sql, new
+                    {
+                        ID = entity.Header.ThreadID,
+                        Text = entity.Text
+                    });
 
-                var created = rows == 1;
-                if(created)
-                {
-                    entity.ThreadID = entity.Header.ThreadID;
-                    await onCreate(entity);
-                    transactionScope.Complete();
+                    var created = rows == 1;
+                    if (created)
+                    {
+                        entity.ThreadID = entity.Header.ThreadID;
+                        await onCreate(entity);
+                        transactionScope.Complete();
+                    }
+
+                    return entity.SomeWhen(e => e.ThreadID > 0);
                 }
-
-                return entity.SomeWhen(e => e.ThreadID > 0);
+            }
+            catch (SqlException ex)
+            {
+                logger.Error(ex);
+                throw;
             }
         }
 
         public Task<bool> Delete(int key, Func<int, Task> onDelete)
         {
             // DB: Cascade delete from Titles -> Content
+            logger.Error("Method not supported");
             throw new NotSupportedException("Delete the Title first and the changes will cascade to the Content");
         }
 
