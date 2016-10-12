@@ -18,24 +18,27 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+
 namespace Inuplan.WebAPI.Controllers.Forum
 {
-    using System;
-    using System.Threading.Tasks;
     using Autofac.Extras.Attributed;
+    using Common.Commands;
+    using Common.DTOs.Forum;
     using Common.Enums;
     using Common.Models;
-    using Common.Repositories;
     using Common.Models.Forum;
-    using Common.DTOs.Forum;
+    using Common.Repositories;
     using Common.Tools;
-    using Optional.Unsafe;
-    using System.Net.Http;
-    using System.Net;
-    using System.Web.Http;
     using Extensions;
+    using Extensions.Workflows;
+    using Optional;
+    using Optional.Unsafe;
+    using System;
+    using System.Net;
+    using System.Net.Http;
+    using System.Threading.Tasks;
+    using System.Web.Http;
     using System.Web.Http.Cors;
-    using Common.Commands;
     using WebSocketServices;
 
     [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
@@ -73,26 +76,29 @@ namespace Inuplan.WebAPI.Controllers.Forum
         // localhost:9000/api/forumpost?id=10
         public async Task<ThreadPostContentDTO> Get(int id)
         {
-            var post = await postRepository.Get(id);
-
-            // TODO: Add User to ViewedBy...
-            var result = post.Map(p =>
+            var content = await postRepository.Get(id);
+            var header = await titleRepository.Get(id);
+            var post = content.Combine(header, (c, h) =>
             {
-                var commentCount = forumCommentRepository.Count(id).Result;
-                var title = titleRepository.Get(id);
-                p.Header = title.Result.ValueOrFailure();
-
-                Comment latest = null;
-                if(p.Header.LatestComment.HasValue)
-                {
-                    var someComment = forumCommentRepository.GetSingleByID(p.Header.LatestComment.Value).Result;
-                    latest = someComment.Filter(c => !c.Deleted).ValueOr(alternative: null);
-                }
-
-                return Converters.ToThreadPostContentDTO(p, latest, commentCount);
+                c.Header = h;
+                return c;
             });
 
-            return result.Match(p => p, () => { throw new HttpResponseException(HttpStatusCode.NotFound); });
+            var commentCount = await forumCommentRepository.Count(id);
+            var latestComment = await post.UnwrapAsync(async p =>
+            {
+                if (p.Header.LatestComment.HasValue)
+                    return await forumCommentRepository.GetSingleByID(p.Header.LatestComment.Value);
+                return Option.None<Comment>();
+            });
+
+            var result = post.Map(p =>
+            {
+                var comment = latestComment.ValueOr(alternative: null);
+                return Converters.ToThreadPostContentDTO(p, comment, commentCount);
+            });
+
+            return result.ReturnOrFailWith(HttpStatusCode.NotFound);
         }
 
         [HttpPost]
@@ -120,30 +126,23 @@ namespace Inuplan.WebAPI.Controllers.Forum
                 return postRepository.Create(post, onCreate).Result;
             });
 
-            return result.Match(
-                c => Request.CreateResponse(HttpStatusCode.Created),
-                () => { throw new HttpResponseException(HttpStatusCode.InternalServerError); });
+            return result
+                .ReturnMessage(Request.CreateResponse, HttpStatusCode.Created, HttpStatusCode.InternalServerError);
         }
 
         [HttpPut]
         public async Task<HttpResponseMessage> Put([FromUri] int postId, [FromUri] bool read)
         {
             var user = Request.GetUser();
-            var result = await user.Map(u =>
+            var result = await user.UnwrapAsync(async u =>
             {
-                if (read)
-                {
-                    return markPost.ReadPost(u, postId);
-                }
-                else
-                {
-                    return markPost.UnreadPost(u, postId);
-                }
-            }).ValueOr(Task.FromResult(false));
+                if (read) return await markPost.ReadPost(u, postId);
+                return await markPost.UnreadPost(u, postId);
+            });
 
-            var response = result ? Request.CreateResponse(HttpStatusCode.OK)
-                : Request.CreateResponse(HttpStatusCode.InternalServerError);
-            return response;
+            return result
+                .Some()
+                .ReturnMessage(Request.CreateResponse, HttpStatusCode.OK, HttpStatusCode.InternalServerError);
         }
 
         [HttpPut]

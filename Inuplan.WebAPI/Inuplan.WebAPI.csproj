@@ -209,6 +209,7 @@
     <Compile Include="Controllers\UserRolesController.cs" />
     <Compile Include="Controllers\WhatsNewController.cs" />
     <Compile Include="Extensions\HttpRequestMessageExtensions.cs" />
+    <Compile Include="Extensions\Workflows\Builders.cs" />
     <Compile Include="Image\Factories\HandleFactory.cs" />
     <Compile Include="Image\Handle.cs" />
     <Compile Include="Logger\NLogServiceWrapper.cs" />
