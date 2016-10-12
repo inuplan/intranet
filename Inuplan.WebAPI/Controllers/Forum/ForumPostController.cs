@@ -85,7 +85,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
             });
 
             var commentCount = await forumCommentRepository.Count(id);
-            var latestComment = await post.UnwrapAsync(async p =>
+            var latestComment = await post.FlatMapAsync(async p =>
             {
                 if (p.Header.LatestComment.HasValue)
                     return await forumCommentRepository.GetSingleByID(p.Header.LatestComment.Value);
@@ -134,14 +134,13 @@ namespace Inuplan.WebAPI.Controllers.Forum
         public async Task<HttpResponseMessage> Put([FromUri] int postId, [FromUri] bool read)
         {
             var user = Request.GetUser();
-            var result = await user.UnwrapAsync(async u =>
+            var result = await user.MapAsync(async u =>
             {
                 if (read) return await markPost.ReadPost(u, postId);
                 return await markPost.UnreadPost(u, postId);
             });
 
             return result
-                .Some()
                 .ReturnMessage(Request.CreateResponse, HttpStatusCode.OK, HttpStatusCode.InternalServerError);
         }
 

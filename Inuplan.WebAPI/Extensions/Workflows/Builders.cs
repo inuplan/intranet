@@ -80,10 +80,32 @@ namespace Inuplan.WebAPI.Extensions.Workflows
             return option.ValueOr(default(T));
         }
 
-        public static async Task<TResult> UnwrapAsync<T, TResult>(this Option<T> source, Func<T, Task<TResult>> mapping)
+        public static async Task<Option<TResult>> MapAsync<T, TResult>(this Option<T> source, Func<T, Task<TResult>> mapping)
             where T : class
         {
-            return await source.ExtractValue().With(mapping);
+            if(source.HasValue)
+            {
+                var value = source.ValueOrFailure();
+                return (await mapping(value)).SomeNotNull();
+            }
+
+            return Option.None<TResult>();
+        }
+
+        public static async Task<Option<TResult>> FlatMapAsync<T, TResult>(this Option<T> source, Func<T, Task<Option<TResult>>> mapping)
+        {
+            if(source.HasValue)
+            {
+                var value = source.ValueOrFailure();
+                return await mapping(value);
+            }
+
+            return Option.None<TResult>();
+        }
+
+        public static TResult UnwrapTask<TResult>(this Task<TResult> source)
+        {
+            return source.Result;
         }
 
         public static Option<T1> Combine<T1, T2>(this Option<T1> source, Option<T2> other, Func<T1, T2, T1> combine)
