@@ -52,6 +52,11 @@ namespace Inuplan.WebAPI.Logger
             logger.Error(ex);
         }
 
+        public void Error(string message, params object[] args)
+        {
+            logger.Error(message, args);
+        }
+
         public void Info(string message)
         {
             logger.Info(message);
