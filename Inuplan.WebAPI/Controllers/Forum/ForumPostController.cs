@@ -25,6 +25,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
     using Common.Commands;
     using Common.DTOs.Forum;
     using Common.Enums;
+    using Common.Logger;
     using Common.Models;
     using Common.Models.Forum;
     using Common.Repositories;
@@ -51,6 +52,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
         private readonly IAddItem whatsNew;
         private readonly IDeleteItem remove;
         private readonly LatestActionItemBroadcastService webSocketService;
+        private readonly ILogger<ForumPostController> logger;
 
         public ForumPostController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
@@ -60,7 +62,8 @@ namespace Inuplan.WebAPI.Controllers.Forum
             IAddItem whatsNew,
             IDeleteItem remove,
             IMarkPost markPost,
-            LatestActionItemBroadcastService webSocketService
+            LatestActionItemBroadcastService webSocketService,
+            ILogger<ForumPostController> logger
         ) : base(userDatabaseRepository)
         {
             this.postRepository = postRepository;
@@ -70,62 +73,83 @@ namespace Inuplan.WebAPI.Controllers.Forum
             this.remove = remove;
             this.markPost = markPost;
             this.webSocketService = webSocketService;
+            this.logger = logger;
         }
 
         [HttpGet]
-        // localhost:9000/api/forumpost?id=10
         public async Task<ThreadPostContentDTO> Get(int id)
         {
+            logger.Debug("Class: ForumPostController, Method: Get, BEGIN");
             var content = await postRepository.Get(id);
             var header = await titleRepository.Get(id);
-            var post = content.Combine(header, (c, h) =>
-            {
-                c.Header = h;
-                return c;
-            });
+            var post = content
+                .Combine(header, (c, h) =>
+                {
+                    c.Header = h;
+                    return c;
+                })
+                .LogSome(c => logger.Trace("Combined content with header"));
 
             var commentCount = await forumCommentRepository.Count(id);
-            var latestComment = await post.FlatMapAsync(async p =>
-            {
-                if (p.Header.LatestComment.HasValue)
-                    return await forumCommentRepository.GetSingleByID(p.Header.LatestComment.Value);
-                return Option.None<Comment>();
-            });
+            var latestComment = await post
+                .LogSome(p => logger.Trace("Post has comment: {0}", p.Header.LatestComment.HasValue))
+                .FlatMapAsync(async p =>
+                {
+                    if (p.Header.LatestComment.HasValue)
+                        return await forumCommentRepository.GetSingleByID(p.Header.LatestComment.Value);
+                    return Option.None<Comment>();
+                });
 
-            var result = post.Map(p =>
-            {
-                var comment = latestComment.ValueOr(alternative: null);
-                return Converters.ToThreadPostContentDTO(p, comment, commentCount);
-            });
+            var result = post
+                .LogSome(p => logger.Trace("Converting post to dto"))
+                .Map(p =>
+                {
+                    var comment = latestComment.ValueOr(alternative: null);
+                    return Converters.ToThreadPostContentDTO(p, comment, commentCount);
+                });
 
-            return result.ReturnOrFailWith(HttpStatusCode.NotFound);
+            logger.Debug("Class: ForumPostController, Method: Get, END");
+            return result
+                .LogSome(dto => logger.Trace("Returning post dto with id {0}", dto.ThreadID))
+                .ReturnOrFailWith(HttpStatusCode.NotFound);
         }
 
         [HttpPost]
-        // localhost:9000/api/forumpost   { Header: { Title: "" }, Text: "" }
         public async Task<HttpResponseMessage> Post(ThreadPostContent post)
         {
-            // Set user
-            var user = Request.GetUser().ValueOrFailure("No user found");
+            logger.Debug("Class: ForumPostController, Method: Post, BEGIN");
+            var user = Request
+                .GetUser()
+                .LogSome(u => logger.Trace("Retrieved user {0}", u.Username))
+                .ValueOrFailure("No user found");
+
+            logger.Trace("Setting author to user");
             post.Header.Author = user;
 
-            // Set created date
+            logger.Trace("Setting created date to now for post");
             post.Header.CreatedOn = DateTime.Now;
-            var titleCreated = await titleRepository.Create(post.Header, (t) => Task.FromResult(0));
 
-            // Add Whatsnew Item on post created!
+            var titleCreated = await titleRepository
+                .Create(post.Header, (t) => Task.FromResult(0))
+                .LogSomeAsync(t => logger.Trace("Created post header with id: {0}", t.ThreadID));
+
             var onCreate = new Func<ThreadPostContent, Task>(p =>
            {
+               logger.Trace("Converting post model to dto");
                var dto = Converters.ToThreadPostContentDTO(p, null, 0);
+
+               logger.Trace("Broadcasting on websocket, new forum thread created");
                webSocketService.NewForumThread(dto);
+
+               logger.Trace("Adding forum thread to latest news");
                return whatsNew.AddItem(p.ThreadID, NewsType.ThreadPost);
            });
 
-            var result = titleCreated.FlatMap(t =>
-            {
-                return postRepository.Create(post, onCreate).Result;
-            });
+            var result = await titleCreated
+                .FlatMapAsync(async t => await postRepository.Create(post, onCreate))
+                .LogSomeAsync(r => logger.Trace("Created post content"));
 
+            logger.Debug("Class: ForumPostController, Method: Post, END");
             return result
                 .ReturnMessage(Request.CreateResponse, HttpStatusCode.Created, HttpStatusCode.InternalServerError);
         }
@@ -133,52 +157,111 @@ namespace Inuplan.WebAPI.Controllers.Forum
         [HttpPut]
         public async Task<HttpResponseMessage> Put([FromUri] int postId, [FromUri] bool read)
         {
-            var user = Request.GetUser();
-            var result = await user.MapAsync(async u =>
-            {
-                if (read) return await markPost.ReadPost(u, postId);
-                return await markPost.UnreadPost(u, postId);
-            });
+            logger.Debug("Class: ForumPostController, Method: Put, BEGIN");
+            var user = Request
+                .GetUser()
+                .LogSome(u => logger.Trace("Retrieved user: {0}", u.Username));
 
+            var result = await user
+                .MapAsync(async u =>
+                {
+                    if (read) return await markPost.ReadPost(u, postId);
+                    return await markPost.UnreadPost(u, postId);
+                })
+                .LogSomeAsync(u => logger.Trace("Marked post {0} as read {1}", postId, read));
+
+            logger.Debug("Class: ForumPostController, Method: Put, END");
             return result
                 .ReturnMessage(Request.CreateResponse, HttpStatusCode.OK, HttpStatusCode.InternalServerError);
         }
 
         [HttpPut]
-        public async Task<HttpResponseMessage> Put([FromUri] int id, ThreadPostContent post)
+        public async Task<HttpResponseMessage> Put([FromUri] int id, ThreadPostContent content)
         {
-            var title = (await titleRepository.GetByID(id)).ValueOrFailure();
-            post.Header.CreatedOn = title.CreatedOn;
-            post.Header.ThreadID = id;
-            post.ThreadID = id;
-            var titleUpdate = await titleRepository.Update(id, post.Header);
-            if (!titleUpdate) return Request.CreateResponse(HttpStatusCode.InternalServerError);
+            logger.Debug("Class: ForumPostController, Method: Put, BEGIN");
+            var title = await titleRepository.GetByID(id);
 
-            var contentUpdate = await postRepository.Update(id, post);
-            if (!contentUpdate) return Request.CreateResponse(HttpStatusCode.InternalServerError);
+            var updateHeader = await title
+                .Map(t =>
+                {
+                    content.Header.CreatedOn = t.CreatedOn;
+                    content.Header.ThreadID = t.ThreadID;
+                    content.ThreadID = t.ThreadID;
+                    return t;
+                })
+                .Filter(t => t.ThreadID > 0)
+                .LogSome(t => logger.Trace("Updating header id {0}", t.ThreadID))
+                .LogNone(() => logger.Error("No post header found with id: {0}", id))
+                .FlatMapAsync(async t =>
+                {
+                    var success = await titleRepository.Update(t.ThreadID, t);
+                    if(success)
+                    {
+                        return t.Some();
+                    }
 
-            // 204 Updated
-            return Request.CreateResponse(HttpStatusCode.NoContent);
+                    return Option.None<ThreadPostTitle>();
+                });
+
+            var post = content
+                .Some()
+                .Combine(updateHeader, (c, h) =>
+                {
+                    c.Header = h;
+                    return c;
+                })
+                .LogNone(() => logger.Error("Could not combine header and content"))
+                .LogSome(c => logger.Trace("Combined header and content"));
+
+            var updateContent = await post
+                .FlatMapAsync(async c =>
+                {
+                    var success = await postRepository.Update(c.ThreadID, c);
+                    if (success)
+                        return c.Some();
+
+                    return Option.None<ThreadPostContent>();
+                })
+                .LogNoneAsync(() => logger.Error("Could not update post content. Internal server error."))
+                .LogSomeAsync(c => logger.Trace("Updated post content: {0}", c.ThreadID));
+
+            logger.Debug("Class: ForumPostController, Method: Put, END");
+            return updateContent
+                .ReturnMessage(Request.CreateResponse, HttpStatusCode.NoContent, HttpStatusCode.InternalServerError);
         }
 
         [HttpDelete]
-        // localhost:9000/api/forumpost?postId=8
         public async Task<HttpResponseMessage> Delete(int id)
         {
-            // Check if same author
+            logger.Debug("Class: ForumPostController, Method: Delete, BEGIN");
+
             var thread = await titleRepository.Get(id);
-            var isAuthorized = thread.Map(t => AuthorizeToUsername(t.Author.Username)).ValueOr(false);
+            var isAuthorized = thread
+                .Map(t => AuthorizeToUsername(t.Author.Username))
+                .LogNone(() => logger.Error("User not authorized to delete {0}", id))
+                .LogSome(t => logger.Trace("User authorized to delete {0}", id))
+                .ValueOr(false);
+
             if (!isAuthorized) return Request.CreateResponse(HttpStatusCode.Unauthorized);
 
-            // First delete all comments belonging to the thread
+            logger.Trace("Delete all comments belonging to the thread {0}", id);
             var deleteAllComments = await forumCommentRepository.Delete(id, (threadId) => Task.FromResult(0));
-            if (!deleteAllComments) return Request.CreateResponse(HttpStatusCode.InternalServerError);
+            if (!deleteAllComments)
+            {
+                logger.Error("Could not delete all comments, belonging to the thread {0}", id);
+                return Request.CreateResponse(HttpStatusCode.InternalServerError);
+            }
 
-            // Delete the actual thread. Note if error occurs here we cannot rollback!
+            logger.Trace("Delete the actual thread {0}", id);
             var delete = await titleRepository.Delete(id, (threadId) => remove.Remove(threadId, NewsType.ThreadPost));
-            if (!delete) return Request.CreateResponse(HttpStatusCode.InternalServerError);
+            if (!delete)
+            {
+                logger.Error("Could not delete thread {0}", id);
+                return Request.CreateResponse(HttpStatusCode.InternalServerError);
+            }
 
-            // Deleted
+            logger.Trace("Thread {0} deleted", id);
+            logger.Debug("Class: ForumPostController, Method: Delete, END");
             return Request.CreateResponse(HttpStatusCode.NoContent);
         }
     }

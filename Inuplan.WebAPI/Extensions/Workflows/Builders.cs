@@ -5,6 +5,7 @@ using Optional.Unsafe;
 using System.Net.Http;
 using System.Net;
 using System.Web.Http;
+using Inuplan.Common.Logger;
 
 namespace Inuplan.WebAPI.Extensions.Workflows
 {
@@ -122,13 +123,42 @@ namespace Inuplan.WebAPI.Extensions.Workflows
             return source.Match(t => t, () => { throw new HttpResponseException(failure); });
         }
 
-        public static T Log<T>(this T currentValue, string message)
-            where T : class
+        public static Option<T> LogSome<T>(this Option<T> source, Action<T> log)
         {
-            if (currentValue != default(T))
-                Console.WriteLine(currentValue + message);
+            if(source.HasValue)
+            {
+                var value = source.ValueOrFailure();
+                log(value);
+            }
 
-            return currentValue;
+            return source;
+        }
+
+        public static async Task<Option<T>> LogSomeAsync<T>(this Task<Option<T>> source, Action<T> log)
+        {
+            var result = await source;
+            return LogSome(result, log);
+        }
+
+        public static Option<T> LogNone<T>(this Option<T> source, Action logging)
+        {
+            if(!source.HasValue)
+            {
+                logging();
+            }
+
+            return source;
+        }
+
+        public static async Task<Option<T>> LogNoneAsync<T>(this Task<Option<T>> source, Action logging)
+        {
+            var value = await source;
+            if(!value.HasValue)
+            {
+                logging();
+            }
+
+            return value;
         }
     }
 }
