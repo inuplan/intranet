@@ -64,7 +64,9 @@ class HomeView extends React.Component {
                     </Jumbotron>
                     <Grid fluid>
                         <Row>
-                            <Col lgOffset={2} lg={10}>
+                            <Col lg={2}>
+                            </Col>
+                            <Col lg={8}>
                                 <WhatsNew />
                             </Col>
                         </Row>
