@@ -27,7 +27,7 @@ namespace Inuplan.WebAPI.Extensions.Workflows
             where TSource : class
         {
             var work = await source;
-            if(work != default(TSource))
+            if (work != default(TSource))
             {
                 var future = await action(work);
                 return future;
@@ -81,9 +81,8 @@ namespace Inuplan.WebAPI.Extensions.Workflows
         }
 
         public static async Task<Option<TResult>> MapAsync<T, TResult>(this Option<T> source, Func<T, Task<TResult>> mapping)
-            where T : class
         {
-            if(source.HasValue)
+            if (source.HasValue)
             {
                 var value = source.ValueOrFailure();
                 return (await mapping(value)).SomeNotNull();
@@ -94,18 +93,13 @@ namespace Inuplan.WebAPI.Extensions.Workflows
 
         public static async Task<Option<TResult>> FlatMapAsync<T, TResult>(this Option<T> source, Func<T, Task<Option<TResult>>> mapping)
         {
-            if(source.HasValue)
+            if (source.HasValue)
             {
                 var value = source.ValueOrFailure();
                 return await mapping(value);
             }
 
             return Option.None<TResult>();
-        }
-
-        public static TResult UnwrapTask<TResult>(this Task<TResult> source)
-        {
-            return source.Result;
         }
 
         public static Option<T1> Combine<T1, T2>(this Option<T1> source, Option<T2> other, Func<T1, T2, T1> combine)
