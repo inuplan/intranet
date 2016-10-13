@@ -20,11 +20,11 @@
 
 namespace Inuplan.DAL.Repositories
 {
+    using Common.Logger;
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
     using Dapper;
-    using NLog;
     using Optional;
     using System;
     using System.Collections.Generic;
@@ -44,12 +44,13 @@ namespace Inuplan.DAL.Repositories
         /// <summary>
         /// The logging framework
         /// </summary>
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
+        private readonly ILogger<UserDatabaseRepository> logger;
 
         /// <summary>
         /// The database connection
         /// </summary>
         private readonly IDbConnection connection;
+
 
         /// <summary>
         /// Lock mechanism for multithreaded access
@@ -66,9 +67,13 @@ namespace Inuplan.DAL.Repositories
         /// Initializes a new instance of the <see cref="UserDatabaseRepository"/> class.
         /// </summary>
         /// <param name="connection">The database connection</param>
-        public UserDatabaseRepository(IDbConnection connection)
+        public UserDatabaseRepository(
+            IDbConnection connection,
+            ILogger<UserDatabaseRepository> logger
+            )
         {
             this.connection = connection;
+            this.logger = logger;
             locking = new object();
         }
 
@@ -81,6 +86,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserDatabaseRepository, Method: Create, BEGIN");
                 Debug.Assert(entity.Roles != null && entity.Roles.Any(), "Must define an existing role for this user!");
                 Debug.Assert(entity.Roles.All(r => r.ID > 0), "A role must already be created in the database before creating the user");
                 entity.ID = 0;
@@ -116,12 +122,13 @@ namespace Inuplan.DAL.Repositories
                         transactionScope.Complete();
                     }
 
+                    logger.Debug("Class: UserDatabaseRepository, Method: Create, END");
                     return result;
                 }
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -135,16 +142,19 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserDatabaseRepository, Method: Delete, BEGIN");
                 Debug.Assert(!string.IsNullOrEmpty(key), "Must have a valid username");
                 var sql = @"DELETE FROM Users WHERE Username = @key";
                 var rows = await connection.ExecuteAsync(sql, new { key });
                 var result = rows == 1;
                 if (result) await onDelete(key);
+
+                logger.Debug("Class: UserDatabaseRepository, Method: Delete, END");
                 return result;
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -158,6 +168,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserDatabaseRepository, Method: Get, BEGIN");
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     var sqlUser = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
@@ -187,12 +198,13 @@ namespace Inuplan.DAL.Repositories
                         transactionScope.Complete();
                     }
 
+                    logger.Debug("Class: UserDatabaseRepository, Method: Get, END");
                     return result;
                 }
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -208,6 +220,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserDatabaseRepository, Method: GetPage, BEGIN");
                 sortBy = sortBy ?? new Func<string>(() => "Username");
                 orderBy = orderBy ?? new Func<string>(() => "ASC");
 
@@ -250,12 +263,13 @@ namespace Inuplan.DAL.Repositories
                 var totalSql = @"SELECT COUNT(*) FROM Users";
                 var total = await connection.ExecuteScalarAsync<int>(totalSql);
 
+                logger.Debug("Class: UserDatabaseRepository, Method: GetPage, END");
                 var page = Helpers.Paginate(skip, take, total, result.ToList());
                 return page;
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -269,15 +283,18 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserDatabaseRepository, Method: Create, BEGIN");
                 var sql = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
                         FROM Users";
 
                 var result = await connection.QueryAsync<User>(sql);
+
+                logger.Debug("Class: UserDatabaseRepository, Method: GetAll, END");
                 return result.ToList();
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -291,6 +308,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserDatabaseRepository, Method: GetByID, BEGIN");
                 var sql = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
                         FROM Users
                         WHERE ID = @id";
@@ -311,11 +329,12 @@ namespace Inuplan.DAL.Repositories
                     result.Roles = roles.ToList();
                 }
 
+                logger.Debug("Class: UserDatabaseRepository, Method: GetByID, END");
                 return result.SomeWhen(u => u != null && u.ID > 0);
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -331,6 +350,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserDatabaseRepository, Method: Update, BEGIN");
                 var sql = @"UPDATE Users SET
                             FirstName = @FirstName,
                             LastName = @LastName,
@@ -349,11 +369,12 @@ namespace Inuplan.DAL.Repositories
                     key,
                 });
 
+                logger.Debug("Class: UserDatabaseRepository, Method: Update, END");
                 return result == 1;
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
