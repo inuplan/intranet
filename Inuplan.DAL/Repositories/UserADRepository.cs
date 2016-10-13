@@ -27,6 +27,7 @@ namespace Inuplan.DAL.Repositories
     using System.Threading.Tasks;
     using Optional;
     using System.DirectoryServices.AccountManagement;
+    using Common.Logger;
 
     /// <summary>
     /// Retrieves user information from Active Directory
@@ -44,6 +45,8 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         private readonly object locking;
 
+        private readonly ILogger<UserADRepository> logger;
+
         /// <summary>
         /// Dispose pattern implementation.
         /// Indicates whether dispose has been called multiple times.
@@ -54,10 +57,13 @@ namespace Inuplan.DAL.Repositories
         /// Initializes a new instance of the <see cref="UserADRepository"/> class.
         /// </summary>
         /// <param name="ctx">The principal context from which every query is run against</param>
-        public UserADRepository(PrincipalContext ctx)
+        public UserADRepository(
+            PrincipalContext ctx,
+            ILogger<UserADRepository> logger)
         {
             this.ctx = ctx;
             locking = new object();
+            this.logger = logger;
         }
 
         /// <summary>
@@ -101,6 +107,7 @@ namespace Inuplan.DAL.Repositories
         /// <returns>An awaitable optional user</returns>
         public Task<Option<User>> Get(string key)
         {
+            logger.Debug("Class: UserADRepository, Method: Get, BEGIN");
             var adUser = UserPrincipal.FindByIdentity(ctx, key).SomeNotNull();
 
             var user = adUser.Map(u =>
@@ -113,6 +120,7 @@ namespace Inuplan.DAL.Repositories
                 }
             );
 
+            logger.Debug("Class: UserADRepository, Method: Get, END");
             return Task.FromResult(user);
         }
 
