@@ -28,7 +28,10 @@ namespace Inuplan.WebAPI.App_Start
     using Common.Queries;
     using Common.Repositories;
     using Controllers;
+    using Controllers.Diagnostics;
     using Controllers.Forum;
+    using Controllers.Images;
+    using Controllers.Users;
     using DAL.ForumPost.Commands;
     using DAL.Repositories;
     using DAL.Repositories.Forum;
