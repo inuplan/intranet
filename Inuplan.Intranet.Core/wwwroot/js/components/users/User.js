@@ -1,6 +1,6 @@
 ﻿import React from 'react'
 import { Link } from 'react-router'
-import { Row, Col } from 'react-bootstrap'
+import { Row, Col, Panel } from 'react-bootstrap'
 
 export class User extends React.Component {
     render() {
@@ -9,11 +9,11 @@ export class User extends React.Component {
         const gallery = "/" + username + "/gallery";
 
         return  <Col lg={3}>
-                    <UserItem title="Brugernavn">{username}</UserItem>
-                    <UserItem title="Fornavn">{firstName}</UserItem>
-                    <UserItem title="Efternavn">{lastName}</UserItem>
-                    <UserItem title="Email"><a href={emailLink}>{email}</a></UserItem>
-                    <UserItem title="Billeder"><Link to={gallery}>Billeder</Link></UserItem>
+                    <Panel header={`${firstName} ${lastName}`}>
+                        <UserItem title="Brugernavn">{username}</UserItem>
+                        <UserItem title="Email"><a href={emailLink}>{email}</a></UserItem>
+                        <UserItem title="Billeder"><Link to={gallery}>Billeder</Link></UserItem>
+                    </Panel>
                 </Col>
     }
 }
