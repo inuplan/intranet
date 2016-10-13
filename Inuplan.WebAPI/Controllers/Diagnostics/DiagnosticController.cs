@@ -27,7 +27,6 @@ namespace Inuplan.WebAPI.Controllers.Diagnostics
     using Extensions;
     using System.Net;
     using System.Net.Http;
-    using System.Web.Http;
 
     public class DiagnosticController : DefaultController
     {
