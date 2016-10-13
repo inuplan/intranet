@@ -20,10 +20,10 @@
 
 namespace Inuplan.DAL.Repositories
 {
+    using Common.Logger;
     using Common.Models;
     using Common.Repositories;
     using Dapper;
-    using NLog;
     using Optional;
     using System;
     using System.Collections.Generic;
@@ -36,21 +36,26 @@ namespace Inuplan.DAL.Repositories
 
     public class UserRoleRepository : IScalarRepository<int, User>
     {
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
-
         private readonly IDbConnection connection;
+
+        private readonly ILogger<UserRoleRepository> logger;
 
         private bool disposedValue = false;
 
-        public UserRoleRepository(IDbConnection connection)
+        public UserRoleRepository(
+            IDbConnection connection,
+            ILogger<UserRoleRepository> logger
+        )
         {
             this.connection = connection;
+            this.logger = logger;
         }
 
         public async Task<Option<User>> Create(User entity, Func<User, Task> onCreate, params object[] identifiers)
         {
             try
             {
+                logger.Debug("Class: UserRoleRepository, Method: Create, BEGIN");
                 // Identifiers are a list of IDs for the role
                 var args = identifiers.Cast<int>().Select(roleID => new
                 {
@@ -72,11 +77,13 @@ namespace Inuplan.DAL.Repositories
                 // Return constructed object
                 var result = entity.SomeWhen(u => createdRoles);
                 if (result.HasValue) await onCreate(entity);
+
+                logger.Debug("Class: UserRoleRepository, Method: Create, END");
                 return result;
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -85,6 +92,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserRoleRepository, Method: Delete, BEGIN");
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     var sql = @"DELETE FROM UserRoles WHERE UserID = @key;";
@@ -96,12 +104,13 @@ namespace Inuplan.DAL.Repositories
                         transactionScope.Complete();
                     }
 
+                    logger.Debug("Class: UserRoleRepository, Method: Delete, END");
                     return done;
                 }
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -110,6 +119,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserRoleRepository, Method: Get, BEGIN");
                 var sql = @"SELECT ID, Name
                         FROM Roles r INNER JOIN UserRoles u
                         ON u.RoleID=r.ID
@@ -129,11 +139,12 @@ namespace Inuplan.DAL.Repositories
                                     u.Roles = roles.ToList();
                                     return u;
                                 });
+                logger.Debug("Class: UserRoleRepository, Method: Get, END");
                 return result;
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -157,6 +168,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserRoleRepository, Method: Update, BEGIN");
                 Debug.Assert(entity.Roles.All(r => r.ID > 0), "Must have valid roles to update!");
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
@@ -172,12 +184,13 @@ namespace Inuplan.DAL.Repositories
                         transactionScope.Complete();
                     }
 
+                    logger.Debug("Class: UserRoleRepository, Method: Update, END");
                     return success;
                 }
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
