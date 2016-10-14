@@ -35,6 +35,7 @@ namespace Inuplan.WebAPI.Middlewares
     using System.Net;
     using System.Security.Claims;
     using System.Threading.Tasks;
+    using WebSocketAccept = System.Action<System.Collections.Generic.IDictionary<string, object>, System.Func<System.Collections.Generic.IDictionary<string, object>, System.Threading.Tasks.Task>>;
 
     /// <summary>
     /// If it is a user's first time, then the user is created and saved to the database.
@@ -85,12 +86,20 @@ namespace Inuplan.WebAPI.Middlewares
         /// <returns>An awaitable task</returns>
         public async override Task Invoke(IOwinContext context)
         {
-            Logger.Info("Incoming request from: {0}", context.Request.RemoteIpAddress);
+            Logger.Trace("Incoming request from: {0}", context.Request.RemoteIpAddress);
             if (context.Request.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
             {
                 Logger.Trace("Http method: OPTIONS - Request is probably a preflight request, must allow anonymous pass-through");
-                await Next.Invoke(context);
                 return;
+            }
+
+            var accept = context.Request.Get<WebSocketAccept>("websocket.Accept");
+            if (accept != null)
+            {
+                Logger.Trace("In middleware: request is websocket request");
+                // What to do?
+                // Idea make new middleware, and put that before this one!
+                // and handle the logic there!
             }
 
             try
@@ -105,7 +114,7 @@ namespace Inuplan.WebAPI.Middlewares
 
                 if (!user.HasValue)
                 {
-                    Logger.Debug("User {0} does not exist in database", username);
+                    Logger.Trace("User {0} does not exist in database", username);
                     Logger.Trace("Retrieve \"User\" role from database");
                     var role = (await roleRepository.GetAll())
                         .FirstOrDefault(r => r.Name.Equals("User", StringComparison.OrdinalIgnoreCase));
@@ -117,7 +126,7 @@ namespace Inuplan.WebAPI.Middlewares
                     var adUser = await userActiveDirectoryRepository.Get(username);
                     error = await adUser.Match(async u =>
                     {
-                        Logger.Info("User info retrieved from Active Directory!");
+                        Logger.Trace("User info retrieved from Active Directory!");
                         u.Roles = roles;
 
                         Logger.Trace("Creating user {0} in the database", username);
@@ -129,7 +138,7 @@ namespace Inuplan.WebAPI.Middlewares
                             return true;
                         }
 
-                        Logger.Info("Created user {0} in the database!", username);
+                        Logger.Trace("Created user {0} in the database!", username);
                         user = created;
                         return false;
                     },

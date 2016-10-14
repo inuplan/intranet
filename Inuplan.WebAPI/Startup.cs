@@ -124,6 +124,11 @@ namespace Inuplan.WebAPI
                     Logger.Trace("Using authentication scheme: Anonymous, incoming request from: {0}", request.RemoteEndPoint.Address);
                     return AuthenticationSchemes.Anonymous;
                 }
+                else if(request.IsWebSocketRequest)
+                {
+                    Logger.Trace("Using authentication scheme: Anonymous for WebSocketRequest");
+                    return AuthenticationSchemes.Anonymous;
+                }
                 else
                 {
                     // Using NTLM because Integrated = Negotiate + NTLM
