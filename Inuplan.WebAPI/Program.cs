@@ -16,7 +16,6 @@
 
 namespace Inuplan.WebAPI
 {
-    using App_Start;
     using Microsoft.Owin.Hosting;
     using NLog;
     using Properties;
@@ -95,7 +94,6 @@ namespace Inuplan.WebAPI
         {
             Logger.Trace("Starting OWIN katana on: {0}", address);
             application = WebApp.Start<Startup>(url: address);
-            WebSocketConfig.Start();
         }
 
         /// <summary>
@@ -105,7 +103,6 @@ namespace Inuplan.WebAPI
         {
             Logger.Trace("Stopping service!");
             application.Dispose();
-            WebSocketConfig.Stop();
         }
     }
 }

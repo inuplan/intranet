@@ -27,6 +27,7 @@ namespace Inuplan.WebAPI.App_Start
     using Common.Models.Forum;
     using Common.Queries;
     using Common.Repositories;
+    using Common.WebSockets;
     using Controllers;
     using Controllers.Diagnostics;
     using Controllers.Forum;
@@ -46,7 +47,6 @@ namespace Inuplan.WebAPI.App_Start
     using System.DirectoryServices.AccountManagement;
     using System.Web.Http;
     using WebSocketServices;
-    using WebSocketSharp.Server;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -116,16 +116,11 @@ namespace Inuplan.WebAPI.App_Start
             #endregion
 
             // Register web socket services
-            builder.Register(ctx => WebSocketConfig.Socket).SingleInstance();
-            builder.Register(ctx => {
-                var socket = ctx.Resolve<WebSocketServer>();
-                WebSocketServiceHost host;
-                socket.WebSocketServices.TryGetServiceHost(Settings.Default.webSocketServiceLatest, out host);
-                return new LatestActionItemBroadcastService
-                {
-                    Sessions = host.Sessions
-                };
-            });
+            builder.RegisterType<LatestBroadcastService>().WithAttributeFilter();
+            builder
+                .Register(ctx => new HubSession("latest"))
+                .Keyed<IWebSocketHubSession>(ServiceKeys.LatestHub)
+                .SingleInstance();
 
             // Use autofac owin pipeline
             OwinPipeline(builder);
@@ -144,6 +139,7 @@ namespace Inuplan.WebAPI.App_Start
         private static void OwinPipeline(ContainerBuilder builder)
         {
             // Owin middleware pipeline - order matters
+            builder.RegisterType<WebSocketMiddleware>().WithAttributeFilter();
             builder.RegisterType<ManageUserMiddleware>().WithAttributeFilter();
         }
 

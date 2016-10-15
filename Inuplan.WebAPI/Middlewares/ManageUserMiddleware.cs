@@ -35,7 +35,6 @@ namespace Inuplan.WebAPI.Middlewares
     using System.Net;
     using System.Security.Claims;
     using System.Threading.Tasks;
-    using WebSocketAccept = System.Action<System.Collections.Generic.IDictionary<string, object>, System.Func<System.Collections.Generic.IDictionary<string, object>, System.Threading.Tasks.Task>>;
 
     /// <summary>
     /// If it is a user's first time, then the user is created and saved to the database.
@@ -90,16 +89,8 @@ namespace Inuplan.WebAPI.Middlewares
             if (context.Request.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
             {
                 Logger.Trace("Http method: OPTIONS - Request is probably a preflight request, must allow anonymous pass-through");
+                await Next.Invoke(context);
                 return;
-            }
-
-            var accept = context.Request.Get<WebSocketAccept>("websocket.Accept");
-            if (accept != null)
-            {
-                Logger.Trace("In middleware: request is websocket request");
-                // What to do?
-                // Idea make new middleware, and put that before this one!
-                // and handle the logic there!
             }
 
             try

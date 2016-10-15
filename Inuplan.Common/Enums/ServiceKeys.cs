@@ -85,5 +85,10 @@ namespace Inuplan.Common.Enums
         /// Key for the ForumCommentsRepository
         /// </summary>
         ForumCommentsRepository,
+
+        /// <summary>
+        /// Key for the latest websocket hub handler
+        /// </summary>
+        LatestHub,
     }
 }

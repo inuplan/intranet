@@ -187,15 +187,10 @@
       <HintPath>..\packages\Topshelf.NLog.4.0.2\lib\net452\Topshelf.NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="websocket-sharp, Version=1.0.2.59611, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
-      <HintPath>..\packages\WebSocketSharp.1.0.3-rc11\lib\websocket-sharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\DependencyConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="App_Start\WebSocketConfig.cs" />
     <Compile Include="Controllers\DefaultController.cs" />
     <Compile Include="Controllers\Diagnostics\DiagnosticController.cs" />
     <Compile Include="Controllers\Forum\ForumCommentController.cs" />
@@ -214,6 +209,7 @@
     <Compile Include="Image\Handle.cs" />
     <Compile Include="Logger\NLogServiceWrapper.cs" />
     <Compile Include="Middlewares\ManageUserMiddleware.cs" />
+    <Compile Include="Middlewares\WebSocketMiddleware.cs" />
     <Compile Include="Mocks\NoADRepo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -224,8 +220,8 @@
     </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="Startup.cs" />
-    <Compile Include="WebSocketServices\Echo.cs" />
-    <Compile Include="WebSocketServices\LatestActionItemBroadcastService.cs" />
+    <Compile Include="WebSocketServices\HubSession.cs" />
+    <Compile Include="WebSocketServices\LatestBroadcastService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">

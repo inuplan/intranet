@@ -20,13 +20,20 @@
 
 namespace Inuplan.WebAPI.WebSocketServices
 {
+    using Autofac.Extras.Attributed;
     using Common.DTOs;
     using Common.DTOs.Forum;
-    using WebSocketSharp.Server;
+    using Common.Enums;
+    using Common.WebSockets;
 
-    public class LatestActionItemBroadcastService : WebSocketBehavior
+    public class LatestBroadcastService
     {
-        public new WebSocketSessionManager Sessions { get; set; }
+        private readonly IWebSocketHubSession session;
+
+        public LatestBroadcastService([WithKey(ServiceKeys.LatestHub)] IWebSocketHubSession session)
+        {
+            this.session = session;
+        }
 
         public void NewImageComment(ImageCommentDTO comment)
         {
@@ -36,8 +43,7 @@ namespace Inuplan.WebAPI.WebSocketServices
                 item = comment
             };
 
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(action);
-            Sessions.Broadcast(json);
+            session.Broadcast(action);
         }
 
         public void NewImage(UserImageDTO image)
@@ -48,8 +54,7 @@ namespace Inuplan.WebAPI.WebSocketServices
                 item = image
             };
 
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(action);
-            Sessions.Broadcast(json);
+            session.Broadcast(action);
         }
 
         public void NewForumThread(ThreadPostContentDTO forumThread)
@@ -60,8 +65,7 @@ namespace Inuplan.WebAPI.WebSocketServices
                 item = forumThread
             };
 
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(action);
-            Sessions.Broadcast(json);
+            session.Broadcast(action);
         }
     }
 }
