@@ -64,7 +64,7 @@ namespace Inuplan.WebAPI.Controllers.Images
         private readonly IVectorRepository<int, Comment> imageCommentsRepo;
         private readonly IAddItem whatsNew;
         private readonly IDeleteItem removeNews;
-        private readonly LatestActionItemBroadcastService webSocketService;
+        private readonly LatestBroadcastService webSocketService;
 
         /// <summary>
         /// Instantiates a new <see cref="UserImageController"/> instance.
@@ -77,7 +77,7 @@ namespace Inuplan.WebAPI.Controllers.Images
             ImageHandleFactory imageHandleFactory,
             IAddItem whatsNew,
             IDeleteItem removeNews,
-            LatestActionItemBroadcastService webSocketService
+            LatestBroadcastService webSocketService
             )
             : base(userDatabaseRepository)
         {

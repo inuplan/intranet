@@ -18,44 +18,21 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.WebAPI.App_Start
+namespace Inuplan.Common.WebSockets
 {
-    using Properties;
-    using System.Net;
-    using WebSocketServices;
-    using WebSocketSharp.Server;
+    using Optional;
+    using System;
+    using System.Collections.Generic;
+    using System.Net.WebSockets;
+    using System.Threading.Tasks;
 
-    public static class WebSocketConfig
+    public interface IWebSocketHubSession
     {
-        public static WebSocketServer Socket { get; private set; }
-
-        public static void Start()
-        {
-            // url:      ws://10.18.0.217:9001
-            Socket = new WebSocketServer(GetServerIP(), Settings.Default.webSocketPort);
-            AddServices();
-            Socket.Start();
-        }
-
-        private static void AddServices()
-        {
-            // Must be relative urls!
-            Socket.AddWebSocketService<LatestActionItemBroadcastService>(Settings.Default.webSocketServiceLatest);
-            Socket.AddWebSocketService<Echo>("/echo");
-        }
-
-        public static void Stop()
-        {
-            Socket.Stop();
-        }
-
-        private static IPAddress GetServerIP()
-        {
-#if DEBUG
-            return IPAddress.Loopback;
-#else
-            return IPAddress.Parse(Settings.Default.serverIP);
-#endif
-        }
+        string Hub { get; }
+        Task<Option<Guid>> AddClient(WebSocket client);
+        Task<bool> RemoveClient(Guid id);
+        Task<bool> Broadcast<T>(T message);
+        Task<bool> Send<T>(Guid to, T message);
+        Task<IReadOnlyCollection<Guid>> GetClientIds();
     }
 }

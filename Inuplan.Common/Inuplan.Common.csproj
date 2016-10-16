@@ -90,6 +90,7 @@
     <Compile Include="Tools\Converters.cs" />
     <Compile Include="Tools\Helpers.cs" />
     <Compile Include="Tools\Constants.cs" />
+    <Compile Include="WebSockets\IWebSocketHubSession.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -51,7 +51,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
         private readonly IMarkPost markPost;
         private readonly IAddItem whatsNew;
         private readonly IDeleteItem remove;
-        private readonly LatestActionItemBroadcastService webSocketService;
+        private readonly LatestBroadcastService webSocketService;
         private readonly ILogger<ForumPostController> logger;
 
         public ForumPostController(
@@ -62,7 +62,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
             IAddItem whatsNew,
             IDeleteItem remove,
             IMarkPost markPost,
-            LatestActionItemBroadcastService webSocketService,
+            LatestBroadcastService webSocketService,
             ILogger<ForumPostController> logger
         ) : base(userDatabaseRepository)
         {
