@@ -15,23 +15,39 @@ export const init = () => {
 }
 
 export const connectToLatestWebSocketService = () => {
-    const socket = new WebSocket(globals.urls.websocket.latest);
-    socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        switch(data.type) {
-            case 'NEW_IMAGE_COMMENT':
-                store.dispatch(newCommentFromServer(data.item));
-                break;
-            case 'NEW_IMAGE':
-                store.dispatch(newImageFromServer(data.item));
-                break;
-            case 'NEW_FORUM_THREAD':
-                store.dispatch(newForumThreadFromServer(data.item));
-                break;
-        }
+    const supportsWebSockets = 'WebSocket' in window || 'MozWebSocket' in window;
 
-        const { skip, take } = store.getState().whatsNewInfo;
-        store.dispatch(fetchLatestNews(skip, take));
+    if(supportsWebSockets) {
+        const socket = new WebSocket(globals.urls.websocket.latest);
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            switch(data.type) {
+                case 'NEW_IMAGE_COMMENT':
+                    store.dispatch(newCommentFromServer(data.item));
+                    break;
+                case 'NEW_IMAGE':
+                    store.dispatch(newImageFromServer(data.item));
+                    break;
+                case 'NEW_FORUM_THREAD':
+                    store.dispatch(newForumThreadFromServer(data.item));
+                    break;
+            }
+
+            const { skip, take } = store.getState().whatsNewInfo;
+            store.dispatch(fetchLatestNews(skip, take));
+        }
+    }
+    else {
+        // do long-poll every 10 seconds
+        setInterval(() => {
+            const { skip, take } = store.getState().whatsNewInfo;
+            const skipPost = store.getState().forumInfo.titlesInfo.skip;
+            const takePost = store.getState().forumInfo.titlesInfo.take;
+
+            store.dispatch(fetchUsers());
+            store.dispatch(fetchLatestNews(skip, take));
+            store.dispatch(fetchThreads(skipPost, takePost));
+        }, 10000);
     }
 }
 
