@@ -18,7 +18,7 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.WebAPI.Controllers
+namespace Inuplan.WebAPI.Controllers.Images
 {
     using Autofac.Extras.Attributed;
     using Common.Commands;
@@ -44,14 +44,14 @@ namespace Inuplan.WebAPI.Controllers
         private readonly IVectorRepository<int, Comment> imageCommentRepository;
         private readonly IAddItem whatsNew;
         private readonly IDeleteItem removeNews;
-        private readonly LatestActionItemBroadcastService webSocketService;
+        private readonly LatestBroadcastService webSocketService;
 
         public ImageCommentController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             IVectorRepository<int, Comment> imageCommentRepository,
             IAddItem whatsNew,
             IDeleteItem removeNews,
-            LatestActionItemBroadcastService webSocketService
+            LatestBroadcastService webSocketService
             )
             : base(userDatabaseRepository)
         {

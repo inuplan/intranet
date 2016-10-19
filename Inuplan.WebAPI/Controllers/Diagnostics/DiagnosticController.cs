@@ -18,44 +18,30 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.WebAPI.App_Start
+namespace Inuplan.WebAPI.Controllers.Diagnostics
 {
-    using Properties;
+    using Autofac.Extras.Attributed;
+    using Common.Enums;
+    using Common.Models;
+    using Common.Repositories;
+    using Extensions;
     using System.Net;
-    using WebSocketServices;
-    using WebSocketSharp.Server;
+    using System.Net.Http;
 
-    public static class WebSocketConfig
+    public class DiagnosticController : DefaultController
     {
-        public static WebSocketServer Socket { get; private set; }
-
-        public static void Start()
+        public DiagnosticController(
+            [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository)
+            : base(userDatabaseRepository)
         {
-            // url:      ws://10.18.0.217:9001
-            Socket = new WebSocketServer(GetServerIP(), Settings.Default.webSocketPort);
-            AddServices();
-            Socket.Start();
         }
 
-        private static void AddServices()
+        // GET api/diagnostic/ping
+        public HttpResponseMessage Get()
         {
-            // Must be relative urls!
-            Socket.AddWebSocketService<LatestActionItemBroadcastService>(Settings.Default.webSocketServiceLatest);
-            Socket.AddWebSocketService<Echo>("/echo");
-        }
-
-        public static void Stop()
-        {
-            Socket.Stop();
-        }
-
-        private static IPAddress GetServerIP()
-        {
-#if DEBUG
-            return IPAddress.Loopback;
-#else
-            return IPAddress.Parse(Settings.Default.serverIP);
-#endif
+            var username = Request.GetUser().Map(u => u.Username).ValueOr("Anonymous");
+            Logger.Trace("Received request from: {0}", username);
+            return Request.CreateResponse(HttpStatusCode.OK);
         }
     }
 }

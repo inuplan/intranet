@@ -33,8 +33,8 @@ namespace Inuplan.DAL.Repositories
     using Dapper;
     using Optional;
     using System.Data.SqlClient;
-    using NLog;
     using Common.Tools;
+    using Common.Logger;
 
     /// <summary>
     /// A repository for the images a user has.
@@ -48,7 +48,7 @@ namespace Inuplan.DAL.Repositories
         /// <summary>
         /// The logging framework
         /// </summary>
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private readonly ILogger<UserImageRepository> logger;
 
         /// <summary>
         /// The database connection
@@ -64,9 +64,13 @@ namespace Inuplan.DAL.Repositories
         /// Initializes a new instance of this <see cref="UserImageRepository"/> class.
         /// </summary>
         /// <param name="connection">The database connection</param>
-        public UserImageRepository(IDbConnection connection)
+        public UserImageRepository(
+            IDbConnection connection,
+            ILogger<UserImageRepository> logger
+        )
         {
             this.connection = connection;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -79,6 +83,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserImageRepository, Method: Create, BEGIN");
                 Debug.Assert(entity.Owner != null && entity.Owner.ID > 0, "Must have a valid user id");
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
@@ -142,13 +147,14 @@ namespace Inuplan.DAL.Repositories
                             File.WriteAllBytes(entity.Preview.Path, entity.Preview.Data.Value);
                             File.WriteAllBytes(entity.Thumbnail.Path, entity.Thumbnail.Data.Value);
 
+                            logger.Debug("Class: UserImageRepository, Method: Create, END");
                             return entity.Some();
                         }
                     }
                     catch (SqlException ex)
                     {
                         // log error
-                        Logger.Error(ex);
+                        logger.Error(ex);
                     }
                 }
 
@@ -156,7 +162,7 @@ namespace Inuplan.DAL.Repositories
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -170,6 +176,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserImageRepository, Method: Delete, BEGIN");
                 Debug.Assert(key > 0, "The image must have a valid ID!");
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
@@ -217,15 +224,17 @@ namespace Inuplan.DAL.Repositories
                             }
                         }
 
+                        logger.Debug("Class: UserImageRepository, Method: Delete, END");
                         return true;
                     }
 
+                    logger.Error("Could not delete every image");
                     return false;
                 }
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -239,6 +248,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserImageRepository, Method: Get, BEGIN");
                 var sql = @"SELECT
                         img.ID, Description, Filename, Extension, MimeType, Uploaded,   /* Image */
                         u.ID, FirstName, LastName, Username, Email,                     /* User */
@@ -276,11 +286,12 @@ namespace Inuplan.DAL.Repositories
                         return img;
                     }, new { key });
 
+                logger.Debug("Class: UserImageRepository, Method: Get, END");
                 return image.SingleOrDefault().SomeNotNull();
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -296,6 +307,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserImageRepository, Method: GetPage, BEGIN");
                 sortBy = sortBy ?? new Func<string>(() => "Filename");
                 orderBy = orderBy ?? new Func<string>(() => "ASC");
 
@@ -358,12 +370,13 @@ namespace Inuplan.DAL.Repositories
                 var totalImagesSql = @"SELECT COUNT(*) FROM Images WHERE Owner = @Owner;";
                 var total = await connection.ExecuteScalarAsync<int>(totalImagesSql, new { Owner = identifiers });
 
+                logger.Debug("Class: UserImageRepository, Method: GetPage, END");
                 var currentPage = Helpers.Paginate(skip, take, total, result.ToList());
                 return currentPage;
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -377,6 +390,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserImageRepository, Method: GetAll, BEGIN");
                 Debug.Assert(identifiers.Length == 1, "Must have a valid user ID!");
                 var sql = @"SELECT
                         img.ID, Description, Filename, Extension, MimeType, Uploaded,   /* Image */
@@ -415,11 +429,12 @@ namespace Inuplan.DAL.Repositories
                                     return img;
                                 }, new { Owner = identifiers[0] });
 
+                logger.Debug("Class: UserImageRepository, Method: GetAll, END");
                 return result.ToList();
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -444,14 +459,17 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserImageRepository, Method: Update, BEGIN");
                 // Only update the description!
                 var sql = @"UPDATE Images SET Description = @Description WHERE ID=@key;";
                 var updated = await connection.ExecuteAsync(sql, new { key, Description = entity.Description });
+
+                logger.Debug("Class: UserImageRepository, Method: Update, END");
                 return updated == 1;
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }

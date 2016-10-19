@@ -130,11 +130,11 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\packages\NLog.4.3.7\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.4.3.10\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Optional, Version=3.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Optional.3.1.0\lib\net461\Optional.dll</HintPath>
+    <Reference Include="Optional, Version=3.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Optional.3.2.0\lib\net461\Optional.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
@@ -180,39 +180,36 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="Topshelf, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b800c4cfcdeea87b, processorArchitecture=MSIL">
-      <HintPath>..\packages\Topshelf.4.0.1\lib\net452\Topshelf.dll</HintPath>
+      <HintPath>..\packages\Topshelf.4.0.2\lib\net452\Topshelf.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Topshelf.NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b800c4cfcdeea87b, processorArchitecture=MSIL">
-      <HintPath>..\packages\Topshelf.NLog.4.0.1\lib\net452\Topshelf.NLog.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="websocket-sharp, Version=1.0.2.59611, Culture=neutral, PublicKeyToken=5660b08a1845a91e, processorArchitecture=MSIL">
-      <HintPath>..\packages\WebSocketSharp.1.0.3-rc11\lib\websocket-sharp.dll</HintPath>
+      <HintPath>..\packages\Topshelf.NLog.4.0.2\lib\net452\Topshelf.NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\DependencyConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
-    <Compile Include="App_Start\WebSocketConfig.cs" />
     <Compile Include="Controllers\DefaultController.cs" />
-    <Compile Include="Controllers\DiagnosticController.cs" />
+    <Compile Include="Controllers\Diagnostics\DiagnosticController.cs" />
     <Compile Include="Controllers\Forum\ForumCommentController.cs" />
     <Compile Include="Controllers\Forum\ForumPostController.cs" />
     <Compile Include="Controllers\Forum\ForumTitleController.cs" />
-    <Compile Include="Controllers\ImageCommentController.cs" />
-    <Compile Include="Controllers\RoleController.cs" />
-    <Compile Include="Controllers\UserAlbumController.cs" />
-    <Compile Include="Controllers\UserController.cs" />
-    <Compile Include="Controllers\UserImageController.cs" />
-    <Compile Include="Controllers\UserRolesController.cs" />
+    <Compile Include="Controllers\Images\ImageCommentController.cs" />
+    <Compile Include="Controllers\Users\RoleController.cs" />
+    <Compile Include="Controllers\Images\UserAlbumController.cs" />
+    <Compile Include="Controllers\Users\UserController.cs" />
+    <Compile Include="Controllers\Images\UserImageController.cs" />
+    <Compile Include="Controllers\Users\UserRolesController.cs" />
     <Compile Include="Controllers\WhatsNewController.cs" />
     <Compile Include="Extensions\HttpRequestMessageExtensions.cs" />
+    <Compile Include="Extensions\Workflows\Builders.cs" />
     <Compile Include="Image\Factories\HandleFactory.cs" />
     <Compile Include="Image\Handle.cs" />
     <Compile Include="Logger\NLogServiceWrapper.cs" />
     <Compile Include="Middlewares\ManageUserMiddleware.cs" />
+    <Compile Include="Middlewares\WebSocketMiddleware.cs" />
     <Compile Include="Mocks\NoADRepo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -223,8 +220,8 @@
     </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="Startup.cs" />
-    <Compile Include="WebSocketServices\Echo.cs" />
-    <Compile Include="WebSocketServices\LatestActionItemBroadcastService.cs" />
+    <Compile Include="WebSocketServices\HubSession.cs" />
+    <Compile Include="WebSocketServices\LatestBroadcastService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config">

@@ -85,7 +85,7 @@ namespace Inuplan.WebAPI.Middlewares
         /// <returns>An awaitable task</returns>
         public async override Task Invoke(IOwinContext context)
         {
-            Logger.Info("Incoming request from: {0}", context.Request.RemoteIpAddress);
+            Logger.Trace("Incoming request from: {0}", context.Request.RemoteIpAddress);
             if (context.Request.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
             {
                 Logger.Trace("Http method: OPTIONS - Request is probably a preflight request, must allow anonymous pass-through");
@@ -105,7 +105,7 @@ namespace Inuplan.WebAPI.Middlewares
 
                 if (!user.HasValue)
                 {
-                    Logger.Debug("User {0} does not exist in database", username);
+                    Logger.Trace("User {0} does not exist in database", username);
                     Logger.Trace("Retrieve \"User\" role from database");
                     var role = (await roleRepository.GetAll())
                         .FirstOrDefault(r => r.Name.Equals("User", StringComparison.OrdinalIgnoreCase));
@@ -117,7 +117,7 @@ namespace Inuplan.WebAPI.Middlewares
                     var adUser = await userActiveDirectoryRepository.Get(username);
                     error = await adUser.Match(async u =>
                     {
-                        Logger.Info("User info retrieved from Active Directory!");
+                        Logger.Trace("User info retrieved from Active Directory!");
                         u.Roles = roles;
 
                         Logger.Trace("Creating user {0} in the database", username);
@@ -129,7 +129,7 @@ namespace Inuplan.WebAPI.Middlewares
                             return true;
                         }
 
-                        Logger.Info("Created user {0} in the database!", username);
+                        Logger.Trace("Created user {0} in the database!", username);
                         user = created;
                         return false;
                     },

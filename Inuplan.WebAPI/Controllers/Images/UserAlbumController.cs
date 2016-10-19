@@ -1,4 +1,4 @@
-﻿namespace Inuplan.WebAPI.Controllers
+﻿namespace Inuplan.WebAPI.Controllers.Images
 {
     using Autofac.Extras.Attributed;
     using Common.DTOs;

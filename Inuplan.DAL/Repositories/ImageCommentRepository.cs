@@ -20,11 +20,11 @@
 
 namespace Inuplan.DAL.Repositories
 {
+    using Common.Logger;
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
     using Dapper;
-    using NLog;
     using Optional;
     using System;
     using System.Collections.Generic;
@@ -40,14 +40,11 @@ namespace Inuplan.DAL.Repositories
     public class ImageCommentRepository : IVectorRepository<int, Comment>
     {
         /// <summary>
-        /// Get current logging framework
-        /// </summary>
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
-
-        /// <summary>
         /// The database connection
         /// </summary>
         private readonly IDbConnection connection;
+
+        private readonly ILogger<ImageCommentRepository> logger;
 
         /// <summary>
         /// The disposed pattern
@@ -58,9 +55,13 @@ namespace Inuplan.DAL.Repositories
         /// Initializes a new instance of the <see cref="ImageCommentRepository"/> class.
         /// </summary>
         /// <param name="connection">The database connection</param>
-        public ImageCommentRepository(IDbConnection connection)
+        public ImageCommentRepository(
+            IDbConnection connection,
+            ILogger<ImageCommentRepository> logger
+        )
         {
             this.connection = connection;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -76,6 +77,7 @@ namespace Inuplan.DAL.Repositories
             {
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
+                    logger.Debug("Class: ImageCommentRepository, Method: CreateSingle, BEGIN");
                     var sqlComment = @"INSERT INTO Comments (PostedOn, Author, Text, Reply)
                                 VALUES (@PostedOn, @Author, @Text, @Reply);
                                 SELECT ID FROM Comments WHERE ID = @@IDENTITY;";
@@ -107,12 +109,13 @@ namespace Inuplan.DAL.Repositories
                         transactionScope.Complete();
                     }
 
+                    logger.Debug("Class: ImageCommentRepository, Method: CreateSingle, END");
                     return entity.SomeWhen(c => success);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -129,7 +132,8 @@ namespace Inuplan.DAL.Repositories
                 // SQL - CTE where first projection (select) is the anchor
                 // the 2nd projection is the recursion
                 // Note: using LEFT JOIN on final projection, since we want to include all the deleted comments where user is null
-                var sqlComments = 
+                logger.Debug("Class: ImageCommentRepository, Method: Get, BEGIN");
+                var sqlComments =
                     @"WITH CommentTree AS(
                             SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Edited, Deleted, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
                             FROM Comments INNER JOIN ImageComments
@@ -154,12 +158,13 @@ namespace Inuplan.DAL.Repositories
                     return comment;
                 }, new { key });
 
+                logger.Debug("Class: ImageCommentRepository, Method: Get, END");
                 var result = Helpers.ConstructReplies(allComments);
                 return result;
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -173,6 +178,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: ImageCommentRepository, Method: GetSingleByID, BEGIN");
                 var sql = @"SELECT 
                             c.ID, PostedOn, Text, c.Deleted, c.Edited,
                             u.ID, FirstName, LastName, Username, Email
@@ -201,11 +207,12 @@ namespace Inuplan.DAL.Repositories
 
                 var result = comment.SomeWhen(c => c != null && c.ID > 0 && c.ContextID > 0);
 
+                logger.Debug("Class: ImageCommentRepository, Method: GetSingleByID, END");
                 return result;
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -223,6 +230,7 @@ namespace Inuplan.DAL.Repositories
             {
                 // Note: we use left join because we want the left side (comments) to be included
                 // even if the right side (users) are null.
+                logger.Debug("Class: ImageCommentRepository, Method: GetPage, BEGIN");
                 var sql = @"WITH CommentTree AS(
                                 SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, Edited, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
                                 FROM Comments INNER JOIN ImageComments
@@ -261,11 +269,12 @@ namespace Inuplan.DAL.Repositories
                 });
 
                 var items = Helpers.ConstructReplies(comments);
+                logger.Debug("Class: ImageCommentRepository, Method: GetPage, END");
                 return Helpers.Paginate(skip, take, total, items);
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -283,6 +292,7 @@ namespace Inuplan.DAL.Repositories
             {
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
+                    logger.Debug("Class: ImageCommentRepository, Method: UpdateSingle, BEGIN");
                     entity.Edited = true;
                     var sql = @"UPDATE Comments SET PostedOn=@PostedOn, Text=@Text, Edited=@Edited WHERE ID=@key";
                     var success = (await connection.ExecuteAsync(sql, new
@@ -299,12 +309,13 @@ namespace Inuplan.DAL.Repositories
                         return true;
                     }
 
+                    logger.Debug("Class: ImageCommentRepository, Method: UpdateSingle, END");
                     return false;
                 }
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -323,6 +334,7 @@ namespace Inuplan.DAL.Repositories
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     // Note: only removes identifying marks so that any child-branches aren't left hanging 
+                    logger.Debug("Class: ImageCommentRepository, Method: DeleteSingle, BEGIN");
                     var sqlDelete = @"UPDATE Comments SET Author=NULL, Text=NULL, Deleted=@Deleted WHERE ID=@ID";
                     var deleted = (await connection.ExecuteAsync(sqlDelete, new
                     {
@@ -336,21 +348,25 @@ namespace Inuplan.DAL.Repositories
                         transactionScope.Complete();
                     }
 
+                    logger.Debug("Class: ImageCommentRepository, Method: DeleteSingle, END");
                     return deleted;
                 }
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
 
         public async Task<bool> Delete(int imageId, Func<int, Task> onDelete)
         {
-            using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                var sqlIds = @"WITH CommentTree AS(
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    logger.Debug("Class: ImageCommentRepository, Method: Delete, BEGIN");
+                    var sqlIds = @"WITH CommentTree AS(
                                 SELECT Reply AS ReplyID, ID, ImageID
                                 FROM Comments INNER JOIN ImageComments
                                 ON Comments.ID = ImageComments.CommentID
@@ -362,13 +378,13 @@ namespace Inuplan.DAL.Repositories
                                 FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.ID
                                 WHERE Reply.Reply IS NOT NULL)
                             SELECT ID FROM CommentTree";
-                var commentIds = (await connection.QueryAsync<int>(sqlIds, new
-                {
-                    ImageID = imageId
-                })).ToList();
+                    var commentIds = (await connection.QueryAsync<int>(sqlIds, new
+                    {
+                        ImageID = imageId
+                    })).ToList();
 
-                // Delete all comments for the image:
-                var deleteCommentsSql = @"WITH CommentTree AS(
+                    // Delete all comments for the image:
+                    var deleteCommentsSql = @"WITH CommentTree AS(
                                 SELECT Reply AS ReplyID, ID, ImageID
                                 FROM Comments INNER JOIN ImageComments
                                 ON Comments.ID = ImageComments.CommentID
@@ -384,24 +400,31 @@ namespace Inuplan.DAL.Repositories
                                 INNER JOIN CommentTree t
                                 ON c.ID = t.ID";
 
-                // Returns the number of affected rows (comments deleted)
-                var deletedComments = await connection.ExecuteAsync(deleteCommentsSql, new
-                {
-                    ImageID = imageId
-                });
-
-                var success = commentIds.Count == deletedComments;
-                if (success)
-                {
-                    foreach (var commentId in commentIds)
+                    // Returns the number of affected rows (comments deleted)
+                    var deletedComments = await connection.ExecuteAsync(deleteCommentsSql, new
                     {
-                        await onDelete(commentId);
+                        ImageID = imageId
+                    });
+
+                    var success = commentIds.Count == deletedComments;
+                    if (success)
+                    {
+                        foreach (var commentId in commentIds)
+                        {
+                            await onDelete(commentId);
+                        }
+
+                        transactionScope.Complete();
                     }
 
-                    transactionScope.Complete();
+                    logger.Debug("Class: ImageCommentRepository, Method: Delete, END");
+                    return success;
                 }
-
-                return success;
+            }
+            catch (SqlException ex)
+            {
+                logger.Error(ex);
+                throw;
             }
         }
 
@@ -413,8 +436,11 @@ namespace Inuplan.DAL.Repositories
         /// <returns>The number of items for <see cref="K"/></returns>
         public async Task<int> Count(int key)
         {
-            var sqlComments =
-                @"WITH CommentTree AS(
+            try
+            {
+                logger.Debug("Class: ImageCommentRepository, Method: Count, BEGIN");
+                var sqlComments =
+                    @"WITH CommentTree AS(
                         SELECT Reply AS ReplyID, ID, Deleted
                         FROM Comments INNER JOIN ImageComments
                         ON Comments.ID = ImageComments.CommentID
@@ -428,12 +454,19 @@ namespace Inuplan.DAL.Repositories
                     SELECT Count(*) FROM CommentTree
                     WHERE Deleted <> 1";
 
-            var count = await connection.ExecuteScalarAsync<int>(sqlComments, new
-            {
-                key
-            });
+                var count = await connection.ExecuteScalarAsync<int>(sqlComments, new
+                {
+                    key
+                });
 
-            return count;
+                logger.Debug("Class: ImageCommentRepository, Method: Count, END");
+                return count;
+            }
+            catch (SqlException ex)
+            {
+                logger.Error(ex);
+                throw;
+            }
         }
 
         /// <summary>

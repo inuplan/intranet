@@ -30,25 +30,29 @@ namespace Inuplan.DAL.Repositories
     using System.Diagnostics;
     using Dapper;
     using Common.Tools;
-    using NLog;
     using System.Data.SqlClient;
     using System;
+    using Common.Logger;
 
     public class RoleRepository : IScalarRepository<int, Role>
     {
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
-
         private readonly IDbConnection connection;
 
         private bool disposedValue = false;
+        private readonly ILogger<RoleRepository> logger;
 
-        public RoleRepository(IDbConnection connection)
+        public RoleRepository(
+            IDbConnection connection,
+            ILogger<RoleRepository> logger
+        )
         {
             this.connection = connection;
+            this.logger = logger;
         }
 
         public async Task<Option<Role>> Create(Role entity, Func<Role, Task> onCreate, params object[] identifiers)
         {
+            logger.Debug("Class: RoleRepository, Method: Create, BEGIN");
             Debug.Assert(entity != null, "Must have valid object to create");
             try
             {
@@ -59,17 +63,20 @@ namespace Inuplan.DAL.Repositories
                 });
                 var result = entity.SomeWhen(e => e.ID > 0);
                 if (result.HasValue) await onCreate(entity);
+
+                logger.Debug("Class: RoleRepository, Method: Create, END");
                 return result;
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
 
         public async Task<bool> Delete(int key, Func<int, Task> onDelete)
         {
+            logger.Debug("Class: RoleRepository, Method: Delete, BEGIN");
             Debug.Assert(key > 0, "Must be a valid key");
             try
             {
@@ -78,11 +85,13 @@ namespace Inuplan.DAL.Repositories
 
                 var result = rows == 1;
                 if (result) await onDelete(key);
+
+                logger.Debug("Class: RoleRepository, Method: Delete, END");
                 return result;
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -91,13 +100,16 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: RoleRepository, Method: Get, BEGIN");
                 var sql = @"SELECT ID, Name FROM Roles WHERE ID = @key";
                 var result = (await connection.QueryAsync<Role>(sql, new { key })).Single();
+
+                logger.Debug("Class: RoleRepository, Method: Get, END");
                 return result.SomeWhen(r => r != null && r.ID > 0);
             }
             catch (System.Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -106,13 +118,16 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: RoleRepository, Method: GetAll, BEGIN");
                 var sql = @"SELECT * FROM Roles;";
                 var result = await connection.QueryAsync<Role>(sql);
+
+                logger.Debug("Class: RoleRepository, Method: GetAll, END");
                 return result.ToList();
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -121,10 +136,12 @@ namespace Inuplan.DAL.Repositories
         {
             return Get(id);
         }
+
         public async Task<Pagination<Role>> GetPage(int skip, int take, Func<string> sortBy = null, Func<string> orderBy = null, params object[] identifiers)
         {
             try
             {
+                logger.Debug("Class: RoleRepository, Method: GetPage, BEGIN");
                 sortBy = sortBy ?? new Func<string>(() => "ID");
                 orderBy = orderBy ?? new Func<string>(() => "ASC");
 
@@ -144,11 +161,12 @@ namespace Inuplan.DAL.Repositories
 
                 var total = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Roles;");
 
+                logger.Debug("Class: RoleRepository, Method: GetPage, END");
                 return Helpers.Paginate(skip, take, total, roles.ToList());
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -157,13 +175,16 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: RoleRepository, Method: Update, BEGIN");
                 var sql = @"UPDATE Roles SET Name = @Name WHERE ID=@ID";
                 var rows = await connection.ExecuteAsync(sql, new { Name = entity.Name, ID = key });
+
+                logger.Debug("Class: RoleRepository, Method: Update, END");
                 return rows == 1;
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }

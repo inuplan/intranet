@@ -35,25 +35,30 @@ namespace Inuplan.DAL.Repositories
     using Optional.Unsafe;
     using Common.Tools;
     using System.Data.SqlClient;
-    using NLog;
+    using Common.Logger;
 
     public class UserAlbumRepository : IScalarRepository<int, Album>
     {
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
-        
         private readonly IDbConnection connection;
+
+        private readonly ILogger<UserAlbumRepository> logger;
 
         private bool disposedValue = false;
 
-        public UserAlbumRepository(IDbConnection connection)
+        public UserAlbumRepository(
+            IDbConnection connection,
+            ILogger<UserAlbumRepository> logger
+        )
         {
             this.connection = connection;
+            this.logger = logger;
         }
 
         public async Task<Option<Album>> Create(Album entity, Func<Album, Task> onCreate, params object[] identifiers)
         {
             try
             {
+                logger.Debug("Class: UserAlbumRepository, Method: Create, BEGIN");
                 var images = identifiers != null ?
                                 identifiers.Cast<Image>().ToList() :
                                 new List<Image>();
@@ -93,12 +98,13 @@ namespace Inuplan.DAL.Repositories
                         transactionScope.Complete();
                     }
 
+                    logger.Debug("Class: UserAlbumRepository, Method: Create, END");
                     return result;
                 }
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -107,6 +113,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserAlbumRepository, Method: Delete, BEGIN");
                 Debug.Assert(key > 0, "Must have valid key!");
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
@@ -118,12 +125,13 @@ namespace Inuplan.DAL.Repositories
                         transactionScope.Complete();
                     }
 
+                    logger.Debug("Class: UserAlbumRepository, Method: Delete, END");
                     return success;
                 }
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -132,6 +140,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserAlbumRepository, Method: Get, BEGIN");
                 // Assumption: The Album owner = Image owner
                 var sql = @"SELECT 
                             img.ID, img.Description, Filename, Extension, MimeType,		/* Image */
@@ -183,11 +192,12 @@ namespace Inuplan.DAL.Repositories
                 var album = await connection.ExecuteScalarAsync<Album>(@"SELECT * FROM Albums WHERE ID = @key;", new { key });
                 album.Images = albumImages.ToList();
 
+                logger.Debug("Class: UserAlbumRepository, Method: Get, END");
                 return album.SomeWhen(a => a.ID > 0);
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -196,6 +206,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserAlbumRepository, Method: GetAll, BEGIN");
                 var userID = (int)identifiers[0];
                 Debug.Assert(userID > 0, "Must be valid user!");
                 var sqlIds = @"SELECT ID FROM Albums WHERE Owner = @key;";
@@ -211,12 +222,13 @@ namespace Inuplan.DAL.Repositories
                     result.Add(album.ValueOrFailure());
                 }
 
+                logger.Debug("Class: UserAlbumRepository, Method: GetAll, END");
                 return result;
 
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -230,6 +242,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserAlbumRepository, Method: GetPage, BEGIN");
                 sortBy = sortBy ?? new Func<string>(() => "ID");
                 orderBy = orderBy ?? new Func<string>(() => "ASC");
 
@@ -254,11 +267,12 @@ namespace Inuplan.DAL.Repositories
                     Owner = userID
                 });
 
+                logger.Debug("Class: UserAlbumRepository, Method: GetPage, END");
                 return Helpers.Paginate(skip, take, total, items.ToList());
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -267,6 +281,7 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
+                logger.Debug("Class: UserAlbumRepository, Method: Update, BEGIN");
                 Debug.Assert(entity.Images.All(img => img.ID > 0), "Images must pre-exist!");
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
@@ -294,12 +309,13 @@ namespace Inuplan.DAL.Repositories
                         transactionScope.Complete();
                     }
 
+                    logger.Debug("Class: UserAlbumRepository, Method: Update, END");
                     return success;
                 }
             }
             catch (SqlException ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
