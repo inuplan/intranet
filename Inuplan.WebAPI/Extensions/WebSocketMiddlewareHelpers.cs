@@ -18,22 +18,30 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.WebSockets
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace Inuplan.WebAPI.Extensions
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+    using Common.Logger;
+    using Common.Tools;
+    using Common.WebSockets;
+    using Middlewares;
+    using Owin;
+    using WebSocketAccept = Action<IDictionary<string, object>, Func<IDictionary<string, object>, Task>>;
 
-    public interface IWebSocketHubSession
+    public static class WebSocketMiddlewareHelpers
     {
-        string Hub { get; }
-        Task<bool> RemoveClient(Guid id);
-        Task<bool> Broadcast<T>(T message);
-        Task<bool> Send<T>(Guid to, T message);
-        Task<IReadOnlyCollection<Guid>> GetClientIds();
-
-        void HandleClientConnected(object sender, WebSocketClientConnectedArgs args);
-        void HandleMessage(object sender, WebSocketMessageEventArgs args);
-        void HandleClientDisconnected(object sender, WebSocketClientDisconnectedArgs args);
+        public static IAppBuilder UseWebSocketMiddleware(this IAppBuilder source, IWebSocketHubSession sessionManager, ILogger<WebSocketMiddleware> logger, string path = "", int bufferSize = 1024)
+        {
+            return source.MapWhen(ctx => ctx.Get<WebSocketAccept>(Constants.OWIN_WEBSOCKET_ACCEPT) != null, app =>
+            {
+                app.Use(typeof(WebSocketMiddleware), path, bufferSize);
+                WebSocketMiddleware.RaiseConnected += sessionManager.HandleClientConnected;
+                WebSocketMiddleware.RaiseDisconnected += sessionManager.HandleClientDisconnected;
+                WebSocketMiddleware.RaiseReceivedMessage += sessionManager.HandleMessage;
+            });
+        }
     }
 }

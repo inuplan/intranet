@@ -19,6 +19,10 @@ namespace Inuplan.WebAPI
     using App_Start;
     using Autofac;
     using Autofac.Integration.WebApi;
+    using Common.Enums;
+    using Common.WebSockets;
+    using Extensions;
+    using Middlewares;
     using NLog;
     using Owin;
     using Properties;
@@ -56,8 +60,10 @@ namespace Inuplan.WebAPI
             Logger.Trace("Register components");
             RouteConfig.RegisterRoutes(config);
             DependencyConfig.RegisterContainer(config);
+            var autofac = (AutofacWebApiDependencyResolver)config.DependencyResolver;
 
-            EnableMiddleware(app, config);
+            EnableWebSocketServer(app, autofac);
+            EnableMiddleware(app, autofac);
 
             Logger.Trace("Register controllers with IoC");
             app.UseWebApi(config);
@@ -69,7 +75,7 @@ namespace Inuplan.WebAPI
         /// <param name="config">The config file</param>
         private static void EnableCors(HttpConfiguration config)
         {
-            if(Settings.Default.enableCORS)
+            if (Settings.Default.enableCORS)
             {
                 Logger.Trace("Enable Cross-Origin Resource Sharing (CORS)");
                 config.EnableCors();
@@ -80,6 +86,7 @@ namespace Inuplan.WebAPI
         /// Enables windows authentication for all requests except if method is <code>OPTIONS</code>.
         /// </summary>
         /// <param name="app">The application builder</param>
+        /// <param name="config">The http configuration</param>
         private static void EnableWindowsAuthentication(IAppBuilder app, HttpConfiguration config)
         {
             Logger.Trace("Reading settings, whether to use win-auth: {0}", Settings.Default.enableWin);
@@ -91,16 +98,32 @@ namespace Inuplan.WebAPI
         }
 
         /// <summary>
+        /// Enables server to handle websocket upgrade requests.
+        /// </summary>
+        /// <param name="app">The application builder</param>
+        /// <param name="autofac">The dependency resolver</param>
+        private static void EnableWebSocketServer(IAppBuilder app, AutofacWebApiDependencyResolver autofac)
+        {
+            Logger.Trace("Configuring websocket server...");
+            var resolver = autofac.GetRootLifetimeScope();
+            var sessionManager = resolver.ResolveKeyed<IWebSocketHubSession>(ServiceKeys.LatestHub);
+            var logger = resolver.Resolve<Common.Logger.ILogger<WebSocketMiddleware>>();
+            var path = "latest";
+
+            Logger.Trace("Setting middleware handler for websocket requests...");
+            app.UseWebSocketMiddleware(sessionManager, logger, path);
+        }
+
+        /// <summary>
         /// Enables middleware if it has been set in the settings file
         /// </summary>
         /// <param name="app">The application</param>
         /// <param name="config">The config file</param>
-        private static void EnableMiddleware(IAppBuilder app, HttpConfiguration config)
+        private static void EnableMiddleware(IAppBuilder app, AutofacWebApiDependencyResolver autofac)
         {
-            if(Settings.Default.enableMiddleware)
+            if (Settings.Default.enableMiddleware)
             {
                 Logger.Trace("Setting OWIN middleware pipeline");
-                var autofac = (AutofacWebApiDependencyResolver)config.DependencyResolver;
                 app.UseAutofacMiddleware(autofac.Container);
             }
         }
@@ -124,7 +147,7 @@ namespace Inuplan.WebAPI
                     Logger.Trace("Using authentication scheme: Anonymous, incoming request from: {0}", request.RemoteEndPoint.Address);
                     return AuthenticationSchemes.Anonymous;
                 }
-                else if(request.IsWebSocketRequest)
+                else if (request.IsWebSocketRequest)
                 {
                     Logger.Trace("Using authentication scheme: Anonymous for WebSocketRequest");
                     return AuthenticationSchemes.Anonymous;

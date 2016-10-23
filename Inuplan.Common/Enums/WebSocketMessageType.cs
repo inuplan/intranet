@@ -1,4 +1,4 @@
-// Copyright © 2015 Inuplan
+﻿// Copyright © 2015 Inuplan
 // 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -18,33 +18,46 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Tools
+namespace Inuplan.Common.Enums
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+
     /// <summary>
-    /// Constant values used in various parts
+    /// Opcode definitions RFC 6455.
+    /// Reserved opcode:
+    /// 0x3 -> 7 (non-control frames)
+    /// 0xB -> F (control frames)
+    /// Spec: https://tools.ietf.org/html/rfc6455#section-5.2
     /// </summary>
-    public static class Constants
+    public enum WebSocketMessageType : byte
     {
-        public const string CURRENT_USER = "Inuplan.User.Current";
+        /// <summary>
+        /// Denotes a continuation frame %x0
+        /// </summary>
+        ContinuationFrame = 0x0,
 
-        public const string OWIN_WEBSOCKET_ACCEPT = "websocket.Accept";
-        
-        public const string OWIN_WEBSOCKET_RECEIVE = "websocket.ReceiveAsync";
+        /// <summary>
+        /// Denotes a text frame %x1
+        /// </summary>
+        Text = 0x1,
 
-        public const string OWIN_WEBSOCKET_CLOSE = "websocket.CloseAsync";
+        /// <summary>
+        /// Denotes a connection close %x8
+        /// </summary>
+        Close = 0x8,
 
-        public const string OWIN_WEBSOCKET_CANCEL = "websocket.CallCancelled";
+        /// <summary>
+        /// Denotes a ping %x9
+        /// </summary>
+        Ping = 0x9,
 
-        public const string OWIN_WEBSOCKET_CLOSE_STATUS = "websocket.ClientCloseStatus";
-
-        public const string OWIN_WEBSOCKET_CLOSE_DESCRIPTION = "websocket.ClientCloseDescription";
-
-        #region "Origin"
-#if DEBUG
-        public const string Origin = @"http://localhost:59382,http://localhost:52256,http://localhost:60464,http://localhost:5000";
-#else
-        public const string Origin = @"http://beta-intranet,http://intranet";
-#endif
-        #endregion
+        /// <summary>
+        ///  Denotes a pong %xA
+        /// </summary>
+        Pong = 0xA,
     }
 }

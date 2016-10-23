@@ -118,7 +118,7 @@ namespace Inuplan.WebAPI.App_Start
             // Register web socket services
             builder.RegisterType<LatestBroadcastService>().WithAttributeFilter();
             builder
-                .Register(ctx => new HubSession("latest"))
+                .Register(ctx => new HubSession("latest", ctx.Resolve<ILogger<HubSession>>()))
                 .Keyed<IWebSocketHubSession>(ServiceKeys.LatestHub)
                 .SingleInstance();
 
@@ -139,7 +139,6 @@ namespace Inuplan.WebAPI.App_Start
         private static void OwinPipeline(ContainerBuilder builder)
         {
             // Owin middleware pipeline - order matters
-            builder.RegisterType<WebSocketMiddleware>().WithAttributeFilter();
             builder.RegisterType<ManageUserMiddleware>().WithAttributeFilter();
         }
 

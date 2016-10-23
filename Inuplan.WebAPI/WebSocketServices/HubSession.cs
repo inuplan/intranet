@@ -20,6 +20,7 @@
 
 namespace Inuplan.WebAPI.WebSocketServices
 {
+    using Common.Logger;
     using Common.WebSockets;
     using Newtonsoft.Json;
     using Optional;
@@ -28,15 +29,17 @@ namespace Inuplan.WebAPI.WebSocketServices
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
-    using System.Net.WebSockets;
+    using Socket = System.Net.WebSockets;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Common.Enums;
 
     public class HubSession : IWebSocketHubSession
     {
         private readonly string hub;
-        private ConcurrentDictionary<Guid, WebSocket> clients;
+        private ConcurrentDictionary<Guid, Socket.WebSocket> clients;
+        private readonly ILogger<HubSession> logger;
 
         public string Hub
         {
@@ -46,31 +49,43 @@ namespace Inuplan.WebAPI.WebSocketServices
             }
         }
 
-        public HubSession(string hub)
-            : this(hub, new ConcurrentDictionary<Guid, WebSocket>())
+        public HubSession(string hub, ILogger<HubSession> logger)
+            : this(hub, new ConcurrentDictionary<Guid, Socket.WebSocket>(), logger)
+        {
+        }
+
+        public HubSession(string hub, ConcurrentDictionary<Guid, Socket.WebSocket> clients, ILogger<HubSession> logger)
         {
             this.hub = hub;
-        }
-
-        public HubSession(string hub, ConcurrentDictionary<Guid, WebSocket> clients)
-        {
             this.clients = clients;
+            this.logger = logger;
         }
 
-        public Task<Option<Guid>> AddClient(WebSocket client)
+        public void HandleClientConnected(object sender, WebSocketClientConnectedArgs args)
         {
-            var id = Guid.NewGuid();
-            var added = clients.TryAdd(id, client);
-            if (added)
-                return Task.FromResult(id.Some());
+            var added = clients.TryAdd(args.ID, args.Client);
+            logger.Trace("Client {0}. Added: {1}", args.ID, added);
+        }
 
-            return Task.FromResult(Option.None<Guid>());
+        public void HandleClientDisconnected(object sender, WebSocketClientDisconnectedArgs args)
+        {
+            Socket.WebSocket client;
+            var result = clients.TryRemove(args.ID, out client);
+            logger.Trace("Client {0}. Removed: {1}", args.ID, result);
+        }
+
+        public void HandleMessage(object sender, WebSocketMessageEventArgs args)
+        {
+            var message = Encoding.UTF8.GetString(args.Data);
+            logger.Trace("Received {1} message from {2}: {0}", message, args.MessageType, args.ID);
         }
 
         public Task<bool> RemoveClient(Guid id)
         {
-            WebSocket client;
+            Socket.WebSocket client;
             var result = clients.TryRemove(id, out client);
+
+            logger.Trace("Client {0}. Removed: {1}", id, result);
             return Task.FromResult(result);
         }
 
@@ -86,15 +101,15 @@ namespace Inuplan.WebAPI.WebSocketServices
 
         public async Task<bool> Send<T>(Guid to, T message)
         {
-            WebSocket client;
+            Socket.WebSocket client;
             var has = clients.TryGetValue(to, out client);
-            if (client.State == WebSocketState.Open)
+            if (client.State == Socket.WebSocketState.Open)
             {
                 var token = new CancellationToken();
                 var json = JsonConvert.SerializeObject(message);
                 var encoded = Encoding.UTF8.GetBytes(json);
                 var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
-                await client.SendAsync(buffer, WebSocketMessageType.Text, true, token);
+                await client.SendAsync(buffer, Socket.WebSocketMessageType.Text, true, token);
             }
             else
             {

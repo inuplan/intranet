@@ -69,6 +69,7 @@
     <Compile Include="Enums\ForumSortBy.cs" />
     <Compile Include="Enums\NewsType.cs" />
     <Compile Include="Enums\ServiceKeys.cs" />
+    <Compile Include="Enums\WebSocketMessageType.cs" />
     <Compile Include="Factories\ImageHandleFactory.cs" />
     <Compile Include="Handlers\IImageHandler.cs" />
     <Compile Include="Logger\ILogger.cs" />
@@ -91,6 +92,9 @@
     <Compile Include="Tools\Helpers.cs" />
     <Compile Include="Tools\Constants.cs" />
     <Compile Include="WebSockets\IWebSocketHubSession.cs" />
+    <Compile Include="WebSockets\WebSocketClientDisconnectedArgs.cs" />
+    <Compile Include="WebSockets\WebSocketMessageEventArgs.cs" />
+    <Compile Include="WebSockets\WebSocketClientConnectedArgs.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

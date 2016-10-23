@@ -1,4 +1,4 @@
-// Copyright © 2015 Inuplan
+﻿// Copyright © 2015 Inuplan
 // 
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
@@ -18,33 +18,21 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-namespace Inuplan.Common.Tools
+namespace Inuplan.Common.WebSockets
 {
-    /// <summary>
-    /// Constant values used in various parts
-    /// </summary>
-    public static class Constants
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+
+    public class WebSocketClientDisconnectedArgs : EventArgs
     {
-        public const string CURRENT_USER = "Inuplan.User.Current";
+        public Guid ID { get; private set; }
 
-        public const string OWIN_WEBSOCKET_ACCEPT = "websocket.Accept";
-        
-        public const string OWIN_WEBSOCKET_RECEIVE = "websocket.ReceiveAsync";
-
-        public const string OWIN_WEBSOCKET_CLOSE = "websocket.CloseAsync";
-
-        public const string OWIN_WEBSOCKET_CANCEL = "websocket.CallCancelled";
-
-        public const string OWIN_WEBSOCKET_CLOSE_STATUS = "websocket.ClientCloseStatus";
-
-        public const string OWIN_WEBSOCKET_CLOSE_DESCRIPTION = "websocket.ClientCloseDescription";
-
-        #region "Origin"
-#if DEBUG
-        public const string Origin = @"http://localhost:59382,http://localhost:52256,http://localhost:60464,http://localhost:5000";
-#else
-        public const string Origin = @"http://beta-intranet,http://intranet";
-#endif
-        #endregion
+        public WebSocketClientDisconnectedArgs(Guid id)
+        {
+            ID = id;
+        }
     }
 }

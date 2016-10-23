@@ -5,79 +5,108 @@ using System.Threading.Tasks;
 
 namespace Inuplan.WebAPI.Middlewares
 {
-    using Autofac.Extras.Attributed;
-    using Common.Enums;
     using Common.Logger;
+    using Common.Tools;
     using Common.WebSockets;
     using Extensions.Workflows;
     using Microsoft.Owin;
+    using Optional;
+    using System.IO;
     using System.Net.WebSockets;
     using WebSocketAccept = Action<IDictionary<string, object>, Func<IDictionary<string, object>, Task>>;
     using WebSocketCloseAsync = Func<int, string, CancellationToken, Task>;
     using WebSocketReceiveAsync = Func<ArraySegment<byte>, CancellationToken, Task<Tuple<int, bool, int>>>;
     using WebSocketReceiveResult = Tuple<int, bool, int>;
+    using AppFunc = Func<IDictionary<string, object>, Task>;
 
-    public class WebSocketMiddleware : OwinMiddleware
+    public class WebSocketMiddleware
     {
-        private readonly IWebSocketHubSession session;
-        private readonly ILogger<WebSocketMiddleware> logger;
+        public static event EventHandler<WebSocketMessageEventArgs> RaiseReceivedMessage;
+        public static event EventHandler<WebSocketClientConnectedArgs> RaiseConnected;
+        public static event EventHandler<WebSocketClientDisconnectedArgs> RaiseDisconnected;
+
+        private readonly int bufferSize;
+        private readonly string path;
+        private readonly AppFunc next;
 
         public WebSocketMiddleware(
-            OwinMiddleware next,
-            [WithKey(ServiceKeys.LatestHub)] IWebSocketHubSession session,
-            ILogger<WebSocketMiddleware> logger
-        ) : base(next)
+            AppFunc next,
+            string path = "",
+            int bufferSize = 1024
+        )
         {
-            this.session = session;
-            this.logger = logger;
+            this.next = next;
+            this.bufferSize = bufferSize;
+            this.path = "/" + path;
         }
 
-        public override async Task Invoke(IOwinContext context)
+        public async Task Invoke(IDictionary<string, object> env)
         {
-            WebSocketAccept accept = context.Get<WebSocketAccept>("websocket.Accept");
+            IOwinContext context = new OwinContext(env);
+            WebSocketAccept accept = context.Get<WebSocketAccept>(Constants.OWIN_WEBSOCKET_ACCEPT);
             if (accept != null)
             {
-                var path = context.Request.Path.ToString();
-                var isLatest = path.Equals("/latest", StringComparison.OrdinalIgnoreCase);
-                if (isLatest)
+                var requestPath = context.Request.Path.ToString();
+                var isPath = requestPath.Equals(path, StringComparison.OrdinalIgnoreCase);
+                if (isPath)
                 {
                     accept(null, Callback);
                     return;
                 }
             }
 
-            await Next.Invoke(context);
+            await next.Invoke(context.Environment);
             return;
         }
 
         private async Task Callback(IDictionary<string, object> websocketContext)
         {
+            var id = Guid.NewGuid();
             var context = (HttpListenerWebSocketContext)websocketContext["System.Net.WebSockets.WebSocketContext"];
-            var receiveAsync = (WebSocketReceiveAsync)websocketContext["websocket.ReceiveAsync"];
-            var closeAsync = (WebSocketCloseAsync)websocketContext["websocket.CloseAsync"];
-            var callCancelled = (CancellationToken)websocketContext["websocket.CallCancelled"];
+            var receiveAsync = (WebSocketReceiveAsync)websocketContext[Constants.OWIN_WEBSOCKET_RECEIVE];
+            var closeAsync = (WebSocketCloseAsync)websocketContext[Constants.OWIN_WEBSOCKET_CLOSE];
+            var callCancelled = (CancellationToken)websocketContext[Constants.OWIN_WEBSOCKET_CANCEL];
 
-            var added = await session
-                .AddClient(context.WebSocket)
-                .LogSomeAsync(g => logger.Trace("Added websocket client: {0}", g.ToString()))
-                .LogNoneAsync(() => logger.Error("Could not add websocket client"));
-
-            var buffer = new byte[1024];
-            WebSocketReceiveResult placeholder = await receiveAsync(new ArraySegment<byte>(buffer), callCancelled);
+            OnConnected(new WebSocketClientConnectedArgs(id, context.WebSocket));
 
             // Keep connection alive until client closes it
             object status;
             while (!websocketContext.TryGetValue("websocket.ClientCloseStatus", out status) || (int)status == 0)
             {
-                placeholder = await receiveAsync(new ArraySegment<byte>(buffer), callCancelled);
+                WebSocketReceiveResult received;
+                using (var ms = new MemoryStream())
+                {
+                    do
+                    {
+                        var buffer = new ArraySegment<byte>(new byte[bufferSize]);
+                        received = await receiveAsync(buffer, callCancelled);
+                        ms.Write(buffer.Array, buffer.Offset, received.Item3);
+                    }
+                    while (!received.Item2);
+                    var data = ms.ToArray();
+
+                   OnReceivedMessage(new WebSocketMessageEventArgs(id, (Common.Enums.WebSocketMessageType)received.Item1, data));
+                }
             }
 
-            var removed = await added
-                .MapAsync(async g => await session.RemoveClient(g))
-                .LogSomeAsync(b => logger.Trace("Client removed from session"))
-                .LogNoneAsync(() => logger.Error("Could not remove client from session"));
+            OnDisconnected(new WebSocketClientDisconnectedArgs(id));
+            await closeAsync((int)websocketContext[Constants.OWIN_WEBSOCKET_CLOSE_STATUS], (string)websocketContext[Constants.OWIN_WEBSOCKET_CLOSE_DESCRIPTION], callCancelled);
+        }
 
-            await closeAsync((int)websocketContext["websocket.ClientCloseStatus"], (string)websocketContext["websocket.ClientCloseDescription"], callCancelled);
+        protected virtual void OnConnected(WebSocketClientConnectedArgs args)
+        {
+            RaiseConnected?.Invoke(this, args);
+        }
+
+        protected virtual void OnReceivedMessage(WebSocketMessageEventArgs args)
+        {
+            RaiseReceivedMessage?.Invoke(this, args);
+        }
+
+        protected virtual void OnDisconnected(WebSocketClientDisconnectedArgs args)
+        {
+            RaiseDisconnected?.Invoke(this, args);
         }
     }
+
 }
