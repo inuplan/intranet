@@ -5,12 +5,9 @@ using System.Threading.Tasks;
 
 namespace Inuplan.WebAPI.Middlewares
 {
-    using Common.Logger;
     using Common.Tools;
     using Common.WebSockets;
-    using Extensions.Workflows;
     using Microsoft.Owin;
-    using Optional;
     using System.IO;
     using System.Net.WebSockets;
     using WebSocketAccept = Action<IDictionary<string, object>, Func<IDictionary<string, object>, Task>>;
@@ -37,7 +34,7 @@ namespace Inuplan.WebAPI.Middlewares
         {
             this.next = next;
             this.bufferSize = bufferSize;
-            this.path = "/" + path;
+            this.path = path;
         }
 
         public async Task Invoke(IDictionary<string, object> env)
@@ -46,7 +43,7 @@ namespace Inuplan.WebAPI.Middlewares
             WebSocketAccept accept = context.Get<WebSocketAccept>(Constants.OWIN_WEBSOCKET_ACCEPT);
             if (accept != null)
             {
-                var requestPath = context.Request.Path.ToString();
+                var requestPath = context.Request.Path.ToString().Substring(1);
                 var isPath = requestPath.Equals(path, StringComparison.OrdinalIgnoreCase);
                 if (isPath)
                 {

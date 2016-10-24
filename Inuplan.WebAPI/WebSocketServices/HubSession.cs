@@ -126,6 +126,5 @@ namespace Inuplan.WebAPI.WebSocketServices
             var res = new ReadOnlyCollection<Guid>(collection.ToList());
             return Task.FromResult<IReadOnlyCollection<Guid>>(res);
         }
-
     }
 }

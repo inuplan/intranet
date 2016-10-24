@@ -24,7 +24,6 @@ using System.Threading.Tasks;
 
 namespace Inuplan.WebAPI.Extensions
 {
-    using Common.Logger;
     using Common.Tools;
     using Common.WebSockets;
     using Middlewares;
@@ -33,11 +32,11 @@ namespace Inuplan.WebAPI.Extensions
 
     public static class WebSocketMiddlewareHelpers
     {
-        public static IAppBuilder UseWebSocketMiddleware(this IAppBuilder source, IWebSocketHubSession sessionManager, ILogger<WebSocketMiddleware> logger, string path = "", int bufferSize = 1024)
+        public static IAppBuilder UseWebSocketMiddleware(this IAppBuilder source, IWebSocketHubSession sessionManager, int bufferSize = 1024)
         {
             return source.MapWhen(ctx => ctx.Get<WebSocketAccept>(Constants.OWIN_WEBSOCKET_ACCEPT) != null, app =>
             {
-                app.Use(typeof(WebSocketMiddleware), path, bufferSize);
+                app.Use(typeof(WebSocketMiddleware), sessionManager.Hub, bufferSize);
                 WebSocketMiddleware.RaiseConnected += sessionManager.HandleClientConnected;
                 WebSocketMiddleware.RaiseDisconnected += sessionManager.HandleClientDisconnected;
                 WebSocketMiddleware.RaiseReceivedMessage += sessionManager.HandleMessage;
