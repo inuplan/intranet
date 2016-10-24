@@ -105,7 +105,7 @@ namespace Inuplan.WebAPI.WebSocketServices
             var has = clients.TryGetValue(to, out client);
             if (client.State == Socket.WebSocketState.Open)
             {
-                var token = new CancellationToken();
+                var token = CancellationToken.None;
                 var json = JsonConvert.SerializeObject(message);
                 var encoded = Encoding.UTF8.GetBytes(json);
                 var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
