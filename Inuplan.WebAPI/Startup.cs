@@ -20,6 +20,7 @@ namespace Inuplan.WebAPI
     using Autofac;
     using Autofac.Integration.WebApi;
     using Common.Enums;
+    using Common.Tools;
     using Common.WebSockets;
     using Extensions;
     using Middlewares;
@@ -29,6 +30,7 @@ namespace Inuplan.WebAPI
     using System;
     using System.Net;
     using System.Web.Http;
+    using System.Web.Http.Cors;
 
     /// <summary>
     /// Startup class for the <code>OWIN</code> server.
@@ -54,7 +56,7 @@ namespace Inuplan.WebAPI
             Logger.Info("Configuring Web API for self-hosting.");
             var config = new HttpConfiguration();
 
-            EnableCors(config);
+            EnableCors(app, config);
             EnableWindowsAuthentication(app, config);
 
             Logger.Trace("Register components");
@@ -63,7 +65,7 @@ namespace Inuplan.WebAPI
             var autofac = (AutofacWebApiDependencyResolver)config.DependencyResolver;
 
             EnableWebSocketServer(app, autofac);
-            EnableMiddleware(app, autofac);
+            EnableMiddleware(app, autofac, config);
 
             Logger.Trace("Register controllers with IoC");
             app.UseWebApi(config);
@@ -73,12 +75,13 @@ namespace Inuplan.WebAPI
         /// Enables CORS if it is set in the settings
         /// </summary>
         /// <param name="config">The config file</param>
-        private static void EnableCors(HttpConfiguration config)
+        private static void EnableCors(IAppBuilder app, HttpConfiguration config)
         {
             if (Settings.Default.enableCORS)
             {
                 Logger.Trace("Enable Cross-Origin Resource Sharing (CORS)");
-                config.EnableCors();
+                var cors = new EnableCorsAttribute(Constants.Origin, "*", "*");
+                config.EnableCors(cors);
             }
         }
 
@@ -117,12 +120,14 @@ namespace Inuplan.WebAPI
         /// </summary>
         /// <param name="app">The application</param>
         /// <param name="config">The config file</param>
-        private static void EnableMiddleware(IAppBuilder app, AutofacWebApiDependencyResolver autofac)
+        private static void EnableMiddleware(IAppBuilder app, AutofacWebApiDependencyResolver autofac, HttpConfiguration config)
         {
             if (Settings.Default.enableMiddleware)
             {
+                // If request is NOT options then use manageusermiddleware
                 Logger.Trace("Setting OWIN middleware pipeline");
-                app.UseAutofacMiddleware(autofac.Container);
+                app.UseAutofacLifetimeScopeInjector(autofac.Container);
+                app.UseMiddlewareFromContainer<ManageUserMiddleware>();
             }
         }
 

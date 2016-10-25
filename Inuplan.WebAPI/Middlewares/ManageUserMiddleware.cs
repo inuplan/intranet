@@ -25,6 +25,7 @@ namespace Inuplan.WebAPI.Middlewares
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
+    using Extensions;
     using Microsoft.Owin;
     using NLog;
     using Optional.Unsafe;
@@ -85,16 +86,10 @@ namespace Inuplan.WebAPI.Middlewares
         /// <returns>An awaitable task</returns>
         public async override Task Invoke(IOwinContext context)
         {
-            Logger.Trace("Incoming request from: {0}", context.Request.RemoteIpAddress);
-            if (context.Request.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
-            {
-                Logger.Trace("Http method: OPTIONS - Request is probably a preflight request, must allow anonymous pass-through");
-                await Next.Invoke(context);
-                return;
-            }
-
             try
             {
+                Logger.Debug("Method: Invoke, BEGIN");
+                Logger.Trace("Request is preflight request?: {0}", context.IsPreflightRequest());
                 var identity = context.Authentication.User.Identity;
                 var username = identity.Name.Substring(identity.Name.LastIndexOf(@"\") + 1);
 
@@ -185,6 +180,7 @@ namespace Inuplan.WebAPI.Middlewares
 
                 Logger.Trace("Proceeding with the owin middleware pipeline");
                 await Next.Invoke(context);
+                Logger.Debug("Method: Invoke, END");
             }
             catch (Exception ex)
             {

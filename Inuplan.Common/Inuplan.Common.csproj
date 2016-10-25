@@ -53,7 +53,9 @@
   <ItemGroup>
     <Compile Include="Commands\IAddItem.cs" />
     <Compile Include="Commands\IDeleteItem.cs" />
+    <Compile Include="Commands\IIncrementUsedSpace.cs" />
     <Compile Include="Commands\IMarkPost.cs" />
+    <Compile Include="Commands\ISetSpaceQuota.cs" />
     <Compile Include="DTOs\BaseDTO.cs" />
     <Compile Include="DTOs\ClaimsDTO.cs" />
     <Compile Include="DTOs\Forum\ThreadPostCommentDTO.cs" />
@@ -84,8 +86,10 @@
     <Compile Include="Models\Forum\ThreadPostContent.cs" />
     <Compile Include="Models\Forum\ThreadPostTitle.cs" />
     <Compile Include="Models\User.cs" />
+    <Compile Include="Models\UserSpaceInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Queries\IGetPage.cs" />
+    <Compile Include="Queries\UserSpaceInfoQueries\IGetUserSpaceInfo.cs" />
     <Compile Include="Repositories\IScalarRepository.cs" />
     <Compile Include="Repositories\IVectorRepository.cs" />
     <Compile Include="Tools\Converters.cs" />
