@@ -35,6 +35,7 @@ namespace Inuplan.DAL.Repositories
     using System.Data.SqlClient;
     using Common.Tools;
     using Common.Logger;
+    using Common.Commands;
 
     /// <summary>
     /// A repository for the images a user has.
@@ -60,17 +61,21 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         private bool disposedValue = false;
 
+        private readonly IUsedSpaceCommands usedSpaceCommands;
+
         /// <summary>
         /// Initializes a new instance of this <see cref="UserImageRepository"/> class.
         /// </summary>
         /// <param name="connection">The database connection</param>
         public UserImageRepository(
             IDbConnection connection,
-            ILogger<UserImageRepository> logger
+            ILogger<UserImageRepository> logger,
+            IUsedSpaceCommands usedSpaceCommands
         )
         {
             this.connection = connection;
             this.logger = logger;
+            this.usedSpaceCommands = usedSpaceCommands;
         }
 
         /// <summary>
@@ -85,82 +90,94 @@ namespace Inuplan.DAL.Repositories
             {
                 logger.Debug("Class: UserImageRepository, Method: Create, BEGIN");
                 Debug.Assert(entity.Owner != null && entity.Owner.ID > 0, "Must have a valid user id");
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    try
-                    {
-                        var sqlFileInfo = @"INSERT INTO FileInfo (Path)
+                    var sqlFileInfo = @"INSERT INTO FileInfo (Path)
                                         VALUES (@Path);
                                         SELECT ID FROM FileInfo WHERE ID = @@IDENTITY;";
-                        var fileInfos = new[]
-                        {
+                    var fileInfos = new[]
+                    {
                             entity.Original,
                             entity.Preview,
                             entity.Thumbnail
                         };
 
-                        foreach (var info in fileInfos)
-                        {
-                            var fileInfoID = await connection.ExecuteScalarAsync<int>(sqlFileInfo, info);
-                            info.ID = fileInfoID;
-                        }
+                    foreach (var info in fileInfos)
+                    {
+                        var fileInfoID = await connection.ExecuteScalarAsync<int>(sqlFileInfo, info);
+                        info.ID = fileInfoID;
+                    }
 
-                        var sqlImage = @"INSERT INTO Images
+                    var sqlImage = @"INSERT INTO Images
                                     (Preview, Thumbnail, Original, Owner, Description, Filename, Extension, MimeType, Uploaded)
                                     VALUES
                                     (@Preview, @Thumbnail, @Original, @Owner, @Description, @Filename, @Extension, @MimeType, @Uploaded);
                                     SELECT ID FROM Images WHERE ID = @@IDENTITY;";
 
-                        var imageID = await connection.ExecuteScalarAsync<int>(sqlImage, new
-                        {
-                            Preview = entity.Preview.ID,
-                            Thumbnail = entity.Thumbnail.ID,
-                            Original = entity.Original.ID,
-                            Owner = entity.Owner.ID,
-                            Description = entity.Description,
-                            Filename = entity.Filename,
-                            Extension = entity.Extension,
-                            MimeType = entity.MimeType,
-                            Uploaded = entity.Uploaded
-                        });
-
-                        entity.ID = imageID;
-
-                        var success = entity.ID > 0 &&
-                                        entity.Original.ID > 0 &&
-                                        entity.Thumbnail.ID > 0 &&
-                                        entity.Preview.ID > 0;
-
-                        if (success)
-                        {
-                            // Write directory...
-                            // Assumption: All files are in the same directory
-                            var dir = Path.GetDirectoryName(entity.Original.Path);
-                            var dirInfo = Directory.CreateDirectory(dir);
-
-                            await onCreate(entity);
-                            transactionScope.Complete();
-
-                            // Write files 
-                            // Assumption: Filesystem always succeed writing
-                            File.WriteAllBytes(entity.Original.Path, entity.Original.Data.Value);
-                            File.WriteAllBytes(entity.Preview.Path, entity.Preview.Data.Value);
-                            File.WriteAllBytes(entity.Thumbnail.Path, entity.Thumbnail.Data.Value);
-
-                            logger.Debug("Class: UserImageRepository, Method: Create, END");
-                            return entity.Some();
-                        }
-                    }
-                    catch (SqlException ex)
+                    var imageID = await connection.ExecuteScalarAsync<int>(sqlImage, new
                     {
-                        // log error
-                        logger.Error(ex);
+                        Preview = entity.Preview.ID,
+                        Thumbnail = entity.Thumbnail.ID,
+                        Original = entity.Original.ID,
+                        Owner = entity.Owner.ID,
+                        Description = entity.Description,
+                        Filename = entity.Filename,
+                        Extension = entity.Extension,
+                        MimeType = entity.MimeType,
+                        Uploaded = entity.Uploaded
+                    });
+
+                    entity.ID = imageID;
+
+                    var success = entity.ID > 0 &&
+                                    entity.Original.ID > 0 &&
+                                    entity.Thumbnail.ID > 0 &&
+                                    entity.Preview.ID > 0;
+
+                    // Calculate size from byte to KiB
+                    var sizePreview = entity.Preview.GetKilobytes();
+                    var sizeOriginal = entity.Original.GetKilobytes();
+                    var sizeThumbnail = entity.Thumbnail.GetKilobytes();
+                    var totalSize = sizePreview + sizeOriginal + sizeThumbnail;
+
+                    var incremented = await usedSpaceCommands.IncrementUsedSpace(entity.Owner.ID, totalSize);
+                    success = success && incremented;
+                    logger.Trace("Database updated successfully on image created: {0}", success);
+
+                    if (success)
+                    {
+                        // Write directory...
+                        // Assumption: All files are in the same directory
+                        var dir = Path.GetDirectoryName(entity.Original.Path);
+                        var dirInfo = Directory.CreateDirectory(dir);
+
+                        await onCreate(entity);
+                        //transaction.Commit();
+                        transactionScope.Complete();
+
+                        // Write files 
+                        // Assumption: Filesystem always succeed writing
+                        File.WriteAllBytes(entity.Original.Path, entity.Original.Data.Value);
+                        File.WriteAllBytes(entity.Preview.Path, entity.Preview.Data.Value);
+                        File.WriteAllBytes(entity.Thumbnail.Path, entity.Thumbnail.Data.Value);
+
+                        logger.Debug("Class: UserImageRepository, Method: Create, END");
+                        return entity.Some();
                     }
+
+                    //transaction.Rollback();
                 }
 
+                logger.Error("Could not create image on database");
+                logger.Debug("Class: UserImageRepository, Method: Create, END");
                 return Option.None<Image>();
             }
             catch (SqlException ex)
+            {
+                logger.Error(ex);
+                throw;
+            }
+            catch(Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -213,16 +230,25 @@ namespace Inuplan.DAL.Repositories
                     if (nullFields && deleted && filePaths.Count() == 3)
                     {
                         await onDelete(key);
-                        transactionScope.Complete();
 
                         //Delete files from filesystem
+                        int totalSize = 0;
                         foreach (var path in filePaths)
                         {
                             if (File.Exists(path))
                             {
+                                var size = File.ReadAllBytes(path).GetKilobytes();
+                                totalSize += size;
+
+                                logger.Trace("Deleting file: {0}", path);
                                 File.Delete(path);
                             }
                         }
+
+                        int userId = imageRow.Owner;
+                        var decremented = await usedSpaceCommands.DecrementUsedSpace(userId, totalSize);
+                        if (decremented) transactionScope.Complete();
+                        else logger.Error("Could not decrement used space with: {0}", totalSize);
 
                         logger.Debug("Class: UserImageRepository, Method: Delete, END");
                         return true;
@@ -233,6 +259,11 @@ namespace Inuplan.DAL.Repositories
                 }
             }
             catch (SqlException ex)
+            {
+                logger.Error(ex);
+                throw;
+            }
+            catch(Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -289,7 +320,7 @@ namespace Inuplan.DAL.Repositories
                 logger.Debug("Class: UserImageRepository, Method: Get, END");
                 return image.SingleOrDefault().SomeNotNull();
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;

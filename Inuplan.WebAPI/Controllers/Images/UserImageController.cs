@@ -137,6 +137,7 @@ namespace Inuplan.WebAPI.Controllers.Images
                 {
                     var dto = Construct(img);
                     webSocketService.NewImage(dto);
+
                     return whatsNew.AddItem(img.ID, NewsType.ImageUpload);
                 });
 
@@ -164,12 +165,12 @@ namespace Inuplan.WebAPI.Controllers.Images
         }
 
         /// <summary>
-        /// TODO
+        /// Update an image
         /// </summary>
-        /// <param name="username"></param>
-        /// <param name="id"></param>
-        /// <param name="file"></param>
-        /// <param name="description"></param>
+        /// <param name="username">The user's username</param>
+        /// <param name="id">The id of the image</param>
+        /// <param name="file">The filename of the image</param>
+        /// <param name="description">The description of the image</param>
         /// <returns></returns>
         // PUT /api/UserImage?username={username}&id={id}&file={file}
         [HttpPut]

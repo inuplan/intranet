@@ -148,5 +148,14 @@ namespace Inuplan.WebAPI.Properties {
                 this["webSocketServiceLatest"] = value;
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("300000")]
+        public int quotaKB {
+            get {
+                return ((int)(this["quotaKB"]));
+            }
+        }
     }
 }

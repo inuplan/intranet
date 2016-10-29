@@ -21,6 +21,7 @@
 namespace Inuplan.WebAPI.Middlewares
 {
     using Autofac.Extras.Attributed;
+    using Common.Commands;
     using Common.Enums;
     using Common.Models;
     using Common.Repositories;
@@ -62,6 +63,8 @@ namespace Inuplan.WebAPI.Middlewares
         /// The repository for roles
         /// </summary>
         private readonly IScalarRepository<int, Role> roleRepository;
+        private readonly ISetSpaceQuota spaceQuotaCommand;
+        private readonly int quotaKB;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ManageUserMiddleware"/> class.
@@ -70,11 +73,16 @@ namespace Inuplan.WebAPI.Middlewares
         public ManageUserMiddleware(
             OwinMiddleware next,
             IScalarRepository<int, Role> roleRepository,
+            ISetSpaceQuota spaceQuotaCommand,
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
-            [WithKey(ServiceKeys.UserActiveDirectory)] IScalarRepository<string, User> userActiveDirectoryRepository)
+            [WithKey(ServiceKeys.UserActiveDirectory)] IScalarRepository<string, User> userActiveDirectoryRepository,
+            int quotaKB
+        )
             : base(next)
         {
+            this.quotaKB = quotaKB;
             this.roleRepository = roleRepository;
+            this.spaceQuotaCommand = spaceQuotaCommand;
             this.userDatabaseRepository = userDatabaseRepository;
             this.userActiveDirectoryRepository = userActiveDirectoryRepository;
         }
@@ -88,6 +96,12 @@ namespace Inuplan.WebAPI.Middlewares
         {
             try
             {
+                if (context.IsPreflightRequest())
+                {
+                    await Next.Invoke(context);
+                    return;
+                }
+
                 Logger.Debug("Method: Invoke, BEGIN");
                 Logger.Trace("Request is preflight request?: {0}", context.IsPreflightRequest());
                 var identity = context.Authentication.User.Identity;
@@ -116,7 +130,14 @@ namespace Inuplan.WebAPI.Middlewares
                         u.Roles = roles;
 
                         Logger.Trace("Creating user {0} in the database", username);
-                        var created = await userDatabaseRepository.Create(u, _ => Task.FromResult(0));
+                        var onCreated = new Func<User, Task>(async createdUser =>
+                        {
+                            var isSetQuota = await spaceQuotaCommand.SetSpaceQuota(createdUser.ID, quotaKB);
+                            Logger.Trace("Quota is set to {0}. Success? {1}", quotaKB, isSetQuota);
+                            return;
+                        });
+
+                        var created = await userDatabaseRepository.Create(u, onCreated);
                         if (!created.HasValue)
                         {
                             // Error, couldn't create user in DB

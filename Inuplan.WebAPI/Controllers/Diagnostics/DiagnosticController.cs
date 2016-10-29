@@ -23,25 +23,44 @@ namespace Inuplan.WebAPI.Controllers.Diagnostics
     using Autofac.Extras.Attributed;
     using Common.Enums;
     using Common.Models;
+    using Common.Queries.UserSpaceInfoQueries;
     using Common.Repositories;
     using Extensions;
     using System.Net;
     using System.Net.Http;
+    using System.Web.Http;
 
     public class DiagnosticController : DefaultController
     {
+        private readonly IGetUserSpaceInfo spaceQuery;
+
         public DiagnosticController(
-            [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository)
+            [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
+            IGetUserSpaceInfo spaceQuery
+        )
             : base(userDatabaseRepository)
         {
+            this.spaceQuery = spaceQuery;
         }
 
-        // GET api/diagnostic/ping
+        // GET api/diagnostic
         public HttpResponseMessage Get()
         {
             var username = Request.GetUser().Map(u => u.Username).ValueOr("Anonymous");
             Logger.Trace("Received request from: {0}", username);
             return Request.CreateResponse(HttpStatusCode.OK);
+        }
+
+        public UserSpaceInfo GetSpace()
+        {
+            var user = Request.GetUser();
+            var space = user.FlatMap(u => spaceQuery.GetUserSpaceInfo(u.ID).Result);
+            return space.Match(
+                    info => info,
+                    () =>
+                    {
+                        throw new HttpResponseException(HttpStatusCode.InternalServerError);
+                    });
         }
     }
 }

@@ -19,7 +19,10 @@ namespace Inuplan.WebAPI
     using App_Start;
     using Autofac;
     using Autofac.Integration.WebApi;
+    using Common.Commands;
     using Common.Enums;
+    using Common.Models;
+    using Common.Repositories;
     using Common.Tools;
     using Common.WebSockets;
     using Extensions;
@@ -56,7 +59,7 @@ namespace Inuplan.WebAPI
             Logger.Info("Configuring Web API for self-hosting.");
             var config = new HttpConfiguration();
 
-            EnableCors(app, config);
+            EnableCors(config);
             EnableWindowsAuthentication(app, config);
 
             Logger.Trace("Register components");
@@ -65,7 +68,7 @@ namespace Inuplan.WebAPI
             var autofac = (AutofacWebApiDependencyResolver)config.DependencyResolver;
 
             EnableWebSocketServer(app, autofac);
-            EnableMiddleware(app, autofac, config);
+            EnableMiddleware(app, autofac.Container);
 
             Logger.Trace("Register controllers with IoC");
             app.UseWebApi(config);
@@ -75,7 +78,7 @@ namespace Inuplan.WebAPI
         /// Enables CORS if it is set in the settings
         /// </summary>
         /// <param name="config">The config file</param>
-        private static void EnableCors(IAppBuilder app, HttpConfiguration config)
+        private static void EnableCors(HttpConfiguration config)
         {
             if (Settings.Default.enableCORS)
             {
@@ -120,14 +123,18 @@ namespace Inuplan.WebAPI
         /// </summary>
         /// <param name="app">The application</param>
         /// <param name="config">The config file</param>
-        private static void EnableMiddleware(IAppBuilder app, AutofacWebApiDependencyResolver autofac, HttpConfiguration config)
+        private static void EnableMiddleware(IAppBuilder app, ILifetimeScope container)
         {
             if (Settings.Default.enableMiddleware)
             {
                 // If request is NOT options then use manageusermiddleware
                 Logger.Trace("Setting OWIN middleware pipeline");
-                app.UseAutofacLifetimeScopeInjector(autofac.Container);
-                app.UseMiddlewareFromContainer<ManageUserMiddleware>();
+                var roleRepo = container.Resolve<IScalarRepository<int, Role>>();
+                var cmds = container.Resolve<ISetSpaceQuota>();
+                var userDbRepo = container.ResolveKeyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
+                var userAdRepo = container.ResolveKeyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
+                var quota = Settings.Default.quotaKB;
+                app.Use(typeof(ManageUserMiddleware), roleRepo, cmds, userDbRepo, userAdRepo, quota);
             }
         }
 

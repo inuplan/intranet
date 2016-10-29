@@ -89,14 +89,16 @@ namespace Inuplan.WebAPI.WebSocketServices
             return Task.FromResult(result);
         }
 
-        public Task<bool> Broadcast<T>(T message)
+        public async Task<bool> Broadcast<T>(T message)
         {
-            var loop = Parallel.ForEach(clients, async (kv, state) =>
+            bool send = true;
+            foreach (var client in clients)
             {
-                await Send(kv.Key, message);
-            });
+                send = await Send(client.Key, message);
+                if (!send) logger.Error("Could not send websocket message to {0}: {1}", client.Key, message);
+            }
 
-            return Task.FromResult(loop.IsCompleted);
+            return send;
         }
 
         public async Task<bool> Send<T>(Guid to, T message)
