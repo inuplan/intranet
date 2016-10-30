@@ -158,24 +158,23 @@ namespace Inuplan.WebAPI
                     Logger.Trace("Using authentication scheme: Anonymous, incoming request from: {0}", request.RemoteEndPoint.Address);
                     return AuthenticationSchemes.Anonymous;
                 }
-                else if (request.IsWebSocketRequest)
+
+                if (request.IsWebSocketRequest)
                 {
                     Logger.Trace("Using authentication scheme: Anonymous for WebSocketRequest");
                     return AuthenticationSchemes.Anonymous;
                 }
-                else
-                {
-                    // Using NTLM because Integrated = Negotiate + NTLM
-                    // If Negotiate can access the Kerberos tickets, it will use that instead of NTLM
-                    // The difference is between  vpn users and internal users
-                    // where vpn users will use NTLM authentication
-                    // whereas internal users will use Kerberos protocol.
-                    // Chrome currently doesn't seem to support the Kerberos protocol out-of-the-box.
-                    // ------
-                    // In short: Use NTLM
-                    Logger.Trace("Using authentication scheme: NTLM, incoming request from: {0}", request.RemoteEndPoint.Address);
-                    return AuthenticationSchemes.Ntlm;
-                }
+
+                // Using NTLM because Integrated = Negotiate + NTLM
+                // If Negotiate can access the Kerberos tickets, it will use that instead of NTLM
+                // The difference is between  vpn users and internal users
+                // where vpn users will use NTLM authentication
+                // whereas internal users will use Kerberos protocol.
+                // Chrome currently doesn't seem to support the Kerberos protocol out-of-the-box.
+                // ------
+                // In short: Use NTLM
+                Logger.Trace("Using authentication scheme: NTLM, incoming request from: {0}", request.RemoteEndPoint.Address);
+                return AuthenticationSchemes.Ntlm;
             }
             catch (Exception ex)
             {
