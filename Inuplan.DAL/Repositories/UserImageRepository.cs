@@ -172,11 +172,6 @@ namespace Inuplan.DAL.Repositories
                 logger.Debug("Class: UserImageRepository, Method: Create, END");
                 return Option.None<Image>();
             }
-            catch (SqlException ex)
-            {
-                logger.Error(ex);
-                throw;
-            }
             catch(Exception ex)
             {
                 logger.Error(ex);
@@ -257,11 +252,6 @@ namespace Inuplan.DAL.Repositories
                     logger.Error("Could not delete every image");
                     return false;
                 }
-            }
-            catch (SqlException ex)
-            {
-                logger.Error(ex);
-                throw;
             }
             catch(Exception ex)
             {

@@ -3,13 +3,11 @@
     using Common.Commands;
     using Common.Logger;
     using System.Data;
-    using System.Data.SqlClient;
     using System.Threading.Tasks;
     using Dapper;
     using System.Transactions;
     using System.Linq;
     using System;
-    using System.IO;
 
     public class UsedSpaceCommands : IUsedSpaceCommands
     {

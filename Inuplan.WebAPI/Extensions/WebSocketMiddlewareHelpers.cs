@@ -34,13 +34,15 @@ namespace Inuplan.WebAPI.Extensions
     {
         public static IAppBuilder UseWebSocketMiddleware(this IAppBuilder source, IWebSocketHubSession sessionManager, int bufferSize = 1024)
         {
-            return source.MapWhen(ctx => ctx.Get<WebSocketAccept>(Constants.OWIN_WEBSOCKET_ACCEPT) != null, app =>
-            {
-                app.Use(typeof(WebSocketMiddleware), sessionManager.Hub, bufferSize);
-                WebSocketMiddleware.RaiseConnected += sessionManager.HandleClientConnected;
-                WebSocketMiddleware.RaiseDisconnected += sessionManager.HandleClientDisconnected;
-                WebSocketMiddleware.RaiseReceivedMessage += sessionManager.HandleMessage;
-            });
+            return source.MapWhen(
+                ctx => ctx.Get<WebSocketAccept>(Constants.OWIN_WEBSOCKET_ACCEPT) != null,
+                app =>
+                {
+                    app.Use(typeof(WebSocketMiddleware), sessionManager.Hub, bufferSize);
+                    WebSocketMiddleware.RaiseConnected += sessionManager.HandleClientConnected;
+                    WebSocketMiddleware.RaiseDisconnected += sessionManager.HandleClientDisconnected;
+                    WebSocketMiddleware.RaiseReceivedMessage += sessionManager.HandleMessage;
+                });
         }
     }
 }
