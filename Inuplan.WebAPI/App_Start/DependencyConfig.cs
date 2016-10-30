@@ -44,6 +44,7 @@ namespace Inuplan.WebAPI.App_Start
     using Image.Factories;
     using Logger;
     using Middlewares;
+    using Middlewares.Options;
     using Properties;
     using System.Data;
     using System.Data.SqlClient;
@@ -144,7 +145,14 @@ namespace Inuplan.WebAPI.App_Start
         /// <param name="builder">The autofac container builder</param>
         private static void OwinPipeline(ContainerBuilder builder)
         {
-            // Owin middleware pipeline - order matters
+            // Owin middleware options
+            builder
+                .RegisterType<ManageUserOption>()
+                .WithAttributeFilter()
+                .WithParameter(new TypedParameter(typeof(int), Settings.Default.quotaKB));
+
+            // Owin middleware pipeline
+            builder.RegisterType<ManageUserMiddleware>();
         }
 
         /// <summary>

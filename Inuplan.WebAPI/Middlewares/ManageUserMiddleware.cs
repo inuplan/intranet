@@ -30,6 +30,7 @@ namespace Inuplan.WebAPI.Middlewares
     using Extensions;
     using Microsoft.Owin;
     using Optional.Unsafe;
+    using Options;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -68,19 +69,16 @@ namespace Inuplan.WebAPI.Middlewares
         /// <param name="next">The next owin middleware</param>
         public ManageUserMiddleware(
             OwinMiddleware next,
-            IScalarRepository<int, Role> roleRepository,
-            ISetSpaceQuota spaceQuotaCommand,
-            [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
-            [WithKey(ServiceKeys.UserActiveDirectory)] IScalarRepository<string, User> userActiveDirectoryRepository,
-            int quotaKB
+            ManageUserOption options
         )
             : base(next)
         {
-            this.quotaKB = quotaKB;
-            this.roleRepository = roleRepository;
-            this.spaceQuotaCommand = spaceQuotaCommand;
-            this.userDatabaseRepository = userDatabaseRepository;
-            this.userActiveDirectoryRepository = userActiveDirectoryRepository;
+            quotaKB = options.QuotaKB;
+            roleRepository = options.RoleRepository;
+            spaceQuotaCommand = options.SpaceCommands;
+            userDatabaseRepository = options.UserDatabaseRepository;
+            userActiveDirectoryRepository = options.UserActiveDirectoryRepository;
+            logger = options.Logger;
         }
 
         /// <summary>

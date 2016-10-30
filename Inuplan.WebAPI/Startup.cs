@@ -27,6 +27,7 @@ namespace Inuplan.WebAPI
     using Common.WebSockets;
     using Extensions;
     using Middlewares;
+    using Middlewares.Options;
     using NLog;
     using Owin;
     using Properties;
@@ -129,12 +130,8 @@ namespace Inuplan.WebAPI
             {
                 // If request is NOT options then use manageusermiddleware
                 Logger.Trace("Setting OWIN middleware pipeline");
-                var roleRepo = container.Resolve<IScalarRepository<int, Role>>();
-                var cmds = container.Resolve<ISetSpaceQuota>();
-                var userDbRepo = container.ResolveKeyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
-                var userAdRepo = container.ResolveKeyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
-                var quota = Settings.Default.quotaKB;
-                app.Use(typeof(ManageUserMiddleware), roleRepo, cmds, userDbRepo, userAdRepo, quota);
+                app.UseAutofacLifetimeScopeInjector(container);
+                app.UseMiddlewareFromContainer<ManageUserMiddleware>();
             }
         }
 
