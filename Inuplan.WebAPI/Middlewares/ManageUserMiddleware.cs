@@ -20,9 +20,7 @@
 
 namespace Inuplan.WebAPI.Middlewares
 {
-    using Autofac.Extras.Attributed;
     using Common.Commands;
-    using Common.Enums;
     using Common.Logger;
     using Common.Models;
     using Common.Repositories;
