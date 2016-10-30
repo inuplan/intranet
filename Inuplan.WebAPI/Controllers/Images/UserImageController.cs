@@ -325,7 +325,6 @@ namespace Inuplan.WebAPI.Controllers.Images
         /// Deletes an image from the server and filesystem
         /// </summary>
         /// <param name="username"></param>
-        /// <param name="file"></param>
         /// <returns></returns>
         // DELETE /api/userimage?username={username}&id={id}
         [HttpDelete]
