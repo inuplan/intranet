@@ -261,6 +261,7 @@
     <Compile Include="Extensions\OwinContextHelpers.cs" />
     <Compile Include="Extensions\WebSocketMiddlewareHelpers.cs" />
     <Compile Include="Extensions\Workflows\Builders.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Image\Factories\HandleFactory.cs" />
     <Compile Include="Image\Handle.cs" />
     <Compile Include="Logger\NLogServiceWrapper.cs" />
