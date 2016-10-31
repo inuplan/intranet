@@ -79,7 +79,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
         [HttpGet]
         public async Task<ThreadPostContentDTO> Get(int id)
         {
-            logger.Debug("Class: ForumPostController, Method: Get, BEGIN");
+            logger.Begin();
             var content = await postRepository.Get(id);
             var header = await titleRepository.Get(id);
             var post = content
@@ -108,7 +108,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
                     return Converters.ToThreadPostContentDTO(p, comment, commentCount);
                 });
 
-            logger.Debug("Class: ForumPostController, Method: Get, END");
+            logger.End();
             return result
                 .LogSome(dto => logger.Trace("Returning post dto with id {0}", dto.ThreadID))
                 .ReturnOrFailWith(HttpStatusCode.NotFound);
@@ -117,7 +117,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
         [HttpPost]
         public async Task<HttpResponseMessage> Post(ThreadPostContent post)
         {
-            logger.Debug("Class: ForumPostController, Method: Post, BEGIN");
+            logger.Begin();
             var user = Request
                 .GetUser()
                 .LogSome(u => logger.Trace("Retrieved user {0}", u.Username))
@@ -149,7 +149,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
                 .FlatMapAsync(async t => await postRepository.Create(post, onCreate))
                 .LogSomeAsync(r => logger.Trace("Created post content"));
 
-            logger.Debug("Class: ForumPostController, Method: Post, END");
+            logger.End();
             return result
                 .ReturnMessage(Request.CreateResponse, HttpStatusCode.Created, HttpStatusCode.InternalServerError);
         }
@@ -157,7 +157,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
         [HttpPut]
         public async Task<HttpResponseMessage> Put([FromUri] int postId, [FromUri] bool read)
         {
-            logger.Debug("Class: ForumPostController, Method: Put, BEGIN");
+            logger.Begin();
             var user = Request
                 .GetUser()
                 .LogSome(u => logger.Trace("Retrieved user: {0}", u.Username));
@@ -170,7 +170,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
                 })
                 .LogSomeAsync(u => logger.Trace("Marked post {0} as read {1}", postId, read));
 
-            logger.Debug("Class: ForumPostController, Method: Put, END");
+            logger.End();
             return result
                 .ReturnMessage(Request.CreateResponse, HttpStatusCode.OK, HttpStatusCode.InternalServerError);
         }
@@ -233,7 +233,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
         [HttpDelete]
         public async Task<HttpResponseMessage> Delete(int id)
         {
-            logger.Debug("Class: ForumPostController, Method: Delete, BEGIN");
+            logger.Begin();
 
             var thread = await titleRepository.Get(id);
             var isAuthorized = thread
@@ -242,13 +242,18 @@ namespace Inuplan.WebAPI.Controllers.Forum
                 .LogSome(t => logger.Trace("User authorized to delete {0}", id))
                 .ValueOr(false);
 
-            if (!isAuthorized) return Request.CreateResponse(HttpStatusCode.Unauthorized);
+            if (!isAuthorized)
+            {
+                logger.End();
+                return Request.CreateResponse(HttpStatusCode.Unauthorized);
+            }
 
             logger.Trace("Delete all comments belonging to the thread {0}", id);
             var deleteAllComments = await forumCommentRepository.Delete(id, (threadId) => Task.FromResult(0));
             if (!deleteAllComments)
             {
                 logger.Error("Could not delete all comments, belonging to the thread {0}", id);
+                logger.End();
                 return Request.CreateResponse(HttpStatusCode.InternalServerError);
             }
 
@@ -257,11 +262,12 @@ namespace Inuplan.WebAPI.Controllers.Forum
             if (!delete)
             {
                 logger.Error("Could not delete thread {0}", id);
+                logger.End();
                 return Request.CreateResponse(HttpStatusCode.InternalServerError);
             }
 
             logger.Trace("Thread {0} deleted", id);
-            logger.Debug("Class: ForumPostController, Method: Delete, END");
+            logger.End();
             return Request.CreateResponse(HttpStatusCode.NoContent);
         }
     }

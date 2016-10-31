@@ -77,7 +77,7 @@ namespace Inuplan.DAL.Repositories
             {
                 using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    logger.Debug("Class: ImageCommentRepository, Method: CreateSingle, BEGIN");
+                    logger.Begin();
                     var sqlComment = @"INSERT INTO Comments (PostedOn, Author, Text, Reply)
                                 VALUES (@PostedOn, @Author, @Text, @Reply);
                                 SELECT ID FROM Comments WHERE ID = @@IDENTITY;";
@@ -109,7 +109,7 @@ namespace Inuplan.DAL.Repositories
                         transactionScope.Complete();
                     }
 
-                    logger.Debug("Class: ImageCommentRepository, Method: CreateSingle, END");
+                    logger.End();
                     return entity.SomeWhen(c => success);
                 }
             }
@@ -132,7 +132,7 @@ namespace Inuplan.DAL.Repositories
                 // SQL - CTE where first projection (select) is the anchor
                 // the 2nd projection is the recursion
                 // Note: using LEFT JOIN on final projection, since we want to include all the deleted comments where user is null
-                logger.Debug("Class: ImageCommentRepository, Method: Get, BEGIN");
+                logger.Begin();
                 var sqlComments =
                     @"WITH CommentTree AS(
                             SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Edited, Deleted, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
@@ -158,7 +158,7 @@ namespace Inuplan.DAL.Repositories
                     return comment;
                 }, new { key });
 
-                logger.Debug("Class: ImageCommentRepository, Method: Get, END");
+                logger.End();
                 var result = Helpers.ConstructReplies(allComments);
                 return result;
             }

@@ -22,6 +22,7 @@ namespace Inuplan.WebAPI.Controllers
 {
     using Autofac.Extras.Attributed;
     using Common.Enums;
+    using Common.Logger;
     using Common.Models;
     using Common.Queries;
     using Common.Repositories;
@@ -33,20 +34,26 @@ namespace Inuplan.WebAPI.Controllers
     [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class WhatsNewController : DefaultController
     {
+        private readonly ILogger<WhatsNewController> logger;
         private readonly IGetPage whatsNew;
 
         public WhatsNewController(
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
-            IGetPage whatsNew)
+            IGetPage whatsNew,
+            ILogger<WhatsNewController> logger
+        )
             : base(userDatabaseRepository)
         {
             this.whatsNew = whatsNew;
+            this.logger = logger;
         }
 
         [HttpGet]
         public async Task<Pagination<NewsItem>> Get(int skip, int take, NewsType filter = NewsType.ImageComment | NewsType.ImageUpload | NewsType.ThreadPost)
         {
+            logger.Begin();
             var page = await whatsNew.Page(filter, skip, take, ImageUrl);
+            logger.End();
             return page;
         }
     }
