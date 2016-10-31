@@ -52,12 +52,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\IAddItem.cs" />
-    <Compile Include="Commands\IDecrementUsedSpace.cs" />
     <Compile Include="Commands\IDeleteItem.cs" />
-    <Compile Include="Commands\IIncrementUsedSpace.cs" />
     <Compile Include="Commands\IMarkPost.cs" />
-    <Compile Include="Commands\ISetSpaceQuota.cs" />
-    <Compile Include="Commands\IUsedSpaceCommands.cs" />
     <Compile Include="DTOs\BaseDTO.cs" />
     <Compile Include="DTOs\ClaimsDTO.cs" />
     <Compile Include="DTOs\Forum\ThreadPostCommentDTO.cs" />

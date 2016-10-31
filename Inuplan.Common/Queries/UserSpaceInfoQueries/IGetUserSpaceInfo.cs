@@ -26,6 +26,6 @@ namespace Inuplan.Common.Queries.UserSpaceInfoQueries
 
     public interface IGetUserSpaceInfo
     {
-        Task<Option<UserSpaceInfo>> GetUserSpaceInfo(int userId);
+        Task<Option<UserSpaceInfoDTO>> GetUserSpaceInfo(int userId);
     }
 }

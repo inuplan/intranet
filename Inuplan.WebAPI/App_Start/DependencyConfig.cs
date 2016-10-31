@@ -41,8 +41,6 @@ namespace Inuplan.WebAPI.App_Start
     using DAL.ForumPost.Commands;
     using DAL.Repositories;
     using DAL.Repositories.Forum;
-    using DAL.UserSpace.Commands;
-    using DAL.UserSpace.Queries;
     using DAL.WhatsNew.Commands;
     using DAL.WhatsNew.Queries;
     using Image.Factories;
@@ -104,9 +102,6 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
             builder.RegisterGeneric(typeof(NLogServiceWrapper<>)).As(typeof(ILogger<>));
-            builder.RegisterType<SetSpaceQuotaCommand>().As<ISetSpaceQuota>();
-            builder.RegisterType<UsedSpaceCommands>().As<IUsedSpaceCommands>();
-            builder.RegisterType<GetUserSpaceInfoQuery>().As<IGetUserSpaceInfo>();
 
             // Register repositories
             builder.RegisterType<RoleRepository>().As<IScalarRepository<int, Role>>();

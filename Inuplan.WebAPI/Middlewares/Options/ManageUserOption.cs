@@ -33,7 +33,6 @@ namespace Inuplan.WebAPI.Middlewares.Options
             [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
             [WithKey(ServiceKeys.UserActiveDirectory)] IScalarRepository<string, User> userActiveDirectoryRepository,
             IScalarRepository<int, Role> roleRepository,
-            ISetSpaceQuota spaceCommands,
             int quotaKB,
             ILogger<ManageUserMiddleware> logger
         )
@@ -41,7 +40,6 @@ namespace Inuplan.WebAPI.Middlewares.Options
             UserDatabaseRepository = userDatabaseRepository;
             UserActiveDirectoryRepository = userActiveDirectoryRepository;
             RoleRepository = roleRepository;
-            SpaceCommands = spaceCommands;
             QuotaKB = quotaKB;
             Logger = logger;
         }
@@ -50,7 +48,6 @@ namespace Inuplan.WebAPI.Middlewares.Options
         public IScalarRepository<string, User> UserActiveDirectoryRepository { get; private set; }
         public IScalarRepository<int, Role> RoleRepository { get; private set; }
         public ILogger<ManageUserMiddleware> Logger { get; private set; }
-        public ISetSpaceQuota SpaceCommands { get; private set; }
         public int QuotaKB { get; private set; }
     }
 }

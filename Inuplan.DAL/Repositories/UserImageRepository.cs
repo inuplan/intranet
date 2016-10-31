@@ -61,21 +61,17 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         private bool disposedValue = false;
 
-        private readonly IUsedSpaceCommands usedSpaceCommands;
-
         /// <summary>
         /// Initializes a new instance of this <see cref="UserImageRepository"/> class.
         /// </summary>
         /// <param name="connection">The database connection</param>
         public UserImageRepository(
             IDbConnection connection,
-            ILogger<UserImageRepository> logger,
-            IUsedSpaceCommands usedSpaceCommands
+            ILogger<UserImageRepository> logger
         )
         {
             this.connection = connection;
             this.logger = logger;
-            this.usedSpaceCommands = usedSpaceCommands;
         }
 
         /// <summary>
@@ -135,13 +131,11 @@ namespace Inuplan.DAL.Repositories
                                     entity.Preview.ID > 0;
 
                     // Calculate size from byte to KiB
-                    var sizePreview = entity.Preview.GetKilobytes();
-                    var sizeOriginal = entity.Original.GetKilobytes();
-                    var sizeThumbnail = entity.Thumbnail.GetKilobytes();
-                    var totalSize = sizePreview + sizeOriginal + sizeThumbnail;
+                    //var sizePreview = entity.Preview.GetKilobytes();
+                    //var sizeOriginal = entity.Original.GetKilobytes();
+                    //var sizeThumbnail = entity.Thumbnail.GetKilobytes();
+                    //var totalSize = sizePreview + sizeOriginal + sizeThumbnail;
 
-                    var incremented = await usedSpaceCommands.IncrementUsedSpace(entity.Owner.ID, totalSize);
-                    success = success && incremented;
                     logger.Trace("Database updated successfully on image created: {0}", success);
 
                     if (success)
@@ -241,9 +235,7 @@ namespace Inuplan.DAL.Repositories
                         }
 
                         int userId = imageRow.Owner;
-                        var decremented = await usedSpaceCommands.DecrementUsedSpace(userId, totalSize);
-                        if (decremented) transactionScope.Complete();
-                        else logger.Error("Could not decrement used space with: {0}", totalSize);
+                        transactionScope.Complete();
 
                         logger.Debug("Class: UserImageRepository, Method: Delete, END");
                         return true;

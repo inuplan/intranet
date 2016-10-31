@@ -71,9 +71,6 @@
     <Compile Include="Repositories\UserADRepository.cs" />
     <Compile Include="Repositories\UserDatabaseRepository.cs" />
     <Compile Include="Repositories\UserRoleRepository.cs" />
-    <Compile Include="UserSpace\Commands\UsedSpaceCommands.cs" />
-    <Compile Include="UserSpace\Commands\SetSpaceQuotaCommand.cs" />
-    <Compile Include="UserSpace\Queries\GetUserSpaceInfoQuery.cs" />
     <Compile Include="WhatsNew\Commands\AddWhatsNewItem.cs" />
     <Compile Include="WhatsNew\Commands\DeleteItem.cs" />
     <Compile Include="WhatsNew\Queries\GetPage.cs" />

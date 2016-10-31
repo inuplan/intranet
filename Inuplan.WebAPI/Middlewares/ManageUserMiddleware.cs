@@ -57,7 +57,6 @@ namespace Inuplan.WebAPI.Middlewares
         /// The repository for roles
         /// </summary>
         private readonly IScalarRepository<int, Role> roleRepository;
-        private readonly ISetSpaceQuota spaceQuotaCommand;
         private readonly int quotaKB;
         private readonly ILogger<ManageUserMiddleware> logger;
 
@@ -73,7 +72,6 @@ namespace Inuplan.WebAPI.Middlewares
         {
             quotaKB = options.QuotaKB;
             roleRepository = options.RoleRepository;
-            spaceQuotaCommand = options.SpaceCommands;
             userDatabaseRepository = options.UserDatabaseRepository;
             userActiveDirectoryRepository = options.UserActiveDirectoryRepository;
             logger = options.Logger;
@@ -122,11 +120,9 @@ namespace Inuplan.WebAPI.Middlewares
                         u.Roles = roles;
 
                         logger.Trace("Creating user {0} in the database", username);
-                        var onCreated = new Func<User, Task>(async createdUser =>
+                        var onCreated = new Func<User, Task>(createdUser =>
                         {
-                            var isSetQuota = await spaceQuotaCommand.SetSpaceQuota(createdUser.ID, quotaKB);
-                            logger.Trace("Quota is set to {0}. Success? {1}", quotaKB, isSetQuota);
-                            return;
+                            return Task.FromResult(0);
                         });
 
                         var created = await userDatabaseRepository.Create(u, onCreated);

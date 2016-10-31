@@ -33,7 +33,7 @@
   },
   "scripts": {
     "prepublish": "rollup -c rollup.config.release.js",
-    "build": "rollup -c rollup.config.js",
+    "build-js": "rollup -c rollup.config.js",
     "watch": "rollup -w -c rollup.config.js"
   }
 , "-vs-binding":{"BeforeBuild":["build"]}
