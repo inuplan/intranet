@@ -84,7 +84,7 @@
     <Compile Include="Models\Forum\ThreadPostContent.cs" />
     <Compile Include="Models\Forum\ThreadPostTitle.cs" />
     <Compile Include="Models\User.cs" />
-    <Compile Include="Models\UserSpaceInfo.cs" />
+    <Compile Include="DTOs\UserSpaceInfoDTO.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Queries\IGetPage.cs" />
     <Compile Include="Queries\UserSpaceInfoQueries\IGetUserSpaceInfo.cs" />

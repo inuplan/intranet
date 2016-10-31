@@ -20,7 +20,7 @@
 
 namespace Inuplan.Common.Queries.UserSpaceInfoQueries
 {
-    using Models;
+    using DTOs;
     using Optional;
     using System.Threading.Tasks;
 
