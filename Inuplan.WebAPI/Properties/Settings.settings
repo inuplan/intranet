@@ -3,10 +3,10 @@
   <Profiles />
   <Settings>
     <Setting Name="connectionStringDebug" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=IntranetDB;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;MultipleActiveResultSets=True</Value>
+      <Value Profile="(Default)">Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=IntranetDB;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;MultipleActiveResultSets=True;Asynchronous Processing=True;Min Pool Size=5;</Value>
     </Setting>
     <Setting Name="connectionStringRelease" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">Data Source=NUUS07\INTRANETDB;Initial Catalog=IntranetDB;User ID=intranetdb;Password=NGsDGzjUCY;MultipleActiveResultSets=true;</Value>
+      <Value Profile="(Default)">Data Source=NUUS07\INTRANETDB;Initial Catalog=IntranetDB;User ID=intranetdb;Password=NGsDGzjUCY;MultipleActiveResultSets=true;Asynchronous Processing=True;Min Pool Size=5;</Value>
     </Setting>
     <Setting Name="root" Type="System.String" Scope="Application">
       <Value Profile="(Default)">C:\uploads\images</Value>
