@@ -20,35 +20,33 @@
 
 namespace Inuplan.DAL.Repositories.Forum
 {
+    using Common.Factories;
+    using Common.Logger;
+    using Common.Models;
     using Common.Models.Forum;
     using Common.Repositories;
+    using Common.Tools;
+    using Dapper;
+    using Optional;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
-    using Common.Models;
-    using Optional;
-    using System.Data;
-    using Dapper;
-    using System.Transactions;
-    using System.Diagnostics;
-    using Common.Tools;
-    using Common.Logger;
-    using System.Data.SqlClient;
 
     public class ForumPostContentRepository : IScalarRepository<int, ThreadPostContent>
     {
-        private readonly IDbConnection connection;
         private readonly ILogger<ForumPostContentRepository> logger;
 
         private bool disposedValue;
+        private readonly IConnectionFactory connectionFactory;
 
         public ForumPostContentRepository(
-            IDbConnection connection,
+            IConnectionFactory connectionFactory,
             ILogger<ForumPostContentRepository> logger
         )
         {
-            this.connection = connection;
+            this.connectionFactory = connectionFactory;
             this.logger = logger;
         }
 
@@ -56,30 +54,37 @@ namespace Inuplan.DAL.Repositories.Forum
         {
             try
             {
-                logger.Debug("Class: ForumCommentsRepository, Method: Create, BEGIN");
                 Debug.Assert(entity.Header.ThreadID > 0, "Must have a valid thread ID given");
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
                     var sql = @"INSERT INTO ThreadContents (ID, Text) VALUES (@ID, @Text)";
                     var rows = await connection.ExecuteAsync(sql, new
                     {
                         ID = entity.Header.ThreadID,
                         Text = entity.Text
-                    });
+                    }, transaction);
 
                     var created = rows == 1;
-                    if (created)
+                    var continuation = await onCreate(entity);
+                    if (created && continuation)
                     {
                         entity.ThreadID = entity.Header.ThreadID;
-                        await onCreate(entity);
-                        transactionScope.Complete();
+                        logger.Trace("Thread post created");
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not create thread post");
+                        transaction.Rollback();
                     }
 
-                    logger.Debug("Class: ForumCommentsRepository, Method: Create, END");
+                    logger.End();
                     return entity.SomeWhen(e => e.ThreadID > 0);
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -95,10 +100,12 @@ namespace Inuplan.DAL.Repositories.Forum
 
         public async Task<Option<ThreadPostContent>> Get(int key)
         {
-            logger.Debug("Class: ForumCommentsRepository, Method: Get, BEGIN");
-            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                var sql = @"SELECT
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    var sql = @"SELECT
                                 t.ID AS ThreadID, t.CreatedOn, t.Published AS IsPublished, t.Author AS AuthorID, Sticky,
                                 t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified,       /* ThreadPostTitle */
                                 c.ID AS ThreadID, c.Text,                                           /* ThreadPostContent */
@@ -110,43 +117,50 @@ namespace Inuplan.DAL.Repositories.Forum
                             ON t.Author = u.ID
                             WHERE t.ID = @key";
 
-                var query = await connection.QueryAsync<ThreadPostTitle, ThreadPostContent, User, ThreadPostContent>(sql, (e, c, u) =>
-                {
-                    e.Author = u;
-                    c.Header = e;
-                    return c;
-                }, new { key }, splitOn: "ThreadID,ID");
+                    var query = await connection.QueryAsync<ThreadPostTitle, ThreadPostContent, User, ThreadPostContent>(sql, (e, c, u) =>
+                    {
+                        e.Author = u;
+                        c.Header = e;
+                        return c;
+                    }, new { key }, splitOn: "ThreadID,ID");
 
-                var result = query.Single(e => e.ThreadID == key).SomeWhen(e => e.ThreadID > 0);
+                    var result = query.Single(e => e.ThreadID == key)
+                                      .SomeWhen(e => e.ThreadID > 0);
 
-                // Remember to add the viewed result
-                var usersSql = @"SELECT
+                    // Remember to add the viewed result
+                    var usersSql = @"SELECT
                                 u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName   /* Author */
                                 FROM Users u
                                 INNER JOIN ThreadUserViews v
                                 ON u.ID = v.UserID
                                 WHERE v.ThreadID = @key";
-                var viewQuery = await connection.QueryAsync<User>(usersSql, new { key });
-                result.Map(c =>
-                {
-                    c.Header.ViewedBy = viewQuery.ToList();
-                    return c;
-                });
 
-                if(result.HasValue)
-                {
-                    transactionScope.Complete();
+                    var viewQuery = await connection.QueryAsync<User>(usersSql, new { key });
+                    result.Map(c =>
+                    {
+                        c.Header.ViewedBy = viewQuery.ToList();
+                        return c;
+                    });
+
+                    logger.End();
+                    return result;
                 }
-
-                logger.Debug("Class: ForumCommentsRepository, Method: Get, END");
-                return result;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+                throw;
             }
         }
 
         public async Task<List<ThreadPostContent>> GetAll(params object[] identifiers)
         {
-            logger.Debug("Class: ForumCommentsRepository, Method: GetAll, BEGIN");
-            var sql = @"SELECT
+            try
+            {
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    var sql = @"SELECT
                                 t.ID AS ThreadID, t.CreatedOn, t.Published, t.Author AS AuthorID, t.Deleted, t.Modified AS IsModified, t.Title, t.LastModified, /* ThreadPostTitle */
                                 c.ID AS ThreadID, c.Text,                                                                                                       /* ThreadPostContent */
                                 u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName                                                   /* Author */
@@ -156,49 +170,60 @@ namespace Inuplan.DAL.Repositories.Forum
                             LEFT JOIN Users u
                             ON t.Author = u.ID";
 
-            var query = await connection.QueryAsync<ThreadPostTitle, ThreadPostContent, User, ThreadPostContent>(sql, (t, c, u) =>
-            {
-                c.Header = t;
-                t.Author = u;
-                return c;
-            }, splitOn: "ThreadID,ID");
+                    var query = await connection.QueryAsync<ThreadPostTitle, ThreadPostContent, User, ThreadPostContent>(sql, (t, c, u) =>
+                    {
+                        c.Header = t;
+                        t.Author = u;
+                        return c;
+                    }, splitOn: "ThreadID,ID");
 
-            var result = query.ToList();
+                    var result = query.ToList();
 
-            // Remember to add the viewed result
-            var usersSql = @"SELECT
+                    // Remember to add the viewed result
+                    var usersSql = @"SELECT
                                 u.ID, u.FirstName, u.LastName, u.Username, u.Email, u.DisplayName   /* Author */
                                 FROM Users u
                                 INNER JOIN ThreadUserViews v
                                 ON u.ID = v.UserID
                                 WHERE v.ThreadID = @key";
 
-            foreach (var content in result)
-            {
-                var users = await connection.QueryAsync<User>(usersSql, new { key = content.ThreadID });
-                content.Header.ViewedBy = users.ToList();
-            }
+                    foreach (var content in result)
+                    {
+                        var users = await connection.QueryAsync<User>(usersSql, new { key = content.ThreadID });
+                        content.Header.ViewedBy = users.ToList();
+                    }
 
-            logger.Debug("Class: ForumCommentsRepository, Method: GetAll, END");
-            return result;
+                    logger.End();
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+                throw;
+            }
         }
 
         public async Task<Option<ThreadPostContent>> GetByID(int id)
         {
-            logger.Debug("Class: ForumCommentsRepository, Method: GetByID, BEGIN");
-            logger.Debug("Class: ForumCommentsRepository, Method: GetByID, END");
-            return await Get(id);
+            logger.Begin();
+            var result = await Get(id);
+
+            logger.End();
+            return result;
         }
 
         public async Task<Pagination<ThreadPostContent>> GetPage(int skip, int take, Func<string> sortBy, Func<string> orderBy, params object[] identifiers)
         {
             try
             {
-                logger.Debug("Class: ForumCommentsRepository, Method: GetPage, BEGIN");
-                sortBy = sortBy ?? new Func<string>(() => "CreatedOn");
-                orderBy = orderBy ?? new Func<string>(() => "ASC");
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    sortBy = sortBy ?? new Func<string>(() => "CreatedOn");
+                    orderBy = orderBy ?? new Func<string>(() => "ASC");
 
-                var sql = @"SELECT
+                    var sql = @"SELECT
                             ID AS ThreadID, CreatedOn, Published, Deleted,IsModified, Title, LastModified,
                             ContentID AS ThreadID, Text,
                             UserID AS ID, FirstName,  LastName,  Username,  Email,  DisplayName
@@ -218,22 +243,22 @@ namespace Inuplan.DAL.Repositories.Forum
                             ) AS seq
                         WHERE seq.RowNumber BETWEEN @From AND @To";
 
-                var query = sql
-                            .Replace("@Sort", sortBy())
-                            .Replace("@Order", orderBy());
+                    var query = sql
+                                .Replace("@Sort", sortBy())
+                                .Replace("@Order", orderBy());
 
-                var titleQuery = await connection.QueryAsync<ThreadPostTitle, ThreadPostContent, User, ThreadPostContent>(query, (t, c, u) =>
-                {
-                    t.Author = u;
-                    c.Header = t;
-                    return c;
-                }, new
-                {
-                    From = skip + 1,
-                    To = skip + take
-                }, splitOn: "ThreadID,ID");
+                    var titleQuery = await connection.QueryAsync<ThreadPostTitle, ThreadPostContent, User, ThreadPostContent>(query, (t, c, u) =>
+                    {
+                        t.Author = u;
+                        c.Header = t;
+                        return c;
+                    }, new
+                    {
+                        From = skip + 1,
+                        To = skip + take
+                    }, splitOn: "ThreadID,ID");
 
-                var sqlUserViews = @"SELECT
+                    var sqlUserViews = @"SELECT
                                     u.ID, FirstName,  LastName,  Username,  Email,  DisplayName,
                                     t.ThreadID
                                  FROM ThreadUserViews t
@@ -241,24 +266,25 @@ namespace Inuplan.DAL.Repositories.Forum
                                  ON t.UserID = u.ID
                                  WHERE t.ThreadID = @ThreadID";
 
-                foreach (var ThreadID in titleQuery.Select(t => t.ThreadID))
-                {
-                    var usersView = await connection.QueryAsync<User>(sqlUserViews, new
+                    foreach (var ThreadID in titleQuery.Select(t => t.ThreadID))
                     {
-                        ThreadID
-                    });
+                        var usersView = await connection.QueryAsync<User>(sqlUserViews, new
+                        {
+                            ThreadID
+                        });
 
-                    var content = titleQuery.Single(t => t.ThreadID == ThreadID);
-                    content.Header.ViewedBy = usersView.ToList();
+                        var content = titleQuery.Single(t => t.ThreadID == ThreadID);
+                        content.Header.ViewedBy = usersView.ToList();
+                    }
+
+                    var countSql = @"SELECT COUNT(*) FROM ThreadTitles";
+                    var total = await connection.ExecuteScalarAsync<int>(countSql);
+
+                    logger.End();
+                    return Helpers.Paginate(skip, take, total, titleQuery.ToList());
                 }
-
-                var countSql = @"SELECT COUNT(*) FROM ThreadTitles";
-                var total = await connection.ExecuteScalarAsync<int>(countSql);
-
-                logger.Debug("Class: ForumCommentsRepository, Method: GetPage, END");
-                return Helpers.Paginate(skip, take, total, titleQuery.ToList());
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -269,9 +295,10 @@ namespace Inuplan.DAL.Repositories.Forum
         {
             try
             {
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
-                    logger.Debug("Class: ForumCommentsRepository, Method: Update, BEGIN");
                     var sql = @"UPDATE ThreadContents SET
                             Text = @Text
                            WHERE ID = @ID";
@@ -280,7 +307,7 @@ namespace Inuplan.DAL.Repositories.Forum
                     {
                         entity.Text,
                         ID = entity.ThreadID
-                    });
+                    }, transaction);
 
                     var modifySql = @"UPDATE ThreadTitles SET
                                     Modified = @Modified,
@@ -291,20 +318,26 @@ namespace Inuplan.DAL.Repositories.Forum
                         Modified = true,
                         LastModified = DateTime.Now,
                         ID = key
-                    });
+                    }, transaction);
 
                     var updated = update == 1 && modify == 1;
 
                     if (updated)
                     {
-                        transactionScope.Complete();
+                        logger.Trace("Thread post content updated");
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not update thread post content");
+                        transaction.Rollback();
                     }
 
-                    logger.Debug("Class: ForumCommentsRepository, Method: Update, END");
+                    logger.End();
                     return updated;
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -322,8 +355,7 @@ namespace Inuplan.DAL.Repositories.Forum
             {
                 if (disposing)
                 {
-                    connection.Close();
-                    connection.Dispose();
+                    // TODO: dispose managed resources
                 }
 
                 disposedValue = true;
