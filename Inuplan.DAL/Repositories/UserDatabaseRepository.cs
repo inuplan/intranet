@@ -170,7 +170,6 @@ namespace Inuplan.DAL.Repositories
             try
             {
                 using (var connection = connectionFactory.CreateConnection())
-                using (var transaction = connection.BeginTransaction())
                 {
                     logger.Begin();
                     var sqlUser = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
@@ -196,12 +195,9 @@ namespace Inuplan.DAL.Repositories
 
                         entity.Roles = roles.ToList();
                         result = entity.Some();
-
-                        transaction.Commit();
                     }
                     else
                     {
-                        transaction.Rollback();
                         logger.Error("Could not get user {0}", key);
                     }
 
