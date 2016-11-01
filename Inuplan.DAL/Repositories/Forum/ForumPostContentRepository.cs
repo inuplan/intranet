@@ -66,11 +66,11 @@ namespace Inuplan.DAL.Repositories.Forum
                         Text = entity.Text
                     }, transaction);
 
+                    entity.ThreadID = entity.Header.ThreadID;
                     var created = rows == 1;
                     var continuation = await onCreate(entity);
                     if (created && continuation)
                     {
-                        entity.ThreadID = entity.Header.ThreadID;
                         logger.Trace("Thread post created");
                         transaction.Commit();
                     }
@@ -81,7 +81,7 @@ namespace Inuplan.DAL.Repositories.Forum
                     }
 
                     logger.End();
-                    return entity.SomeWhen(e => e.ThreadID > 0);
+                    return entity.SomeWhen(e => created && continuation);
                 }
             }
             catch (Exception ex)
