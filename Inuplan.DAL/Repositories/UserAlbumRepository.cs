@@ -54,7 +54,7 @@ namespace Inuplan.DAL.Repositories
             this.logger = logger;
         }
 
-        public async Task<Option<Album>> Create(Album entity, Func<Album, Task> onCreate, params object[] identifiers)
+        public async Task<Option<Album>> Create(Album entity, Func<Album, Task<bool>> onCreate, params object[] identifiers)
         {
             try
             {

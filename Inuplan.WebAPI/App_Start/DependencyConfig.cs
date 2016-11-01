@@ -38,9 +38,11 @@ namespace Inuplan.WebAPI.App_Start
     using Controllers.Forum;
     using Controllers.Images;
     using Controllers.Users;
+    using DAL.Factories;
     using DAL.ForumPost.Commands;
     using DAL.Repositories;
     using DAL.Repositories.Forum;
+    using DAL.UserSpaceInfo.Queries;
     using DAL.WhatsNew.Commands;
     using DAL.WhatsNew.Queries;
     using Image.Factories;
@@ -79,7 +81,10 @@ namespace Inuplan.WebAPI.App_Start
                 var connection = new SqlConnection(connectionString);
                 connection.Open();
                 return connection;
-            }).As<IDbConnection>().InstancePerDependency();
+            }).As<IDbConnection>().InstancePerRequest();
+            builder.RegisterType<ConnectionFactory>()
+                .WithParameter(new TypedParameter(typeof(string), connectionString))
+                .As<IConnectionFactory>();
 
             // Register Web API controllers
             builder.RegisterType<RoleController>().WithAttributeFilter();
@@ -102,10 +107,17 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
             builder.RegisterGeneric(typeof(NLogServiceWrapper<>)).As(typeof(ILogger<>));
+            builder.RegisterType<UserSpaceQueryHandles>()
+                .WithParameter(new TypedParameter(typeof(string), root))
+                .WithParameter(new TypedParameter(typeof(int), Settings.Default.quotaKB))
+                .As<IGetUserSpaceInfo>();
 
             // Register repositories
             builder.RegisterType<RoleRepository>().As<IScalarRepository<int, Role>>();
-            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<int, Image>>();
+            builder.RegisterType<UserImageRepository>()
+                .WithAttributeFilter()
+                .WithParameter(new TypedParameter(typeof(int), Settings.Default.quotaKB))
+                .As<IScalarRepository<int, Image>>();
             builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, Comment>>();
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
             builder.RegisterType<UserRoleRepository>().Keyed<IScalarRepository<int, User>>(ServiceKeys.UserRoleRepository);

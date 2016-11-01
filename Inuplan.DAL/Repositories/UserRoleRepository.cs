@@ -51,7 +51,7 @@ namespace Inuplan.DAL.Repositories
             this.logger = logger;
         }
 
-        public async Task<Option<User>> Create(User entity, Func<User, Task> onCreate, params object[] identifiers)
+        public async Task<Option<User>> Create(User entity, Func<User, Task<bool>> onCreate, params object[] identifiers)
         {
             try
             {
@@ -176,7 +176,7 @@ namespace Inuplan.DAL.Repositories
 
                     // An update is essentially a delete with create!
                     var delete = await Delete(key, _ => Task.FromResult(0));
-                    var create = await Create(entity, _ => Task.FromResult(0), roleIds);
+                    var create = await Create(entity, _ => Task.FromResult(true), roleIds);
                     var success = delete && create.HasValue;
 
                     if (success)

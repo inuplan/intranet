@@ -130,10 +130,10 @@ namespace Inuplan.WebAPI.Controllers.Forum
             post.Header.CreatedOn = DateTime.Now;
 
             var titleCreated = await titleRepository
-                .Create(post.Header, (t) => Task.FromResult(0))
+                .Create(post.Header, (t) => Task.FromResult(true))
                 .LogSomeAsync(t => logger.Trace("Created post header with id: {0}", t.ThreadID));
 
-            var onCreate = new Func<ThreadPostContent, Task>(p =>
+            var onCreate = new Func<ThreadPostContent, Task<bool>>(async p =>
            {
                logger.Trace("Converting post model to dto");
                var dto = Converters.ToThreadPostContentDTO(p, null, 0);
@@ -142,7 +142,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
                webSocketService.NewForumThread(dto);
 
                logger.Trace("Adding forum thread to latest news");
-               return whatsNew.AddItem(p.ThreadID, NewsType.ThreadPost);
+               return await whatsNew.AddItem(p.ThreadID, NewsType.ThreadPost) > 0;
            });
 
             var result = await titleCreated

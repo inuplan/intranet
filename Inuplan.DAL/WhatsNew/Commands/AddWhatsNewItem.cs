@@ -47,6 +47,7 @@ namespace Inuplan.DAL.WhatsNew.Commands
         public async Task<int> AddItem(int id, NewsType itemType)
         {
             logger.Debug("Class: AddWhatsNewItem, Method: AddItem, BEGIN");
+            logger.Trace("{0}", Transaction.Current);
             Debug.Assert(id > 0, "Must have a valid ID");
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {

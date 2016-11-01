@@ -120,9 +120,9 @@ namespace Inuplan.WebAPI.Middlewares
                         u.Roles = roles;
 
                         logger.Trace("Creating user {0} in the database", username);
-                        var onCreated = new Func<User, Task>(createdUser =>
+                        var onCreated = new Func<User, Task<bool>>(createdUser =>
                         {
-                            return Task.FromResult(0);
+                            return Task.FromResult(true);
                         });
 
                         var created = await userDatabaseRepository.Create(u, onCreated);

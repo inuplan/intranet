@@ -48,7 +48,7 @@ namespace Inuplan.DAL.Repositories.Forum
             this.logger = logger;
         }
 
-        public async Task<Option<ThreadPostTitle>> Create(ThreadPostTitle entity, Func<ThreadPostTitle, Task> onCreate, params object[] identifiers)
+        public async Task<Option<ThreadPostTitle>> Create(ThreadPostTitle entity, Func<ThreadPostTitle, Task<bool>> onCreate, params object[] identifiers)
         {
             Debug.Assert(entity.Author != null && entity.Author.ID > 0, "Must have a valid user assigned");
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))

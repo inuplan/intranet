@@ -70,6 +70,7 @@
     <Compile Include="Enums\NewsType.cs" />
     <Compile Include="Enums\ServiceKeys.cs" />
     <Compile Include="Enums\WebSocketMessageType.cs" />
+    <Compile Include="Factories\IConnectionFactory.cs" />
     <Compile Include="Factories\ImageHandleFactory.cs" />
     <Compile Include="Handlers\IImageHandler.cs" />
     <Compile Include="Logger\ILogger.cs" />

@@ -80,7 +80,7 @@
                 });
 
             // Create album
-            var created = await albumRepository.Create(album, _ => Task.FromResult(0), images);
+            var created = await albumRepository.Create(album, _ => Task.FromResult(true), images);
 
             // Return result
             return created.Match(

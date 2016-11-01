@@ -50,7 +50,7 @@ namespace Inuplan.DAL.Repositories
             this.logger = logger;
         }
 
-        public async Task<Option<Role>> Create(Role entity, Func<Role, Task> onCreate, params object[] identifiers)
+        public async Task<Option<Role>> Create(Role entity, Func<Role, Task<bool>> onCreate, params object[] identifiers)
         {
             logger.Debug("Class: RoleRepository, Method: Create, BEGIN");
             Debug.Assert(entity != null, "Must have valid object to create");

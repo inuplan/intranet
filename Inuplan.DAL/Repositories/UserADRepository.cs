@@ -72,7 +72,7 @@ namespace Inuplan.DAL.Repositories
         /// <param name="entity">N/A</param>
         /// <exception cref="NotSupportedException">Not supported operation</exception>
         /// <returns>N/A</returns>
-        public Task<Option<User>> Create(User entity, Func<User, Task> onCreate, params object[] identifiers)
+        public Task<Option<User>> Create(User entity, Func<User, Task<bool>> onCreate, params object[] identifiers)
         {
             throw new NotSupportedException("Not supported operation!");
         }

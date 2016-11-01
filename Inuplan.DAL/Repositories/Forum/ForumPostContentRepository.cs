@@ -52,7 +52,7 @@ namespace Inuplan.DAL.Repositories.Forum
             this.logger = logger;
         }
 
-        public async Task<Option<ThreadPostContent>> Create(ThreadPostContent entity, Func<ThreadPostContent, Task> onCreate, params object[] identifiers)
+        public async Task<Option<ThreadPostContent>> Create(ThreadPostContent entity, Func<ThreadPostContent, Task<bool>> onCreate, params object[] identifiers)
         {
             try
             {

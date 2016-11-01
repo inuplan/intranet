@@ -82,7 +82,7 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="entity">The user entity</param>
         /// <returns>Returns an awaitable optional user</returns>
-        public async Task<Option<User>> Create(User entity, Func<User, Task> onCreate, params object[] identifiers)
+        public async Task<Option<User>> Create(User entity, Func<User, Task<bool>> onCreate, params object[] identifiers)
         {
             try
             {
