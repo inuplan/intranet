@@ -43,6 +43,7 @@ class WhatsNewContainer extends React.Component {
         return  <Row>
                     <Col>
                         <h3>Sidste h&aelig;ndelser</h3>
+                        <hr />
                         <WhatsNewList
                             items={items}
                             getUser={getUser} />
