@@ -65,7 +65,7 @@ var vendors = [
     { file: paths.marked, expose: 'marked' },
     { file: paths.removeMarkdown, expose: 'remove-markdown' },
     { file: paths.reactBootstrap, expose: 'react-bootstrap' },
-    { file: paths.charts, expose: 'chartjs' }
+    { file: paths.charts, expose: 'chart-js' }
 ]
 
 var vendorsMin = [
@@ -80,7 +80,7 @@ var vendorsMin = [
     { file: paths.markedMin, expose: 'marked' },
     { file: paths.removeMarkdown, expose: 'remove-markdown' },
     { file: paths.reactBootstrapMin, expose: 'react-bootstrap' },
-    { file: paths.chartsMin, expose: 'chartjs' }
+    { file: paths.chartsMin, expose: 'chart-js' }
 ]
 
 // =============================
