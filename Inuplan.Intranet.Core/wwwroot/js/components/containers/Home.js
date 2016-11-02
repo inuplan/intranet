@@ -6,6 +6,7 @@ import { uploadImage } from '../../actions/images'
 import { fetchLatestNews } from '../../actions/whatsnew'
 import { Jumbotron, Grid, Row, Col, Panel } from 'react-bootstrap'
 import { values } from 'underscore'
+import Chart from 'chartjs'
 
 const mapStateToProps = (state) => {
     const user = values(state.usersInfo.users).filter(u => u.Username.toUpperCase() == globals.currentUsername.toUpperCase())[0];

@@ -4,6 +4,7 @@
   "private": true,
   "devDependencies": {
     "browserify": "^13.0.1",
+    "chart.js": "^2.3.0",
     "fs": "^0.0.2",
     "gulp": "^3.8.11",
     "gulp-concat": "2.5.2",
@@ -35,6 +36,10 @@
     "prepublish": "rollup -c rollup.config.release.js",
     "build-js": "rollup -c rollup.config.js",
     "watch": "rollup -w -c rollup.config.js"
+  },
+  "-vs-binding": {
+    "BeforeBuild": [
+      "build"
+    ]
   }
-, "-vs-binding":{"BeforeBuild":["build"]}
 }
