@@ -27,13 +27,16 @@ namespace Inuplan.WebAPI.Controllers.Diagnostics
     using Common.Models;
     using Common.Queries.UserSpaceInfoQueries;
     using Common.Repositories;
+    using Common.Tools;
     using Extensions;
     using Extensions.Workflows;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
     using System.Web.Http;
+    using System.Web.Http.Cors;
 
+    [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class DiagnosticController : DefaultController
     {
         private readonly ILogger<DiagnosticController> logger;
