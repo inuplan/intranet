@@ -4,6 +4,7 @@ import { newImageFromServer, fetchUserImages, setSelectedImg, setImageOwner } fr
 import { newCommentFromServer, fetchComments, setSkipComments, setTakeComments, fetchAndFocusSingleComment } from '../actions/comments'
 import { setLatest, fetchLatestNews } from '../actions/whatsnew'
 import { newForumThreadFromServer, fetchThreads, fetchPost } from '../actions/forum'
+import { fetchSpaceInfo } from '../actions/status'
 import { getImageCommentsPageUrl, getForumCommentsPageUrl } from '../utilities/utils'
 
 export const init = () => {
@@ -27,6 +28,7 @@ export const connectToLatestWebSocketService = () => {
                     break;
                 case 'NEW_IMAGE':
                     store.dispatch(newImageFromServer(data.item));
+                    store.dispatch(fetchSpaceInfo(`${globals.urls.diagnostics}/getspaceinfo`));
                     break;
                 case 'NEW_FORUM_THREAD':
                     store.dispatch(newForumThreadFromServer(data.item));
@@ -47,6 +49,7 @@ export const connectToLatestWebSocketService = () => {
             store.dispatch(fetchUsers());
             store.dispatch(fetchLatestNews(skip, take));
             store.dispatch(fetchThreads(skipPost, takePost));
+            store.dispatch(fetchSpaceInfo(`${globals.urls.diagnostics}/getspaceinfo`));
         }, 10000);
     }
 }

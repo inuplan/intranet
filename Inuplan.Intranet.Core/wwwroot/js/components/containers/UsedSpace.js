@@ -1,60 +1,56 @@
 import React from 'react'
-import Chart from 'chart-js'
+import { connect } from 'react-redux'
 import { Row, Col, ProgressBar } from 'react-bootstrap'
+import { fetchSpaceInfo } from '../../actions/status'
 
-export class UsedSpaceView extends React.Component {
+const mapStateToProps = (state) => {
+    return {
+        usedMB: (state.statusInfo.spaceInfo.usedSpacekB / 1000),
+        totalMB: (state.statusInfo.spaceInfo.totalSpacekB / 1000),
+        loaded: (state.statusInfo.spaceInfo.totalSpacekB != -1)
+    }
+}
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        getSpaceInfo: (url) => {
+            dispatch(fetchSpaceInfo(url));
+        }
+    }
+}
+
+class UsedSpaceView extends React.Component {
     componentDidMount() {
-        const ctx = document.getElementById("myChart");
-        //        const usedSpace = Math.round(3096/1024);
-        //        const freeSpace = 300 - usedSpace;
-        //        const dataOptions = {
-        //            labels: [
-        //                "Brugt plads i MB",
-        //                "Fri plads i MB"
-        //            ],
-        //            datasets: [
-        //                {
-        //                    data: [usedSpace, freeSpace],
-        //                    backgroundColor: [
-        //                        "#92FF24",
-        //                        "#36A2EB"
-        //                    ],
-        //                    hoverBackgroundColor: [
-        //                        "#92FF24",
-        //                        "#36A2EB"
-        //                    ]
-        //                }
-        //            ]
-        //        };
-        //        const doughnutOptions = {
-        //
-        //        };
-        //        const myChart = new Chart(ctx, {
-        //            type: 'doughnut',
-        //            data: dataOptions,
-        //            options: doughnutOptions
-        //        });
+        const { getSpaceInfo } = this.props;
+        const url = `${globals.urls.diagnostics}/getspaceinfo`;
+        getSpaceInfo(url);
     }
 
     render() {
-        const totalMB = 300;
-        const usedMB = Math.round(152.123);
-        const usedPercent = Math.round((usedMB/totalMB) * 100);
+        const { usedMB, totalMB } = this.props;
+        const total = Math.round(totalMB);
+        const used = Math.round(usedMB*100) / 100;
+        const free = Math.round((total - used)*100) / 100;
+        const usedPercent = ((used/total)* 100);
+        const percentRound = Math.round(usedPercent*100) / 100;
         return  <Row>
                     <Col>
                         <h3>Personlig upload forbrug</h3>
                         <hr />
                         <p>
-                            Herunder kan man se hvor meget plads der er brugt og hvor meget fri plads
+                            Herunder kan du se hvor meget plads du har brugt og hvor meget fri plads
                             der er tilbage. Gælder kun billede filer.
                         </p>
-                        <ProgressBar bsStyle="success" now={usedPercent} key={1} />
+                        <ProgressBar striped={true} bsStyle="success" now={usedPercent} key={1} />
                         <p>
-                            Brugt: {usedMB} MB ({usedPercent} %)<br />
-                            Fri plads: {totalMB - usedMB} MB<br />
-                            Total: {totalMB} MB
+                            Brugt: {used.toString()} MB ({percentRound.toString()} %)<br />
+                            Fri plads: {free.toString()} MB<br />
+                            Total: {total.toString()} MB
                         </p>
                     </Col>
                 </Row>
     }
 }
+
+const UsedSpace = connect(mapStateToProps, mapDispatchToProps)(UsedSpaceView);
+export default UsedSpace;

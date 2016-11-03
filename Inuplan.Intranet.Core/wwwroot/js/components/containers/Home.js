@@ -4,10 +4,10 @@ import WhatsNew from './WhatsNew'
 import { ImageUpload } from '../images/ImageUpload'
 import { uploadImage } from '../../actions/images'
 import { fetchLatestNews } from '../../actions/whatsnew'
-import { Jumbotron, Grid, Row, Col, Panel } from 'react-bootstrap'
+import { Jumbotron, Grid, Row, Col, Panel, Alert } from 'react-bootstrap'
 import { values } from 'underscore'
 import Chart from 'chart-js'
-import { UsedSpaceView } from './UsedSpace'
+import UsedSpace from './UsedSpace'
 
 const mapStateToProps = (state) => {
     const user = values(state.usersInfo.users).filter(u => u.Username.toUpperCase() == globals.currentUsername.toUpperCase())[0];
@@ -34,7 +34,12 @@ const mapDispatchToProps = (dispatch) => {
 class HomeView extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+            recommended: true
+        }
+
         this.upload = this.upload.bind(this);
+        this.recommendedView = this.recommendedView.bind(this);
     }
 
     componentDidMount() {
@@ -44,6 +49,21 @@ class HomeView extends React.Component {
     upload(username, formData) {
         const { uploadImage, skip, take } = this.props;
         uploadImage(skip, take, username, formData);
+    }
+    
+    recommendedView() {
+        if(!this.state.recommended) return null;
+
+        return  <Row>
+                    <Col>
+                        <Alert bsStyle="success" onDismiss={() => this.setState({ recommended: false })}>
+                            <h4>Anbefalinger</h4>
+                            <ul>
+                                <li>Testet med Google Chrome browser. Derfor er det anbefalet at bruge denne til at f&aring; den fulde oplevelse.<br /></li>
+                            </ul>
+                        </Alert>
+                    </Col>
+                </Row>
     }
 
     render() {
@@ -72,7 +92,8 @@ class HomeView extends React.Component {
                                 <WhatsNew />
                             </Col>
                             <Col lgOffset={1} lg={3}>
-                                <UsedSpaceView />
+                                {this.recommendedView()}
+                                <UsedSpace />
                             </Col>
                         </Row>
                     </Grid>

@@ -62,6 +62,3 @@ export default class ImageList extends React.Component {
                 </Row>
     }
 }
-//<div className="row">
-//            {this.imagesView(images)}
-//        </div>
