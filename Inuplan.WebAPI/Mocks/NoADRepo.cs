@@ -39,7 +39,7 @@ namespace Inuplan.WebAPI.Mocks
             users = MockUsers();
         }
 
-        public Task<Option<User>> Create(User entity, Func<User, Task> onCreate, params object[] identifiers)
+        public Task<Option<User>> Create(User entity, Func<User, Task<bool>> onCreate, params object[] identifiers)
         {
             throw new NotImplementedException();
         }

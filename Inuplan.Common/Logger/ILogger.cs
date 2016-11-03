@@ -21,6 +21,7 @@
 namespace Inuplan.Common.Logger
 {
     using System;
+    using System.Runtime.CompilerServices;
 
     public interface ILogger<T>
     {
@@ -33,5 +34,7 @@ namespace Inuplan.Common.Logger
         void Error(Exception ex);
         void Error(string message);
         void Error(string message, params object[] args);
+        void Begin([CallerMemberName] string method = "");
+        void End([CallerMemberName] string method = "");
     }
 }

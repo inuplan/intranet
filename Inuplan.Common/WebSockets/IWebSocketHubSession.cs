@@ -20,19 +20,20 @@
 
 namespace Inuplan.Common.WebSockets
 {
-    using Optional;
     using System;
     using System.Collections.Generic;
-    using System.Net.WebSockets;
     using System.Threading.Tasks;
 
     public interface IWebSocketHubSession
     {
         string Hub { get; }
-        Task<Option<Guid>> AddClient(WebSocket client);
         Task<bool> RemoveClient(Guid id);
         Task<bool> Broadcast<T>(T message);
         Task<bool> Send<T>(Guid to, T message);
         Task<IReadOnlyCollection<Guid>> GetClientIds();
+
+        void HandleClientConnected(object sender, WebSocketClientConnectedArgs args);
+        void HandleMessage(object sender, WebSocketMessageEventArgs args);
+        void HandleClientDisconnected(object sender, WebSocketClientDisconnectedArgs args);
     }
 }

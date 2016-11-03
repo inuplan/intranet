@@ -25,9 +25,33 @@ export const done = (state = true, action) => {
     }
 }
 
+export const usedSpacekB = (state = 0, action) => {
+    switch(action.type) {
+        case T.SET_USED_SPACE_KB:
+            return action.usedSpace;
+        default:
+            return state;
+    }
+}
+
+export const totalSpacekB = (state = -1, action) => {
+    switch(action.type) {
+        case T.SET_TOTAL_SPACE_KB:
+            return action.totalSpace;
+        default:
+            return state;
+    }
+}
+
+export const spaceInfo = combineReducers({
+    usedSpacekB,
+    totalSpacekB
+});
+
 const statusInfo = combineReducers({
     hasError,
     errorInfo,
+    spaceInfo,
     message,
     done
 })

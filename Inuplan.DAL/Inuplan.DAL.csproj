@@ -23,6 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <NoWarn>RECS0069</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -59,7 +60,9 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Factories\ConnectionFactory.cs" />
     <Compile Include="ForumPost\Commands\MarkPost.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\Forum\ForumCommentsRepository.cs" />
     <Compile Include="Repositories\Forum\ForumPostContentRepository.cs" />
@@ -71,6 +74,7 @@
     <Compile Include="Repositories\UserADRepository.cs" />
     <Compile Include="Repositories\UserDatabaseRepository.cs" />
     <Compile Include="Repositories\UserRoleRepository.cs" />
+    <Compile Include="UserSpaceInfo\Queries\UserSpaceQueryHandles.cs" />
     <Compile Include="WhatsNew\Commands\AddWhatsNewItem.cs" />
     <Compile Include="WhatsNew\Commands\DeleteItem.cs" />
     <Compile Include="WhatsNew\Queries\GetPage.cs" />

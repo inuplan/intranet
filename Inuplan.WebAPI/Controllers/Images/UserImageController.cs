@@ -26,6 +26,7 @@ namespace Inuplan.WebAPI.Controllers.Images
     using Common.Enums;
     using Common.Factories;
     using Common.Models;
+    using Common.Queries.UserSpaceInfoQueries;
     using Common.Repositories;
     using Common.Tools;
     using Extensions;
@@ -65,6 +66,7 @@ namespace Inuplan.WebAPI.Controllers.Images
         private readonly IAddItem whatsNew;
         private readonly IDeleteItem removeNews;
         private readonly LatestBroadcastService webSocketService;
+        private readonly IGetUserSpaceInfo userSpaceHandles;
 
         /// <summary>
         /// Instantiates a new <see cref="UserImageController"/> instance.
@@ -77,8 +79,9 @@ namespace Inuplan.WebAPI.Controllers.Images
             ImageHandleFactory imageHandleFactory,
             IAddItem whatsNew,
             IDeleteItem removeNews,
-            LatestBroadcastService webSocketService
-            )
+            LatestBroadcastService webSocketService,
+            IGetUserSpaceInfo userSpaceHandles
+        )
             : base(userDatabaseRepository)
         {
             this.userImageRepository = userImageRepository;
@@ -87,6 +90,7 @@ namespace Inuplan.WebAPI.Controllers.Images
             this.whatsNew = whatsNew;
             this.removeNews = removeNews;
             this.webSocketService = webSocketService;
+            this.userSpaceHandles = userSpaceHandles;
         }
 
         /// <summary>
@@ -130,14 +134,16 @@ namespace Inuplan.WebAPI.Controllers.Images
             await Task.WhenAll(tasks);
             var error = true;
             int imageID = -1;
+            var quotaKb = Properties.Settings.Default.quotaKB;
 
             var save = bag.Select(async image =>
             {
-                var onCreated = new Func<Image, Task>(img =>
+                var onCreated = new Func<Image, Task<bool>>(async img =>
                 {
                     var dto = Construct(img);
                     webSocketService.NewImage(dto);
-                    return whatsNew.AddItem(img.ID, NewsType.ImageUpload);
+
+                    return await whatsNew.AddItem(img.ID, NewsType.ImageUpload) > 0;
                 });
 
                 var created = await userImageRepository.Create(image, onCreated);
@@ -164,12 +170,12 @@ namespace Inuplan.WebAPI.Controllers.Images
         }
 
         /// <summary>
-        /// TODO
+        /// Update an image
         /// </summary>
-        /// <param name="username"></param>
-        /// <param name="id"></param>
-        /// <param name="file"></param>
-        /// <param name="description"></param>
+        /// <param name="username">The user's username</param>
+        /// <param name="id">The id of the image</param>
+        /// <param name="file">The filename of the image</param>
+        /// <param name="description">The description of the image</param>
         /// <returns></returns>
         // PUT /api/UserImage?username={username}&id={id}&file={file}
         [HttpPut]
@@ -324,7 +330,6 @@ namespace Inuplan.WebAPI.Controllers.Images
         /// Deletes an image from the server and filesystem
         /// </summary>
         /// <param name="username"></param>
-        /// <param name="file"></param>
         /// <returns></returns>
         // DELETE /api/userimage?username={username}&id={id}
         [HttpDelete]

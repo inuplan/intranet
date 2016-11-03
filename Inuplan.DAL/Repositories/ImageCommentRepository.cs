@@ -20,6 +20,7 @@
 
 namespace Inuplan.DAL.Repositories
 {
+    using Common.Factories;
     using Common.Logger;
     using Common.Models;
     using Common.Repositories;
@@ -28,39 +29,32 @@ namespace Inuplan.DAL.Repositories
     using Optional;
     using System;
     using System.Collections.Generic;
-    using System.Data;
-    using System.Data.SqlClient;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Transactions;
 
     /// <summary>
     /// A repository which handles the Comments for a related Image.
     /// </summary>
     public class ImageCommentRepository : IVectorRepository<int, Comment>
     {
-        /// <summary>
-        /// The database connection
-        /// </summary>
-        private readonly IDbConnection connection;
-
         private readonly ILogger<ImageCommentRepository> logger;
 
         /// <summary>
         /// The disposed pattern
         /// </summary>
         private bool disposedValue = false;
+        private readonly IConnectionFactory connectionFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImageCommentRepository"/> class.
         /// </summary>
         /// <param name="connection">The database connection</param>
         public ImageCommentRepository(
-            IDbConnection connection,
+            IConnectionFactory connectionFactory,
             ILogger<ImageCommentRepository> logger
         )
         {
-            this.connection = connection;
+            this.connectionFactory = connectionFactory;
             this.logger = logger;
         }
 
@@ -75,9 +69,10 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
-                    logger.Debug("Class: ImageCommentRepository, Method: CreateSingle, BEGIN");
                     var sqlComment = @"INSERT INTO Comments (PostedOn, Author, Text, Reply)
                                 VALUES (@PostedOn, @Author, @Text, @Reply);
                                 SELECT ID FROM Comments WHERE ID = @@IDENTITY;";
@@ -88,7 +83,7 @@ namespace Inuplan.DAL.Repositories
                         Reply = entity.ParentID,
                         PostedOn = entity.PostedOn,
                         Text = entity.Text,
-                    });
+                    }, transaction);
 
                     var success = entity.ID > 0;
 
@@ -100,16 +95,21 @@ namespace Inuplan.DAL.Repositories
                         {
                             ImageID = entity.ContextID,
                             CommentID = entity.ID,
-                        })).Equals(1);
+                        }, transaction)).Equals(1);
                     }
 
                     if (success)
                     {
                         await onCreate(entity);
-                        transactionScope.Complete();
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not create comment");
+                        transaction.Rollback();
                     }
 
-                    logger.Debug("Class: ImageCommentRepository, Method: CreateSingle, END");
+                    logger.End();
                     return entity.SomeWhen(c => success);
                 }
             }
@@ -129,12 +129,14 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                // SQL - CTE where first projection (select) is the anchor
-                // the 2nd projection is the recursion
-                // Note: using LEFT JOIN on final projection, since we want to include all the deleted comments where user is null
-                logger.Debug("Class: ImageCommentRepository, Method: Get, BEGIN");
-                var sqlComments =
-                    @"WITH CommentTree AS(
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    // SQL - CTE where first projection (select) is the anchor
+                    // the 2nd projection is the recursion
+                    // Note: using LEFT JOIN on final projection, since we want to include all the deleted comments where user is null
+                    var sqlComments =
+                        @"WITH CommentTree AS(
                             SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Edited, Deleted, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
                             FROM Comments INNER JOIN ImageComments
                             ON Comments.ID = ImageComments.CommentID
@@ -151,18 +153,19 @@ namespace Inuplan.DAL.Repositories
                         FROM CommentTree
                         LEFT JOIN Users ON CommentTree.AuthorID = Users.ID";
 
-                var allComments = await connection.QueryAsync<Comment, User, Comment>(sqlComments, (comment, author) =>
-                {
-                    comment.Author = author;
-                    comment.ContextID = key;
-                    return comment;
-                }, new { key });
+                    var allComments = await connection.QueryAsync<Comment, User, Comment>(sqlComments, (comment, author) =>
+                    {
+                        comment.Author = author;
+                        comment.ContextID = key;
+                        return comment;
+                    }, new { key });
 
-                logger.Debug("Class: ImageCommentRepository, Method: Get, END");
-                var result = Helpers.ConstructReplies(allComments);
-                return result;
+                    logger.End();
+                    var result = Helpers.ConstructReplies(allComments);
+                    return result;
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -178,19 +181,21 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                logger.Debug("Class: ImageCommentRepository, Method: GetSingleByID, BEGIN");
-                var sql = @"SELECT 
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    var sql = @"SELECT 
                             c.ID, PostedOn, Text, c.Deleted, c.Edited,
                             u.ID, FirstName, LastName, Username, Email
                             FROM Comments c LEFT JOIN Users u ON c.Author = u.ID WHERE c.ID = @id";
 
-                var comment = (await connection.QueryAsync<Comment, User, Comment>(sql, (c, u) =>
-                {
-                    if (!c.Deleted) c.Author = u;
-                    return c;
-                }, new { id })).Single();
+                    var comment = (await connection.QueryAsync<Comment, User, Comment>(sql, (c, u) =>
+                    {
+                        if (!c.Deleted) c.Author = u;
+                        return c;
+                    }, new { id })).Single();
 
-                var imageIdSql = @"WITH parent AS
+                    var imageIdSql = @"WITH parent AS
                             (
                                 SELECT ID, Reply  from Comments WHERE ID = @id
                                 UNION ALL 
@@ -202,15 +207,16 @@ namespace Inuplan.DAL.Repositories
                             INNER JOIN ImageComments i
                             ON parent.ID = i.CommentID";
 
-                var imageId = await connection.ExecuteScalarAsync<int>(imageIdSql, new { id = comment.ID });
-                comment.ContextID = imageId;
+                    var imageId = await connection.ExecuteScalarAsync<int>(imageIdSql, new { id = comment.ID });
+                    comment.ContextID = imageId;
 
-                var result = comment.SomeWhen(c => c != null && c.ID > 0 && c.ContextID > 0);
+                    var result = comment.SomeWhen(c => c != null && c.ID > 0 && c.ContextID > 0);
 
-                logger.Debug("Class: ImageCommentRepository, Method: GetSingleByID, END");
-                return result;
+                    logger.End();
+                    return result;
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -228,10 +234,12 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                // Note: we use left join because we want the left side (comments) to be included
-                // even if the right side (users) are null.
-                logger.Debug("Class: ImageCommentRepository, Method: GetPage, BEGIN");
-                var sql = @"WITH CommentTree AS(
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    // Note: we use left join because we want the left side (comments) to be included
+                    // even if the right side (users) are null.
+                    var sql = @"WITH CommentTree AS(
                                 SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, Edited, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
                                 FROM Comments INNER JOIN ImageComments
                                 ON Comments.ID = ImageComments.CommentID
@@ -249,30 +257,31 @@ namespace Inuplan.DAL.Repositories
                             LEFT JOIN Users ON CommentTree.AuthorID = Users.ID
                             WHERE RowNumber BETWEEN @From AND @To";
 
-                var repliesTo = new List<Tuple<int?, Comment>>();
-                var comments = await connection.QueryAsync<Comment, User, Comment>(sql, (comment, author) =>
-                {
-                    comment.Author = author;
-                    comment.ContextID = imageId;
-                    return comment;
-                }, new
-                {
-                    ImageID = imageId,
-                    From = skip + 1,
-                    To = skip + take,
-                });
+                    var repliesTo = new List<Tuple<int?, Comment>>();
+                    var comments = await connection.QueryAsync<Comment, User, Comment>(sql, (comment, author) =>
+                    {
+                        comment.Author = author;
+                        comment.ContextID = imageId;
+                        return comment;
+                    }, new
+                    {
+                        ImageID = imageId,
+                        From = skip + 1,
+                        To = skip + take,
+                    });
 
-                var totalSql = @"SELECT COUNT(*) FROM ImageComments WHERE ImageID = @ImageID;";
-                var total = await connection.ExecuteScalarAsync<int>(totalSql, new
-                {
-                    ImageID = imageId
-                });
+                    var totalSql = @"SELECT COUNT(*) FROM ImageComments WHERE ImageID = @ImageID;";
+                    var total = await connection.ExecuteScalarAsync<int>(totalSql, new
+                    {
+                        ImageID = imageId
+                    });
 
-                var items = Helpers.ConstructReplies(comments);
-                logger.Debug("Class: ImageCommentRepository, Method: GetPage, END");
-                return Helpers.Paginate(skip, take, total, items);
+                    logger.End();
+                    var items = Helpers.ConstructReplies(comments);
+                    return Helpers.Paginate(skip, take, total, items);
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -290,9 +299,10 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
-                    logger.Debug("Class: ImageCommentRepository, Method: UpdateSingle, BEGIN");
                     entity.Edited = true;
                     var sql = @"UPDATE Comments SET PostedOn=@PostedOn, Text=@Text, Edited=@Edited WHERE ID=@key";
                     var success = (await connection.ExecuteAsync(sql, new
@@ -301,19 +311,24 @@ namespace Inuplan.DAL.Repositories
                         entity.PostedOn,
                         entity.Edited,
                         entity.Text
-                    })).Equals(1);
+                    }, transaction)).Equals(1);
 
                     if (success)
                     {
-                        transactionScope.Complete();
-                        return true;
+                        logger.Trace("Updated single comment with id: {0}", key);
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not update single comment with id: {0}", key);
+                        transaction.Rollback();
                     }
 
-                    logger.Debug("Class: ImageCommentRepository, Method: UpdateSingle, END");
-                    return false;
+                    logger.End();
+                    return success;
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -331,28 +346,35 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
                     // Note: only removes identifying marks so that any child-branches aren't left hanging 
-                    logger.Debug("Class: ImageCommentRepository, Method: DeleteSingle, BEGIN");
                     var sqlDelete = @"UPDATE Comments SET Author=NULL, Text=NULL, Deleted=@Deleted WHERE ID=@ID";
                     var deleted = (await connection.ExecuteAsync(sqlDelete, new
                     {
                         Deleted = true,
                         ID = key,
-                    })).Equals(1);
+                    }, transaction)).Equals(1);
 
                     if (deleted)
                     {
                         await onDelete(key);
-                        transactionScope.Complete();
+                        logger.Trace("Deleted single comment id {0} (fake)", key);
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not (fake) delete single comment id {0}", key);
+                        transaction.Rollback();
                     }
 
-                    logger.Debug("Class: ImageCommentRepository, Method: DeleteSingle, END");
+                    logger.End();
                     return deleted;
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -363,9 +385,10 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
-                    logger.Debug("Class: ImageCommentRepository, Method: Delete, BEGIN");
                     var sqlIds = @"WITH CommentTree AS(
                                 SELECT Reply AS ReplyID, ID, ImageID
                                 FROM Comments INNER JOIN ImageComments
@@ -381,7 +404,7 @@ namespace Inuplan.DAL.Repositories
                     var commentIds = (await connection.QueryAsync<int>(sqlIds, new
                     {
                         ImageID = imageId
-                    })).ToList();
+                    }, transaction)).ToList();
 
                     // Delete all comments for the image:
                     var deleteCommentsSql = @"WITH CommentTree AS(
@@ -404,7 +427,7 @@ namespace Inuplan.DAL.Repositories
                     var deletedComments = await connection.ExecuteAsync(deleteCommentsSql, new
                     {
                         ImageID = imageId
-                    });
+                    }, transaction);
 
                     var success = commentIds.Count == deletedComments;
                     if (success)
@@ -414,14 +437,20 @@ namespace Inuplan.DAL.Repositories
                             await onDelete(commentId);
                         }
 
-                        transactionScope.Complete();
+                        logger.Trace("Deleted all comments belonging to image id {0}", imageId);
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not delete comments belonging to image id {0}", imageId);
+                        transaction.Rollback();
                     }
 
-                    logger.Debug("Class: ImageCommentRepository, Method: Delete, END");
+                    logger.End();
                     return success;
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -438,9 +467,11 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                logger.Debug("Class: ImageCommentRepository, Method: Count, BEGIN");
-                var sqlComments =
-                    @"WITH CommentTree AS(
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    var sqlComments =
+                        @"WITH CommentTree AS(
                         SELECT Reply AS ReplyID, ID, Deleted
                         FROM Comments INNER JOIN ImageComments
                         ON Comments.ID = ImageComments.CommentID
@@ -454,15 +485,16 @@ namespace Inuplan.DAL.Repositories
                     SELECT Count(*) FROM CommentTree
                     WHERE Deleted <> 1";
 
-                var count = await connection.ExecuteScalarAsync<int>(sqlComments, new
-                {
-                    key
-                });
+                    var count = await connection.ExecuteScalarAsync<int>(sqlComments, new
+                    {
+                        key
+                    });
 
-                logger.Debug("Class: ImageCommentRepository, Method: Count, END");
-                return count;
+                    logger.End();
+                    return count;
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -489,8 +521,6 @@ namespace Inuplan.DAL.Repositories
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    connection.Dispose();
-                    connection.Close();
                 }
 
                 disposedValue = true;

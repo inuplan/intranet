@@ -21,27 +21,70 @@
 namespace Inuplan.WebAPI.Controllers.Diagnostics
 {
     using Autofac.Extras.Attributed;
+    using Common.DTOs;
     using Common.Enums;
+    using Common.Logger;
     using Common.Models;
+    using Common.Queries.UserSpaceInfoQueries;
     using Common.Repositories;
+    using Common.Tools;
     using Extensions;
+    using Extensions.Workflows;
     using System.Net;
     using System.Net.Http;
+    using System.Threading.Tasks;
+    using System.Web.Http;
+    using System.Web.Http.Cors;
 
+    [EnableCors(origins: Constants.Origin, headers: "*", methods: "*", SupportsCredentials = true)]
     public class DiagnosticController : DefaultController
     {
+        private readonly ILogger<DiagnosticController> logger;
+        private readonly string rootUploadFolder;
+        private readonly IGetUserSpaceInfo userSpaceQueryHandle;
+
         public DiagnosticController(
-            [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository)
+            [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
+            [WithKey(ServiceKeys.RootPath)] string rootUploadFolder,
+            IGetUserSpaceInfo userSpaceQueryHandle,
+            ILogger<DiagnosticController> logger
+        )
             : base(userDatabaseRepository)
         {
+            this.rootUploadFolder = rootUploadFolder;
+            this.userSpaceQueryHandle = userSpaceQueryHandle;
+            this.logger = logger;
         }
 
-        // GET api/diagnostic/ping
+        // GET api/diagnostic
         public HttpResponseMessage Get()
         {
             var username = Request.GetUser().Map(u => u.Username).ValueOr("Anonymous");
             Logger.Trace("Received request from: {0}", username);
             return Request.CreateResponse(HttpStatusCode.OK);
+        }
+
+        public async Task<UserSpaceInfoDTO> GetSpaceInfo()
+        {
+            logger.Begin();
+            var userId = Request
+                            .GetUser()
+                            .Map(u => u.ID)
+                            .LogSome(id => logger.Trace("User has id: {0}", id))
+                            .LogNone(() => logger.Error("Anonymous request are not permitted"))
+                            .Match(
+                                u => u,
+                                () => { throw new HttpResponseException(HttpStatusCode.Forbidden); }
+                            );
+
+            var spaceInfo = await userSpaceQueryHandle.GetUserSpaceInfo(userId);
+
+            logger.End();
+            return spaceInfo
+                .LogNone(() => logger.Error("Retrieving info is none. User ID: {0} may have NOT been found!", userId))
+                .Match(
+                    info => info,
+                    () => { throw new HttpResponseException(HttpStatusCode.InternalServerError); });
         }
     }
 }

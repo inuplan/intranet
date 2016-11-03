@@ -45,7 +45,7 @@ export class ImageUpload extends React.Component {
     }
 
     render() {
-        return  <form onSubmit={this.handleSubmit} id="form-upload" enctype="multipart/form-data">
+        return  <form onSubmit={this.handleSubmit} id="form-upload" encType="multipart/form-data">
                         <div className="form-group">
                             <label htmlFor="files">Upload filer:</label>
                             <input type="file" className="form-control" id="files" name="files" multiple />

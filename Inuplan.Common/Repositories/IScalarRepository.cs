@@ -35,7 +35,7 @@ namespace Inuplan.Common.Repositories
         /// </summary>
         /// <param name="entity">The entity to create</param>
         /// <returns>A task of the created entity or <see cref="Option.None"/></returns>
-        Task<Option<E>> Create(E entity, Func<E, Task> onCreate, params object[] identifiers);
+        Task<Option<E>> Create(E entity, Func<E, Task<bool>> onCreate, params object[] identifiers);
 
         /// <summary>
         /// Retrieves an entity with the key K

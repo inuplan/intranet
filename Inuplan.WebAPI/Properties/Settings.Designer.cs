@@ -25,9 +25,7 @@ namespace Inuplan.WebAPI.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=IntranetDB;Integrated Security" +
-            "=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationI" +
-            "ntent=ReadWrite;MultiSubnetFailover=False;MultipleActiveResultSets=True")]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=IntranetDB;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;MultipleActiveResultSets=True;Asynchronous Processing=True;Min Pool Size=5;")]
         public string connectionStringDebug {
             get {
                 return ((string)(this["connectionStringDebug"]));
@@ -37,7 +35,8 @@ namespace Inuplan.WebAPI.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Data Source=NUUS07\\INTRANETDB;Initial Catalog=IntranetDB;User ID=intranetdb;Passw" +
-            "ord=NGsDGzjUCY;MultipleActiveResultSets=true;")]
+            "ord=NGsDGzjUCY;MultipleActiveResultSets=true;Asynchronous Processing=True;Min Po" +
+            "ol Size=5;")]
         public string connectionStringRelease {
             get {
                 return ((string)(this["connectionStringRelease"]));
@@ -146,6 +145,15 @@ namespace Inuplan.WebAPI.Properties {
             }
             set {
                 this["webSocketServiceLatest"] = value;
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("300000")]
+        public int quotaKB {
+            get {
+                return ((int)(this["quotaKB"]));
             }
         }
     }

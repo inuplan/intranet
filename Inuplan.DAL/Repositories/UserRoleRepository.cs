@@ -20,6 +20,7 @@
 
 namespace Inuplan.DAL.Repositories
 {
+    using Common.Factories;
     using Common.Logger;
     using Common.Models;
     using Common.Repositories;
@@ -36,52 +37,54 @@ namespace Inuplan.DAL.Repositories
 
     public class UserRoleRepository : IScalarRepository<int, User>
     {
-        private readonly IDbConnection connection;
-
         private readonly ILogger<UserRoleRepository> logger;
 
         private bool disposedValue = false;
+        private readonly IConnectionFactory connectionFactory;
 
         public UserRoleRepository(
-            IDbConnection connection,
+            IConnectionFactory connectionFactory,
             ILogger<UserRoleRepository> logger
         )
         {
-            this.connection = connection;
+            this.connectionFactory = connectionFactory;
             this.logger = logger;
         }
 
-        public async Task<Option<User>> Create(User entity, Func<User, Task> onCreate, params object[] identifiers)
+        public async Task<Option<User>> Create(User entity, Func<User, Task<bool>> onCreate, params object[] identifiers)
         {
             try
             {
-                logger.Debug("Class: UserRoleRepository, Method: Create, BEGIN");
-                // Identifiers are a list of IDs for the role
-                var args = identifiers.Cast<int>().Select(roleID => new
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
                 {
-                    UserID = entity.ID,
-                    RoleID = roleID,
-                }).ToArray();
-                Debug.Assert(args.All(arg => arg.RoleID > 0), "Must have valid roles!");
+                    // Identifiers are a list of IDs for the role
+                    var args = identifiers.Cast<int>().Select(roleID => new
+                    {
+                        UserID = entity.ID,
+                        RoleID = roleID,
+                    }).ToArray();
+                    Debug.Assert(args.All(arg => arg.RoleID > 0), "Must have valid roles!");
 
-                // Create users roles
-                var sql = @"INSERT INTO UserRoles (UserID, RoleID) VALUES(@UserID, @RoleID);";
-                var rows = await connection.ExecuteAsync(sql, args);
-                var createdRoles = rows == args.Length;
+                    // Create users roles
+                    var sql = @"INSERT INTO UserRoles (UserID, RoleID) VALUES(@UserID, @RoleID);";
+                    var rows = await connection.ExecuteAsync(sql, args);
+                    var createdRoles = rows == args.Length;
 
-                // Construct object with the roles
-                var roleSql = @"SELECT ID, Name FROM Roles WHERE ID=@RoleID";
-                var roles = await connection.QueryAsync<Role>(roleSql);
-                entity.Roles = roles.ToList();
+                    // Construct object with the roles
+                    var roleSql = @"SELECT ID, Name FROM Roles WHERE ID=@RoleID";
+                    var roles = await connection.QueryAsync<Role>(roleSql);
+                    entity.Roles = roles.ToList();
 
-                // Return constructed object
-                var result = entity.SomeWhen(u => createdRoles);
-                if (result.HasValue) await onCreate(entity);
+                    // Return constructed object
+                    var result = entity.SomeWhen(u => createdRoles);
+                    if (result.HasValue) await onCreate(entity);
 
-                logger.Debug("Class: UserRoleRepository, Method: Create, END");
-                return result;
+                    logger.End();
+                    return result;
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -92,23 +95,29 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                logger.Debug("Class: UserRoleRepository, Method: Delete, BEGIN");
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
+                    logger.Begin();
                     var sql = @"DELETE FROM UserRoles WHERE UserID = @key;";
-                    var rows = await connection.ExecuteAsync(sql, new { key });
+                    var rows = await connection.ExecuteAsync(sql, new { key }, transaction);
                     var done = rows == 1;
                     if (done)
                     {
                         await onDelete(key);
-                        transactionScope.Complete();
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not remove role for user id {0}", key);
+                        transaction.Rollback();
                     }
 
-                    logger.Debug("Class: UserRoleRepository, Method: Delete, END");
+                    logger.End();
                     return done;
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -119,28 +128,31 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                logger.Debug("Class: UserRoleRepository, Method: Get, BEGIN");
-                var sql = @"SELECT ID, Name
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    logger.Begin();
+                    var sql = @"SELECT ID, Name
                         FROM Roles r INNER JOIN UserRoles u
                         ON u.RoleID=r.ID
                         WHERE u.UserID=@key;";
 
-                var userSql = @"SELECT ID, Name, FirstName, LastName, Email
+                    var userSql = @"SELECT ID, Name, FirstName, LastName, Email
                             FROM Users
                             WHERE ID=@key;";
 
-                var roles = await connection.QueryAsync<Role>(sql, new { key });
-                var user = await connection.ExecuteScalarAsync<User>(userSql, new { key });
+                    var roles = await connection.QueryAsync<Role>(sql, new { key });
+                    var user = await connection.ExecuteScalarAsync<User>(userSql, new { key });
 
-                var result = user
-                                .SomeNotNull()
-                                .Map(u =>
-                                {
-                                    u.Roles = roles.ToList();
-                                    return u;
-                                });
-                logger.Debug("Class: UserRoleRepository, Method: Get, END");
-                return result;
+                    var result = user.SomeNotNull()
+                                        .Map(u =>
+                                        {
+                                            u.Roles = roles.ToList();
+                                            return u;
+                                        });
+
+                    logger.End();
+                    return result;
+                }
             }
             catch (SqlException ex)
             {
@@ -168,27 +180,32 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                logger.Debug("Class: UserRoleRepository, Method: Update, BEGIN");
-                Debug.Assert(entity.Roles.All(r => r.ID > 0), "Must have valid roles to update!");
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
+                    logger.Begin();
+                    Debug.Assert(entity.Roles.All(r => r.ID > 0), "Must have valid roles to update!");
                     var roleIds = entity.Roles.Select(r => r.ID).ToArray();
 
                     // An update is essentially a delete with create!
                     var delete = await Delete(key, _ => Task.FromResult(0));
-                    var create = await Create(entity, _ => Task.FromResult(0), roleIds);
+                    var create = await Create(entity, _ => Task.FromResult(true), roleIds);
                     var success = delete && create.HasValue;
 
                     if (success)
                     {
-                        transactionScope.Complete();
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        transaction.Rollback();
                     }
 
-                    logger.Debug("Class: UserRoleRepository, Method: Update, END");
+                    logger.End();
                     return success;
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
                 logger.Error(ex);
                 throw;
@@ -202,7 +219,7 @@ namespace Inuplan.DAL.Repositories
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    connection.Dispose();
+                    //connection.Dispose();
                 }
 
                 disposedValue = true;

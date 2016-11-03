@@ -12,7 +12,7 @@ export class NavLink extends React.Component {
 
         return (
             <li className={className}>
-                <Link {...this.props}>
+                <Link to={this.props.to}>
                     {this.props.children}
                 </Link>
             </li>
@@ -35,7 +35,7 @@ export class IndexNavLink extends React.Component {
 
         return (
             <li className={className}>
-                <IndexLink {...this.props}>
+                <IndexLink to={this.props.to}>
                     {this.props.children}
                 </IndexLink>
             </li>

@@ -90,7 +90,7 @@ namespace Inuplan.WebAPI.Controllers
         public async Task<HttpResponseMessage> Post(string name)
         {
             var role = new Role { Name = name };
-            var created = await roleRepository.Create(role, _ => Task.FromResult(0));
+            var created = await roleRepository.Create(role, _ => Task.FromResult(true));
             return created.Match(r => Request.CreateResponse(HttpStatusCode.Created),
                 () => Request.CreateResponse(HttpStatusCode.InternalServerError));
         }

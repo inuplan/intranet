@@ -59,7 +59,7 @@ namespace Inuplan.WebAPI.Controllers
 
             var done = user.Map(async u =>
             {
-                var associateRoles = await userRolesRepository.Create(u, _ => Task.FromResult(0), roleIds);
+                var associateRoles = await userRolesRepository.Create(u, _ => Task.FromResult(true), roleIds);
                 return associateRoles.HasValue;
             });
 

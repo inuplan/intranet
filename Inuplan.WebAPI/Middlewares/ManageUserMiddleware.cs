@@ -20,14 +20,15 @@
 
 namespace Inuplan.WebAPI.Middlewares
 {
-    using Autofac.Extras.Attributed;
-    using Common.Enums;
+    using Common.Commands;
+    using Common.Logger;
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
+    using Extensions;
     using Microsoft.Owin;
-    using NLog;
     using Optional.Unsafe;
+    using Options;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -43,11 +44,6 @@ namespace Inuplan.WebAPI.Middlewares
     public class ManageUserMiddleware : OwinMiddleware
     {
         /// <summary>
-        /// The logging framework
-        /// </summary>
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
-
-        /// <summary>
         /// The user database repository
         /// </summary>
         private readonly IScalarRepository<string, User> userDatabaseRepository;
@@ -61,6 +57,8 @@ namespace Inuplan.WebAPI.Middlewares
         /// The repository for roles
         /// </summary>
         private readonly IScalarRepository<int, Role> roleRepository;
+        private readonly int quotaKB;
+        private readonly ILogger<ManageUserMiddleware> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ManageUserMiddleware"/> class.
@@ -68,14 +66,15 @@ namespace Inuplan.WebAPI.Middlewares
         /// <param name="next">The next owin middleware</param>
         public ManageUserMiddleware(
             OwinMiddleware next,
-            IScalarRepository<int, Role> roleRepository,
-            [WithKey(ServiceKeys.UserDatabase)] IScalarRepository<string, User> userDatabaseRepository,
-            [WithKey(ServiceKeys.UserActiveDirectory)] IScalarRepository<string, User> userActiveDirectoryRepository)
+            ManageUserOption options
+        )
             : base(next)
         {
-            this.roleRepository = roleRepository;
-            this.userDatabaseRepository = userDatabaseRepository;
-            this.userActiveDirectoryRepository = userActiveDirectoryRepository;
+            quotaKB = options.QuotaKB;
+            roleRepository = options.RoleRepository;
+            userDatabaseRepository = options.UserDatabaseRepository;
+            userActiveDirectoryRepository = options.UserActiveDirectoryRepository;
+            logger = options.Logger;
         }
 
         /// <summary>
@@ -85,58 +84,63 @@ namespace Inuplan.WebAPI.Middlewares
         /// <returns>An awaitable task</returns>
         public async override Task Invoke(IOwinContext context)
         {
-            Logger.Trace("Incoming request from: {0}", context.Request.RemoteIpAddress);
-            if (context.Request.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
-            {
-                Logger.Trace("Http method: OPTIONS - Request is probably a preflight request, must allow anonymous pass-through");
-                await Next.Invoke(context);
-                return;
-            }
-
             try
             {
-                var identity = context.Authentication.User.Identity;
-                var username = identity.Name.Substring(identity.Name.LastIndexOf(@"\") + 1);
+                if (context.IsOptionsRequest())
+                {
+                    await Next.Invoke(context);
+                    return;
+                }
 
-                Logger.Trace("Trying to retrieve user {0} from the database", username);
+                logger.Debug("Method: Invoke, BEGIN");
+                logger.Trace("Request is preflight request?: {0}", context.IsOptionsRequest());
+                var identity = context.Authentication.User.Identity;
+                var username = identity.Name.Substring(identity.Name.LastIndexOf(@"\", StringComparison.OrdinalIgnoreCase) + 1);
+
+                logger.Trace("Trying to retrieve user {0} from the database", username);
                 var user = await userDatabaseRepository.Get(username);
                 var error = false;
                 var roles = new List<Role>();
 
                 if (!user.HasValue)
                 {
-                    Logger.Trace("User {0} does not exist in database", username);
-                    Logger.Trace("Retrieve \"User\" role from database");
+                    logger.Trace("User {0} does not exist in database", username);
+                    logger.Trace("Retrieve \"User\" role from database");
                     var role = (await roleRepository.GetAll())
                         .FirstOrDefault(r => r.Name.Equals("User", StringComparison.OrdinalIgnoreCase));
 
                     roles.Add(role);
                     Debug.Assert(role != null, "Must have a predefined role: \"User\"");
 
-                    Logger.Trace("Retrieve user information from Active Directory");
+                    logger.Trace("Retrieve user information from Active Directory");
                     var adUser = await userActiveDirectoryRepository.Get(username);
                     error = await adUser.Match(async u =>
                     {
-                        Logger.Trace("User info retrieved from Active Directory!");
+                        logger.Trace("User info retrieved from Active Directory!");
                         u.Roles = roles;
 
-                        Logger.Trace("Creating user {0} in the database", username);
-                        var created = await userDatabaseRepository.Create(u, _ => Task.FromResult(0));
+                        logger.Trace("Creating user {0} in the database", username);
+                        var onCreated = new Func<User, Task<bool>>(createdUser =>
+                        {
+                            return Task.FromResult(true);
+                        });
+
+                        var created = await userDatabaseRepository.Create(u, onCreated);
                         if (!created.HasValue)
                         {
                             // Error, couldn't create user in DB
-                            Logger.Error("Could not create user {0} in the database!", username);
+                            logger.Error("Could not create user {0} in the database!", username);
                             return true;
                         }
 
-                        Logger.Trace("Created user {0} in the database!", username);
+                        logger.Trace("Created user {0} in the database!", username);
                         user = created;
                         return false;
                     },
                     () =>
                     {
                     // Error user, does not exist in AD
-                    Logger.Error("No user information for {0} in Active Directory!", username);
+                    logger.Error("No user information for {0} in Active Directory!", username);
                         return Task.FromResult(true);
                     });
 
@@ -144,51 +148,52 @@ namespace Inuplan.WebAPI.Middlewares
 
                 if (error)
                 {
-                    Logger.Trace("Returning with error 500. Reason given earlier");
+                    logger.Trace("Returning with error 500. Reason given earlier");
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     return;
                 }
 
                 // Set principal roles
                 var actualUser = user.ValueOrFailure();
-                Logger.Trace("Extracting user {1} with ID {0}...", actualUser.ID, username);
+                logger.Trace("Extracting user {1} with ID {0}...", actualUser.ID, username);
 
                 //// Note: .NET Framework 1.1 and onwards IsInRole is case-insensitive!
                 //// source: https://msdn.microsoft.com/en-us/library/fs485fwh(v=vs.110).aspx
-                Logger.Trace("Setting authenticated user to principal");
+                logger.Trace("Setting authenticated user to principal");
                 var claimsPrincipal = new ClaimsPrincipal();
                 var claimsIdentity = new ClaimsIdentity(AuthenticationTypes.Windows);
 
-                Logger.Trace("Filtering out the claims...");
+                logger.Trace("Filtering out the claims...");
                 var claims = context.Authentication.User.Claims.Where(c => !c.Type.Equals(ClaimTypes.Name, StringComparison.OrdinalIgnoreCase));
 
-                Logger.Trace("Adding filtered claims...");
+                logger.Trace("Adding filtered claims...");
                 claimsIdentity.AddClaims(claims);
 
-                Logger.Trace("Setting claim to username: {0}", actualUser.Username);
+                logger.Trace("Setting claim to username: {0}", actualUser.Username);
                 claimsIdentity.AddClaim(new Claim(ClaimTypes.Name, actualUser.Username));
 
                 foreach (var role in actualUser.Roles)
                 {
-                    Logger.Trace("Adding role \"{0}\" to claims", role.Name);
+                    logger.Trace("Adding role \"{0}\" to claims", role.Name);
                     claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, role.Name));
                 }
 
-                Logger.Trace("Adding identity to principal...");
+                logger.Trace("Adding identity to principal...");
                 claimsPrincipal.AddIdentity(claimsIdentity);
 
-                Logger.Trace("Setting context to principal...");
+                logger.Trace("Setting context to principal...");
                 context.Authentication.User = claimsPrincipal;
 
-                Logger.Trace("Saving user in owin context: ({0}, {1})...", Constants.CURRENT_USER, actualUser.Username);
+                logger.Trace("Saving user in owin context: ({0}, {1})...", Constants.CURRENT_USER, actualUser.Username);
                 context.Set(Constants.CURRENT_USER, actualUser);
 
-                Logger.Trace("Proceeding with the owin middleware pipeline");
+                logger.Trace("Proceeding with the owin middleware pipeline");
                 await Next.Invoke(context);
+                logger.Debug("Method: Invoke, END");
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
