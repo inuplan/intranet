@@ -35,12 +35,6 @@ class UsedSpaceView extends React.Component {
         const percentRound = Math.round(usedPercent*100) / 100;
         return  <Row>
                     <Col>
-                        <h3>Personlig upload forbrug</h3>
-                        <hr />
-                        <p>
-                            Herunder kan du se hvor meget plads du har brugt og hvor meget fri plads
-                            der er tilbage. Gælder kun billede filer.
-                        </p>
                         <ProgressBar striped={true} bsStyle="success" now={usedPercent} key={1} />
                         <p>
                             Brugt: {used.toString()} MB ({percentRound.toString()} %)<br />

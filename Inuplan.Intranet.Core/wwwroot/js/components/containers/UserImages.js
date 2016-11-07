@@ -9,6 +9,7 @@ import { withRouter } from 'react-router'
 import { Row, Col, Button } from 'react-bootstrap'
 import { Breadcrumb } from '../breadcrumbs/Breadcrumb'
 import { values, sortBy } from 'underscore'
+import UsedSpace from './UsedSpace'
 
 const mapStateToProps = (state) => {
     const { ownerId } = state.imagesInfo;
@@ -104,10 +105,21 @@ class UserImagesContainer extends React.Component {
                 </Row>
     }
 
+    uploadLimitView() {
+        const { canEdit, uploadImage, selectedImageIds } = this.props;
+        if(!canEdit) return null;
+        return  <Row>
+                    <Col lgOffset={2} lg={2}>
+                        <br />
+                        <UsedSpace />
+                    </Col>
+                </Row>
+    }
+
     render() {
         const { username } = this.props.params;
         const { images, fullName, canEdit, addSelectedImageId, removeSelectedImageId } = this.props;
-        
+
         return  <Row>
                     <Row>
                         <Col lgOffset={2} lg={8}>
@@ -121,19 +133,22 @@ class UserImagesContainer extends React.Component {
                             </Breadcrumb>
                         </Col>
                     </Row>
-                    <Col lgOffset={2} lg={8}>
-                        <h1><span className="text-capitalize">{fullName}</span>'s <small>billede galleri</small></h1>
-                        <hr />
-                        <ImageList
-                            images={images}
-                            canEdit={canEdit}
-                            addSelectedImageId={addSelectedImageId}
-                            removeSelectedImageId={removeSelectedImageId}
-                            imageIsSelected={this.imageIsSelected}
-                            username={username}
-                        />
-                        {this.uploadView()}
-                    </Col>
+                    <Row>
+                        <Col lgOffset={2} lg={8}>
+                            <h1><span className="text-capitalize">{fullName}</span>'s <small>billede galleri</small></h1>
+                            <hr />
+                            <ImageList
+                                images={images}
+                                canEdit={canEdit}
+                                addSelectedImageId={addSelectedImageId}
+                                removeSelectedImageId={removeSelectedImageId}
+                                imageIsSelected={this.imageIsSelected}
+                                username={username}
+                            />
+                            {this.uploadView()}
+                        </Col>
+                    </Row>
+                    {this.uploadLimitView()}
                     {this.props.children}
                 </Row>
     }

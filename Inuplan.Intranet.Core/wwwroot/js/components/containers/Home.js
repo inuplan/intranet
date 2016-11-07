@@ -50,7 +50,7 @@ class HomeView extends React.Component {
         const { uploadImage, skip, take } = this.props;
         uploadImage(skip, take, username, formData);
     }
-    
+
     recommendedView() {
         if(!this.state.recommended) return null;
 
@@ -93,6 +93,12 @@ class HomeView extends React.Component {
                             </Col>
                             <Col lgOffset={1} lg={3}>
                                 {this.recommendedView()}
+                                <h3>Personlig upload forbrug</h3>
+                                <hr />
+                                <p>
+                                    Herunder kan du se hvor meget plads du har brugt og hvor meget fri plads
+                                    der er tilbage. Gælder kun billede filer.
+                                </p>
                                 <UsedSpace />
                             </Col>
                         </Row>
