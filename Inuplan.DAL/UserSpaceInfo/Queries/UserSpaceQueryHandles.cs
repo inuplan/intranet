@@ -20,17 +20,18 @@
 
 namespace Inuplan.DAL.UserSpaceInfo.Queries
 {
-    using Common.Queries.UserSpaceInfoQueries;
-    using System;
-    using System.Threading.Tasks;
     using Common.DTOs;
-    using Optional;
-    using Common.Models;
-    using System.Data;
-    using Dapper;
     using Common.Logger;
-    using System.Transactions;
+    using Common.Models;
+    using Common.Queries.UserSpaceInfoQueries;
     using Common.Tools;
+    using Dapper;
+    using Optional;
+    using System;
+    using System.Data;
+    using System.IO;
+    using System.Threading.Tasks;
+    using System.Transactions;
 
     public class UserSpaceQueryHandles : IGetUserSpaceInfo
     {
@@ -57,7 +58,7 @@ namespace Inuplan.DAL.UserSpaceInfo.Queries
             try
             {
                 logger.Begin();
-                using(var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     var sqlUser = @"SELECT
                                         ID, FirstName, LastName, Username, Email, DisplayName
@@ -71,9 +72,20 @@ namespace Inuplan.DAL.UserSpaceInfo.Queries
 
                     // Get path for user upload folder:
                     var uploadFolder = Helpers.GetUserImageFolder(root, user.Username);
-                    var folderSize = (int)(Helpers.GetDirectorySizeKb(uploadFolder));
                     var userDto = Converters.ToUserDTO(user);
 
+                    if (!Directory.Exists(uploadFolder))
+                    {
+                        logger.Trace("User has no upload folder yet!");
+                        return Option.Some(new UserSpaceInfoDTO
+                        {
+                            SpaceQuotaKB = quota,
+                            UsedSpaceKB = 0,
+                            User = userDto
+                        });
+                    }
+
+                    var folderSize = (int)(Helpers.GetDirectorySizeKb(uploadFolder));
                     var result = new UserSpaceInfoDTO
                     {
                         SpaceQuotaKB = quota,
