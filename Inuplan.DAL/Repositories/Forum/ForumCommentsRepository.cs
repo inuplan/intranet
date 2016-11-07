@@ -32,31 +32,33 @@ namespace Inuplan.DAL.Repositories.Forum
     using System.Transactions;
     using System.Data.SqlClient;
     using Common.Tools;
-    using NLog;
+    using Common.Logger;
+    using Common.Factories;
 
     public class ForumCommentsRepository : IVectorRepository<int, Comment>
     {
-        /// <summary>
-        /// Get current logging framework
-        /// </summary>
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
-
-        private readonly IDbConnection connection;
-
-        /// <summary>
-        /// The disposed pattern
-        /// </summary>
+        private readonly ILogger<ForumCommentsRepository> logger;
         private bool disposedValue = false;
+        private readonly IConnectionFactory connectionFactory;
 
-        public ForumCommentsRepository(IDbConnection connection)
+        public ForumCommentsRepository(
+            IConnectionFactory connectionFactory,
+            ILogger<ForumCommentsRepository> logger
+        )
         {
-            this.connection = connection;
+            this.connectionFactory = connectionFactory;
+            this.logger = logger;
         }
 
         public async Task<int> Count(int key)
         {
-            var sqlComments =
-                @"WITH CommentTree AS(
+            try
+            {
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    var sqlComments =
+                        @"WITH CommentTree AS(
                         SELECT Reply AS ReplyID, ID, Deleted
                         FROM Comments INNER JOIN ThreadComments
                         ON Comments.ID = ThreadComments.CommentID
@@ -70,19 +72,29 @@ namespace Inuplan.DAL.Repositories.Forum
                     SELECT Count(*) FROM CommentTree
                     WHERE Deleted <> 1";
 
-            var count = await connection.ExecuteScalarAsync<int>(sqlComments, new
-            {
-                key
-            });
+                    var count = await connection.ExecuteScalarAsync<int>(sqlComments, new
+                    {
+                        key
+                    });
 
-            return count;
+                    logger.End();
+                    return count;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+                throw;
+            }
         }
 
         public async Task<Option<Comment>> CreateSingle(Comment entity, Func<Comment, Task> onCreate)
         {
             try
             {
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
                     var sqlComment = @"INSERT INTO Comments (PostedOn, Author, Text, Reply)
                                 VALUES (@PostedOn, @Author, @Text, @Reply);
@@ -94,7 +106,7 @@ namespace Inuplan.DAL.Repositories.Forum
                         Reply = entity.ParentID,
                         PostedOn = entity.PostedOn,
                         Text = entity.Text,
-                    });
+                    }, transaction);
 
                     var success = entity.ID > 0;
 
@@ -106,7 +118,7 @@ namespace Inuplan.DAL.Repositories.Forum
                         {
                             ThreadID = entity.ContextID,
                             CommentID = entity.ID,
-                        })).Equals(1);
+                        }, transaction)).Equals(1);
                     }
 
                     // Then set the latest comment for the thread to this comment
@@ -115,32 +127,43 @@ namespace Inuplan.DAL.Repositories.Forum
                     {
                         ID = entity.ID,
                         ThreadID = entity.ContextID
-                    });
+                    }, transaction);
 
                     success = success && (update == 1);
 
                     if (success)
                     {
                         await onCreate(entity);
-                        transactionScope.Complete();
+                        logger.Trace("Created single comment for forum post");
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not create single comment for forum post");
+                        transaction.Rollback();
                     }
 
+                    logger.End();
                     return entity.SomeWhen(c => success);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
 
         public async Task<bool> Delete(int key, Func<int, Task> onDelete)
         {
-            using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            try
             {
-                // Get All comment ids
-                var sqlCommentIds = @"WITH CommentTree AS(
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
+                {
+                    // Get All comment ids
+                    var sqlCommentIds = @"WITH CommentTree AS(
                                         SELECT Reply AS ReplyID, ID as CommentID
                                         FROM Comments INNER JOIN ThreadComments
                                         ON Comments.ID = ThreadComments.CommentID
@@ -152,13 +175,13 @@ namespace Inuplan.DAL.Repositories.Forum
                                         FROM Comments AS Reply JOIN CommentTree ON Reply.Reply = CommentTree.CommentID
                                         WHERE Reply.Reply IS NOT NULL)
                                     SELECT CommentID FROM CommentTree";
-                var commentIds = (await connection.QueryAsync<int>(sqlCommentIds, new
-                {
-                    ThreadID = key
-                })).ToList();
+                    var commentIds = (await connection.QueryAsync<int>(sqlCommentIds, new
+                    {
+                        ThreadID = key
+                    }, transaction)).ToList();
 
-                // Delete all comments for the thread:
-                var deleteCommentsSql = @"WITH CommentTree AS(
+                    // Delete all comments for the thread:
+                    var deleteCommentsSql = @"WITH CommentTree AS(
                                             SELECT Reply AS ReplyID, ID, ThreadID
                                             FROM Comments INNER JOIN ThreadComments
                                             ON Comments.ID = ThreadComments.CommentID
@@ -174,25 +197,38 @@ namespace Inuplan.DAL.Repositories.Forum
                                         INNER JOIN CommentTree t
                                         ON c.ID = t.ID";
 
-                // Returns the number of affected rows (comments deleted)
-                var deletedComments = await connection.ExecuteAsync(deleteCommentsSql, new
-                {
-                    ThreadID = key
-                });
-
-                var deleted = commentIds.Count == deletedComments;
-
-                if(deleted)
-                {
-                    foreach (var commentId in commentIds)
+                    // Returns the number of affected rows (comments deleted)
+                    var deletedComments = await connection.ExecuteAsync(deleteCommentsSql, new
                     {
-                        await onDelete(commentId);
+                        ThreadID = key
+                    }, transaction);
+
+                    var deleted = commentIds.Count == deletedComments;
+
+                    if (deleted)
+                    {
+                        foreach (var commentId in commentIds)
+                        {
+                            await onDelete(commentId);
+                        }
+
+                        logger.Trace("Deleted all comments belonging to forum post {0}", key);
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not delete all comments belonging to forum post {0}", key);
+                        transaction.Rollback();
                     }
 
-                    transactionScope.Complete();
+                    logger.End();
+                    return deleted;
                 }
-
-                return deleted;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+                throw;
             }
         }
 
@@ -200,7 +236,9 @@ namespace Inuplan.DAL.Repositories.Forum
         {
             try
             {
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
                     // Note: only removes identifying marks so that any child-branches aren't left hanging 
                     var sqlDelete = @"UPDATE Comments SET Author=NULL, Text=NULL, Deleted=@Deleted WHERE ID=@ID";
@@ -213,15 +251,20 @@ namespace Inuplan.DAL.Repositories.Forum
                     if (deleted)
                     {
                         await onDelete(key);
-                        transactionScope.Complete();
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        transaction.Rollback();
                     }
 
+                    logger.End();
                     return deleted;
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -230,11 +273,14 @@ namespace Inuplan.DAL.Repositories.Forum
         {
             try
             {
-                // SQL - CTE where first projection (select) is the anchor
-                // the 2nd projection is the recursion
-                // Note: using LEFT JOIN on final projection, since we want to include all the deleted comments where user is null
-                var sqlComments = 
-                    @"WITH CommentTree AS(
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    // SQL - CTE where first projection (select) is the anchor
+                    // the 2nd projection is the recursion
+                    // Note: using LEFT JOIN on final projection, since we want to include all the deleted comments where user is null
+                    var sqlComments =
+                        @"WITH CommentTree AS(
                             SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Edited, Deleted, ROW_NUMBER() OVER(ORDER BY PostedOn DESC) AS RowNumber
                             FROM Comments INNER JOIN ThreadComments
                             ON Comments.ID = ThreadComments.CommentID
@@ -251,19 +297,21 @@ namespace Inuplan.DAL.Repositories.Forum
                         FROM CommentTree
                         LEFT JOIN Users ON CommentTree.AuthorID = Users.ID";
 
-                var allComments = await connection.QueryAsync<Comment, User, Comment>(sqlComments, (comment, author) =>
-                {
-                    comment.Author = author;
-                    comment.ContextID = key;
-                    return comment;
-                }, new { key });
+                    var allComments = await connection.QueryAsync<Comment, User, Comment>(sqlComments, (comment, author) =>
+                    {
+                        comment.Author = author;
+                        comment.ContextID = key;
+                        return comment;
+                    }, new { key });
 
-                var result = Helpers.ConstructReplies(allComments);
-                return result;
+                    logger.End();
+                    var result = Helpers.ConstructReplies(allComments);
+                    return result;
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -272,9 +320,12 @@ namespace Inuplan.DAL.Repositories.Forum
         {
             try
             {
-                // Note: we use left join because we want the left side (comments) to be included
-                // even if the right side (users) are null.
-                var sql = @"WITH CommentTree AS(
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    // Note: we use left join because we want the left side (comments) to be included
+                    // even if the right side (users) are null.
+                    var sql = @"WITH CommentTree AS(
                                 SELECT Reply AS ParentID, ID AS TopID, PostedOn, Author AS AuthorID, Text, Deleted, Edited, ROW_NUMBER() OVER(ORDER BY PostedOn ASC) AS RowNumber
                                 FROM Comments INNER JOIN ThreadComments
                                 ON Comments.ID = ThreadComments.CommentID
@@ -292,31 +343,33 @@ namespace Inuplan.DAL.Repositories.Forum
                             LEFT JOIN Users ON CommentTree.AuthorID = Users.ID
                             WHERE RowNumber BETWEEN @From AND @To";
 
-                var repliesTo = new List<Tuple<int?, Comment>>();
-                var comments = await connection.QueryAsync<Comment, User, Comment>(sql, (comment, author) =>
-                {
-                    comment.Author = author;
-                    comment.ContextID = id;
-                    return comment;
-                }, new
-                {
-                    ThreadID = id,
-                    From = skip + 1,
-                    To = skip + take,
-                });
+                    var repliesTo = new List<Tuple<int?, Comment>>();
+                    var comments = await connection.QueryAsync<Comment, User, Comment>(sql, (comment, author) =>
+                    {
+                        comment.Author = author;
+                        comment.ContextID = id;
+                        return comment;
+                    }, new
+                    {
+                        ThreadID = id,
+                        From = skip + 1,
+                        To = skip + take,
+                    });
 
-                var totalSql = @"SELECT COUNT(*) FROM ThreadComments WHERE ThreadID = @ThreadID;";
-                var total = await connection.ExecuteScalarAsync<int>(totalSql, new
-                {
-                    ThreadID = id
-                });
+                    var totalSql = @"SELECT COUNT(*) FROM ThreadComments WHERE ThreadID = @ThreadID;";
+                    var total = await connection.ExecuteScalarAsync<int>(totalSql, new
+                    {
+                        ThreadID = id
+                    });
 
-                var items = Helpers.ConstructReplies(comments);
-                return Helpers.Paginate(skip, take, total, items);
+                    logger.End();
+                    var items = Helpers.ConstructReplies(comments);
+                    return Helpers.Paginate(skip, take, total, items);
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -325,18 +378,21 @@ namespace Inuplan.DAL.Repositories.Forum
         {
             try
             {
-                var sql = @"SELECT 
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    var sql = @"SELECT 
                             c.ID, PostedOn, Text, c.Deleted, c.Edited,
                             u.ID, FirstName, LastName, Username, Email
                             FROM Comments c LEFT JOIN Users u ON c.Author = u.ID WHERE c.ID = @id";
 
-                var comment = (await connection.QueryAsync<Comment, User, Comment>(sql, (c, u) =>
-                {
-                    if (!c.Deleted) c.Author = u;
-                    return c;
-                }, new { id })).Single();
+                    var comment = (await connection.QueryAsync<Comment, User, Comment>(sql, (c, u) =>
+                    {
+                        if (!c.Deleted) c.Author = u;
+                        return c;
+                    }, new { id })).Single();
 
-                var threadIdSql = @"WITH parent AS
+                    var threadIdSql = @"WITH parent AS
                             (
                                 SELECT ID, Reply  from Comments WHERE ID = @id
                                 UNION ALL 
@@ -348,16 +404,18 @@ namespace Inuplan.DAL.Repositories.Forum
                             INNER JOIN ThreadComments i
                             ON parent.ID = i.CommentID";
 
-                var threadId = await connection.ExecuteScalarAsync<int>(threadIdSql, new { id = comment.ID });
-                comment.ContextID = threadId;
+                    var threadId = await connection.ExecuteScalarAsync<int>(threadIdSql, new { id = comment.ID });
+                    comment.ContextID = threadId;
 
-                var result = comment.SomeWhen(c => c != null && c.ID > 0 && c.ContextID > 0);
+                    var result = comment.SomeWhen(c => c != null && c.ID > 0 && c.ContextID > 0);
 
-                return result;
+                    logger.End();
+                    return result;
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -366,7 +424,9 @@ namespace Inuplan.DAL.Repositories.Forum
         {
             try
             {
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
                     entity.Edited = true;
                     var sql = @"UPDATE Comments SET PostedOn=@PostedOn, Text=@Text, Edited=@Edited WHERE ID=@key";
@@ -376,20 +436,26 @@ namespace Inuplan.DAL.Repositories.Forum
                         entity.PostedOn,
                         entity.Edited,
                         entity.Text
-                    })).Equals(1);
+                    }, transaction)).Equals(1);
 
                     if (success)
                     {
-                        transactionScope.Complete();
-                        return true;
+                        logger.Trace("Updated single forum post comment");
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not update single forum post comment");
+                        transaction.Rollback();
                     }
 
-                    return false;
+                    logger.End();
+                    return success;
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -413,8 +479,7 @@ namespace Inuplan.DAL.Repositories.Forum
             {
                 if (disposing)
                 {
-                    connection.Dispose();
-                    connection.Close();
+                    // TODO: dispose managed resources
                 }
 
                 disposedValue = true;

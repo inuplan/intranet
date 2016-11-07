@@ -23,6 +23,7 @@ namespace Inuplan.Common.Tools
     using Models;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Text;
 
@@ -96,6 +97,25 @@ namespace Inuplan.Common.Tools
 
             // Select only top-level comments (since the children are included in the replies)
             return allComments.Where(c => c.ParentID == null).ToList();
+        }
+
+        public static string GetUserImageFolder(string root, string username)
+        {
+            var sb = GetUserImageFolderBuilder(root, username);
+            return sb.ToString();
+        }
+
+        public static StringBuilder GetUserImageFolderBuilder(string root, string username)
+        {
+            var sb = new StringBuilder();
+            sb.AppendFormat("{0}\\{1}\\images\\", root, username);
+            return sb;
+        }
+
+        public static long GetDirectorySizeKb(string folderPath)
+        {
+            DirectoryInfo di = new DirectoryInfo(folderPath);
+            return di.EnumerateFiles("*", SearchOption.AllDirectories).Sum(fi => fi.Length) / 1024;
         }
     }
 }

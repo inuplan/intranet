@@ -1,15 +1,57 @@
 ﻿import { store } from '../stores/store'
 import { fetchCurrentUser, fetchUsers } from '../actions/users'
-import { fetchUserImages, setSelectedImg, setImageOwner } from '../actions/images'
-import { fetchComments, setSkipComments, setTakeComments, fetchAndFocusSingleComment } from '../actions/comments'
-import { fetchLatestNews } from '../actions/whatsnew'
-import { fetchThreads, fetchPost } from '../actions/forum'
+import { newImageFromServer, fetchUserImages, setSelectedImg, setImageOwner } from '../actions/images'
+import { newCommentFromServer, fetchComments, setSkipComments, setTakeComments, fetchAndFocusSingleComment } from '../actions/comments'
+import { setLatest, fetchLatestNews } from '../actions/whatsnew'
+import { newForumThreadFromServer, fetchThreads, fetchPost } from '../actions/forum'
+import { fetchSpaceInfo } from '../actions/status'
 import { getImageCommentsPageUrl, getForumCommentsPageUrl } from '../utilities/utils'
 
 export const init = () => {
     store.dispatch(fetchCurrentUser(globals.currentUsername));
     store.dispatch(fetchUsers());
     moment.locale('da');
+
+    connectToLatestWebSocketService();
+}
+
+export const connectToLatestWebSocketService = () => {
+    const supportsWebSockets = 'WebSocket' in window || 'MozWebSocket' in window;
+
+    if(supportsWebSockets) {
+        const socket = new WebSocket(globals.urls.websocket.latest);
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            switch(data.type) {
+                case 'NEW_IMAGE_COMMENT':
+                    store.dispatch(newCommentFromServer(data.item));
+                    break;
+                case 'NEW_IMAGE':
+                    store.dispatch(newImageFromServer(data.item));
+                    store.dispatch(fetchSpaceInfo(`${globals.urls.diagnostics}/getspaceinfo`));
+                    break;
+                case 'NEW_FORUM_THREAD':
+                    store.dispatch(newForumThreadFromServer(data.item));
+                    break;
+            }
+
+            const { skip, take } = store.getState().whatsNewInfo;
+            store.dispatch(fetchLatestNews(skip, take));
+        }
+    }
+    else {
+        // do long-poll every 10 seconds
+        setInterval(() => {
+            const { skip, take } = store.getState().whatsNewInfo;
+            const skipPost = store.getState().forumInfo.titlesInfo.skip;
+            const takePost = store.getState().forumInfo.titlesInfo.take;
+
+            store.dispatch(fetchUsers());
+            store.dispatch(fetchLatestNews(skip, take));
+            store.dispatch(fetchThreads(skipPost, takePost));
+            store.dispatch(fetchSpaceInfo(`${globals.urls.diagnostics}/getspaceinfo`));
+        }, 10000);
+    }
 }
 
 export const selectImage = (nextState) => {

@@ -21,25 +21,32 @@
 namespace Inuplan.DAL.WhatsNew.Commands
 {
     using Common.Commands;
-    using System;
-    using System.Threading.Tasks;
     using Common.Enums;
+    using Common.Logger;
+    using Dapper;
+    using System;
     using System.Data;
     using System.Diagnostics;
+    using System.Threading.Tasks;
     using System.Transactions;
-    using Dapper;
 
     public class AddWhatsNewItem : IAddItem
     {
         private readonly IDbConnection connection;
+        private readonly ILogger<AddWhatsNewItem> logger;
 
-        public AddWhatsNewItem(IDbConnection connection)
+        public AddWhatsNewItem(
+            IDbConnection connection,
+            ILogger<AddWhatsNewItem> logger
+        )
         {
             this.connection = connection;
+            this.logger = logger;
         }
 
         public async Task<int> AddItem(int id, NewsType itemType)
         {
+            logger.Begin();
             Debug.Assert(id > 0, "Must have a valid ID");
             using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
@@ -58,6 +65,7 @@ namespace Inuplan.DAL.WhatsNew.Commands
                     transactionScope.Complete();
                 }
 
+                logger.End();
                 return itemId;
             }
         }

@@ -1,18 +1,22 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="DependencyConfig.cs" company="Inuplan">
-//    Original work Copyright (c) Inuplan
-//
-//    Permission is hereby granted, free of charge, to any person obtaining a copy
-//    of this software and associated documentation files (the "Software"), to deal
-//    in the Software without restriction, including without limitation the rights
-//    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//    copies of the Software, and to permit persons to whom the Software is
-//    furnished to do so, subject to the following conditions:
-//
-//    The above copyright notice and this permission notice shall be included in
-//    all copies or substantial portions of the Software.
-// </copyright>
-//-----------------------------------------------------------------------
+﻿// Copyright © 2015 Inuplan
+// 
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the "Software"),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Inuplan.WebAPI.App_Start
 {
@@ -26,22 +30,31 @@ namespace Inuplan.WebAPI.App_Start
     using Common.Models;
     using Common.Models.Forum;
     using Common.Queries;
+    using Common.Queries.UserSpaceInfoQueries;
     using Common.Repositories;
+    using Common.WebSockets;
     using Controllers;
+    using Controllers.Diagnostics;
     using Controllers.Forum;
+    using Controllers.Images;
+    using Controllers.Users;
+    using DAL.Factories;
     using DAL.ForumPost.Commands;
     using DAL.Repositories;
     using DAL.Repositories.Forum;
+    using DAL.UserSpaceInfo.Queries;
     using DAL.WhatsNew.Commands;
     using DAL.WhatsNew.Queries;
     using Image.Factories;
     using Logger;
     using Middlewares;
+    using Middlewares.Options;
     using Properties;
     using System.Data;
     using System.Data.SqlClient;
     using System.DirectoryServices.AccountManagement;
     using System.Web.Http;
+    using WebSocketServices;
 
     /// <summary>
     /// Setup the configuration for the Inversion of Control container
@@ -68,7 +81,10 @@ namespace Inuplan.WebAPI.App_Start
                 var connection = new SqlConnection(connectionString);
                 connection.Open();
                 return connection;
-            }).As<IDbConnection>().InstancePerDependency();
+            }).As<IDbConnection>().InstancePerRequest();
+            builder.RegisterType<ConnectionFactory>()
+                .WithParameter(new TypedParameter(typeof(string), connectionString))
+                .As<IConnectionFactory>();
 
             // Register Web API controllers
             builder.RegisterType<RoleController>().WithAttributeFilter();
@@ -91,10 +107,17 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<HandleFactory>().WithAttributeFilter().As<ImageHandleFactory>();
             builder.Register(ctx => new PrincipalContext(ContextType.Domain, domain));
             builder.RegisterGeneric(typeof(NLogServiceWrapper<>)).As(typeof(ILogger<>));
+            builder.RegisterType<UserSpaceQueryHandles>()
+                .WithParameter(new TypedParameter(typeof(string), root))
+                .WithParameter(new TypedParameter(typeof(int), Settings.Default.quotaKB))
+                .As<IGetUserSpaceInfo>();
 
             // Register repositories
             builder.RegisterType<RoleRepository>().As<IScalarRepository<int, Role>>();
-            builder.RegisterType<UserImageRepository>().WithAttributeFilter().As<IScalarRepository<int, Image>>();
+            builder.RegisterType<UserImageRepository>()
+                .WithAttributeFilter()
+                .WithParameter(new TypedParameter(typeof(int), Settings.Default.quotaKB))
+                .As<IScalarRepository<int, Image>>();
             builder.RegisterType<ImageCommentRepository>().As<IVectorRepository<int, Comment>>();
             builder.RegisterType<UserDatabaseRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserDatabase);
             builder.RegisterType<UserRoleRepository>().Keyed<IScalarRepository<int, User>>(ServiceKeys.UserRoleRepository);
@@ -109,6 +132,13 @@ namespace Inuplan.WebAPI.App_Start
             builder.RegisterType<UserADRepository>().Keyed<IScalarRepository<string, User>>(ServiceKeys.UserActiveDirectory);
 #endif
             #endregion
+
+            // Register web socket services
+            builder.RegisterType<LatestBroadcastService>().WithAttributeFilter();
+            builder
+                .Register(ctx => new HubSession("latest", ctx.Resolve<ILogger<HubSession>>()))
+                .Keyed<IWebSocketHubSession>(ServiceKeys.LatestHub)
+                .SingleInstance();
 
             // Use autofac owin pipeline
             OwinPipeline(builder);
@@ -126,8 +156,14 @@ namespace Inuplan.WebAPI.App_Start
         /// <param name="builder">The autofac container builder</param>
         private static void OwinPipeline(ContainerBuilder builder)
         {
-            // Owin middleware pipeline - order matters
-            builder.RegisterType<ManageUserMiddleware>().WithAttributeFilter();
+            // Owin middleware options
+            builder
+                .RegisterType<ManageUserOption>()
+                .WithAttributeFilter()
+                .WithParameter(new TypedParameter(typeof(int), Settings.Default.quotaKB));
+
+            // Owin middleware pipeline
+            builder.RegisterType<ManageUserMiddleware>();
         }
 
         /// <summary>

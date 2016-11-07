@@ -26,43 +26,45 @@ namespace Inuplan.DAL.Repositories
     using Optional;
     using System;
     using System.Collections.Generic;
-    using System.Data;
     using System.Threading.Tasks;
     using System.Linq;
     using System.Diagnostics;
-    using System.Transactions;
     using System.IO;
     using Optional.Unsafe;
     using Common.Tools;
-    using System.Data.SqlClient;
-    using NLog;
+    using Common.Logger;
+    using Common.Factories;
 
     public class UserAlbumRepository : IScalarRepository<int, Album>
     {
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
-        
-        private readonly IDbConnection connection;
+        private readonly ILogger<UserAlbumRepository> logger;
 
         private bool disposedValue = false;
+        private readonly IConnectionFactory connectionFactory;
 
-        public UserAlbumRepository(IDbConnection connection)
+        public UserAlbumRepository(
+            IConnectionFactory connectionFactory,
+            ILogger<UserAlbumRepository> logger
+        )
         {
-            this.connection = connection;
+            this.connectionFactory = connectionFactory;
+            this.logger = logger;
         }
 
-        public async Task<Option<Album>> Create(Album entity, Func<Album, Task> onCreate, params object[] identifiers)
+        public async Task<Option<Album>> Create(Album entity, Func<Album, Task<bool>> onCreate, params object[] identifiers)
         {
             try
             {
-                var images = identifiers != null ?
-                                identifiers.Cast<Image>().ToList() :
-                                new List<Image>();
-
                 Debug.Assert(entity.Owner != null && entity.Owner.ID > 0, "Must have a valid owner!");
-                Debug.Assert(images.All(img => img.ID > 0), "All images must have existing ID's");
-
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
+                    var images = identifiers != null ?
+                                    identifiers.Cast<Image>().ToList() :
+                                    new List<Image>();
+
+                    Debug.Assert(images.All(img => img.ID > 0), "All images must have existing ID's");
 
                     var sql = @"INSERT INTO Albums (Description, Owner, Name)
                         VALUES(@Description, @Owner, @Name);
@@ -73,7 +75,7 @@ namespace Inuplan.DAL.Repositories
                         Description = entity.Description,
                         Owner = entity.Owner.ID,
                         Name = entity.Name,
-                    });
+                    }, transaction);
 
                     foreach (var image in images)
                     {
@@ -83,22 +85,29 @@ namespace Inuplan.DAL.Repositories
                         {
                             AlbumID = entity.ID,
                             ImageID = image.ID,
-                        });
+                        }, transaction);
                     }
 
                     var result = entity.SomeWhen(a => a.ID > 0);
-                    if (result.HasValue)
+                    var continuation = await onCreate(entity);
+                    if (result.HasValue && continuation)
                     {
-                        await onCreate(entity);
-                        transactionScope.Complete();
+                        logger.Trace("Album created!");
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not create album");
+                        transaction.Rollback();
                     }
 
+                    logger.End();
                     return result;
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -108,22 +117,30 @@ namespace Inuplan.DAL.Repositories
             try
             {
                 Debug.Assert(key > 0, "Must have valid key!");
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
                     var sql = @"DELETE FROM Albums WHERE ID = @key;";
-                    var success = (await connection.ExecuteAsync(sql, new { key })).Equals(1);
+                    var success = (await connection.ExecuteAsync(sql, new { key }, transaction)).Equals(1);
                     if (success)
                     {
                         await onDelete(key);
-                        transactionScope.Complete();
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not delete album");
+                        transaction.Rollback();
                     }
 
+                    logger.End();
                     return success;
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -132,8 +149,11 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                // Assumption: The Album owner = Image owner
-                var sql = @"SELECT 
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    // Assumption: The Album owner = Image owner
+                    var sql = @"SELECT 
                             img.ID, img.Description, Filename, Extension, MimeType,		/* Image */
                             preview.ID, preview.Path,									/* Preview */
                             thumbnail.ID, thumbnail.Path,								/* Thumbnail */
@@ -160,34 +180,36 @@ namespace Inuplan.DAL.Repositories
 
                         WHERE a.ID = @key;";
 
-                var albumImages = await connection.QueryAsync<
-                    Image,
-                    Common.Models.FileInfo,
-                    Common.Models.FileInfo,
-                    Common.Models.FileInfo,
-                    User,
-                    Image>(sql, (img, pre, thumb, orig, user) =>
-                {
-                    pre.Data = new Lazy<byte[]>(() => File.ReadAllBytes(pre.Path));
-                    thumb.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumb.Path));
-                    orig.Data = new Lazy<byte[]>(() => File.ReadAllBytes(orig.Path));
+                    var albumImages = await connection.QueryAsync<
+                        Image,
+                        Common.Models.FileInfo,
+                        Common.Models.FileInfo,
+                        Common.Models.FileInfo,
+                        User,
+                        Image>(sql, (img, pre, thumb, orig, user) =>
+                    {
+                        pre.Data = new Lazy<byte[]>(() => File.ReadAllBytes(pre.Path));
+                        thumb.Data = new Lazy<byte[]>(() => File.ReadAllBytes(thumb.Path));
+                        orig.Data = new Lazy<byte[]>(() => File.ReadAllBytes(orig.Path));
 
-                    img.Owner = user;
-                    img.Preview = pre;
-                    img.Thumbnail = thumb;
-                    img.Original = orig;
+                        img.Owner = user;
+                        img.Preview = pre;
+                        img.Thumbnail = thumb;
+                        img.Original = orig;
 
-                    return img;
-                }, new { key });
+                        return img;
+                    }, new { key });
 
-                var album = await connection.ExecuteScalarAsync<Album>(@"SELECT * FROM Albums WHERE ID = @key;", new { key });
-                album.Images = albumImages.ToList();
+                    var album = await connection.ExecuteScalarAsync<Album>(@"SELECT * FROM Albums WHERE ID = @key;", new { key });
+                    album.Images = albumImages.ToList();
 
-                return album.SomeWhen(a => a.ID > 0);
+                    logger.End();
+                    return album.SomeWhen(a => a.ID > 0);
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -196,27 +218,32 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var userID = (int)identifiers[0];
-                Debug.Assert(userID > 0, "Must be valid user!");
-                var sqlIds = @"SELECT ID FROM Albums WHERE Owner = @key;";
-                var albumIds = await connection.QueryAsync<int>(sqlIds, new
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
                 {
-                    key = userID
-                });
+                    var userID = (int)identifiers[0];
+                    Debug.Assert(userID > 0, "Must be valid user!");
+                    var sqlIds = @"SELECT ID FROM Albums WHERE Owner = @key;";
+                    var albumIds = await connection.QueryAsync<int>(sqlIds, new
+                    {
+                        key = userID
+                    });
 
-                var result = new List<Album>();
-                foreach (var id in albumIds)
-                {
-                    var album = await Get(id);
-                    result.Add(album.ValueOrFailure());
+                    var result = new List<Album>();
+                    foreach (var id in albumIds)
+                    {
+                        var album = await Get(id);
+                        result.Add(album.ValueOrFailure());
+                    }
+
+                    logger.End();
+                    return result;
+
                 }
-
-                return result;
-
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -230,35 +257,39 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                sortBy = sortBy ?? new Func<string>(() => "ID");
-                orderBy = orderBy ?? new Func<string>(() => "ASC");
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    sortBy = sortBy ?? new Func<string>(() => "ID");
+                    orderBy = orderBy ?? new Func<string>(() => "ASC");
 
-                var userID = (int)identifiers[0];
-                Debug.Assert(userID > 0, "Must have a valid user ID!");
-                var sql = @"SELECT ID, Description, Owner, Name FROM
+                    var userID = (int)identifiers[0];
+                    Debug.Assert(userID > 0, "Must have a valid user ID!");
+                    var sql = @"SELECT ID, Description, Owner, Name FROM
                             (SELECT *, Row_Number() OVER (ORDER BY @Sort @Order) AS rn
                             FROM Albums WHERE Owner = @Owner) as seq
                         WHERE seq.rn BETWEEN @From AND @To;";
-                var query = sql.Replace("@Sort", sortBy()).Replace("@Order", orderBy());
+                    var query = sql.Replace("@Sort", sortBy()).Replace("@Order", orderBy());
 
-                // Album info without images
-                var items = await connection.QueryAsync<Album>(query, new
-                {
-                    Owner = userID,
-                    From = skip + 1,
-                    To = skip + take,
-                });
+                    // Album info without images
+                    var items = await connection.QueryAsync<Album>(query, new
+                    {
+                        Owner = userID,
+                        From = skip + 1,
+                        To = skip + take,
+                    });
 
-                var total = await connection.ExecuteScalarAsync<int>(@"SELECT COUNT(*) FROM Albums WHERE Owner = @Owner", new
-                {
-                    Owner = userID
-                });
+                    var total = await connection.ExecuteScalarAsync<int>(@"SELECT COUNT(*) FROM Albums WHERE Owner = @Owner", new
+                    {
+                        Owner = userID
+                    });
 
-                return Helpers.Paginate(skip, take, total, items.ToList());
+                    logger.End();
+                    return Helpers.Paginate(skip, take, total, items.ToList());
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -268,7 +299,9 @@ namespace Inuplan.DAL.Repositories
             try
             {
                 Debug.Assert(entity.Images.All(img => img.ID > 0), "Images must pre-exist!");
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
                     var sql = @"UPDATE Album SET Description=@Description, Name=@Name WHERE ID=@ID";
                     var update = (await connection.ExecuteAsync(sql, new
@@ -276,30 +309,37 @@ namespace Inuplan.DAL.Repositories
                         Description = entity.Description,
                         Name = entity.Name,
                         ID = key
-                    })).Equals(1);
+                    }, transaction)).Equals(1);
 
                     var deleteSql = @"DELETE FROM AlbumImages WHERE AlbumID=@AlbumID";
                     var deleted = (await connection.ExecuteAsync(deleteSql, new
                     {
                         AlbumID = entity.ID
-                    })).Equals(entity.Images.Count);
+                    }, transaction)).Equals(entity.Images.Count);
 
                     var imgs = entity.Images.Select(img => new { AlbumID = entity.ID, ImageID = img.ID }).ToArray();
                     var insertSql = @"INSERT INTO AlbumImages (AlbumID, ImageID) VALUES(@AlbumID, @ImageID);";
-                    var inserted = (await connection.ExecuteAsync(insertSql, imgs)).Equals(imgs.Count());
+                    var inserted = (await connection.ExecuteAsync(insertSql, imgs, transaction)).Equals(imgs.Count());
 
                     var success = update && deleted && inserted;
                     if (success)
                     {
-                        transactionScope.Complete();
+                        logger.Trace("Updated album");
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not update album");
+                        transaction.Rollback();
                     }
 
+                    logger.End();
                     return success;
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -311,7 +351,7 @@ namespace Inuplan.DAL.Repositories
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    connection.Dispose();
+                    //connection.Dispose();
                 }
 
                 disposedValue = true;

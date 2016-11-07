@@ -21,6 +21,7 @@
 namespace Inuplan.WebAPI.Logger
 {
     using System;
+    using System.Runtime.CompilerServices;
     using NLog;
 
     public class NLogServiceWrapper<T> : Common.Logger.ILogger<T>
@@ -42,6 +43,11 @@ namespace Inuplan.WebAPI.Logger
             logger.Debug(message, args);
         }
 
+        public void End([CallerMemberName] string method = "")
+        {
+            logger.Debug("Method: {0}. END", method);
+        }
+
         public void Error(string message)
         {
             logger.Error(message);
@@ -52,6 +58,11 @@ namespace Inuplan.WebAPI.Logger
             logger.Error(ex);
         }
 
+        public void Error(string message, params object[] args)
+        {
+            logger.Error(message, args);
+        }
+
         public void Info(string message)
         {
             logger.Info(message);
@@ -60,6 +71,11 @@ namespace Inuplan.WebAPI.Logger
         public void Info(string message, params object[] args)
         {
             logger.Info(message, args);
+        }
+
+        public void Begin([CallerMemberName] string method = "")
+        {
+            logger.Debug("Method: {0}. BEGIN", method);
         }
 
         public void Trace(string message)

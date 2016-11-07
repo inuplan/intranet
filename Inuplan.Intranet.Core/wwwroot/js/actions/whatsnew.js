@@ -6,9 +6,9 @@ import { HttpError, setError } from './error'
 import { responseHandler, onReject, normalizeLatest } from '../utilities/utils'
 import { addUser } from './users'
 
-export function addLatest(latest) {
+export function setLatest(latest) {
     return {
-        type: T.ADD_LATEST,
+        type: T.SET_LATEST,
         latest: latest
     }
 }
@@ -62,7 +62,7 @@ export function fetchLatestNews(skip, take) {
                 dispatch(setTotalPages(page.TotalPages));
 
                 const normalized = items.map(normalizeLatest);
-                dispatch(addLatest(normalized));
+                dispatch(setLatest(normalized));
             }, onReject);
     }
 }

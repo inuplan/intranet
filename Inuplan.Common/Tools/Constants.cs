@@ -27,6 +27,18 @@ namespace Inuplan.Common.Tools
     {
         public const string CURRENT_USER = "Inuplan.User.Current";
 
+        public const string OWIN_WEBSOCKET_ACCEPT = "websocket.Accept";
+        
+        public const string OWIN_WEBSOCKET_RECEIVE = "websocket.ReceiveAsync";
+
+        public const string OWIN_WEBSOCKET_CLOSE = "websocket.CloseAsync";
+
+        public const string OWIN_WEBSOCKET_CANCEL = "websocket.CallCancelled";
+
+        public const string OWIN_WEBSOCKET_CLOSE_STATUS = "websocket.ClientCloseStatus";
+
+        public const string OWIN_WEBSOCKET_CLOSE_DESCRIPTION = "websocket.ClientCloseDescription";
+
         #region "Origin"
 #if DEBUG
         public const string Origin = @"http://localhost:59382,http://localhost:52256,http://localhost:60464,http://localhost:5000";

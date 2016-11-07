@@ -25,9 +25,7 @@ namespace Inuplan.WebAPI.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=IntranetDB;Integrated Security" +
-            "=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationI" +
-            "ntent=ReadWrite;MultiSubnetFailover=False;MultipleActiveResultSets=True")]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=IntranetDB;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;MultipleActiveResultSets=True;Asynchronous Processing=True;Min Pool Size=5;")]
         public string connectionStringDebug {
             get {
                 return ((string)(this["connectionStringDebug"]));
@@ -37,7 +35,8 @@ namespace Inuplan.WebAPI.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Data Source=NUUS07\\INTRANETDB;Initial Catalog=IntranetDB;User ID=intranetdb;Passw" +
-            "ord=NGsDGzjUCY;MultipleActiveResultSets=true;")]
+            "ord=NGsDGzjUCY;MultipleActiveResultSets=true;Asynchronous Processing=True;Min Po" +
+            "ol Size=5;")]
         public string connectionStringRelease {
             get {
                 return ((string)(this["connectionStringRelease"]));
@@ -116,6 +115,45 @@ namespace Inuplan.WebAPI.Properties {
         public bool enableCORS {
             get {
                 return ((bool)(this["enableCORS"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("9001")]
+        public int webSocketPort {
+            get {
+                return ((int)(this["webSocketPort"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10.18.0.217")]
+        public string serverIP {
+            get {
+                return ((string)(this["serverIP"]));
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("/latest")]
+        public string webSocketServiceLatest {
+            get {
+                return ((string)(this["webSocketServiceLatest"]));
+            }
+            set {
+                this["webSocketServiceLatest"] = value;
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("300000")]
+        public int quotaKB {
+            get {
+                return ((int)(this["quotaKB"]));
             }
         }
     }

@@ -26,44 +26,64 @@ namespace Inuplan.DAL.Repositories
     using System.Linq;
     using System.Threading.Tasks;
     using Optional;
-    using System.Data;
     using System.Diagnostics;
     using Dapper;
     using Common.Tools;
-    using NLog;
-    using System.Data.SqlClient;
     using System;
+    using Common.Logger;
+    using Common.Factories;
 
     public class RoleRepository : IScalarRepository<int, Role>
     {
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
-
-        private readonly IDbConnection connection;
 
         private bool disposedValue = false;
+        private readonly ILogger<RoleRepository> logger;
+        private readonly IConnectionFactory connectionFactory;
 
-        public RoleRepository(IDbConnection connection)
+        public RoleRepository(
+            IConnectionFactory connectionFactory,
+            ILogger<RoleRepository> logger
+        )
         {
-            this.connection = connection;
+            this.connectionFactory = connectionFactory;
+            this.logger = logger;
         }
 
-        public async Task<Option<Role>> Create(Role entity, Func<Role, Task> onCreate, params object[] identifiers)
+        public async Task<Option<Role>> Create(Role entity, Func<Role, Task<bool>> onCreate, params object[] identifiers)
         {
             Debug.Assert(entity != null, "Must have valid object to create");
+            logger.Begin();
             try
             {
-                var sql = @"INSERT INTO Roles (Name) Values (@Name);SELECT ID FROM Roles WHERE ID = @@IDENTITY;";
-                entity.ID = await connection.ExecuteScalarAsync<int>(sql, new
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
-                    Name = entity.Name
-                });
-                var result = entity.SomeWhen(e => e.ID > 0);
-                if (result.HasValue) await onCreate(entity);
-                return result;
+                    var sql = @"INSERT INTO Roles (Name) Values (@Name);SELECT ID FROM Roles WHERE ID = @@IDENTITY;";
+                    entity.ID = await connection.ExecuteScalarAsync<int>(sql, new
+                    {
+                        Name = entity.Name
+                    }, transaction);
+
+                    var result = entity.SomeWhen(e => e.ID > 0);
+                    var continuation = await onCreate(entity);
+                    if (result.HasValue && continuation)
+                    {
+                        logger.Trace("Created role: {0} {1}", entity.ID, entity.Name);
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not create role {0}", entity.Name);
+                        transaction.Rollback();
+                    }
+
+                    logger.End();
+                    return result;
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -71,18 +91,38 @@ namespace Inuplan.DAL.Repositories
         public async Task<bool> Delete(int key, Func<int, Task> onDelete)
         {
             Debug.Assert(key > 0, "Must be a valid key");
+            logger.Begin();
             try
             {
-                var sql = @"DELETE FROM Roles WHERE ID = @key;";
-                var rows = await connection.ExecuteAsync(sql, key);
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
+                {
+                    var sql = @"DELETE FROM Roles WHERE ID = @key;";
+                    var rows = await connection.ExecuteAsync(sql, new
+                    {
+                        key = key
+                    }, transaction);
 
-                var result = rows == 1;
-                if (result) await onDelete(key);
-                return result;
+                    var result = rows == 1;
+                    if (result)
+                    {
+                        await onDelete(key);
+                        logger.Trace("Deleted role {0}", key);
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not delete role: {0}", key);
+                        transaction.Rollback();
+                    }
+
+                    logger.End();
+                    return result;
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -91,13 +131,19 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var sql = @"SELECT ID, Name FROM Roles WHERE ID = @key";
-                var result = (await connection.QueryAsync<Role>(sql, new { key })).Single();
-                return result.SomeWhen(r => r != null && r.ID > 0);
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    var sql = @"SELECT ID, Name FROM Roles WHERE ID = @key";
+                    var result = await connection.QuerySingleOrDefaultAsync<Role>(sql, new { key });
+
+                    logger.End();
+                    return result.SomeWhen(r => r != null && r.ID > 0);
+                }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -106,13 +152,19 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var sql = @"SELECT * FROM Roles;";
-                var result = await connection.QueryAsync<Role>(sql);
-                return result.ToList();
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    var sql = @"SELECT * FROM Roles;";
+                    var result = await connection.QueryAsync<Role>(sql);
+
+                    logger.End();
+                    return result.ToList();
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -121,34 +173,39 @@ namespace Inuplan.DAL.Repositories
         {
             return Get(id);
         }
+
         public async Task<Pagination<Role>> GetPage(int skip, int take, Func<string> sortBy = null, Func<string> orderBy = null, params object[] identifiers)
         {
             try
             {
-                sortBy = sortBy ?? new Func<string>(() => "ID");
-                orderBy = orderBy ?? new Func<string>(() => "ASC");
-
-                var sql = @"SELECT ID, Name FROM
-                            (SELECT ID, Name, Row_Number() OVER (ORDER BY @Sort @Order) AS rownumber
-                            FROM Roles) AS seq
-                        WHERE seq.rownumber BETWEEN @From AND @To;";
-                var query = sql
-                                .Replace(@"@Sort", sortBy())
-                                .Replace(@"@Order", orderBy());
-
-                var roles = await connection.QueryAsync<Role>(query, new
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
                 {
-                    From = skip + 1,
-                    To = skip + take,
-                });
+                    sortBy = sortBy ?? new Func<string>(() => "ID");
+                    orderBy = orderBy ?? new Func<string>(() => "ASC");
 
-                var total = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Roles;");
+                    var sql = @"SELECT ID, Name FROM
+                                    (SELECT ID, Name, Row_Number() OVER (ORDER BY @Sort @Order) AS rownumber
+                                    FROM Roles) AS seq
+                                WHERE seq.rownumber BETWEEN @From AND @To;";
+                    var query = sql.Replace(@"@Sort", sortBy())
+                                   .Replace(@"@Order", orderBy());
 
-                return Helpers.Paginate(skip, take, total, roles.ToList());
+                    var roles = await connection.QueryAsync<Role>(query, new
+                    {
+                        From = skip + 1,
+                        To = skip + take,
+                    });
+
+                    var total = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM Roles;");
+
+                    logger.End();
+                    return Helpers.Paginate(skip, take, total, roles.ToList());
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -157,13 +214,32 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var sql = @"UPDATE Roles SET Name = @Name WHERE ID=@ID";
-                var rows = await connection.ExecuteAsync(sql, new { Name = entity.Name, ID = key });
-                return rows == 1;
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
+                {
+                    var sql = @"UPDATE Roles SET Name = @Name WHERE ID=@ID";
+                    var rows = await connection.ExecuteAsync(sql, new { Name = entity.Name, ID = key }, transaction);
+                    var success = rows == 1;
+
+                    if(success)
+                    {
+                        logger.Trace("Succesfully updated role: {0}", key);
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not update role {0}", key);
+                        transaction.Rollback();
+                    }
+
+                    logger.End();
+                    return success;
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -175,7 +251,6 @@ namespace Inuplan.DAL.Repositories
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    connection.Dispose();
                 }
 
                 disposedValue = true;

@@ -74,6 +74,12 @@ export const setPostContent = (content) => {
     }
 }
 
+export const newForumThreadFromServer = (thread) => {
+    const t = normalizeThreadTitle(thread.Header);
+    const c = thread.Text; // unused for now
+    return addThreadTitle(t);
+}
+
 export const markPost = (postId, read, cb) => {
     return function(dispatch) {
         const url = `${globals.urls.forumpost}?postId=${postId}&read=${read}`;

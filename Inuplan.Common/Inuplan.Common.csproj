@@ -23,6 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <NoWarn>RECS0069</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -37,8 +38,8 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Optional, Version=3.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Optional.3.1.0\lib\net461\Optional.dll</HintPath>
+    <Reference Include="Optional, Version=3.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Optional.3.2.0\lib\net461\Optional.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -69,6 +70,8 @@
     <Compile Include="Enums\ForumSortBy.cs" />
     <Compile Include="Enums\NewsType.cs" />
     <Compile Include="Enums\ServiceKeys.cs" />
+    <Compile Include="Enums\WebSocketMessageType.cs" />
+    <Compile Include="Factories\IConnectionFactory.cs" />
     <Compile Include="Factories\ImageHandleFactory.cs" />
     <Compile Include="Handlers\IImageHandler.cs" />
     <Compile Include="Logger\ILogger.cs" />
@@ -83,13 +86,20 @@
     <Compile Include="Models\Forum\ThreadPostContent.cs" />
     <Compile Include="Models\Forum\ThreadPostTitle.cs" />
     <Compile Include="Models\User.cs" />
+    <Compile Include="DTOs\UserSpaceInfoDTO.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Queries\IGetPage.cs" />
+    <Compile Include="Queries\UserSpaceInfoQueries\IGetUserSpaceInfo.cs" />
     <Compile Include="Repositories\IScalarRepository.cs" />
     <Compile Include="Repositories\IVectorRepository.cs" />
     <Compile Include="Tools\Converters.cs" />
+    <Compile Include="Tools\Extensions.cs" />
     <Compile Include="Tools\Helpers.cs" />
     <Compile Include="Tools\Constants.cs" />
+    <Compile Include="WebSockets\IWebSocketHubSession.cs" />
+    <Compile Include="WebSockets\WebSocketClientDisconnectedArgs.cs" />
+    <Compile Include="WebSockets\WebSocketMessageEventArgs.cs" />
+    <Compile Include="WebSockets\WebSocketClientConnectedArgs.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

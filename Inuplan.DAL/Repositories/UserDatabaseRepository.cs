@@ -20,15 +20,15 @@
 
 namespace Inuplan.DAL.Repositories
 {
+    using Common.Factories;
+    using Common.Logger;
     using Common.Models;
     using Common.Repositories;
     using Common.Tools;
     using Dapper;
-    using NLog;
     using Optional;
     using System;
     using System.Collections.Generic;
-    using System.Data;
     using System.Data.SqlClient;
     using System.Diagnostics;
     using System.Linq;
@@ -44,17 +44,7 @@ namespace Inuplan.DAL.Repositories
         /// <summary>
         /// The logging framework
         /// </summary>
-        private static Logger Logger = LogManager.GetCurrentClassLogger();
-
-        /// <summary>
-        /// The database connection
-        /// </summary>
-        private readonly IDbConnection connection;
-
-        /// <summary>
-        /// Lock mechanism for multithreaded access
-        /// </summary>
-        private readonly object locking;
+        private readonly ILogger<UserDatabaseRepository> logger;
 
         /// <summary>
         /// Dispose pattern implementation.
@@ -62,14 +52,19 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         private bool disposed;
 
+        private readonly IConnectionFactory connectionFactory;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="UserDatabaseRepository"/> class.
         /// </summary>
         /// <param name="connection">The database connection</param>
-        public UserDatabaseRepository(IDbConnection connection)
+        public UserDatabaseRepository(
+            IConnectionFactory connectionFactory,
+            ILogger<UserDatabaseRepository> logger
+        )
         {
-            this.connection = connection;
-            locking = new object();
+            this.connectionFactory = connectionFactory;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -77,16 +72,18 @@ namespace Inuplan.DAL.Repositories
         /// </summary>
         /// <param name="entity">The user entity</param>
         /// <returns>Returns an awaitable optional user</returns>
-        public async Task<Option<User>> Create(User entity, Func<User, Task> onCreate, params object[] identifiers)
+        public async Task<Option<User>> Create(User entity, Func<User, Task<bool>> onCreate, params object[] identifiers)
         {
             try
             {
                 Debug.Assert(entity.Roles != null && entity.Roles.Any(), "Must define an existing role for this user!");
                 Debug.Assert(entity.Roles.All(r => r.ID > 0), "A role must already be created in the database before creating the user");
-                entity.ID = 0;
-
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
+                    entity.ID = 0;
+
                     // Create user
                     var sqlUser = @"INSERT INTO Users (Username, FirstName, LastName, Email, DisplayName)
                         VALUES (@Username, @FirstName, @LastName, @Email, @DisplayName);
@@ -99,29 +96,37 @@ namespace Inuplan.DAL.Repositories
                         LastName = entity.LastName,
                         Email = entity.Email,
                         DisplayName = entity.DisplayName,
-                    });
+                    }, transaction);
 
                     // Set role for user
                     var sqlRole = @"INSERT INTO UserRoles (UserID, RoleID)
                                 VALUES(@UserID, @RoleID);";
                     var roles = entity.Roles.Select(r => new { UserID = entity.ID, RoleID = r.ID }).ToArray();
-                    var created = await connection.ExecuteAsync(sqlRole, roles);
+                    var created = await connection.ExecuteAsync(sqlRole, roles, transaction);
 
                     var result = entity.SomeWhen(u => u.ID > 0 && created > 0);
+                    var continuation = await onCreate(entity);
+
 
                     // On success commit
-                    if (result.HasValue)
+                    if (result.HasValue && continuation)
                     {
-                        await onCreate(entity);
-                        transactionScope.Complete();
+                        logger.Trace("Created user with id: {0}", entity.ID);
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        logger.Error("Could not create user: {0}", entity.Username);
+                        transaction.Rollback();
                     }
 
+                    logger.End();
                     return result;
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -136,15 +141,21 @@ namespace Inuplan.DAL.Repositories
             try
             {
                 Debug.Assert(!string.IsNullOrEmpty(key), "Must have a valid username");
-                var sql = @"DELETE FROM Users WHERE Username = @key";
-                var rows = await connection.ExecuteAsync(sql, new { key });
-                var result = rows == 1;
-                if (result) await onDelete(key);
-                return result;
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    var sql = @"DELETE FROM Users WHERE Username = @key";
+                    var rows = await connection.ExecuteAsync(sql, new { key });
+                    var result = rows == 1;
+                    if (result) await onDelete(key);
+
+                    logger.End();
+                    return result;
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -158,8 +169,9 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                using (var transactionScope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+                using (var connection = connectionFactory.CreateConnection())
                 {
+                    logger.Begin();
                     var sqlUser = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
                         FROM Users
                         WHERE Username = @key";
@@ -183,16 +195,19 @@ namespace Inuplan.DAL.Repositories
 
                         entity.Roles = roles.ToList();
                         result = entity.Some();
-
-                        transactionScope.Complete();
+                    }
+                    else
+                    {
+                        logger.Error("Could not get user {0}", key);
                     }
 
+                    logger.End();
                     return result;
                 }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -208,10 +223,13 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                sortBy = sortBy ?? new Func<string>(() => "Username");
-                orderBy = orderBy ?? new Func<string>(() => "ASC");
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    sortBy = sortBy ?? new Func<string>(() => "Username");
+                    orderBy = orderBy ?? new Func<string>(() => "ASC");
 
-                var sql = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
+                    var sql = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
                         FROM
                         (
                             SELECT tmp.*, ROW_NUMBER() OVER (ORDER BY @Sort @Order) AS 'RowNumber'
@@ -219,43 +237,45 @@ namespace Inuplan.DAL.Repositories
                         ) AS seq
                         WHERE seq.RowNumber BETWEEN @From AND @To";
 
-                var query = sql.Replace("@Sort", sortBy()).Replace("@Order", orderBy());
+                    var query = sql.Replace("@Sort", sortBy()).Replace("@Order", orderBy());
 
-                var result = (await connection.QueryAsync<User>(query, new
-                {
-                    From = skip + 1,
-                    To = (skip + take)
-                }));
+                    var result = (await connection.QueryAsync<User>(query, new
+                    {
+                        From = skip + 1,
+                        To = (skip + take)
+                    }));
 
-                var roleSql = @"SELECT u.ID, r.ID, Name FROM Roles r
+                    var roleSql = @"SELECT u.ID, r.ID, Name FROM Roles r
                             INNER JOIN UserRoles ur
                             ON r.ID = ur.RoleID
                             INNER JOIN Users u
                             ON u.ID = ur.UserID";
 
 
-                var roles = await connection.QueryAsync<int, Role, Tuple<int, Role>>(
-                    roleSql,
-                    (id, role) => new Tuple<int, Role>(id, role));
+                    var roles = await connection.QueryAsync<int, Role, Tuple<int, Role>>(
+                        roleSql,
+                        (id, role) => new Tuple<int, Role>(id, role));
 
-                var group = roles.GroupBy(t => t.Item1);
-                foreach (var g in group)
-                {
-                    var userRoles = g.Select(r => r.Item2);
-                    var user = result.Single(u => u.ID == g.Key);
-                    user.Roles = userRoles.ToList();
+                    var group = roles.GroupBy(t => t.Item1);
+                    foreach (var g in group)
+                    {
+                        var userRoles = g.Select(r => r.Item2);
+                        var user = result.Single(u => u.ID == g.Key);
+                        user.Roles = userRoles.ToList();
+                    }
+
+
+                    var totalSql = @"SELECT COUNT(*) FROM Users";
+                    var total = await connection.ExecuteScalarAsync<int>(totalSql);
+
+                    logger.Debug("Class: UserDatabaseRepository, Method: GetPage, END");
+                    var page = Helpers.Paginate(skip, take, total, result.ToList());
+                    return page;
                 }
-
-
-                var totalSql = @"SELECT COUNT(*) FROM Users";
-                var total = await connection.ExecuteScalarAsync<int>(totalSql);
-
-                var page = Helpers.Paginate(skip, take, total, result.ToList());
-                return page;
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -269,15 +289,21 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var sql = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    var sql = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
                         FROM Users";
 
-                var result = await connection.QueryAsync<User>(sql);
-                return result.ToList();
+                    var result = await connection.QueryAsync<User>(sql);
+
+                    logger.End();
+                    return result.ToList();
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -291,31 +317,36 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var sql = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                {
+                    var sql = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
                         FROM Users
                         WHERE ID = @id";
 
-                var result = (await connection.QueryAsync<User>(sql, new { id })).SingleOrDefault();
-                if (result != null)
-                {
-                    var sqlRoles = @"SELECT role.ID, role.Name
+                    var result = (await connection.QueryAsync<User>(sql, new { id })).SingleOrDefault();
+                    if (result != null)
+                    {
+                        var sqlRoles = @"SELECT role.ID, role.Name
                             FROM Roles role INNER JOIN UserRoles u
                             ON role.ID = u.RoleID
                             WHERE UserID = @ID";
 
-                    var roles = await connection.QueryAsync<Role>(sqlRoles, new
-                    {
-                        ID = result.ID
-                    });
+                        var roles = await connection.QueryAsync<Role>(sqlRoles, new
+                        {
+                            ID = result.ID
+                        });
 
-                    result.Roles = roles.ToList();
+                        result.Roles = roles.ToList();
+                    }
+
+                    logger.End();
+                    return result.SomeWhen(u => u != null && u.ID > 0);
                 }
-
-                return result.SomeWhen(u => u != null && u.ID > 0);
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -331,7 +362,11 @@ namespace Inuplan.DAL.Repositories
         {
             try
             {
-                var sql = @"UPDATE Users SET
+                logger.Begin();
+                using (var connection = connectionFactory.CreateConnection())
+                using (var transaction = connection.BeginTransaction())
+                {
+                    var sql = @"UPDATE Users SET
                             FirstName = @FirstName,
                             LastName = @LastName,
                             Email = @Email,
@@ -339,21 +374,28 @@ namespace Inuplan.DAL.Repositories
                             DisplayName = @DisplayName
                         WHERE Username = @key";
 
-                var result = await connection.ExecuteAsync(sql, new
-                {
-                    FirstName = entity.FirstName,
-                    LastName = entity.LastName,
-                    Email = entity.Email,
-                    Username = entity.Username,
-                    DisplayName = entity.DisplayName,
-                    key,
-                });
+                    var result = await connection.ExecuteAsync(sql, new
+                    {
+                        FirstName = entity.FirstName,
+                        LastName = entity.LastName,
+                        Email = entity.Email,
+                        Username = entity.Username,
+                        DisplayName = entity.DisplayName,
+                        key = key,
+                    }, transaction);
 
-                return result == 1;
+                    var success = result == 1;
+
+                    if (success) transaction.Commit();
+                    else transaction.Rollback();
+
+                    logger.End();
+                    return success;
+                }
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                Logger.Error(ex);
+                logger.Error(ex);
                 throw;
             }
         }
@@ -364,21 +406,14 @@ namespace Inuplan.DAL.Repositories
         /// <param name="disposing">Indicates whether to dispose this resource</param>
         protected virtual void Dispose(bool disposing)
         {
-            lock(locking)
+            if (disposed)
             {
-                if(disposed)
-                {
-                    return;
-                }
+                return;
+            }
 
-                if(disposing)
-                {
-                    if(connection != null)
-                    {
-                        connection.Dispose();
-                        disposed = true;
-                    }
-                }
+            if (disposing)
+            {
+                disposed = true;
             }
         }
 

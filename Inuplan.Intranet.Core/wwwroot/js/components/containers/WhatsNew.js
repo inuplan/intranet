@@ -41,8 +41,9 @@ class WhatsNewContainer extends React.Component {
     render() {
         const { items, getUser, totalPages, page } = this.props;
         return  <Row>
-                    <Col lg={4}>
+                    <Col>
                         <h3>Sidste h&aelig;ndelser</h3>
+                        <hr />
                         <WhatsNewList
                             items={items}
                             getUser={getUser} />
