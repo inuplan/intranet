@@ -34,9 +34,7 @@ namespace Inuplan.WebAPI.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=NUUS07\\INTRANETDB;Initial Catalog=IntranetDB;User ID=intranetdb;Passw" +
-            "ord=NGsDGzjUCY;MultipleActiveResultSets=true;Asynchronous Processing=True;Min Po" +
-            "ol Size=5;")]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"Data Source=NUUS07\INTRANETDB;Initial Catalog=IntranetDB;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;MultipleActiveResultSets=true;Asynchronous Processing=True;Min Pool Size=5;")]
         public string connectionStringRelease {
             get {
                 return ((string)(this["connectionStringRelease"]));
