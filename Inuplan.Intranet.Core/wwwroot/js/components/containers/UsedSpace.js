@@ -2,6 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { Row, Col, ProgressBar } from 'react-bootstrap'
 import { fetchSpaceInfo } from '../../actions/status'
+import Chart from 'chart-js'
 
 const mapStateToProps = (state) => {
     return {
@@ -33,6 +34,9 @@ class UsedSpaceView extends React.Component {
         const free = Math.round((total - used)*100) / 100;
         const usedPercent = ((used/total)* 100);
         const percentRound = Math.round(usedPercent*100) / 100;
+        const show = Boolean(usedPercent) && Boolean(used) && Boolean(free) && Boolean(total);
+        if(!show) return null;
+
         return  <Row>
                     <Col>
                         <ProgressBar striped={true} bsStyle="success" now={usedPercent} key={1} />
@@ -43,6 +47,47 @@ class UsedSpaceView extends React.Component {
                         </p>
                     </Col>
                 </Row>
+    }
+}
+
+//                        <UsedSpaceDoughnut
+//                            id="canvasDoughnut"
+//                            free={Math.round(free)}
+//                            used={Math.round(used)}
+//                            width={460}
+//                            height={300}
+//                        />
+
+class UsedSpaceDoughnut extends React.Component {
+    componentDidMount() {
+        const { id, used, free } = this.props;
+        const ctx = document.getElementById(id);
+        const dataOptions = {
+            labels: ["Brugt", "Fri"],
+            datasets: [
+                {
+                    data: [used, free],
+                    backgroundColor: [
+                        "#FF6384",
+                        "#36A2EB"
+                    ],
+                    hoverBackgroundColor: [
+                        "#FF6384",
+                        "#36A2EB"
+                    ]
+                }
+            ]
+        };
+        let chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: dataOptions
+        })
+    }
+
+    render() {
+        const { id, width, height } = this.props;
+        return  <canvas id={id} width={width} height={height}>
+                </canvas>
     }
 }
 

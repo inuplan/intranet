@@ -117,10 +117,10 @@ namespace Inuplan.WebAPI
         {
             Logger.Trace("Configuring websocket server...");
             var resolver = autofac.GetRootLifetimeScope();
-            var sessionManager = resolver.ResolveKeyed<IWebSocketHubSession>(ServiceKeys.LatestHub);
+            var option = resolver.Resolve<WebSocketOption>();
 
             Logger.Trace("Setting middleware handler for websocket requests...");
-            app.UseWebSocketMiddleware(sessionManager);
+            app.UseWebSocketMiddleware(option);
         }
 
         /// <summary>

@@ -267,6 +267,7 @@
     <Compile Include="Logger\NLogServiceWrapper.cs" />
     <Compile Include="Middlewares\ManageUserMiddleware.cs" />
     <Compile Include="Middlewares\Options\ManageUserOption.cs" />
+    <Compile Include="Middlewares\Options\WebSocketOption.cs" />
     <Compile Include="Middlewares\WebSocketMiddleware.cs" />
     <Compile Include="Mocks\NoADRepo.cs" />
     <Compile Include="Program.cs" />
