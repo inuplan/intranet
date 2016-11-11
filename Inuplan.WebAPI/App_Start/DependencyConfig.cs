@@ -135,10 +135,12 @@ namespace Inuplan.WebAPI.App_Start
 
             // Register web socket services
             builder.RegisterType<LatestBroadcastService>().WithAttributeFilter();
-            builder
-                .Register(ctx => new HubSession("latest", ctx.Resolve<ILogger<HubSession>>()))
-                .Keyed<IWebSocketHubSession>(ServiceKeys.LatestHub)
-                .SingleInstance();
+            builder.Register(ctx => new HubSession(Settings.Default.webSocketServiceLatest, ctx.Resolve<ILogger<HubSession>>()))
+                   .As<IWebSocketHubSession>()
+                   .SingleInstance();
+            builder.RegisterType<WebSocketOption>()
+                   .WithParameter(new TypedParameter(typeof(int), 1024))
+                   .WithParameter(new TypedParameter(typeof(string), Settings.Default.webSocketServiceLatest));
 
             // Use autofac owin pipeline
             OwinPipeline(builder);
