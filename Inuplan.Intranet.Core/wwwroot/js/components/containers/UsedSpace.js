@@ -2,7 +2,6 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { Row, Col, ProgressBar } from 'react-bootstrap'
 import { fetchSpaceInfo } from '../../actions/status'
-import Chart from 'chart-js'
 
 const mapStateToProps = (state) => {
     return {
@@ -50,6 +49,9 @@ class UsedSpaceView extends React.Component {
     }
 }
 
+const UsedSpace = connect(mapStateToProps, mapDispatchToProps)(UsedSpaceView);
+export default UsedSpace;
+
 //                        <UsedSpaceDoughnut
 //                            id="canvasDoughnut"
 //                            free={Math.round(free)}
@@ -58,38 +60,35 @@ class UsedSpaceView extends React.Component {
 //                            height={300}
 //                        />
 
-class UsedSpaceDoughnut extends React.Component {
-    componentDidMount() {
-        const { id, used, free } = this.props;
-        const ctx = document.getElementById(id);
-        const dataOptions = {
-            labels: ["Brugt", "Fri"],
-            datasets: [
-                {
-                    data: [used, free],
-                    backgroundColor: [
-                        "#FF6384",
-                        "#36A2EB"
-                    ],
-                    hoverBackgroundColor: [
-                        "#FF6384",
-                        "#36A2EB"
-                    ]
-                }
-            ]
-        };
-        let chart = new Chart(ctx, {
-            type: 'doughnut',
-            data: dataOptions
-        })
-    }
-
-    render() {
-        const { id, width, height } = this.props;
-        return  <canvas id={id} width={width} height={height}>
-                </canvas>
-    }
-}
-
-const UsedSpace = connect(mapStateToProps, mapDispatchToProps)(UsedSpaceView);
-export default UsedSpace;
+//class UsedSpaceDoughnut extends React.Component {
+//    componentDidMount() {
+//        const { id, used, free } = this.props;
+//        const ctx = document.getElementById(id);
+//        const dataOptions = {
+//            labels: ["Brugt", "Fri"],
+//            datasets: [
+//                {
+//                    data: [used, free],
+//                    backgroundColor: [
+//                        "#FF6384",
+//                        "#36A2EB"
+//                    ],
+//                    hoverBackgroundColor: [
+//                        "#FF6384",
+//                        "#36A2EB"
+//                    ]
+//                }
+//            ]
+//        };
+//        let chart = new Chart(ctx, {
+//            type: 'doughnut',
+//            data: dataOptions
+//        })
+//    }
+//
+//    render() {
+//        const { id, width, height } = this.props;
+//        return  <canvas id={id} width={width} height={height}>
+//                </canvas>
+//    }
+//}

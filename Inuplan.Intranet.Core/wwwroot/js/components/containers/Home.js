@@ -6,7 +6,6 @@ import { uploadImage } from '../../actions/images'
 import { fetchLatestNews } from '../../actions/whatsnew'
 import { Jumbotron, Grid, Row, Col, Panel, Alert } from 'react-bootstrap'
 import { values } from 'underscore'
-import Chart from 'chart-js'
 import UsedSpace from './UsedSpace'
 
 const mapStateToProps = (state) => {
