@@ -1,7 +1,7 @@
-﻿<script src="~/lib/moment/moment.js"></script>
-<script src="~/lib/moment/locale/da.js"></script>
+﻿<environment names="Staging,Production">
+    <script src="~/lib/moment/min/moment.min.js" asp-append-version="true"></script>
+    <script src="~/lib/moment/locale/da.js" asp-append-version="true"></script>
 
-<environment names="Staging,Production">
     <script type="text/javascript">
         var globals = {
             urls: {
@@ -23,6 +23,9 @@
 </environment>
 
 <environment names="Development">
+    <script src="~/lib/moment/moment.js"></script>
+    <script src="~/lib/moment/locale/da.js"></script>
+
     <script type="text/javascript">
         var globals = {
             urls: {
