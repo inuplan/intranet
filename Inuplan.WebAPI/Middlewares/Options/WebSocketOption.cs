@@ -20,6 +20,8 @@
 
 namespace Inuplan.WebAPI.Middlewares.Options
 {
+    using Autofac.Extras.Attributed;
+    using Common.Enums;
     using Common.Logger;
     using Common.WebSockets;
 
@@ -28,7 +30,7 @@ namespace Inuplan.WebAPI.Middlewares.Options
         public WebSocketOption(
             string path,
             int bufferSize,
-            IWebSocketHubSession sessionManager,
+            [WithKey(ServiceKeys.LatestHub)] IWebSocketHubSession sessionManager,
             ILogger<WebSocketMiddleware> logger
         )
         {
