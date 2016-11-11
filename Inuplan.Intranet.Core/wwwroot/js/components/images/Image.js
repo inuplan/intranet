@@ -28,17 +28,17 @@ export class Image extends React.Component {
         };
 
         return  <div {... props}>
-                    <span className="glyphicon glyphicon-comment" aria-hidden="true"></span> {count}   
+                    <span className="glyphicon glyphicon-comment" aria-hidden="true"></span> {count}
                 </div>
     }
 
     checkboxView() {
         const { canEdit, imageIsSelected, image } = this.props;
         const checked = imageIsSelected(image.ImageID);
-        return (canEdit ? 
+        return (canEdit ?
             <Col lg={6} className="pull-right text-right">
                 <label>
-                    Slet <input type="checkbox" onClick={this.checkboxHandler} checked={checked} /> 
+                    Slet <input type="checkbox" onClick={this.checkboxHandler} checked={checked} />
                 </label>
             </Col>
             : null);
@@ -54,7 +54,7 @@ render() {
                 </Link>
                 <Row>
                     <Link to={url}>
-                        {this.commentIcon(count)} 
+                        {this.commentIcon(count)}
                     </Link>
                     {this.checkboxView()}
                 </Row>

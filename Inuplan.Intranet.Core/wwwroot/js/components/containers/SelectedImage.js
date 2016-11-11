@@ -66,8 +66,8 @@ const mapDispatchToProps = (dispatch) => {
 class ModalImage extends React.Component {
     constructor(props) {
         super(props);
-        this.deleteImageHandler = this.deleteImageHandler.bind(this); 
-        this.close = this.close.bind(this); 
+        this.deleteImageHandler = this.deleteImageHandler.bind(this);
+        this.close = this.close.bind(this);
         this.seeAllCommentsView = this.seeAllCommentsView.bind(this);
         this.reload = this.reload.bind(this);
     }
