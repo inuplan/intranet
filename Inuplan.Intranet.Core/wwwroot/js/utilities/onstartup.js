@@ -18,7 +18,8 @@ export const init = () => {
 export const connectToLatestWebSocketService = () => {
     const supportsWebSockets = 'WebSocket' in window || 'MozWebSocket' in window;
 
-    if(supportsWebSockets) {
+    // Webserver does not support websockets
+    if(false) {
         const socket = new WebSocket(globals.urls.websocket.latest);
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
