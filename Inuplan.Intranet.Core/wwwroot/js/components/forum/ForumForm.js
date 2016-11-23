@@ -119,4 +119,3 @@ export class ForumForm extends React.Component {
                 </Modal>
     }
 }
-//                                                <!--/*<Button bsStyle="success" bsSize="small" active={this.state.IsPublished} onClick={this.handlePublished.bind(this)}><Glyphicon glyph="file" />Udgiv indl&aelig;g</Button>*/-->

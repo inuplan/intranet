@@ -115,7 +115,7 @@ export const fetchThreads = (skip = 0, take = 10) => {
     }
 }
 
-export const fetchPost = (id) => {
+export const fetchPost = (id, cb) => {
     return function(dispatch) {
         const forum = globals.urls.forumpost;
         const url = `${forum}?id=${id}`;
@@ -130,6 +130,7 @@ export const fetchPost = (id) => {
                 dispatch(setPostContent(content));
                 dispatch(setSelectedThread(data.ThreadID));
             })
+            .then(cb);
     }
 }
 
