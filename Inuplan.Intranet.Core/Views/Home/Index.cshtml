@@ -1,20 +1,22 @@
-﻿<script src="~/lib/moment/moment.js"></script>
-<script src="~/lib/moment/locale/da.js"></script>
+﻿<environment names="Staging,Production">
+    <script src="~/lib/moment/min/moment.min.js" asp-append-version="true"></script>
+    <script src="~/lib/moment/locale/da.js" asp-append-version="true"></script>
 
-<environment names="Staging,Production">
     <script type="text/javascript">
         var globals = {
             urls: {
-                users: 'http://beta-intranet:9000/api/user',
-                images: 'http://beta-intranet:9000/api/userimage',
-                imagecomments: 'http://beta-intranet:9000/api/imagecomment',
-                whatsnew: 'http://beta-intranet:9000/api/whatsnew',
-                forumtitle: 'http://beta-intranet:9000/api/forumtitle',
-                forumpost: 'http://beta-intranet:9000/api/forumpost',
-                forumcomments: 'http://beta-intranet:9000/api/forumcomment',
-                diagnostics: 'http://beta-intranet:9000/api/diagnostic',
+                users: 'http://intranet:9000/api/user',
+                images: 'http://intranet:9000/api/userimage',
+                imagecomments: 'http://intranet:9000/api/imagecomment',
+                whatsnew: 'http://intranet:9000/api/whatsnew',
+                forumtitle: 'http://intranet:9000/api/forumtitle',
+                forumpost: 'http://intranet:9000/api/forumpost',
+                forumcomments: 'http://intranet:9000/api/forumcomment',
+                diagnostics: 'http://intranet:9000/api/diagnostic',
+                employeeHandbook: 'http://intranetside/Medarbejderhåndbog',
+                c5search: 'http://intranetc5/Home/Search',
                 websocket: {
-                    latest: 'ws://beta-intranet:9000/latest',
+                    latest: 'ws://intranet:9000/latest',
                 },
             },
             currentUsername: '@ViewBag.Username'
@@ -23,6 +25,9 @@
 </environment>
 
 <environment names="Development">
+    <script src="~/lib/moment/moment.js"></script>
+    <script src="~/lib/moment/locale/da.js"></script>
+
     <script type="text/javascript">
         var globals = {
             urls: {
@@ -34,6 +39,8 @@
                 forumpost: 'http://localhost:9000/api/forumpost',
                 forumcomments: 'http://localhost:9000/api/forumcomment',
                 diagnostics: 'http://localhost:9000/api/diagnostic',
+                employeeHandbook: 'http://intranetside/Medarbejderhåndbog',
+                c5search: 'http://intranetc5/Home/Search',
                 websocket: {
                     latest: 'ws://localhost:9000/latest',
                 },

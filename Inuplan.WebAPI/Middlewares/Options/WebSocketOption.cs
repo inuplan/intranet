@@ -18,33 +18,31 @@
 // TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace Inuplan.WebAPI.Extensions
+namespace Inuplan.WebAPI.Middlewares.Options
 {
-    using Common.Tools;
-    using Middlewares;
-    using Middlewares.Options;
-    using Owin;
-    using WebSocketAccept = Action<IDictionary<string, object>, Func<IDictionary<string, object>, Task>>;
+    using Autofac.Extras.Attributed;
+    using Common.Enums;
+    using Common.Logger;
+    using Common.WebSockets;
 
-    public static class WebSocketMiddlewareHelpers
+    public class WebSocketOption
     {
-        public static IAppBuilder UseWebSocketMiddleware(this IAppBuilder source, WebSocketOption option)
+        public WebSocketOption(
+            string path,
+            int bufferSize,
+            [WithKey(ServiceKeys.LatestHub)] IWebSocketHubSession sessionManager,
+            ILogger<WebSocketMiddleware> logger
+        )
         {
-            var sessionManager = option.SessionManager;
-
-            return source.MapWhen(
-                ctx => ctx.Get<WebSocketAccept>(Constants.OWIN_WEBSOCKET_ACCEPT) != null,
-                app =>
-                {
-                    app.Use(typeof(WebSocketMiddleware), option);
-                    WebSocketMiddleware.RaiseConnected += sessionManager.HandleClientConnected;
-                    WebSocketMiddleware.RaiseDisconnected += sessionManager.HandleClientDisconnected;
-                    WebSocketMiddleware.RaiseReceivedMessage += sessionManager.HandleMessage;
-                });
+            Path = path;
+            BufferSize = bufferSize;
+            SessionManager = sessionManager;
+            Logger = logger;
         }
+
+        public string Path { get; private set; }
+        public int BufferSize { get; private set; }
+        public ILogger<WebSocketMiddleware> Logger { get; private set; }
+        public IWebSocketHubSession SessionManager { get; private set; }
     }
 }

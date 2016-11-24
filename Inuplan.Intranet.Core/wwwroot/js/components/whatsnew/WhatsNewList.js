@@ -5,10 +5,21 @@ import { WhatsNewForumPost } from './WhatsNewForumPost'
 import { Media } from 'react-bootstrap'
 
 export class WhatsNewList extends React.Component {
+    constructor(props) {
+        super(props);
+        this.previewPostHandle = this.previewPostHandle.bind(this);
+    }
+
+    previewPostHandle(index) {
+        const { items, preview } = this.props;
+        const item = items[index];
+        preview(item);
+    }
+
     constructItems() {
-        const { items, getUser } = this.props;
+        const { items, getUser, preview } = this.props;
         const generateKey = (id) => "whatsnew_" + id;
-        return items.map(item => {
+        return items.map( (item, index) => {
             const itemKey = generateKey(item.ID);
             const author = getUser(item.AuthorID);
             switch (item.Type) {
@@ -45,6 +56,8 @@ export class WhatsNewList extends React.Component {
                                 sticky={item.Item.Sticky}
                                 postId={item.Item.ID}
                                 commentCount={item.Item.CommentCount}
+                                preview={this.previewPostHandle}
+                                index={index}
                                 key={itemKey}
                             />
             }

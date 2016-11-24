@@ -35,7 +35,8 @@
   "scripts": {
     "prepublish": "rollup -c rollup.config.release.js",
     "build-js": "rollup -c rollup.config.js",
-    "watch": "rollup -w -c rollup.config.js"
+    "watch": "rollup -w -c rollup.config.js",
+    "start-server": "site.bat"
   },
   "-vs-binding": {
     "BeforeBuild": [

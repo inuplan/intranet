@@ -136,7 +136,7 @@ namespace Inuplan.WebAPI.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("/latest")]
+        [global::System.Configuration.DefaultSettingValueAttribute("latest")]
         public string webSocketServiceLatest {
             get {
                 return ((string)(this["webSocketServiceLatest"]));

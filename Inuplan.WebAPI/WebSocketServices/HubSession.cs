@@ -23,17 +23,15 @@ namespace Inuplan.WebAPI.WebSocketServices
     using Common.Logger;
     using Common.WebSockets;
     using Newtonsoft.Json;
-    using Optional;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.Linq;
-    using Socket = System.Net.WebSockets;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Common.Enums;
+    using Socket = System.Net.WebSockets;
 
     public class HubSession : IWebSocketHubSession
     {

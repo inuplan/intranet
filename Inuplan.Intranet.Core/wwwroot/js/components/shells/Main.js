@@ -4,7 +4,7 @@ import { NavLink, IndexNavLink } from '../wrappers/Links'
 import { Error } from '../containers/Error'
 import { clearError } from '../../actions/error'
 import { connect } from 'react-redux'
-import { Grid, Navbar, Nav } from 'react-bootstrap'
+import { Grid, Navbar, Nav, NavDropdown, MenuItem } from 'react-bootstrap'
 import { values } from 'underscore'
 
 const mapStateToProps = (state) => {
@@ -38,6 +38,8 @@ class Shell extends React.Component {
 
     render() {
         const { name } = this.props;
+        const employeeUrl = globals.urls.employeeHandbook;
+        const c5Search = globals.urls.c5Search;
         return  <Grid fluid={true}>
                     <Navbar fixedTop>
                         <Navbar.Header>
@@ -58,6 +60,14 @@ class Shell extends React.Component {
                             <Navbar.Text pullRight>
                                 Hej, {name}!
                             </Navbar.Text>
+
+                            <Nav pullRight>
+                                <NavDropdown eventKey={5} title="Links" id="extern_links">
+                                    <MenuItem href={employeeUrl} eventKey={5.1}>Medarbejder h&aring;ndbog</MenuItem>
+                                    <MenuItem href={c5Search} eventKey={5.2}>C5 S&oslash;gning</MenuItem>
+                                </NavDropdown>
+                            </Nav>
+
                         </Navbar.Collapse>
 
                     </Navbar>
