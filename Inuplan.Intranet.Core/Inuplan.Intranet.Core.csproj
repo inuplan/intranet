@@ -1,4 +1,4 @@
-﻿<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" />
   <PropertyGroup>
     <VersionPrefix>0.5.4</VersionPrefix>
@@ -14,15 +14,8 @@
     <Compile Include="**\*.cs" />
     <EmbeddedResource Include="**\*.resx" />
     <EmbeddedResource Include="compiler\resources\**\*" />
-    <Content Include="Views\**\*;appsettings.json;web.config;wwwroot\js\bundle.min.js;wwwroot\lib\vendors.min.js;wwwroot\lib\bootstrap\**\*.min.css;wwwroot\lib\bootstrap\**\*.min.css.map;wwwroot\lib\bootstrap\dist\fonts\**\*;wwwroot\lib\moment\**\*;wwwroot\images\**\*;wwwroot\css\**\*.min.css;wwwroot\favicon.ico" Exclude="wwwroot\lib\bootstrap\dist\js\**\*">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Sdk">
-      <Version>1.0.0-alpha-20161104-2</Version>
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.NET.Sdk.Web">
       <Version>1.0.0-alpha-20161104-2-112</Version>
       <PrivateAssets>All</PrivateAssets>
@@ -73,10 +66,5 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
   </PropertyGroup>
-  <Target Name="PrepublishScript" BeforeTargets="Publish" Condition=" '$(IsCrossTargetingBuild)' != 'true' ">
-    <Exec Command="npm run prepublish" />
-    <Exec Command="gulp min:css" />
-  </Target>
-  <Target Name="PostpublishScript" AfterTargets="Publish" Condition=" '$(IsCrossTargetingBuild)' != 'true' " />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
