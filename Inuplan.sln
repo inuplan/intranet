@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Intranet.Core", "In
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Inuplan.IntranetDB", "Inuplan.IntranetDB\Inuplan.IntranetDB.sqlproj", "{9B1EDF10-927D-4E6E-AE49-33600EFF804F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Intranet", "Inuplan.Intranet\Inuplan.Intranet.csproj", "{554C055E-F681-4405-8F13-6DD80C97043A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{9B1EDF10-927D-4E6E-AE49-33600EFF804F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B1EDF10-927D-4E6E-AE49-33600EFF804F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9B1EDF10-927D-4E6E-AE49-33600EFF804F}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{554C055E-F681-4405-8F13-6DD80C97043A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{554C055E-F681-4405-8F13-6DD80C97043A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{554C055E-F681-4405-8F13-6DD80C97043A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{554C055E-F681-4405-8F13-6DD80C97043A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
