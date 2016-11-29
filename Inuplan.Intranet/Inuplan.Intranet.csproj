@@ -18,6 +18,9 @@
   <PropertyGroup>
     <PackageTargetFallback>$(PackageTargetFallback);portable-net45+win8+wp8+wpa81;</PackageTargetFallback>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Bump Major|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Bump Minor|AnyCPU'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Bump Patch|AnyCPU'" />
   <ItemGroup>
     <Compile Include="**\*.cs" Exclude="$(GlobalExclude)" />
     <Content Include="**\.*js" Exclude="wwwroot\**\*.js" />
