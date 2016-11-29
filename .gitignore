@@ -15,6 +15,7 @@ TestResults
 *.user
 *.sln.docstates
 *.swp
+*.jfm
 
 # Build results
 **/[Dd]ebug/
