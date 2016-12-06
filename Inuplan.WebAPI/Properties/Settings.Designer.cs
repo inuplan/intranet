@@ -70,7 +70,7 @@ namespace Inuplan.WebAPI.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://beta-intranet:9000")]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://intranet:9000")]
         public string addressRelease {
             get {
                 return ((string)(this["addressRelease"]));
