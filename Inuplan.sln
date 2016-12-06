@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.25920.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.WebAPI", "Inuplan.WebAPI\Inuplan.WebAPI.csproj", "{98FBCC8F-9531-4EF1-BF71-7923ECA8EB12}"
 EndProject
@@ -11,7 +11,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Common", "Inuplan.C
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Inuplan.IntranetDB", "Inuplan.IntranetDB\Inuplan.IntranetDB.sqlproj", "{9B1EDF10-927D-4E6E-AE49-33600EFF804F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Inuplan.Intranet", "Inuplan.Intranet\Inuplan.Intranet.csproj", "{554C055E-F681-4405-8F13-6DD80C97043A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C180F181-EAD6-4248-BB87-9F4CD461AA27}"
+	ProjectSection(SolutionItems) = preProject
+		global.json = global.json
+	EndProjectSection
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Inuplan.Intranet", "Inuplan.Intranet\Inuplan.Intranet.xproj", "{88E57577-C636-4D39-BF06-0C2B727DC4FD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,16 +72,16 @@ Global
 		{9B1EDF10-927D-4E6E-AE49-33600EFF804F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9B1EDF10-927D-4E6E-AE49-33600EFF804F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9B1EDF10-927D-4E6E-AE49-33600EFF804F}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{554C055E-F681-4405-8F13-6DD80C97043A}.Bump Major|Any CPU.ActiveCfg = Bump Major|Any CPU
-		{554C055E-F681-4405-8F13-6DD80C97043A}.Bump Major|Any CPU.Build.0 = Bump Major|Any CPU
-		{554C055E-F681-4405-8F13-6DD80C97043A}.Bump Minor|Any CPU.ActiveCfg = Bump Minor|Any CPU
-		{554C055E-F681-4405-8F13-6DD80C97043A}.Bump Minor|Any CPU.Build.0 = Bump Minor|Any CPU
-		{554C055E-F681-4405-8F13-6DD80C97043A}.Bump Patch|Any CPU.ActiveCfg = Bump Patch|Any CPU
-		{554C055E-F681-4405-8F13-6DD80C97043A}.Bump Patch|Any CPU.Build.0 = Bump Patch|Any CPU
-		{554C055E-F681-4405-8F13-6DD80C97043A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{554C055E-F681-4405-8F13-6DD80C97043A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{554C055E-F681-4405-8F13-6DD80C97043A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{554C055E-F681-4405-8F13-6DD80C97043A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88E57577-C636-4D39-BF06-0C2B727DC4FD}.Bump Major|Any CPU.ActiveCfg = Debug|Any CPU
+		{88E57577-C636-4D39-BF06-0C2B727DC4FD}.Bump Major|Any CPU.Build.0 = Debug|Any CPU
+		{88E57577-C636-4D39-BF06-0C2B727DC4FD}.Bump Minor|Any CPU.ActiveCfg = Debug|Any CPU
+		{88E57577-C636-4D39-BF06-0C2B727DC4FD}.Bump Minor|Any CPU.Build.0 = Debug|Any CPU
+		{88E57577-C636-4D39-BF06-0C2B727DC4FD}.Bump Patch|Any CPU.ActiveCfg = Debug|Any CPU
+		{88E57577-C636-4D39-BF06-0C2B727DC4FD}.Bump Patch|Any CPU.Build.0 = Debug|Any CPU
+		{88E57577-C636-4D39-BF06-0C2B727DC4FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88E57577-C636-4D39-BF06-0C2B727DC4FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88E57577-C636-4D39-BF06-0C2B727DC4FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88E57577-C636-4D39-BF06-0C2B727DC4FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -48,7 +48,8 @@ var paths = {
     markedMin: noderoot + "marked/marked.min.js",
     removeMarkdown: noderoot + "remove-markdown/index.js",
     reactBootstrap: noderoot + "react-bootstrap/lib/index.js",
-    reactBootstrapMin: noderoot + "react-bootstrap/dist/react-bootstrap.min.js"
+    reactBootstrapMin: noderoot + "react-bootstrap/dist/react-bootstrap.min.js",
+    polyfillPromise: noderoot + "polyfill-promise/register.js"
 };
 
 var vendors = [
@@ -62,7 +63,8 @@ var vendors = [
     { file: paths.isomorphicFetch, expose: 'isomorphic-fetch' },
     { file: paths.marked, expose: 'marked' },
     { file: paths.removeMarkdown, expose: 'remove-markdown' },
-    { file: paths.reactBootstrap, expose: 'react-bootstrap' }
+    { file: paths.reactBootstrap, expose: 'react-bootstrap' },
+    { file: paths.polyfillPromise, expose: 'Promise' }
 ]
 
 var vendorsMin = [
@@ -76,7 +78,8 @@ var vendorsMin = [
     { file: paths.isomorphicFetch, expose: 'isomorphic-fetch' },
     { file: paths.markedMin, expose: 'marked' },
     { file: paths.removeMarkdown, expose: 'remove-markdown' },
-    { file: paths.reactBootstrapMin, expose: 'react-bootstrap' }
+    { file: paths.reactBootstrapMin, expose: 'react-bootstrap' },
+    { file: paths.polyfillPromise, expose: 'Promise' }
 ]
 
 // =============================
