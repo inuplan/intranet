@@ -2,8 +2,12 @@
 
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { connect, Provider } from 'react-redux'
+import { Router, Route, IndexRoute, browserHistory } from 'react-router'
+import { Provider } from 'react-redux'
 
 ReactDOM.render(
-    <Provider store={ {} } />
+    <Provider>
+        <Router history={browserHistory}>
+        </Router>
+    </Provider>
     , document.getElementById("content"));
