@@ -6,6 +6,8 @@
   "dependencies": {
     "browserify": "^13.1.1",
     "chart.js": "^2.4.0",
+    "es6-object-assign": "^1.0.3",
+    "es6-promise": "^4.0.5",
     "fs": "^0.0.1-security",
     "gulp": "^3.9.1",
     "gulp-concat": "^2.6.1",
