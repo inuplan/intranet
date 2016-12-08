@@ -44,7 +44,7 @@ class Shell extends React.Component {
                     <Navbar fixedTop>
                         <Navbar.Header>
                             <Navbar.Brand>
-                                <Link to="/" className="navbar-brand">Inuplan Intranet</Link>
+                                <Link to="http://intranetside" className="navbar-brand">Inuplan Intranet</Link>
                             </Navbar.Brand>
                             <Navbar.Toggle />
                         </Navbar.Header>
