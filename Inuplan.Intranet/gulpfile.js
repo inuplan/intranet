@@ -49,7 +49,11 @@ var paths = {
     removeMarkdown: noderoot + "remove-markdown/index.js",
     reactBootstrap: noderoot + "react-bootstrap/lib/index.js",
     reactBootstrapMin: noderoot + "react-bootstrap/dist/react-bootstrap.min.js",
-    polyfillPromise: noderoot + "polyfill-promise/register.js"
+    polyfillPromise: noderoot + "polyfill-promise/register.js",
+    es6Promise: noderoot + "es6-promise/lib/es6-promise.js",
+    es6PromiseMin: noderoot + "es6-promise/dist/es6-promise.js",
+    objectAssign: noderoot + "es6-object-assign/dist/object-assign.js",
+    objectAssignMin: noderoot + "es6-object-assign/dist/object-assign.min.js"
 };
 
 var vendors = [
@@ -64,7 +68,9 @@ var vendors = [
     { file: paths.marked, expose: 'marked' },
     { file: paths.removeMarkdown, expose: 'remove-markdown' },
     { file: paths.reactBootstrap, expose: 'react-bootstrap' },
-    { file: paths.polyfillPromise, expose: 'Promise' }
+    { file: paths.polyfillPromise, expose: 'Promise' },
+    { file: paths.es6PromiseMin, expose: "es6-promise" },
+    { file: paths.objectAssign, expose: "es6-object-assign" }
 ]
 
 var vendorsMin = [
@@ -79,7 +85,9 @@ var vendorsMin = [
     { file: paths.markedMin, expose: 'marked' },
     { file: paths.removeMarkdown, expose: 'remove-markdown' },
     { file: paths.reactBootstrapMin, expose: 'react-bootstrap' },
-    { file: paths.polyfillPromise, expose: 'Promise' }
+    { file: paths.polyfillPromise, expose: 'Promise' },
+    { file: paths.es6PromiseMin, expose: "es6-promise" },
+    { file: paths.objectAssignMin, expose: "es6-object-assign" }
 ]
 
 // =============================
