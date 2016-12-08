@@ -72,7 +72,7 @@ class HomeView extends React.Component {
                     <Jumbotron>
                         <h1><span>Velkommen <small>{name}!</small></span></h1>
                         <p className="lead">
-                            Til Inuplans intranet side
+                            Til Inuplans forum og billed-arkiv side
                         </p>
 
                         <Row>
