@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "jsx": "preserve",
+        "module": "es6",
+        "outDir": "./dist",
+        "noImplicitAny": true
+    },
+    "files":[
+        "./typings/globals/react/index.d.ts",
+        "./typings/globals/react-dom/index.d.ts",
+        "./typings/globals/react-redux/index.d.ts",
+        "./typings/globals/react-router/index.d.ts",
+        "./typings/globals/react-router/history/index.d.ts",
+        "./typings/globals/redux/index.d.ts",
+        "./app.tsx"
+    ]
+}

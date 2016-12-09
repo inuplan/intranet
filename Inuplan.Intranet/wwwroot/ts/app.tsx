@@ -1,5 +1,4 @@
-/// <reference path="../../typings/index.d.ts" />
-
+/// <reference path="./typings/index.d.ts" />
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Router, Route, IndexRoute, browserHistory } from 'react-router'
