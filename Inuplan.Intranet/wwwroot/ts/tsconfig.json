@@ -3,8 +3,11 @@
         "jsx": "preserve",
         "module": "es6",
         "outDir": "./dist",
-        "noImplicitAny": true
+        "noImplicitAny": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true
     },
+    "compileOnSave": false,
     "files":[
         "./typings/globals/react/index.d.ts",
         "./typings/globals/react-dom/index.d.ts",
