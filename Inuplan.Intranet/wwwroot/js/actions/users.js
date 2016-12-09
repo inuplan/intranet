@@ -1,4 +1,4 @@
-﻿import fetch from 'isomorphic-fetch';
+﻿import fetch from 'isomorphic-fetch'
 import _ from 'underscore'
 import * as T from '../constants/types'
 import { options } from '../constants/constants'

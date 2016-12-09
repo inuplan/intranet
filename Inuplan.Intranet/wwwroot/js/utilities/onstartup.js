@@ -6,8 +6,12 @@ import { setLatest, fetchLatestNews } from '../actions/whatsnew'
 import { newForumThreadFromServer, fetchThreads, fetchPost } from '../actions/forum'
 import { fetchSpaceInfo } from '../actions/status'
 import { getImageCommentsPageUrl, getForumCommentsPageUrl } from '../utilities/utils'
+import { polyfill } from 'es6-promise'
+import { polyfill as objectPolyfill } from 'es6-object-assign'
 
 export const init = () => {
+    objectPolyfill();
+    polyfill();
     store.dispatch(fetchCurrentUser(globals.currentUsername));
     store.dispatch(fetchUsers());
     moment.locale('da');
@@ -19,11 +23,11 @@ export const connectToLatestWebSocketService = () => {
     const supportsWebSockets = 'WebSocket' in window || 'MozWebSocket' in window;
 
     // Webserver does not support websockets
-    if(false) {
+    if (false) {
         const socket = new WebSocket(globals.urls.websocket.latest);
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            switch(data.type) {
+            switch (data.type) {
                 case 'NEW_IMAGE_COMMENT':
                     store.dispatch(newCommentFromServer(data.item));
                     break;
