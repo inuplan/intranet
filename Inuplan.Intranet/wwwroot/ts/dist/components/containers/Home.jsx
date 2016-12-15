@@ -1,25 +1,8 @@
-import * as React from 'react'
-import { Components as C } from '../../interfaces/Components'
-import { Jumbotron, Grid, Row, Col, Panel, Alert } from 'react-bootstrap'
-import { globals } from '../../interfaces/General'
-import { Root } from '../../interfaces/State'
-import { connect, Dispatch } from 'react-redux'
-//import { fetchLatestNews } from '../../actions/whatsnew'
-
-interface stateToProps extends C.UsernameProp {
-    skip: number
-    take: number
-}
-
-interface dispatchToProps {
-    uploadImage: (skip: number, take: number, username: string, formData: FormData) => void
-}
-
-interface componentState {
-    recommended: boolean
-}
-
-const mapStateToProps = (state:Root): stateToProps => {
+import * as React from 'react';
+import { Jumbotron, Grid, Row, Col, Panel, Alert } from 'react-bootstrap';
+import { globals } from '../../interfaces/General';
+import { connect } from 'react-redux';
+const mapStateToProps = (state) => {
     const user = state.usersInfo.users[state.usersInfo.currentUserId];
     const hasUser = state.usersInfo.currentUserId > 0 && Boolean(user.Username);
     const name = hasUser ? user.Username : "User";
@@ -27,46 +10,39 @@ const mapStateToProps = (state:Root): stateToProps => {
         username: name,
         skip: state.whatsNewInfo.skip,
         take: state.whatsNewInfo.take
-    }
-}
-
-const mapDispatchToProps = (dispatch: Dispatch<Root>): dispatchToProps => {
+    };
+};
+const mapDispatchToProps = (dispatch) => {
     return {
         uploadImage: (skip, take, username, formData) => {
             console.log(dispatch, skip, take, username, formData);
             // const onSuccess = () => {
             //     dispatch(fetchLatestNews(skip, take));
             // }
-
-            // dispatch(uploadImage(username, formData, onSuccess, () => { }));
+            // dispatch/uploadImage(username, formData, onSuccess, () => { });
         }
-    }
-}
-
-class HomeView extends React.Component<stateToProps & dispatchToProps, componentState> {
-    constructor(props: any) {
+    };
+};
+class HomeView extends React.Component {
+    constructor(props) {
         super(props);
         this.state = {
             recommended: true
-        }
-
+        };
         this.upload = this.upload.bind(this);
         this.recommendedView = this.recommendedView.bind(this);
     }
-
     componentDidMount() {
         document.title = "Forside";
     }
-
-    upload(username: string, formData: FormData) {
+    upload(username, formData) {
         const { uploadImage, skip, take } = this.props;
         uploadImage(skip, take, username, formData);
     }
-
     recommendedView() {
-        if(!this.state.recommended) return null;
-
-        return  <Row>
+        if (!this.state.recommended)
+            return null;
+        return <Row>
                     <Col>
                         <Alert bsStyle="success" onDismiss={() => this.setState({ recommended: false })}>
                             <h4>Anbefalinger</h4>
@@ -75,12 +51,11 @@ class HomeView extends React.Component<stateToProps & dispatchToProps, component
                             </ul>
                         </Alert>
                     </Col>
-                </Row>
+                </Row>;
     }
-
     render() {
         const username = globals.currentUsername;
-        return  <Row>
+        return <Row>
                     <Jumbotron>
                         <h1><span>Velkommen <small>{username}!</small></span></h1>
                         <p className="lead">
@@ -90,7 +65,7 @@ class HomeView extends React.Component<stateToProps & dispatchToProps, component
                         <Row>
                             <Col lg={4}>
                                 <Panel header={'Du kan uploade billeder til dit eget galleri her'} bsStyle="primary">
-                                    {/*<ImageUpload username={username} uploadImage={this.upload} />*/}
+                                    
                                 </Panel>
                             </Col>
                         </Row>
@@ -100,7 +75,7 @@ class HomeView extends React.Component<stateToProps & dispatchToProps, component
                             <Col lg={2}>
                             </Col>
                             <Col lg={4}>
-                                {/*<WhatsNew />*/}
+                                
                             </Col>
                             <Col lgOffset={1} lg={3}>
                                 {this.recommendedView()}
@@ -110,13 +85,12 @@ class HomeView extends React.Component<stateToProps & dispatchToProps, component
                                     Herunder kan du se hvor meget plads du har brugt og hvor meget fri plads
                                     der er tilbage. Gælder kun billede filer.
                                 </p>
-                                {/*<UsedSpace />*/}
+                                
                             </Col>
                         </Row>
                     </Grid>
-                </Row>
+                </Row>;
     }
 }
-
-const Home = connect(mapStateToProps, mapDispatchToProps)(HomeView)
+const Home = connect(mapStateToProps, mapDispatchToProps)(HomeView);
 export default Home;

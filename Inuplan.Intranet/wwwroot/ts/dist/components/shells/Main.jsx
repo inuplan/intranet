@@ -7,7 +7,7 @@ import { NavLink, IndexNavLink } from '../wrappers/Links';
 import { globals } from '../../interfaces/General';
 const mapStateToProps = (state) => {
     const user = state.usersInfo.users[state.usersInfo.currentUserId];
-    const hasUser = state.usersInfo.currentUserId < 0 || !Boolean(user.Username);
+    const hasUser = state.usersInfo.currentUserId > 0 && Boolean(user.Username);
     const name = hasUser ? user.Username : "User";
     return {
         username: name,
