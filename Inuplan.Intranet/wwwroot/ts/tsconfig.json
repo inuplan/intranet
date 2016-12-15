@@ -5,16 +5,20 @@
         "outDir": "./dist",
         "noImplicitAny": true,
         "noUnusedLocals": true,
-        "noUnusedParameters": true
+        "noUnusedParameters": true,
+        "target": "es6",
+        "lib": [
+            "es2015", "dom"
+        ],
+        "typeRoots": [
+            "C:/Users/Johnny/Documents/Inuplan/intranet/Inuplan.Intranet/node_modules/@types"
+        ]
+    },
+    "typeAcquisition": {
+        "enable": true
     },
     "compileOnSave": false,
     "files":[
-        "./typings/globals/react/index.d.ts",
-        "./typings/globals/react-dom/index.d.ts",
-        "./typings/globals/react-redux/index.d.ts",
-        "./typings/globals/react-router/index.d.ts",
-        "./typings/globals/react-router/history/index.d.ts",
-        "./typings/globals/redux/index.d.ts",
-        "./app.tsx"
+        "./src/app.tsx"
     ]
 }
