@@ -99,7 +99,7 @@ export const deleteImage = (id: number, username: string) => {
     }
 }
 
-export const uploadImage = (username: string, formData: FormData, onSuccess: () => any, onError: (any) => any) => {
+export const uploadImage = (username: string, formData: FormData, onSuccess: () => any, onError: () => any) => {
     return (dispatch) => {
         const url = globals.urls.images + "?username=" + username;
         const opt = Object.assign({}, options, {
