@@ -17,7 +17,7 @@ interface UsersState {
 
 interface ImagesState {
     ownerId: number,
-    images: Data.Image,
+    images: General.KeyValue<Data.Image>,
     selectedImageId: number,
     selectedImageIds: number[]
 }
