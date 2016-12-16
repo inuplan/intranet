@@ -27,9 +27,7 @@ export const options: RequestInit = {
     credentials: "include"
 }
 
-export const responseHandler =  <T>(dispatch:Dispatch<Root>) =>
-                                (onSuccess: (r:IResponse) => Promise<T>) =>
-                                (response: IResponse) => {
+export const responseHandler =  <T>(dispatch:Dispatch<Root>) => (onSuccess: (r:IResponse) => Promise<T>) => (response: IResponse) => {
     if(response.ok) return onSuccess(response);
     else {
         switch(response.status) {
@@ -49,8 +47,5 @@ export const responseHandler =  <T>(dispatch:Dispatch<Root>) =>
                 dispatch(setError({ title: "Oops", message: "Something went wrong!"}));
                 break;
         }
-        
-        const message = `${response.status} - ${response.statusText}. URL: ${response.url}`;
-        throw new Error(message);
     }
 }
