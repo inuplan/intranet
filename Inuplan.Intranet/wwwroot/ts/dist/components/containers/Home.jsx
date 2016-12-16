@@ -19,7 +19,7 @@ const mapDispatchToProps = (dispatch) => {
             // const onSuccess = () => {
             //     dispatch(fetchLatestNews(skip, take));
             // }
-            // dispatch/uploadImage(username, formData, onSuccess, () => { });
+            // dispatch(uploadImage(username, formData, onSuccess, () => { }));
         }
     };
 };

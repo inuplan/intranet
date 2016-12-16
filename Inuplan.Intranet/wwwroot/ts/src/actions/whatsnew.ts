@@ -1,5 +1,6 @@
 import { globals, General } from '../interfaces/General'
 import { responseHandler, options } from '../utilities/utils'
+import { normalizeLatest as normalize } from '../utilities/normalize'
 import { Dispatch } from 'redux'
 import { Root } from '../interfaces/State'
 import { Data } from '../interfaces/Data'
@@ -76,54 +77,4 @@ const getAuthor = (type: Data.WhatsNewType, item: Data.Raw.ImageDTO | Data.Raw.W
         author = (<Data.Raw.ImageDTO>item).Author;
     }
     return author;
-}
-
-const normalize = (latest: Data.Raw.WhatsNewItem): Data.WhatsNew => {
-    let item = null;
-    let authorId = -1;
-    if(latest.Type == Data.WhatsNewType.Image) {
-        // Image - omit Author and CommentCount
-        const image = <Data.Raw.ImageDTO>latest.Item;
-        item = {
-            Extension: image.Extension,
-            Filename: image.Filename,
-            ImageID: image.ImageID,
-            OriginalUrl: image.OriginalUrl,
-            PreviewUrl: image.PreviewUrl,
-            ThumbnailUrl: image.ThumbnailUrl,
-            Uploaded: image.Uploaded
-        };
-        authorId = image.Author.ID;
-    }
-    else if (latest.Type == Data.WhatsNewType.Comment) {
-        // Comment - omit Author and Deleted and Replies
-        const comment = <Data.Raw.WhatsNewImageCommentDTO>latest.Item;
-        item = {
-            ID: comment.ID,
-            Text: comment.Text,
-            ImageID: comment.ImageID,
-            ImageUploadedBy: comment.ImageUploadedBy,
-            Filename: comment.Filename
-        };
-        authorId = comment.Author.ID;
-    }
-    else if (latest.Type == Data.WhatsNewType.ForumPost) {
-        const post = <Data.Raw.ThreadPostContentDTO>latest.Item;
-        item = {
-            ID: post.ThreadID,
-            Title: post.Header.Title,
-            Text: post.Text,
-            Sticky: post.Header.Sticky,
-            CommentCount: post.Header.CommentCount
-        }
-        authorId = post.Header.Author.ID;
-    }
-
-    return {
-        ID: latest.ID,
-        Type: latest.Type,
-        Item: item,
-        On: latest.On,
-        AuthorID: authorId,
-    }
 }

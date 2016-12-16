@@ -40,5 +40,7 @@ export const responseHandler = (dispatch) => (onSuccess) => (response) => {
                 dispatch(setError({ title: "Oops", message: "Something went wrong!" }));
                 break;
         }
+        const message = `${response.status} - ${response.statusText}. URL: ${response.url}`;
+        throw new Error(message);
     }
 };

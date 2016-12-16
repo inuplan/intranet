@@ -24,7 +24,7 @@ export const put = <V>(obj: G.KeyValue<V>, key: number, value: V): G.KeyValue<V>
 
 export const options: RequestInit = {
     mode: "cors",
-    credentials: <RequestCredentials>"include"
+    credentials: "include"
 }
 
 export const responseHandler =  <T>(dispatch:Dispatch<Root>) =>
@@ -49,5 +49,8 @@ export const responseHandler =  <T>(dispatch:Dispatch<Root>) =>
                 dispatch(setError({ title: "Oops", message: "Something went wrong!"}));
                 break;
         }
+        
+        const message = `${response.status} - ${response.statusText}. URL: ${response.url}`;
+        throw new Error(message);
     }
 }

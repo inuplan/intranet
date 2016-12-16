@@ -7,8 +7,8 @@ export declare namespace General {
     }
 
     export interface Action<T> extends ActionRedux {
-        type: ActionType
-        payload: T
+        readonly type: ActionType
+        readonly payload: T
     }
 
     export type FunctionGeneric<T,R> = (T:T) => R;
@@ -17,22 +17,22 @@ export declare namespace General {
 export declare var globals: IGlobals;
 
 interface IGlobals {
-    urls: urls
-    currentUsername: string
+    readonly urls: urls
+    readonly currentUsername: string
 }
 
 interface urls {
-    users: string
-    images: string
-    imagecomments: string
-    whatsnew: string
-    forumtitle: string
-    forumpost: string
-    forumcomments: string
-    diagnostics: string
-    employeeHandbook: string
-    c5Search: string
-    websocket: {
-        latest: string
+    readonly users: string
+    readonly images: string
+    readonly imagecomments: string
+    readonly whatsnew: string
+    readonly forumtitle: string
+    readonly forumpost: string
+    readonly forumcomments: string
+    readonly diagnostics: string
+    readonly employeeHandbook: string
+    readonly c5Search: string
+    readonly websocket: {
+        readonly latest: string
     }
 }

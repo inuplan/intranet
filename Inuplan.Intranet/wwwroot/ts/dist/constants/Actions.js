@@ -17,4 +17,16 @@ export var ActionType;
     ActionType[ActionType["SET_PAGE_WHATS_NEW"] = 11] = "SET_PAGE_WHATS_NEW";
     ActionType[ActionType["SET_TOTAL_PAGES_WHATS_NEW"] = 12] = "SET_TOTAL_PAGES_WHATS_NEW";
     // <-- end
+    // Images -->
+    ActionType[ActionType["SET_IMAGES_OWNER"] = 13] = "SET_IMAGES_OWNER";
+    ActionType[ActionType["RECIEVED_USER_IMAGES"] = 14] = "RECIEVED_USER_IMAGES";
+    ActionType[ActionType["SET_SELECTED_IMG"] = 15] = "SET_SELECTED_IMG";
+    ActionType[ActionType["ADD_IMAGE"] = 16] = "ADD_IMAGE";
+    ActionType[ActionType["REMOVE_IMAGE"] = 17] = "REMOVE_IMAGE";
+    ActionType[ActionType["ADD_SELECTED_IMAGE_ID"] = 18] = "ADD_SELECTED_IMAGE_ID";
+    ActionType[ActionType["REMOVE_SELECTED_IMAGE_ID"] = 19] = "REMOVE_SELECTED_IMAGE_ID";
+    ActionType[ActionType["CLEAR_SELECTED_IMAGE_IDS"] = 20] = "CLEAR_SELECTED_IMAGE_IDS";
+    ActionType[ActionType["INCR_IMG_COMMENT_COUNT"] = 21] = "INCR_IMG_COMMENT_COUNT";
+    ActionType[ActionType["DECR_IMG_COMMENT_COUNT"] = 22] = "DECR_IMG_COMMENT_COUNT";
+    // <-- end
 })(ActionType || (ActionType = {}));
