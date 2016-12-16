@@ -11,6 +11,7 @@
     "@types/react-redux": "^4.4.35",
     "@types/react-router": "^2.0.41",
     "@types/react-router-redux": "^4.0.35",
+    "@types/underscore": "^1.7.36",
     "browserify": "^13.1.1",
     "chart.js": "^2.4.0",
     "es6-object-assign": "^1.0.3",
