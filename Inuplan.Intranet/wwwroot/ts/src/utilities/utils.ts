@@ -49,3 +49,21 @@ export const responseHandler =  <T>(dispatch:Dispatch<Root>) => (onSuccess: (r:I
         }
     }
 }
+
+export const union = <T>(arr1: T[], arr2:T[], equalityFunc: (v1:T, v2:T) => boolean): T[] => {
+    var result = arr1.concat(arr2);
+    // Better way: loop over 1 array and check
+    // if corresponding item exist in the other array using equality function
+    // If not exists: add item to array 2
+
+    for (var i = 0; i < result.length; i++) {
+        for (var j = i+1; j < result.length; j++) {
+            if (equalityFunc(result[i], result[j])) {
+                result.splice(j, 1);
+                j--;
+            }
+        }
+    }
+
+    return result;
+}

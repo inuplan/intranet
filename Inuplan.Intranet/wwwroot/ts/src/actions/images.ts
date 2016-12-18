@@ -37,10 +37,10 @@ export const addImage = (img:Data.Image): General.Action<Data.Image> => {
     };
 }
 
-export const removeImage = (id: number): General.Action<number> => {
+export const removeImage = (id: number): General.Action<Partial<Data.Image>> => {
     return {
         type: ActionType.REMOVE_IMAGE,
-        payload: id
+        payload: { ImageID: id }
     };
 }
 
@@ -64,17 +64,17 @@ export const clearSelectedImageIds = (): ReduxAction => {
     };
 }
 
-export const incrementCommentCount = (imageId: number): General.Action<number> => {
+export const incrementCommentCount = (imageId: number): General.Action<Partial<Data.Image>> => {
     return {
         type: ActionType.INCR_IMG_COMMENT_COUNT,
-        payload: imageId
+        payload: { ImageID: imageId }
     }
 }
 
-export const decrementCommentCount = (imageId: number): General.Action<Readonly<number>> => {
+export const decrementCommentCount = (imageId: number): General.Action<Partial<Data.Image>> => {
     return {
         type: ActionType.DECR_IMG_COMMENT_COUNT,
-        payload: imageId
+        payload: { ImageID: imageId }
     }
 }
 
