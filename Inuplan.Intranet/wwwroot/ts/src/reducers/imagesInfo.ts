@@ -11,9 +11,13 @@ type Action<T> = General.Action<T>
 const ownerId = (state: number = -1, action: Action<number>): number => {
     switch (action.type) {
         case ActionType.SET_IMAGES_OWNER:
+        {
             return action.payload || -1;
+        }
         default:
+        {
             return state;
+        }
     }
 }
 
@@ -62,9 +66,13 @@ const images = (state: ImageReducer = {}, action: Action<ImageReducer | Partial<
 const selectedImageId = (state: number = -1, action: Action<number>): number => {
     switch (action.type) {
         case ActionType.SET_SELECTED_IMG:
+        {
             return action.payload || -1;
+        }
         default:
+        {
             return state;
+        }
     }
 }
 
@@ -85,7 +93,9 @@ const selectedImageIds = (state: number[] = [], action: Action<number[] | number
             return [];
         }
         default:
+        {
             return state;
+        }
     }
 }
 
