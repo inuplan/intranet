@@ -4,7 +4,9 @@ import { Jumbotron, Grid, Row, Col, Panel, Alert } from 'react-bootstrap'
 import { globals } from '../../interfaces/General'
 import { Root } from '../../interfaces/State'
 import { connect, Dispatch } from 'react-redux'
-//import { fetchLatestNews } from '../../actions/whatsnew'
+import { fetchLatestNews } from '../../actions/whatsnew'
+import { ImageUpload } from '../images/ImageUpload'
+import { uploadImage } from '../../actions/images'
 
 interface stateToProps extends C.UsernameProp {
     skip: number
@@ -33,12 +35,11 @@ const mapStateToProps = (state:Root): stateToProps => {
 const mapDispatchToProps = (dispatch: Dispatch<Root>): dispatchToProps => {
     return {
         uploadImage: (skip, take, username, formData) => {
-            console.log(dispatch, skip, take, username, formData);
-            // const onSuccess = () => {
-            //     dispatch(fetchLatestNews(skip, take));
-            // }
+            const onSuccess = () => {
+                dispatch(fetchLatestNews(skip, take));
+            }
 
-            // dispatch(uploadImage(username, formData, onSuccess, () => { }));
+            dispatch<any>(uploadImage(username, formData, onSuccess, (r) => { console.log(r); }));
         }
     }
 }
@@ -90,7 +91,7 @@ class HomeView extends React.Component<stateToProps & dispatchToProps, component
                         <Row>
                             <Col lg={4}>
                                 <Panel header={'Du kan uploade billeder til dit eget galleri her'} bsStyle="primary">
-                                    {/*<ImageUpload username={username} uploadImage={this.upload} />*/}
+                                    <ImageUpload username={username} uploadImage={this.upload} />
                                 </Panel>
                             </Col>
                         </Row>

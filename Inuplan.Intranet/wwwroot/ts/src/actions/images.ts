@@ -1,6 +1,6 @@
-import fetch from 'isomorphic-fetch';
+import * as fetch from 'isomorphic-fetch';
 import { ActionType } from '../constants/Actions'
-//import { addUser } from './users'
+import { addUser } from './users'
 import { objMap, responseHandler, options } from '../utilities/utils'
 import { Dispatch } from 'redux'
 import { Root } from '../interfaces/State'
@@ -93,21 +93,21 @@ export const deleteImage = (id: number, username: string) => {
         const result = fetch(url, opt)
             .then(handler)
             .then(() => { dispatch(removeImage(id)); })
-            .catch(reason => console.log(reason));
+            .catch((reason: any) => console.log(reason));
 
         return result;
     }
 }
 
-export const uploadImage = (username: string, formData: FormData, onSuccess: () => any, onError: () => any) => {
-    return (dispatch) => {
-        const url = globals.urls.images + "?username=" + username;
-        const opt = Object.assign({}, options, {
+export const uploadImage = (username: string, formData: FormData, onSuccess: () => void, onError: (reason:any) => void) => {
+    return (dispatch: Dispatch<Root>) => {
+        const url = `${globals.urls.images}?username=${username}`;
+        const opt = <RequestInit>Object.assign({}, options, {
             method: 'POST',
             body: formData
         });
 
-        const handler: (IResponse) => void = responseHandler(dispatch)(r => null);
+        const handler = responseHandler(dispatch)(_ => null);
 
         return fetch(url, opt)
             .then(handler)
@@ -116,13 +116,13 @@ export const uploadImage = (username: string, formData: FormData, onSuccess: () 
 }
 
 export const fetchUserImages = (username: string) => {
-    return (dispatch: Dispatch<Root>, getState: () => Root) => {
+    return (dispatch: Dispatch<Root>) => {
         const url = `${globals.urls.images}?username=${username}`;
-        const handler: (IResponse) => Promise<Data.Raw.ImageDTO[]> = responseHandler(dispatch)(r => r.json())
+        const handler: (r: IResponse) => Promise<Data.Raw.ImageDTO[]> = responseHandler(dispatch)(r => r.json())
 
         return fetch(url, options)
             .then(handler)
-            .then(data => {
+            .then((data: Data.Raw.ImageDTO[]) => {
                 const normalized = data.map(normalize).reverse();
                 const obj = objMap<Data.Image, Data.Image>(normalized, (img) => img.ImageID, (img) => img);
                 dispatch(recievedUserImages(obj));
@@ -138,7 +138,7 @@ export const deleteImages = (username: string, imageIds: number[] = []) => {
             method: 'DELETE'
         });
 
-        const handler: (IResponse) => void = responseHandler(dispatch)(r => null)
+        const handler = responseHandler(dispatch)(_ => null);
 
         return fetch(url, opt)
             .then(handler)
@@ -172,7 +172,7 @@ export const setImageOwner = (username: string) => {
         }
         else {
             const url = `${globals.urls.users}?username=${username}`;
-            const handler: (IResponse) => Promise<Data.User> = responseHandler(dispatch)(r => r.json());
+            const handler = responseHandler<Data.User>(dispatch)(r => r.json());
             return fetch(url, options)
                 .then(handler)
                 .then(user => { dispatch(addUser(user)); })
@@ -185,9 +185,9 @@ export const setImageOwner = (username: string) => {
 }
 
 export const fetchSingleImage = (id: number) => {
-    return (dispatch: Dispatch<Root>, getState: () => Root) => {
+    return (dispatch: Dispatch<Root>) => {
         const url = `${globals.urls.images}/getbyid?id=${id}`;
-        const handler: (IResponse) => Promise<Data.Raw.ImageDTO> = responseHandler(dispatch)(r => r.json());
+        const handler = responseHandler<Data.Raw.ImageDTO>(dispatch)(r => r.json());
         return fetch(url, options)
             .then(handler)
             .then(img => {

@@ -6,6 +6,7 @@ import { Root } from '../interfaces/State'
 import { Data } from '../interfaces/Data'
 import * as fetch from 'isomorphic-fetch'
 import { ActionType } from '../constants/Actions'
+import { addUser } from '../actions/users'
 
 export const setLatest = (latest: Data.WhatsNew[]): General.Action<Data.WhatsNew[]> => {
     return {
@@ -53,7 +54,7 @@ export const fetchLatestNews = (skip:number, take:number): any => {
                 items.forEach(item => {
                     const author = getAuthor(item.Type, item.Item);
                     if(author) {
-                        // dispatch(addUser(author));
+                        dispatch(addUser(author));
                     }
                 });
 
