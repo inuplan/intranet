@@ -31,4 +31,8 @@ export enum ActionType {
     INCR_IMG_COMMENT_COUNT,
     DECR_IMG_COMMENT_COUNT,
     // <-- end
+
+    // Users -->
+    ADD_USER
+    // <-- end
 }
