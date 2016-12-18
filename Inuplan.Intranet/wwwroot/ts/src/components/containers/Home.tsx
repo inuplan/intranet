@@ -7,6 +7,7 @@ import { connect, Dispatch } from 'react-redux'
 import { fetchLatestNews } from '../../actions/whatsnew'
 import { ImageUpload } from '../images/ImageUpload'
 import { uploadImage } from '../../actions/images'
+import WhatsNew from './WhatsNew'
 
 interface stateToProps extends C.UsernameProp {
     skip: number
@@ -44,7 +45,7 @@ const mapDispatchToProps = (dispatch: Dispatch<Root>): dispatchToProps => {
     }
 }
 
-class HomeView extends React.Component<stateToProps & dispatchToProps, componentState> {
+class HomeContainer extends React.Component<stateToProps & dispatchToProps, componentState> {
     constructor(props: any) {
         super(props);
         this.state = {
@@ -101,7 +102,7 @@ class HomeView extends React.Component<stateToProps & dispatchToProps, component
                             <Col lg={2}>
                             </Col>
                             <Col lg={4}>
-                                {/*<WhatsNew />*/}
+                                <WhatsNew />
                             </Col>
                             <Col lgOffset={1} lg={3}>
                                 {this.recommendedView()}
@@ -119,5 +120,5 @@ class HomeView extends React.Component<stateToProps & dispatchToProps, component
     }
 }
 
-const Home = connect(mapStateToProps, mapDispatchToProps)(HomeView)
+const Home = connect(mapStateToProps, mapDispatchToProps)(HomeContainer)
 export default Home;
