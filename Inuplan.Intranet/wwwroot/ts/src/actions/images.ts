@@ -1,5 +1,5 @@
 import * as fetch from 'isomorphic-fetch';
-import { ActionType } from '../constants/Actions'
+import { ActionType } from '../constants/actions'
 import { addUser } from './users'
 import { objMap, responseHandler, options } from '../utilities/utils'
 import { Dispatch } from 'redux'

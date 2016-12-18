@@ -5,7 +5,7 @@ import { Dispatch } from 'redux'
 import { Root } from '../interfaces/State'
 import { Data } from '../interfaces/Data'
 import * as fetch from 'isomorphic-fetch'
-import { ActionType } from '../constants/Actions'
+import { ActionType } from '../constants/actions'
 import { addUser } from '../actions/users'
 
 export const setLatest = (latest: Data.WhatsNew[]): General.Action<Data.WhatsNew[]> => {

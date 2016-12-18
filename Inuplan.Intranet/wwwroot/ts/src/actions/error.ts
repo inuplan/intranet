@@ -1,4 +1,4 @@
-import { ActionType } from '../constants/Actions'
+import { ActionType } from '../constants/actions'
 import { General } from '../interfaces/General'
 import { ErrorState, Root } from '../interfaces/State'
 import { Dispatch } from 'redux'
