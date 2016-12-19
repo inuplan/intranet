@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { connect, Dispatch } from 'react-redux'
 import { fetchLatestNews } from '../../actions/whatsnew'
-//import { WhatsNewList } from '../whatsnew/WhatsNewList'
+import { WhatsNewList } from '../whatsnew/WhatsNewList'
 //import { ForumHeader, ForumBody } from './ForumPost'
 import { Button, ButtonToolbar, Modal, Row, Col } from 'react-bootstrap'
 //import { Pagination } from '../pagination/Pagination'
@@ -134,18 +134,18 @@ class WhatsNewContainer extends React.Component<stateProps & dispatchProps & { r
     }
 
     render() {
-        //const { items, getUser, totalPages, page } = this.props;
+        const { items, getUser, /* totalPages, page */ } = this.props;
 
         return  <Row>
                     <Col>
                         <h3>Sidste h&aelig;ndelser</h3>
                         <hr />
-                        {/*<WhatsNewList
+                        <WhatsNewList
                             items={items}
                             getUser={getUser}
                             preview={this.previewPost}
                         />
-                        <Pagination
+                        {/*<Pagination
                             totalPages={totalPages}
                             page={page}
                             pageHandle={this.pageHandle}

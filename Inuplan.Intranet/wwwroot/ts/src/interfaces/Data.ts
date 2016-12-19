@@ -92,7 +92,7 @@ export declare namespace Data {
     }
 
     // C# type enums
-    enum WhatsNewType {
+    export enum WhatsNewType {
         Image = 1,
         Comment = 2,
         ForumPost = 4,

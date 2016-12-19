@@ -1,7 +1,9 @@
 import { store } from '../store/store'
 import { fetchLatestNews } from '../actions/whatsnew'
+import * as moment from 'moment'
 
 export const init = () => {
+    moment.locale('da');
 }
 
 export const fetchWhatsNew = () => {

@@ -2,6 +2,7 @@ import { General as G } from '../interfaces/General'
 import { Root } from '../interfaces/State'
 import { setError } from '../actions/error'
 import { Dispatch } from 'redux'
+import * as moment from 'moment'
 
 /// T: The element type, in the array
 /// V: The value type, saved in the associative array
@@ -66,4 +67,15 @@ export const union = <T>(arr1: T[], arr2:T[], equalityFunc: (v1:T, v2:T) => bool
     }
 
     return result;
+}
+
+export const timeText = (postedOn: Date, expire: number = 12.5) => {
+    const ago = moment(postedOn).fromNow();
+    const diff = moment().diff(postedOn, 'hours', true);
+    if (diff >= expire) {
+        var date = moment(postedOn);
+        return "d. " + date.format("D MMM YYYY ") + "kl. " + date.format("H:mm");
+    }
+
+    return "for " + ago;
 }
