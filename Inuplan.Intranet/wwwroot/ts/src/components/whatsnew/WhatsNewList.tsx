@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { WhatsNewItemImage } from './WhatsNewItemImage'
-//import { WhatsNewItemComment } from './WhatsNewItemComment'
-//import { WhatsNewForumPost } from './WhatsNewForumPost'
+import { WhatsNewItemComment } from './WhatsNewItemComment'
+import { WhatsNewForumPost } from './WhatsNewForumPost'
 import { Media } from 'react-bootstrap'
 import { Data } from '../../interfaces/Data'
 
@@ -24,9 +24,9 @@ export class WhatsNewList extends React.Component<stateProps, any> {
     }
 
     constructItems(): JSX.Element[] {
-        const { items, getUser, /* preview */ } = this.props;
+        const { items, getUser } = this.props;
         const generateKey = (id:number) => "whatsnew_" + id;
-        return items.map( (item /* ,index */): JSX.Element => {
+        return items.map( (item ,index ): JSX.Element => {
             const itemKey = generateKey(item.ID);
             const author = getUser(item.AuthorID);
             switch (item.Type) {
@@ -34,7 +34,6 @@ export class WhatsNewList extends React.Component<stateProps, any> {
                 {
                     const image = item.Item as Data.WhatsNewImage;
                     return  <WhatsNewItemImage
-                                id={item.ID}
                                 on={item.On}
                                 imageId={image.ImageID}
                                 filename={image.Filename}
@@ -46,34 +45,32 @@ export class WhatsNewList extends React.Component<stateProps, any> {
                 }
                 case Data.WhatsNewType.Comment:
                 {
-                    return null;
-                    //return  <WhatsNewItemComment
-                    //            id={item.ID}
-                    //            commentId={item.Item.ID}
-                    //            text={item.Item.Text}
-                    //            uploadedBy={item.Item.ImageUploadedBy}
-                    //            imageId={item.Item.ImageID}
-                    //            on={item.On}
-                    //            author={author}
-                    //            filename={item.Item.Filename}
-                    //            key={itemKey}
-                    //        />
+                    const comment = item.Item as Data.WhatsNewComment;
+                    return  <WhatsNewItemComment
+                                commentId={comment.ID}
+                                text={comment.Text}
+                                uploadedBy={comment.ImageUploadedBy}
+                                imageId={comment.ImageID}
+                                filename={comment.Filename}
+                                on={item.On}
+                                author={author}
+                                key={itemKey}
+                            />
                 }
                 case Data.WhatsNewType.ForumPost:
                 {
-                    return null;
-                    //return  <WhatsNewForumPost
-                    //            on={item.On}
-                    //            author={author}
-                    //            title={item.Item.Title}
-                    //            text={item.Item.Text}
-                    //            sticky={item.Item.Sticky}
-                    //            postId={item.Item.ID}
-                    //            commentCount={item.Item.CommentCount}
-                    //            preview={this.previewPostHandle}
-                    //            index={index}
-                    //            key={itemKey}
-                    //        />
+                    const post = item.Item as Data.WhatsNewForumPost;
+                    return  <WhatsNewForumPost
+                                on={item.On}
+                                author={author}
+                                title={post.Title}
+                                text={post.Text}
+                                sticky={post.Sticky}
+                                commentCount={post.CommentCount}
+                                preview={this.previewPostHandle}
+                                index={index}
+                                key={itemKey}
+                            />
                 }
                 default:
                 {

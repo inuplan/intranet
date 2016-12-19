@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Media, Glyphicon, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 
 interface stateProps {
     tooltip: string

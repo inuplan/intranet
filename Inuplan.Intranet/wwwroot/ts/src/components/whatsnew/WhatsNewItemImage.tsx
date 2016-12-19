@@ -1,5 +1,5 @@
 import * as React from 'react'
-//import { CommentProfile } from '../comments/CommentProfile'
+import { CommentProfile } from '../comments/CommentProfile'
 import { WhatsNewTooltip } from './WhatsNewTooltip'
 import { Media } from 'react-bootstrap'
 import { timeText } from '../../utilities/utils'
@@ -8,7 +8,6 @@ import { Image, Glyphicon, Tooltip } from 'react-bootstrap'
 import { Data } from '../../interfaces/Data'
 
 interface stateProps {
-    id: number
     on: Date
     imageId: number
     author: Data.User
@@ -35,9 +34,8 @@ export class WhatsNewItemImage extends React.Component<stateProps, any> {
         const name = `${author.FirstName} ${author.LastName}`;
 
         return  <WhatsNewTooltip tooltip="Uploadet billede">
-                    <Media.ListItem>
-                        <div  className="whatsnewItem hover-shadow">
-                            {/*<CommentProfile />*/}
+                    <Media.ListItem className="whatsnewItem hover-shadow">
+                            <CommentProfile />
                             <Media.Body>
                                 <blockquote>
                                     <Link to={link}>
@@ -46,7 +44,6 @@ export class WhatsNewItemImage extends React.Component<stateProps, any> {
                                     <footer>{name} {this.when()}<br /><Glyphicon glyph="picture" /> {file}</footer>
                                 </blockquote>
                             </Media.Body>
-                        </div>
                     </Media.ListItem>
                 </WhatsNewTooltip>
     }
