@@ -11,7 +11,8 @@
             "es2015", "dom"
         ],
         "typeRoots": [
-            "C:/Users/Johnny/Documents/Inuplan/intranet/Inuplan.Intranet/node_modules/@types"
+            "C:/Users/Johnny/Documents/Inuplan/intranet/Inuplan.Intranet/node_modules/@types",
+            "./typings/globals"
         ]
     },
     "typeAcquisition": {
