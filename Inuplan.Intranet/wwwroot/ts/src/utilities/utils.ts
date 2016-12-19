@@ -1,8 +1,12 @@
+/// <reference path="remove-markdown.d.ts" />
 import { General as G } from '../interfaces/General'
 import { Root } from '../interfaces/State'
 import { setError } from '../actions/error'
 import { Dispatch } from 'redux'
 import * as moment from 'moment'
+import * as marked from 'marked'
+import removeMd from 'remove-markdown'
+
 
 /// T: The element type, in the array
 /// V: The value type, saved in the associative array
@@ -78,4 +82,16 @@ export const timeText = (postedOn: Date, expire: number = 12.5) => {
     }
 
     return "for " + ago;
+}
+
+export const formatText = (text: string) => {
+    if (!text) return;
+    const rawMarkup = marked(text, { sanitize: true });
+    return { __html: rawMarkup };
+}
+
+export const getWords = (text: string, numberOfWords: number) => {
+    if(!text) return "";
+    const plainText = removeMd(text);
+    return plainText.split(/\s+/).slice(0, numberOfWords).join(" ");
 }
