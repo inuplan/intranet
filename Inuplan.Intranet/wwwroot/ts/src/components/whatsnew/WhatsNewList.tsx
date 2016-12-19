@@ -26,7 +26,7 @@ export class WhatsNewList extends React.Component<stateProps, any> {
     constructItems(): JSX.Element[] {
         const { items, getUser } = this.props;
         const generateKey = (id:number) => "whatsnew_" + id;
-        return items.map( (item ,index ): JSX.Element => {
+        return items.map( (item ,index ) => {
             const itemKey = generateKey(item.ID);
             const author = getUser(item.AuthorID);
             switch (item.Type) {

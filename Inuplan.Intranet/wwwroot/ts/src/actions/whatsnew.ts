@@ -46,7 +46,7 @@ export const setTotalPages = (totalPages: number): General.Action<number> => {
 export const fetchLatestNews = (skip:number, take:number): any => {
     return function(dispatch: Dispatch<Root>) : Promise<void> {
         const url = `${globals.urls.whatsnew}?skip=${skip}&take=${take}`;
-        const handler = responseHandler<Data.Raw.Pagination>(dispatch)(r => r.json());
+        const handler = responseHandler<Data.Raw.Pagination<Data.Raw.WhatsNewItem>>(dispatch)(r => r.json());
         return fetch(url, options)
             .then(handler)
             .then(page => {

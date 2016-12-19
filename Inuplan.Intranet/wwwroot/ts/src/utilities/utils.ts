@@ -1,4 +1,5 @@
 /// <reference path="remove-markdown.d.ts" />
+/// <reference path="../../../../node_modules/@types/isomorphic-fetch/index.d.ts" />
 import { General as G } from '../interfaces/General'
 import { Root } from '../interfaces/State'
 import { setError } from '../actions/error'
@@ -6,7 +7,7 @@ import { Dispatch } from 'redux'
 import * as moment from 'moment'
 import * as marked from 'marked'
 import removeMd from 'remove-markdown'
-
+import { Data } from '../interfaces/Data'
 
 /// T: The element type, in the array
 /// V: The value type, saved in the associative array
@@ -32,7 +33,7 @@ export const options: RequestInit = {
     credentials: "include"
 }
 
-export const responseHandler =  <T>(dispatch:Dispatch<Root>) => (onSuccess: (r:IResponse) => Promise<T>) => (response: IResponse) => {
+export const responseHandler =  <T>(dispatch:Dispatch<Root>) => (onSuccess: (r: IResponse) => Promise<T>) => (response: IResponse) => {
     if(response.ok) return onSuccess(response);
     else {
         switch(response.status) {
@@ -94,4 +95,9 @@ export const getWords = (text: string, numberOfWords: number) => {
     if(!text) return "";
     const plainText = removeMd(text);
     return plainText.split(/\s+/).slice(0, numberOfWords).join(" ");
+}
+
+export const getFullName = (user: Data.User, none = '') => {
+    if(!user) return none;
+    return `${user.FirstName} ${user.LastName}`;
 }

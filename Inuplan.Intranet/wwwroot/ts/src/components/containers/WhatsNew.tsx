@@ -2,9 +2,9 @@ import * as React from 'react'
 import { connect, Dispatch } from 'react-redux'
 import { fetchLatestNews } from '../../actions/whatsnew'
 import { WhatsNewList } from '../whatsnew/WhatsNewList'
-//import { ForumHeader, ForumBody } from './ForumPost'
+import { ForumHeader, ForumBody } from './ForumPost'
 import { Button, ButtonToolbar, Modal, Row, Col } from 'react-bootstrap'
-//import { Pagination } from '../pagination/Pagination'
+import { Pagination } from '../pagination/Pagination'
 import { withRouter, InjectedRouter } from 'react-router'
 import { Root } from '../../interfaces/State'
 import { Data } from '../../interfaces/Data'
@@ -99,32 +99,32 @@ class WhatsNewContainer extends React.Component<stateProps & dispatchProps & { r
 
     modalView() {
         if(!Boolean(this.state.postPreview)) return null;
-        //const { Text, Title, ID } = this.state.postPreview;
-        //const author = this.state.author;
-        //const name = `${author.FirstName} ${author.LastName}`;
-        //const link = `forum/post/${ID}/comments`;
+        const { Text, Title, ID } = this.state.postPreview;
+        const author = this.state.author;
+        const name = `${author.FirstName} ${author.LastName}`;
+        const link = `forum/post/${ID}/comments`;
 
         return  <Modal show={this.state.modal} onHide={this.closeModal} bsSize="large">
                     <Modal.Header closeButton>
                         <Modal.Title>
-                            {/*<ForumHeader
+                            <ForumHeader
                                 lg={11}
                                 lgOffset={1}
                                 createdOn={this.state.on}
                                 title={Title}
                                 name={name}
-                            />*/}
+                            />
                         </Modal.Title>
                     </Modal.Header>
 
                     <Modal.Body>
-                        {/*<ForumBody text={Text} lg={11} lgOffset={1}>
-                        </ForumBody>*/}
+                        <ForumBody text={Text} lg={11} lgOffset={1}>
+                        </ForumBody>
                     </Modal.Body>
 
                     <Modal.Footer>
                         <ButtonToolbar style={{float: "right"}}>
-                            <Button bsStyle="primary" onClick={() => this.navigateTo("" /* link */)}>
+                            <Button bsStyle="primary" onClick={() => this.navigateTo(link)}>
                                Se kommentarer (forum)
                             </Button>
                             <Button onClick={this.closeModal}>Luk</Button>
@@ -134,7 +134,7 @@ class WhatsNewContainer extends React.Component<stateProps & dispatchProps & { r
     }
 
     render() {
-        const { items, getUser, /* totalPages, page */ } = this.props;
+        const { items, getUser, totalPages, page } = this.props;
 
         return  <Row>
                     <Col>
@@ -145,11 +145,11 @@ class WhatsNewContainer extends React.Component<stateProps & dispatchProps & { r
                             getUser={getUser}
                             preview={this.previewPost}
                         />
-                        {/*<Pagination
+                        <Pagination
                             totalPages={totalPages}
                             page={page}
                             pageHandle={this.pageHandle}
-                        />*/}
+                        />
                         {this.modalView()}
                     </Col>
                 </Row>

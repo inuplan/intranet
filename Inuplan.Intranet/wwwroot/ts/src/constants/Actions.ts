@@ -33,6 +33,19 @@ export enum ActionType {
     // <-- end
 
     // Users -->
-    ADD_USER
+    ADD_USER,
     // <-- end
+
+    // Forum -->
+    SET_POST_COMMENTS,
+    UPDATE_THREAD_TITLE,
+    ADD_THREAD_TITLE,
+SET_THREAD_TITLES,
+SET_TOTAL_PAGES_THREADS,
+SET_PAGE_THREADS,
+SET_SKIP_THREADS,
+SET_TAKE_THREADS,
+SET_SELECTEDTHREAD_ID,
+SET_POST_CONTENT,
+    // <--
 }

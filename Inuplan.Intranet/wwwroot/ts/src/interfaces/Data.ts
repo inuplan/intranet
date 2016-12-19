@@ -36,7 +36,7 @@ export declare namespace Data {
         Deleted: boolean
         PostedOn: Date
         Text: string
-        Replies: Comment
+        Replies: Comment[]
         Edited: boolean
     }
 
@@ -99,9 +99,9 @@ export declare namespace Data {
     }
 
     export namespace Raw {
-        export interface Pagination {
+        export interface Pagination<T> {
             CurrentPage: number
-            CurrentItems: WhatsNewItem[]
+            CurrentItems: T[]
             TotalPages: number
         }
 
@@ -165,6 +165,28 @@ export declare namespace Data {
             Text: string
             Edited: boolean
             Replies?: Comment[]
+        }
+
+        namespace Models {
+            export interface ThreadPostTitle {
+                ThreadID: number
+                IsPublished: boolean
+                Sticky: boolean
+                CreatedOn: Date
+                Author: User
+                Deleted: boolean
+                IsModified: boolean
+                Title: string
+                LastModified: Date
+                LatestComment: number
+                ViewedBy: Data.User[]
+            }
+
+            export interface ThreadPostContent {
+                Header: Partial<ThreadPostTitle>
+                ThreadID: number
+                Text: string
+            }
         }
     }
 }

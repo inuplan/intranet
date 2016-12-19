@@ -62,3 +62,37 @@ export const normalizeImage = (img: Data.Raw.ImageDTO): Data.Image => {
         Uploaded: new Date(img.Uploaded),
     };
 }
+
+export const normalizeThreadTitle = (title: Data.Raw.ThreadPostTitleDTO): Data.ForumTitle => {
+    const viewedBy = title.ViewedBy.map(user => user.ID);
+    const latestComment = title.LatestComment ? normalizeComment(title.LatestComment) : null;
+    return {
+        ID: title.ID,
+        IsPublished: title.IsPublished,
+        Sticky: title.Sticky,
+        CreatedOn: title.CreatedOn,
+        AuthorID: title.Author.ID,
+        Deleted: title.Deleted,
+        IsModified: title.IsModified,
+        Title: title.Title,
+        LastModified: title.LastModified,
+        LatestComment: latestComment,
+        CommentCount: title.CommentCount,
+        ViewedBy: viewedBy,
+    }
+}
+
+export const normalizeComment = (comment: Data.Raw.Comment): Data.Comment => {
+    let r = comment.Replies ? comment.Replies : [];
+    const replies = r.map(normalizeComment);
+    const authorId = (comment.Deleted) ? -1 : comment.Author.ID;
+    return {
+        CommentID: comment.ID,
+        AuthorID: authorId,
+        Deleted: comment.Deleted,
+        PostedOn: comment.PostedOn,
+        Text: comment.Text,
+        Replies: replies,
+        Edited: comment.Edited
+    }
+}
