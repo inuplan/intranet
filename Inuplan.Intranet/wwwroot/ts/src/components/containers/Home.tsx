@@ -7,6 +7,7 @@ import { connect, Dispatch } from 'react-redux'
 import { fetchLatestNews } from '../../actions/whatsnew'
 import { ImageUpload } from '../images/ImageUpload'
 import { uploadImage } from '../../actions/images'
+import UsedSpace from './UsedSpace'
 import WhatsNew from './WhatsNew'
 
 interface stateToProps extends C.UsernameProp {
@@ -112,7 +113,7 @@ class HomeContainer extends React.Component<stateToProps & dispatchToProps, comp
                                     Herunder kan du se hvor meget plads du har brugt og hvor meget fri plads
                                     der er tilbage. Gælder kun billede filer.
                                 </p>
-                                {/*<UsedSpace />*/}
+                                <UsedSpace />
                             </Col>
                         </Row>
                     </Grid>

@@ -4,12 +4,11 @@ import * as fetch from 'isomorphic-fetch';
 import { options, responseHandler } from '../utilities/utils'
 import { globals, General } from '../interfaces/General'
 import { Data } from '../interfaces/Data'
-import { Dispatch } from 'redux'
 import { normalizeThreadTitle } from '../utilities/normalize'
+import { fetchResult } from '../constants/types'
 
 type Pagination<T> = Data.Raw.Pagination<T>
 type ThreadPostTitleDTO = Data.Raw.ThreadPostTitleDTO
-type fetchResult<D, R> = (dispatch: Dispatch<D>) => Promise<R>
 
 export const updateThreadTitle = (title: string, id: number): General.Action<{ title: string, id: number}> => {
     return {
