@@ -4,7 +4,7 @@ import { Pagination as PaginationBs } from 'react-bootstrap'
 interface stateProps {
     totalPages: number
     page: number
-    pageHandle: any
+    pageHandle: (to: number) => void
     show?: boolean
 }
 
@@ -20,7 +20,7 @@ export class Pagination extends React.Component<stateProps, any> {
                     items={totalPages}
                     maxButtons={5}
                     activePage={page}
-                    onSelect={pageHandle}
+                    onSelect={pageHandle as any}
                 />
     }
 }

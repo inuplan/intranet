@@ -10,17 +10,10 @@ import { fetchResult } from '../constants/types'
 type Pagination<T> = Data.Raw.Pagination<T>
 type ThreadPostTitleDTO = Data.Raw.ThreadPostTitleDTO
 
-export const updateThreadTitle = (title: string, id: number): General.Action<{ title: string, id: number}> => {
-    return {
-        type: T.UPDATE_THREAD_TITLE,
-        payload: { title: title, id: id}
-    }
-}
-
-export const addThreadTitle = (title: Data.ForumTitle): General.Action<Data.ForumTitle> => {
+export const addThreadTitle = (title: Data.ForumTitle): General.Action<Data.ForumTitle[]> => {
     return {
         type: T.ADD_THREAD_TITLE,
-        payload: title
+        payload: [title]
     }
 }
 
@@ -121,9 +114,8 @@ export const fetchPost = (id: number, cb?: () => void): fetchResult<any, void> =
                 const content = data.Text;
                 const title = normalizeThreadTitle(data.Header);
 
-                dispatch(updateThreadTitle(title.Title, title.ID));
                 dispatch(setPostContent(content));
-                dispatch(setSelectedThread(data.ThreadID));
+                dispatch(addThreadTitle(title));
             })
             .then(cb);
     }
@@ -162,7 +154,7 @@ export const deletePost = (id: number, cb: () => void): fetchResult<any, void> =
     }
 }
 
-export const postThread = (post: Data.Raw.Models.ThreadPostContent, cb: () => void): fetchResult<any, void> => {
+export const postThread = (post: Partial<Data.Raw.Models.ThreadPostContent>, cb: () => void): fetchResult<any, void> => {
     return (dispatch) => {
         const url = globals.urls.forumpost;
         const headers = new Headers();

@@ -34,11 +34,11 @@ export enum ActionType {
 
     // Users -->
     ADD_USER,
+    RECIEVED_USERS,
     // <-- end
 
     // Forum -->
     SET_POST_COMMENTS,
-    UPDATE_THREAD_TITLE,
     ADD_THREAD_TITLE,
     SET_THREAD_TITLES,
     SET_TOTAL_PAGES_THREADS,
@@ -53,4 +53,16 @@ export enum ActionType {
     SET_USED_SPACE_KB,
     SET_TOTAL_SPACE_KB,
     // <-- end
+
+    // comments -->
+    SET_SKIP_COMMENTS,
+    SET_DEFAULT_SKIP,
+    SET_DEFAULT_TAKE,
+    SET_TAKE_COMMENTS,
+    SET_CURRENT_PAGE,
+    SET_TOTAL_PAGES,
+    SET_DEFAULT_COMMENTS,
+    RECIEVED_COMMENTS,
+    ADD_COMMENT,
+    SET_FOCUSED_COMMENT,
 }

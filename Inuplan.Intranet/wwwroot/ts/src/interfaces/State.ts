@@ -10,19 +10,19 @@ export interface Root {
     forumInfo: ForumState
 }
 
-interface UsersState {
+export interface UsersState {
     currentUserId: number
     users: General.KeyValue<Data.User>
 }
 
-interface ImagesState {
+export interface ImagesState {
     ownerId: number,
     images: General.KeyValue<Data.Image>,
     selectedImageId: number,
     selectedImageIds: number[]
 }
 
-interface CommentsState {
+export interface CommentsState {
     comments: Data.Comment[],
     skip: number,
     take: number,
@@ -36,12 +36,12 @@ export interface ErrorState {
     message: string
 }
 
-interface SpaceState {
+export interface SpaceState {
     usedSpacekB: number,
     totalSpacekB: number
 }
 
-interface StatusState {
+export interface StatusState {
     hasError: boolean,
     errorInfo: ErrorState,
     spaceInfo: SpaceState,
@@ -49,7 +49,7 @@ interface StatusState {
     done: boolean
 }
 
-interface WhatsNewState {
+export interface WhatsNewState {
     skip: number,
     take: number,
     page: number,
@@ -57,7 +57,7 @@ interface WhatsNewState {
     items: Data.WhatsNew[]
 }
 
-interface ForumTitlesState {
+export interface ForumTitlesState {
     titles: Data.ForumTitle[]
     skip: number
     take: number
@@ -66,7 +66,7 @@ interface ForumTitlesState {
     selectedThread: number
 }
 
-interface ForumState {
+export interface ForumState {
     titlesInfo: ForumTitlesState
     postContent: string
 }

@@ -8,6 +8,7 @@ import * as moment from 'moment'
 import * as marked from 'marked'
 import removeMd from 'remove-markdown'
 import { Data } from '../interfaces/Data'
+import { globals } from '../interfaces/General'
 
 /// T: The element type, in the array
 /// V: The value type, saved in the associative array
@@ -100,4 +101,42 @@ export const getWords = (text: string, numberOfWords: number) => {
 export const getFullName = (user: Data.User, none = '') => {
     if(!user) return none;
     return `${user.FirstName} ${user.LastName}`;
+}
+
+export const visitComments = (comments: Data.Comment[], func: (current: Data.Comment) => void) => {
+    const getReplies = (c: Data.Comment) => c.Replies ? c.Replies : [];
+    for (var i = 0; i < comments.length; i++) {
+        depthFirstSearch(comments[i], getReplies, func);
+    }
+}
+
+export const depthFirstSearch = (current: Data.Comment, getChildren: (current: Data.Comment) => Data.Comment[], func: (current: Data.Comment) => void) => {
+    func(current);
+    const children = getChildren(current);
+    for (var i = 0; i < children.length; i++) {
+        depthFirstSearch(children[i], getChildren, func);
+    }
+}
+
+export const normalizeComment = (comment: Data.Raw.Comment): Data.Comment => {
+    let r = comment.Replies ? comment.Replies : [];
+    const replies = r.map(normalizeComment);
+    const authorId = (comment.Deleted) ? -1 : comment.Author.ID;
+    return {
+        CommentID: comment.ID,
+        AuthorID: authorId,
+        Deleted: comment.Deleted,
+        PostedOn: comment.PostedOn,
+        Text: comment.Text,
+        Replies: replies,
+        Edited: comment.Edited
+    }
+}
+
+export const getForumCommentsDeleteUrl = (commentId: number): string => {
+    return `${globals.urls.forumcomments}?commentId=${commentId}`;
+}
+
+export const getForumCommentsPageUrl = (postId: number, skip: number, take: number) => {
+    return `${globals.urls.forumcomments}?postId=${postId}&skip=${skip}&take=${take}`;
 }

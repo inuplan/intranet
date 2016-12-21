@@ -6,7 +6,7 @@ interface forumFormProps {
     show: boolean
     close: () => void
     onSubmit: (post: Partial<Data.Raw.Models.ThreadPostContent>) => void
-    edit: {
+    edit?: {
         Title: string
         Text: string
         Sticky: boolean

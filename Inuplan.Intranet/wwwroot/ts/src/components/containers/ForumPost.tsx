@@ -1,8 +1,7 @@
 import * as React from 'react'
 import { ForumForm } from '../forum/ForumForm'
 import { ButtonTooltip } from '../comments/CommentControls'
-import { markPost, updatePost, fetchPost, deletePost } from '../../actions/forum'
-//import { postComment } from '../../actions/comments'
+import { markPost, updatePost, fetchPost, deletePost, setSelectedThread } from '../../actions/forum'
 import { find, contains } from 'underscore'
 import {  getFullName, formatText } from '../../utilities/utils'
 import { Row, Col, Glyphicon, ButtonToolbar, ButtonGroup } from 'react-bootstrap'
@@ -47,14 +46,15 @@ const mapDispatchToProps = (dispatch: Dispatch<any>): dispatchToPropsPost => {
             dispatch(updatePost(id, post, cb));
         },
         getPost: (id: number) => {
-            dispatch(fetchPost(id));
+            dispatch(fetchPost(id))
+            .then(() => dispatch(setSelectedThread(id)));
         },
         deletePost: (id: number, cb: () => void) => {
             dispatch(deletePost(id, cb));
         },
         readPost: (postId: number, read: boolean, cb: () => void) => {
             dispatch(markPost(postId, read, cb));
-        },
+        }
     }
 }
 

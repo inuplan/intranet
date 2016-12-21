@@ -4,6 +4,7 @@ import { General } from '../interfaces/General'
 import { ActionType } from '../constants/Actions'
 import { put } from '../utilities/utils'
 import { filter, omit } from 'underscore'
+import { ImagesState } from '../interfaces/State'
 
 type ImageReducer = General.KeyValue<Data.Image>
 type Action<T> = General.Action<T>
@@ -99,7 +100,7 @@ const selectedImageIds = (state: number[] = [], action: Action<number[] | number
     }
 }
 
-const imagesInfo = combineReducers({
+const imagesInfo = combineReducers<ImagesState>({
     ownerId,
     images,
     selectedImageId,
