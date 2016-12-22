@@ -30,6 +30,10 @@
     margin-right: 7px;
 }
 
+.comment-deleted-left {
+    min-width: 74px;
+}
+
 .thread-head {
     border-bottom-width: 1px;
     border-bottom-style: solid;
