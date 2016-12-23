@@ -1,10 +1,7 @@
 /// <reference path="../../../../node_modules/@types/isomorphic-fetch/index.d.ts" />
 import { ActionType } from '../constants/actions'
 import * as fetch from 'isomorphic-fetch';
-import { options, normalizeComment, visitComments, responseHandler } from '../utilities/utils'
-import { addUser } from './users'
-import { setError } from './error'
-import { find } from 'underscore'
+import { options, normalizeComment, responseHandler } from '../utilities/utils'
 import { globals, General } from '../interfaces/General'
 import { Action as ReduxAction } from 'redux'
 import { Data } from '../interfaces/Data'
@@ -108,7 +105,7 @@ export const fetchComments = (url: string, skip: number, take: number): fetchRes
 }
 
 export const postComment = (url: string, contextId: number, text: string, parentCommentId: number, cb: () => void) => {
-    return (dispatch: Dispatch<any>) => {
+    return (_: Dispatch<any>) => {
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
         const body =JSON.stringify({
@@ -129,7 +126,7 @@ export const postComment = (url: string, contextId: number, text: string, parent
 }
 
 export const editComment = (url: string, commentId: number, text: string, cb: () => void): fetchResult<any, void> => {
-    return (dispatch) => {
+    return (_) => {
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
         const opt = <RequestInit>Object.assign({}, options, {
@@ -144,7 +141,7 @@ export const editComment = (url: string, commentId: number, text: string, cb: ()
 }
 
 export const deleteComment = (url: string, cb: () => void): fetchResult<any, void> => {
-    return (dispatch) => {
+    return (_) => {
         const opt = Object.assign({}, options, {
             method: 'DELETE'
         });

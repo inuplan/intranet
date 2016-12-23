@@ -3,7 +3,6 @@ import { CommentControls } from './CommentControls'
 import { CommentProfile } from './CommentProfile'
 import { formatText, timeText } from '../../utilities/utils'
 import { Media } from 'react-bootstrap'
-import { Data } from '../../interfaces/Data'
 import { Components } from '../../interfaces/Components'
 
 export class Comment extends React.Component<Components.commentProps, any> {
@@ -12,7 +11,7 @@ export class Comment extends React.Component<Components.commentProps, any> {
         return timeText(postedOn);
     }
 
-    editedView(edited) {
+    editedView(edited: boolean) {
         if(!edited) return null;
         return  <span>*</span>
     }

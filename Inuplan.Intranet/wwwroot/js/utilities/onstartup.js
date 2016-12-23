@@ -1,7 +1,6 @@
 ﻿import { store } from '../stores/store'
 import { fetchCurrentUser, fetchUsers } from '../actions/users'
 import { newImageFromServer, fetchUserImages, setSelectedImg, setImageOwner } from '../actions/images'
-import { newCommentFromServer, fetchComments, setSkipComments, setTakeComments, fetchAndFocusSingleComment } from '../actions/comments'
 import { setLatest, fetchLatestNews } from '../actions/whatsnew'
 import { newForumThreadFromServer, fetchThreads, fetchPost } from '../actions/forum'
 import { fetchSpaceInfo } from '../actions/status'

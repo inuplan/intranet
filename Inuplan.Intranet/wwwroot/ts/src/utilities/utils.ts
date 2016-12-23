@@ -140,3 +140,11 @@ export const getForumCommentsDeleteUrl = (commentId: number): string => {
 export const getForumCommentsPageUrl = (postId: number, skip: number, take: number) => {
     return `${globals.urls.forumcomments}?postId=${postId}&skip=${skip}&take=${take}`;
 }
+
+export const getImageCommentsPageUrl = (imageId: number, skip: number, take: number) => {
+    return `${globals.urls.imagecomments}?imageId=${imageId}&skip=${skip}&take=${take}`;
+}
+
+export const getImageCommentsDeleteUrl = (commentId: number) => {
+    return `${globals.urls.imagecomments}?commentId=${commentId}`;
+}

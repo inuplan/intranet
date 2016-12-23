@@ -33,7 +33,7 @@ export class CommentList extends React.Component<Components.commentList, null> {
 
         const { contextId, getName, canEdit } = this.props;
         const { skip, take, editComment, deleteComment, replyComment } = this.props;
-        const props = { skip, take, editComment, deleteComment, replyComment };
+        const controls = { skip, take, editComment, deleteComment, replyComment };
         const name = getName(comment.AuthorID);
         return  <Comment
                     key={key}
@@ -47,7 +47,7 @@ export class CommentList extends React.Component<Components.commentList, null> {
                     edited={comment.Edited}
                     canEdit={canEdit}
                     commentId={comment.CommentID}
-                    {...props}
+                    {...controls}
                 />
     }
 

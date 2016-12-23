@@ -32,7 +32,7 @@ export declare namespace Components {
         mount: boolean
     }
 
-    export interface commentControlsProps {
+    export interface commentControlsProps extends commentHandlers {
         contextId: number
         canEdit: (id: number) => boolean
         authorId: number
@@ -40,6 +40,9 @@ export declare namespace Components {
         text: string
         skip: number
         take: number
+    }
+
+    interface commentHandlers {
         editComment: (commentId: number, contextId: number, text: string) => void
         deleteComment: (commentId: number, contextId: number) => void
         replyComment: (contextId: number, replyText: string, commentId: number) => void
@@ -59,7 +62,7 @@ export declare namespace Components {
     export interface commentProps extends commentControlsProps {
         name: string
         replies: Data.Comment[]
-        construct: (reply: Data.Comment) => JSX.Element
+        construct?: (reply: Data.Comment) => JSX.Element
         edited: boolean
         postedOn: Date
     }
@@ -73,13 +76,47 @@ export declare namespace Components {
         postHandle: (text: string) => void
     }
 
-    export interface commentList extends commentProps {
+    export interface commentList extends commentHandlers {
         getName: (id: number) => string
         comments: Data.Comment[]
+        contextId: number
+        canEdit: (id: number) => boolean
+        skip: number
+        take: number
     }
 
     export interface breadcrumbItem {
         href?: string
         active?: boolean
+    }
+
+    interface imageHandlers {
+        addSelectedImageId: (id: number) => void
+        removeSelectedImageId: (id: number) => void
+        imageIsSelected: (checkId: number) => boolean
+        username: string
+        canEdit: boolean
+    }
+    
+    export interface image extends imageHandlers {
+        image: Data.Image
+    }
+
+    export interface imageList extends imageHandlers {
+        images: Data.Image[]
+    }
+    
+    export interface userList {
+        users: Data.User[]
+    }
+
+    export interface user {
+        username: string
+        userId: number
+        firstName: string
+        lastName: string
+        email: string
+        profileUrl: string
+        roles: Data.Role[]
     }
 }
