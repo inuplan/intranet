@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "jsx": "preserve",
+        "jsx": "react",
         "module": "es6",
         "outDir": "./dist",
         "noImplicitAny": true,
