@@ -1,3 +1,4 @@
+/// <reference path="../../interfaces/globals.d.ts" />
 import * as React from 'react'
 import { Comment } from '../comments/Comment'
 import { connect, Dispatch } from 'react-redux'
@@ -5,7 +6,6 @@ import { Well, Button, Glyphicon } from 'react-bootstrap'
 import { fetchAndFocusSingleComment, postComment, editComment, deleteComment } from '../../actions/comments'
 import { withRouter, InjectedRouter } from 'react-router'
 import { getImageCommentsDeleteUrl } from '../../utilities/utils'
-import { globals } from '../../interfaces/General'
 import { Root } from '../../interfaces/State'
 import { Data } from '../../interfaces/Data'
 

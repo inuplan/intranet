@@ -1,10 +1,11 @@
+/// <reference path="../interfaces/globals.d.ts" />
 import * as fetch from 'isomorphic-fetch';
 import { ActionType } from '../constants/actions'
 import { addUser } from './users'
 import { objMap, responseHandler, options } from '../utilities/utils'
 import { Dispatch } from 'redux'
 import { Root } from '../interfaces/State'
-import { globals, General } from '../interfaces/General'
+import { General } from '../interfaces/General'
 import { Data } from '../interfaces/Data'
 import { normalizeImage as normalize } from '../utilities/normalize'
 import { Action as ReduxAction } from 'redux'

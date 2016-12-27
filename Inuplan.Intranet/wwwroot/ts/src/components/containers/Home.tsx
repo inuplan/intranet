@@ -1,7 +1,7 @@
+/// <reference path="../../interfaces/globals.d.ts" />
 import * as React from 'react'
 import { Components as C } from '../../interfaces/Components'
 import { Jumbotron, Grid, Row, Col, Panel, Alert } from 'react-bootstrap'
-import { globals } from '../../interfaces/General'
 import { Root } from '../../interfaces/State'
 import { connect, Dispatch } from 'react-redux'
 import { fetchLatestNews } from '../../actions/whatsnew'

@@ -1,4 +1,5 @@
-import { globals, General } from '../interfaces/General'
+/// <reference path="../interfaces/globals.d.ts" />
+import { General } from '../interfaces/General'
 import { responseHandler, options } from '../utilities/utils'
 import { normalizeLatest as normalize } from '../utilities/normalize'
 import { Dispatch } from 'redux'

@@ -1,3 +1,4 @@
+/// <reference path="../../interfaces/globals.d.ts" />
 import * as React from 'react'
 import { fetchComments, postComment, editComment, deleteComment } from '../../actions/comments'
 import { incrementCommentCount, decrementCommentCount } from '../../actions/images'
@@ -8,7 +9,6 @@ import { CommentForm } from '../comments/CommentForm'
 import { getImageCommentsPageUrl, getImageCommentsDeleteUrl } from '../../utilities/utils'
 import { Row, Col } from 'react-bootstrap'
 import { withRouter, InjectedRouter } from 'react-router'
-import { globals } from '../../interfaces/General'
 import { Root } from '../../interfaces/State'
 import { Data } from '../../interfaces/Data'
 

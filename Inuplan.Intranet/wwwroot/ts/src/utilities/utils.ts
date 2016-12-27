@@ -1,5 +1,6 @@
 /// <reference path="remove-markdown.d.ts" />
 /// <reference path="../../../../node_modules/@types/isomorphic-fetch/index.d.ts" />
+/// <reference path="../interfaces/globals.d.ts" />
 import { General as G } from '../interfaces/General'
 import { Root } from '../interfaces/State'
 import { setError } from '../actions/error'
@@ -8,7 +9,6 @@ import * as moment from 'moment'
 import * as marked from 'marked'
 import removeMd from 'remove-markdown'
 import { Data } from '../interfaces/Data'
-import { globals } from '../interfaces/General'
 
 /// T: The element type, in the array
 /// V: The value type, saved in the associative array

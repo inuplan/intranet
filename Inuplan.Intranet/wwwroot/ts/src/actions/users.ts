@@ -1,6 +1,7 @@
+/// <reference path="../interfaces/globals.d.ts" />
 import { ActionType } from '../constants/actions'
 import { Data } from '../interfaces/Data'
-import { General, globals } from '../interfaces/General'
+import { General } from '../interfaces/General'
 import * as fetch from 'isomorphic-fetch'
 import { options, objMap, responseHandler } from '../utilities/utils'
 import { fetchResult } from '../constants/types'

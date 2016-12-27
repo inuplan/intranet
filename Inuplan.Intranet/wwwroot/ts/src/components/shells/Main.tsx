@@ -1,3 +1,4 @@
+/// <reference path="../../interfaces/globals.d.ts" />
 import * as React from 'react'
 import { connect, Dispatch } from 'react-redux'
 import { Grid, Navbar, Nav, NavDropdown, MenuItem } from 'react-bootstrap'
@@ -5,9 +6,7 @@ import { Root } from '../../interfaces/State'
 import { Error } from '../containers/Error'
 import { clearError } from '../../actions/error'
 import { NavLink, IndexNavLink } from '../wrappers/Links'
-
 import { Components as C } from '../../interfaces/Components'
-import { globals } from '../../interfaces/General'
 
 interface stateToProps extends C.HasErrorProp, C.UsernameProp {
     error: C.ErrorState

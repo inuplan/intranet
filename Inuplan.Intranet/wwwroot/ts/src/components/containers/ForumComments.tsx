@@ -1,10 +1,10 @@
+/// <reference path="../../interfaces/globals.d.ts" />
 import * as React from 'react'
 import { CommentList } from '../comments/CommentList'
 import { CommentForm } from '../comments/CommentForm'
 import { Pagination } from '../pagination/Pagination'
 import { fetchComments, postComment, editComment, deleteComment } from '../../actions/comments'
 import { getForumCommentsDeleteUrl, getForumCommentsPageUrl } from '../../utilities/utils'
-import { globals } from '../../interfaces/General'
 import { Root } from '../../interfaces/State'
 import { Data } from '../../interfaces/Data'
 import { Row, Col } from 'react-bootstrap'

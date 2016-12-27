@@ -1,8 +1,8 @@
+/// <reference path="../../interfaces/globals.d.ts" />
 import * as React from 'react'
 import { connect, Dispatch } from 'react-redux'
 import { Row, Col, ProgressBar } from 'react-bootstrap'
 import { fetchSpaceInfo } from '../../actions/status'
-import { globals } from '../../interfaces/General'
 import { Root } from '../../interfaces/State'
 
 interface stateToProps {
