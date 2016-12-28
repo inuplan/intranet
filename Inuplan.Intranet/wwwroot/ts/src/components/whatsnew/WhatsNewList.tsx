@@ -3,7 +3,7 @@ import { WhatsNewItemImage } from './WhatsNewItemImage'
 import { WhatsNewItemComment } from './WhatsNewItemComment'
 import { WhatsNewForumPost } from './WhatsNewForumPost'
 import { Media } from 'react-bootstrap'
-import { Data } from '../../interfaces/Data'
+import { Data, WhatsNewType } from '../../interfaces/Data'
 
 interface stateProps {
     items: Data.WhatsNew[]
@@ -30,7 +30,7 @@ export class WhatsNewList extends React.Component<stateProps, any> {
             const itemKey = generateKey(item.ID);
             const author = getUser(item.AuthorID);
             switch (item.Type) {
-                case Data.WhatsNewType.Image:
+                case WhatsNewType.Image:
                 {
                     const image = item.Item as Data.WhatsNewImage;
                     return  <WhatsNewItemImage
@@ -43,7 +43,7 @@ export class WhatsNewList extends React.Component<stateProps, any> {
                                 key={itemKey}
                             />
                 }
-                case Data.WhatsNewType.Comment:
+                case WhatsNewType.Comment:
                 {
                     const comment = item.Item as Data.WhatsNewComment;
                     return  <WhatsNewItemComment
@@ -57,7 +57,7 @@ export class WhatsNewList extends React.Component<stateProps, any> {
                                 key={itemKey}
                             />
                 }
-                case Data.WhatsNewType.ForumPost:
+                case WhatsNewType.ForumPost:
                 {
                     const post = item.Item as Data.WhatsNewForumPost;
                     return  <WhatsNewForumPost

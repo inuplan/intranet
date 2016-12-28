@@ -4,7 +4,7 @@ import { responseHandler, options } from '../utilities/utils'
 import { normalizeLatest as normalize } from '../utilities/normalize'
 import { Dispatch } from 'redux'
 import { Root } from '../interfaces/State'
-import { Data } from '../interfaces/Data'
+import { Data, WhatsNewType } from '../interfaces/Data'
 import * as fetch from 'isomorphic-fetch'
 import { ActionType } from '../constants/actions'
 import { addUser } from '../actions/users'
@@ -71,9 +71,9 @@ export const fetchLatestNews = (skip:number, take:number): any => {
     }
 }
 
-const getAuthor = (type: Data.WhatsNewType, item: Data.Raw.ImageDTO | Data.Raw.WhatsNewImageCommentDTO | Data.Raw.ThreadPostContentDTO): Data.User => {
+const getAuthor = (type: WhatsNewType, item: Data.Raw.ImageDTO | Data.Raw.WhatsNewImageCommentDTO | Data.Raw.ThreadPostContentDTO): Data.User => {
     let author: Data.User = null;
-    if(type == Data.WhatsNewType.ForumPost) {
+    if(type == WhatsNewType.ForumPost) {
         author = (<Data.Raw.ThreadPostContentDTO>item).Header.Author;
     } else {
         author = (<Data.Raw.ImageDTO>item).Author;

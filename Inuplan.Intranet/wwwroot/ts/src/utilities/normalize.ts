@@ -1,9 +1,9 @@
-import { Data } from '../interfaces/Data'
+import { Data, WhatsNewType } from '../interfaces/Data'
 
 export const normalizeLatest = (latest: Data.Raw.WhatsNewItem): Data.WhatsNew => {
     let item = null;
     let authorId = -1;
-    if(latest.Type == Data.WhatsNewType.Image) {
+    if(latest.Type == WhatsNewType.Image) {
         // Image - omit Author and CommentCount
         const image = <Data.Raw.ImageDTO>latest.Item;
         item = {
@@ -17,7 +17,7 @@ export const normalizeLatest = (latest: Data.Raw.WhatsNewItem): Data.WhatsNew =>
         };
         authorId = image.Author.ID;
     }
-    else if (latest.Type == Data.WhatsNewType.Comment) {
+    else if (latest.Type == WhatsNewType.Comment) {
         // Comment - omit Author and Deleted and Replies
         const comment = <Data.Raw.WhatsNewImageCommentDTO>latest.Item;
         item = {
@@ -29,7 +29,7 @@ export const normalizeLatest = (latest: Data.Raw.WhatsNewItem): Data.WhatsNew =>
         };
         authorId = comment.Author.ID;
     }
-    else if (latest.Type == Data.WhatsNewType.ForumPost) {
+    else if (latest.Type == WhatsNewType.ForumPost) {
         const post = <Data.Raw.ThreadPostContentDTO>latest.Item;
         item = {
             ID: post.ThreadID,

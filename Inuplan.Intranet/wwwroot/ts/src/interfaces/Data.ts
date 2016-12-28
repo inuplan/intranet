@@ -1,3 +1,10 @@
+// C# type enums
+export enum WhatsNewType {
+    Image = 1,
+    Comment = 2,
+    ForumPost = 4,
+}
+
 export declare namespace Data {
     // UserDTO
     export interface User {
@@ -89,13 +96,6 @@ export declare namespace Data {
         Text: string
         Sticky: boolean
         CommentCount: number
-    }
-
-    // C# type enums
-    export enum WhatsNewType {
-        Image = 1,
-        Comment = 2,
-        ForumPost = 4,
     }
 
     export namespace Raw {
