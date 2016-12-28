@@ -1,5 +1,5 @@
 // C# type enums
-export enum WhatsNewType {
+export const enum WhatsNewType {
     Image = 1,
     Comment = 2,
     ForumPost = 4,
