@@ -24,7 +24,7 @@ export class WhatsNewItemComment extends React.Component<StateProps, any> {
 
     fullname() {
         const { author } = this.props;
-        return author.FirstName + " " + author.LastName;
+        return author ? author.FirstName + " " + author.LastName : "User";
     }
 
     when() {

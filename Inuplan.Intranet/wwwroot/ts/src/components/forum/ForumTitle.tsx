@@ -3,7 +3,6 @@ import { Row, Col, Glyphicon, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { getWords } from "../../utilities/utils";
 import { Link } from "react-router";
 import { Data } from "../../interfaces/Data";
-import * as moment from "moment";
 
 interface ComponentProps {
     title: Data.ForumTitle;

@@ -115,8 +115,9 @@ export const fetchPost = (id: number, cb?: () => void): fetchResult<any, void> =
                 const content = data.Text;
                 const title = normalizeThreadTitle(data.Header);
 
-                dispatch(setPostContent(content));
                 dispatch(addThreadTitle(title));
+                dispatch(setPostContent(content));
+                dispatch(setSelectedThread(data.ThreadID));
             })
             .then(cb);
     };

@@ -18,8 +18,7 @@ interface DispatchToProps {
 
 const mapStateToProps = (state: Root) : StateToProps => {
     const user = state.usersInfo.users[state.usersInfo.currentUserId];
-    const hasUser = state.usersInfo.currentUserId > 0 && Boolean(user.Username);
-    const name = hasUser ? user.Username : "User";
+    const name = user ? user.Username : "User";
     return {
         username: name,
         hasError: state.statusInfo.hasError,

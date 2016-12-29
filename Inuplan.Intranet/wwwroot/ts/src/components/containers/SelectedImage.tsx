@@ -7,7 +7,6 @@ import { withRouter, InjectedRouter } from "react-router";
 import { Modal, Image, Button, ButtonToolbar, Glyphicon } from "react-bootstrap";
 import { Root } from "../../interfaces/State";
 import { ErrorState } from "../../interfaces/State";
-import * as moment from "moment";
 
 interface StateToProps {
     canEdit: boolean;

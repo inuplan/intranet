@@ -2,7 +2,6 @@
 /// <reference path="./es6-object-assign.d.ts" />
 import store from "../store/store";
 import { fetchLatestNews } from "../actions/whatsnew";
-import * as moment from "moment";
 import { fetchThreads, fetchPost } from "../actions/forum";
 import { RouterState } from "react-router";
 import { fetchCurrentUser, fetchUsers } from "../actions/users";

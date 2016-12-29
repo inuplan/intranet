@@ -9,7 +9,6 @@ import { withRouter, InjectedRouter } from "react-router";
 import { connect, Dispatch } from "react-redux";
 import { Root } from "../../interfaces/State";
 import { Data } from "../../interfaces/Data";
-import * as moment from "moment";
 
 interface StateToPropsPost {
     selected: number;

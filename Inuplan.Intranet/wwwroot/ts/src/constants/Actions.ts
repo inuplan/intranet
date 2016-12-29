@@ -1,8 +1,4 @@
 export const enum ActionType {
-    ADD_USERS,
-    RECEIVED_USERS,
-    SET_CURRENT_USER_ID,
-
     // Error -->
     SET_HAS_ERROR,
     SET_ERROR_TITLE,
@@ -33,6 +29,7 @@ export const enum ActionType {
     // <-- end
 
     // Users -->
+    SET_CURRENT_USER_ID,
     ADD_USER,
     RECIEVED_USERS,
     // <-- end

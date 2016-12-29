@@ -5,7 +5,6 @@ import { General as G } from "../interfaces/General";
 import { Root } from "../interfaces/State";
 import { setError } from "../actions/error";
 import { Dispatch } from "redux";
-import * as moment from "moment";
 import * as marked from "marked";
 import removeMd from "remove-markdown";
 import { Data } from "../interfaces/Data";
