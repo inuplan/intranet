@@ -48,5 +48,8 @@
   "scripts": {
     "bundle:js": "rollup -c rollup.config.js",
     "bundle:js-release": "rollup -c rollup.config.release.js"
+  },
+  "devDependencies": {
+    "rollup-plugin-cleanup": "^0.1.4"
   }
 }

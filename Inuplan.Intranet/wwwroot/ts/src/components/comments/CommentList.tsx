@@ -12,7 +12,7 @@ export class CommentList extends React.Component<Components.commentList, null> {
     }
 
     rootComments(comments: Data.Comment[]) {
-        if (!comments) return;
+        if (!comments) return null;
 
         return comments.map((comment) => {
             const node = this.constructComment(comment);

@@ -56,9 +56,11 @@ export class ForumForm extends React.Component<forumFormProps, forumFormState> {
 
     getValidation() {
         const length = this.state.Title.length;
-        if (length > 0 && length < 200) return 'success';
+        if (length >= 0 && length < 200) return 'success';
         if (length >= 200 && length <= 250) return 'warning';
-        if (length > 250) return 'error';
+
+        // Greater than 250 characters
+        return 'error';
     }
 
     transformToDTO(state: forumFormState): Partial<Data.Raw.Models.ThreadPostContent> {

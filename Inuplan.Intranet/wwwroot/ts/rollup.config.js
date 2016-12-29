@@ -7,6 +7,6 @@ export default {
   plugins: [
     buble()
   ],
-  sourceMap: 'inline',
+  sourceMap: 'none',
 }
 

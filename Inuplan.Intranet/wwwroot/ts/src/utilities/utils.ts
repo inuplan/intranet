@@ -55,6 +55,8 @@ export const responseHandler =  <T>(dispatch:Dispatch<Root>) => (onSuccess: (r: 
                 break;
         }
     }
+
+    return null;
 }
 
 export const union = <T>(arr1: T[], arr2:T[], equalityFunc: (v1:T, v2:T) => boolean): T[] => {
@@ -87,7 +89,7 @@ export const timeText = (postedOn: Date, expire: number = 12.5) => {
 }
 
 export const formatText = (text: string) => {
-    if (!text) return;
+    if (!text) return null;
     const rawMarkup = marked(text, { sanitize: true });
     return { __html: rawMarkup };
 }

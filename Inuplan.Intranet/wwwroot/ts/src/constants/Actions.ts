@@ -1,4 +1,4 @@
-export enum ActionType {
+export const enum ActionType {
     ADD_USERS,
     RECEIVED_USERS,
     SET_CURRENT_USER_ID,
