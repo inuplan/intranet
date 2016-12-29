@@ -1,22 +1,32 @@
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
-import Main from './components/shells/Main'
-import Home from './components/containers/Home'
-import Forum from './components/shells/Forum'
-import ForumList from './components/containers/ForumList'
-import ForumPost from './components/containers/ForumPost'
-import ForumComments from './components/containers/ForumComments'
-import Users from './components/containers/Users'
-import UserImages from './components/containers/UserImages'
-import SelectedImage from './components/containers/SelectedImage'
-import ImageComments from './components/containers/ImageComments'
-import SingleImageComment from './components/containers/SingleImageComment'
-import About from './components/containers/About'
-import { init, fetchForum, selectImage, fetchImages, loadComments, fetchComment, fetchWhatsNew, fetchSinglePost, fetchPostComments } from './utilities/onstartup'
-import { Router, Route, IndexRoute, browserHistory } from 'react-router'
-import { Provider } from 'react-redux'
-import { store } from './store/store'
+// tslint:disable-next-line:no-unused-variable
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+
+// components: default -> normal
+import Main from "./components/shells/Main";
+import Home from "./components/containers/Home";
+import Forum from "./components/shells/Forum";
+import ForumList from "./components/containers/ForumList";
+import ForumPost from "./components/containers/ForumPost";
+import ForumComments from "./components/containers/ForumComments";
+import Users from "./components/containers/Users";
+import UserImages from "./components/containers/UserImages";
+import SelectedImage from "./components/containers/SelectedImage";
+import ImageComments from "./components/containers/ImageComments";
+import SingleImageComment from "./components/containers/SingleImageComment";
+import About from "./components/containers/About";
 import store from "./store/store";
+
+// external components
+import { Router, Route, IndexRoute, browserHistory } from "react-router";
+import { Provider } from "react-redux";
+
+// multiline imports
+import {
+    init, fetchForum, selectImage, fetchImages,
+    loadComments, fetchComment, fetchWhatsNew,
+    fetchSinglePost, fetchPostComments
+} from "./utilities/onstartup";
 
 init();
 
@@ -42,4 +52,4 @@ ReactDOM.render(
             </Route>
         </Router>
     </Provider>,
-    document.getElementById('content'));
+    document.getElementById("content"));
