@@ -1,8 +1,5 @@
-// tslint:disable-next-line:no-unused-variable
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-
-// components: default -> normal
 import Main from "./components/shells/Main";
 import Home from "./components/containers/Home";
 import Forum from "./components/shells/Forum";
@@ -16,12 +13,8 @@ import ImageComments from "./components/containers/ImageComments";
 import SingleImageComment from "./components/containers/SingleImageComment";
 import About from "./components/containers/About";
 import store from "./store/store";
-
-// external components
 import { Router, Route, IndexRoute, browserHistory } from "react-router";
 import { Provider } from "react-redux";
-
-// multiline imports
 import {
     init, fetchForum, selectImage, fetchImages,
     loadComments, fetchComment, fetchWhatsNew,
