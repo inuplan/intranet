@@ -1,15 +1,29 @@
 import * as React from "react";
-import { Button } from "react-bootstrap";
+import { Button, Glyphicon, FormControl } from "react-bootstrap";
 import { Components as C } from "../../interfaces/Components";
 
 interface UploadImageProp {
     uploadImage: (username: string, formData: FormData) => void;
 }
 
-export class ImageUpload extends React.Component<C.UsernameProp & UploadImageProp, any> {
+interface Files {
+    hasFile?: boolean;
+    description?: string;
+}
+
+export class ImageUpload extends React.Component<C.UsernameProp & UploadImageProp, Files> {
     constructor(props: any) {
         super(props);
+        this.state = {
+            hasFile: false,
+            description: ""
+        };
+
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.setHasFile = this.setHasFile.bind(this);
+        this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
+        this.removeSelectedFiles = this.removeSelectedFiles.bind(this);
+        this.uploadButtonView = this.uploadButtonView.bind(this);
     }
 
     clearInput(fileInput: HTMLInputElement) {
@@ -50,13 +64,59 @@ export class ImageUpload extends React.Component<C.UsernameProp & UploadImagePro
         this.clearInput(fileInput);
     }
 
+    setHasFile() {
+        const fileInput = document.getElementById("files") as HTMLInputElement;
+        const files = fileInput.files;
+
+        const result = files.length > 0;
+        this.setState({
+            hasFile: result,
+        });
+    }
+
+    handleDescriptionChange(e: any) {
+        this.setState({
+            description: e.target.value
+        });
+    }
+
+    removeSelectedFiles() {
+        const fileInput = document.getElementById("files") as HTMLInputElement;
+        this.clearInput(fileInput);
+        this.setState({
+            hasFile: false,
+            description: ""
+        });
+    }
+
+    showDescription() {
+        if (!this.state.hasFile) {
+            return null;
+        }
+
+        return  <span>
+                    <FormControl id="description" type="text" value={this.state.description} placeholder="Beskriv billedet..." rows={50} onChange={this.handleDescriptionChange} />&nbsp;
+                    <Button bsStyle="warning" onClick={this.removeSelectedFiles}> Fortryd</Button>
+                </span>;
+    }
+
+    uploadButtonView() {
+        if (!this.state.hasFile)
+            return <Button bsStyle="primary" disabled type="submit"> Upload</Button>;
+
+        return  <Button bsStyle="primary" type="submit">Upload</Button>;
+    }
+
     render() {
-        return  <form onSubmit={this.handleSubmit} id="form-upload" encType="multipart/form-data">
+        return  <form onSubmit={this.handleSubmit} id="form-upload" className="form-inline" encType="multipart/form-data">
                         <div className="form-group">
-                            <label htmlFor="files">Upload filer:</label>
-                            <input type="file" className="form-control" id="files" name="files" multiple />
+                            <label htmlFor="files" className="hide-input">
+                                <Glyphicon glyph="camera" /> V&aelig;lg filer
+                                <input type="file" id="files" name="files" onChange={this.setHasFile} multiple />
+                            </label>
+                            &nbsp; {this.showDescription()} &nbsp;
+                            {this.uploadButtonView()}
                         </div>
-                    <Button bsStyle="primary" type="submit">Upload</Button>
                     {this.props.children}
                 </form>;
     }
