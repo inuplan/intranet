@@ -1,4 +1,4 @@
-import { store } from '../store/store'
+import store from '../store/store'
 import { fetchLatestNews } from '../actions/whatsnew'
 import * as moment from 'moment'
 import { fetchThreads, fetchPost } from '../actions/forum'

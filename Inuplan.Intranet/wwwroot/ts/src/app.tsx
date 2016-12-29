@@ -16,6 +16,7 @@ import { init, fetchForum, selectImage, fetchImages, loadComments, fetchComment,
 import { Router, Route, IndexRoute, browserHistory } from 'react-router'
 import { Provider } from 'react-redux'
 import { store } from './store/store'
+import store from "./store/store";
 
 init();
 
