@@ -1,13 +1,22 @@
+/// <reference path="./es6-promise.d.ts" />
+/// <reference path="./es6-object-assign.d.ts" />
 import store from "../store/store";
 import { fetchLatestNews } from "../actions/whatsnew";
 import * as moment from "moment";
 import { fetchThreads, fetchPost } from "../actions/forum";
 import { RouterState } from "react-router";
+import { fetchCurrentUser, fetchUsers } from "../actions/users";
 import { fetchUserImages, setSelectedImg, setImageOwner } from "../actions/images";
 import { fetchComments, setSkipComments, setTakeComments, fetchAndFocusSingleComment } from "../actions/comments";
 import { getImageCommentsPageUrl, getForumCommentsPageUrl } from "../utilities/utils";
+import { polyfill } from "es6-promise";
+import { polyfill as objectPolyfill } from "es6-object-assign";
 
 export const init = () => {
+    objectPolyfill();
+    polyfill();
+    store.dispatch(fetchCurrentUser(globals.currentUsername));
+    store.dispatch(fetchUsers());
     moment.locale("da");
 };
 
