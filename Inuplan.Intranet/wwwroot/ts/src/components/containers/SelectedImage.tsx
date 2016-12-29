@@ -16,6 +16,7 @@ interface StateToProps {
     extension: string;
     originalUrl: string;
     uploaded: Date;
+    description: string;
 }
 
 interface DispatchToProps {
@@ -39,6 +40,7 @@ const mapStateToProps = (state: Root) => {
     const extension = () => { if (image()) return image().Extension; return ""; };
     const originalUrl = () => { if (image()) return image().OriginalUrl; return ""; };
     const uploaded = () => { if (image()) return image().Uploaded; return new Date(); };
+    const description = () => { if (image()) return image().Description; return ""; };
 
     return {
         canEdit: canEdit,
@@ -47,7 +49,8 @@ const mapStateToProps = (state: Root) => {
         previewUrl: previewUrl(),
         extension: extension(),
         originalUrl: originalUrl(),
-        uploaded: uploaded()
+        uploaded: uploaded(),
+        description: description()
     };
 };
 
@@ -131,7 +134,7 @@ class ModalImage extends React.Component<StateToProps & DispatchToProps & { rout
     }
 
     render() {
-        const { filename, previewUrl, extension, originalUrl, uploaded, hasImage } = this.props;
+        const { filename, previewUrl, extension, originalUrl, uploaded, hasImage, description } = this.props;
         const show = hasImage();
         const name = filename + "." + extension;
         const uploadDate = moment(uploaded);
@@ -146,6 +149,9 @@ class ModalImage extends React.Component<StateToProps & DispatchToProps & { rout
                         <a href={originalUrl} target="_blank" rel="noopener">
                             <Image src={previewUrl} responsive className="center-block"/>
                         </a>
+                        <div className="image-selected-descriptiontext">
+                            {description}
+                        </div>
                     </Modal.Body>
 
                     <Modal.Footer>

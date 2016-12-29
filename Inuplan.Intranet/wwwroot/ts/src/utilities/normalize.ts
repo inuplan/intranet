@@ -6,14 +6,15 @@ export const normalizeLatest = (latest: Data.Raw.WhatsNewItem): Data.WhatsNew =>
     if (latest.Type === WhatsNewType.Image) {
         // Image - omit Author and CommentCount
         const image = <Data.Raw.ImageDTO>latest.Item;
-        item = {
+        item = <Data.WhatsNewImage>{
             Extension: image.Extension,
             Filename: image.Filename,
             ImageID: image.ImageID,
             OriginalUrl: image.OriginalUrl,
             PreviewUrl: image.PreviewUrl,
             ThumbnailUrl: image.ThumbnailUrl,
-            Uploaded: image.Uploaded
+            Uploaded: image.Uploaded,
+            Description: image.Description
         };
         authorId = image.Author.ID;
     }
@@ -60,6 +61,7 @@ export const normalizeImage = (img: Data.Raw.ImageDTO): Data.Image => {
         ThumbnailUrl: img.ThumbnailUrl,
         CommentCount: img.CommentCount,
         Uploaded: new Date(img.Uploaded),
+        Description: img.Description
     };
 };
 

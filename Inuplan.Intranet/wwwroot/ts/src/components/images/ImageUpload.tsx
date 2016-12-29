@@ -3,7 +3,7 @@ import { Button, Glyphicon, FormControl } from "react-bootstrap";
 import { Components as C } from "../../interfaces/Components";
 
 interface UploadImageProp {
-    uploadImage: (username: string, formData: FormData) => void;
+    uploadImage: (username: string, description: string, formData: FormData) => void;
 }
 
 interface Files {
@@ -24,6 +24,7 @@ export class ImageUpload extends React.Component<C.UsernameProp & UploadImagePro
         this.handleDescriptionChange = this.handleDescriptionChange.bind(this);
         this.removeSelectedFiles = this.removeSelectedFiles.bind(this);
         this.uploadButtonView = this.uploadButtonView.bind(this);
+        this.clearInput = this.clearInput.bind(this);
     }
 
     clearInput(fileInput: HTMLInputElement) {
@@ -39,6 +40,11 @@ export class ImageUpload extends React.Component<C.UsernameProp & UploadImagePro
                 parentNode.insertBefore(fileInput, ref);
             }
         }
+
+        this.setState({
+            hasFile: false,
+            description: ""
+        });
     }
 
     getFiles(): any {
@@ -60,7 +66,7 @@ export class ImageUpload extends React.Component<C.UsernameProp & UploadImagePro
             formData.append("file", file);
         }
 
-        uploadImage(username, formData);
+        uploadImage(username, this.state.description, formData);
         this.clearInput(fileInput);
     }
 

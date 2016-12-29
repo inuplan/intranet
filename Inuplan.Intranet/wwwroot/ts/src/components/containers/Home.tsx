@@ -16,7 +16,7 @@ interface StateToProps extends C.UsernameProp {
 }
 
 interface DispatchToProps {
-    uploadImage: (skip: number, take: number, username: string, formData: FormData) => void;
+    uploadImage: (skip: number, take: number, username: string, description: string, formData: FormData) => void;
 }
 
 interface ComponentState {
@@ -35,12 +35,12 @@ const mapStateToProps = (state: Root): StateToProps => {
 
 const mapDispatchToProps = (dispatch: Dispatch<Root>): DispatchToProps => {
     return {
-        uploadImage: (skip, take, username, formData) => {
+        uploadImage: (skip, take, username, description, formData) => {
             const onSuccess = () => {
                 dispatch(fetchLatestNews(skip, take));
             };
 
-            dispatch<any>(uploadImage(username, formData, onSuccess, (r) => { console.log(r); }));
+            dispatch<any>(uploadImage(username, description, formData, onSuccess, (r) => { console.log(r); }));
         }
     };
 };
@@ -60,9 +60,9 @@ class HomeContainer extends React.Component<StateToProps & DispatchToProps, Comp
         document.title = "Forside";
     }
 
-    upload(username: string, formData: FormData) {
+    upload(username: string, description: string, formData: FormData) {
         const { uploadImage, skip, take } = this.props;
-        uploadImage(skip, take, username, formData);
+        uploadImage(skip, take, username, description, formData);
     }
 
     recommendedView() {

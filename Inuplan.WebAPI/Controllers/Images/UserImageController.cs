@@ -98,9 +98,9 @@ namespace Inuplan.WebAPI.Controllers.Images
         /// </summary>
         /// <param name="username">The 3-letter username to upload to</param>
         /// <returns>Returns a response message to the caller</returns>
-        // POST /api/UserImage?username={username}
+        // POST /api/UserImage?username={username}&description={description}
         [HttpPost]
-        public async Task<HttpResponseMessage> Post(string username)
+        public async Task<HttpResponseMessage> Post(string username, [FromUri] string description)
         {
             if (!AuthorizeToUsername(username))
             {
@@ -124,7 +124,7 @@ namespace Inuplan.WebAPI.Controllers.Images
                 Logger.Trace("Processing image...");
                 var handler = imageHandleFactory.GetImageHandler();
                 var user = Request.GetUser().ValueOrFailure();
-                var image = await handler.ProcessUserImage(user, file, "");
+                var image = await handler.ProcessUserImage(user, file, description);
 
                 // Add images to the collection
                 bag.Add(image);

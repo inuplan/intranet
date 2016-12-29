@@ -40,6 +40,7 @@ export class WhatsNewList extends React.Component<StateProps, any> {
                                 extension={image.Extension}
                                 thumbnail={image.ThumbnailUrl}
                                 author={author}
+                                description={image.Description}
                                 key={itemKey}
                             />;
                 }

@@ -14,6 +14,7 @@ interface StateProps {
     filename: string;
     extension: string;
     thumbnail: string;
+    description: string;
 }
 
 export class WhatsNewItemImage extends React.Component<StateProps, any> {
@@ -27,7 +28,7 @@ export class WhatsNewItemImage extends React.Component<StateProps, any> {
     }
 
     render() {
-        const { imageId, author, filename, extension, thumbnail } = this.props;
+        const { imageId, author, filename, extension, thumbnail, description } = this.props;
         const username = author.Username;
         const file = `${filename}.${extension}`;
         const link = `${username}/gallery/image/${imageId}`;
@@ -38,6 +39,7 @@ export class WhatsNewItemImage extends React.Component<StateProps, any> {
                             <CommentProfile />
                             <Media.Body>
                                 <blockquote>
+                                    <span className="image-whatsnew-descriptiontext">{description}</span><br />
                                     <Link to={link}>
                                         <Image src={thumbnail} thumbnail />
                                     </Link>

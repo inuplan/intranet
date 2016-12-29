@@ -33,6 +33,7 @@ export declare namespace Data {
         PreviewUrl: string;
         ThumbnailUrl: string;
         CommentCount: number;
+        Description: string;
         Uploaded: Date;
     }
 
@@ -79,6 +80,7 @@ export declare namespace Data {
         OriginalUrl: string;
         PreviewUrl: string;
         ThumbnailUrl: string;
+        Description: string;
         Uploaded: Date;
     }
 
@@ -132,6 +134,7 @@ export declare namespace Data {
             PreviewUrl: string;
             ThumbnailUrl: string;
             CommentCount: number;
+            Description: string;
         }
 
         export interface ThreadPostContentDTO {

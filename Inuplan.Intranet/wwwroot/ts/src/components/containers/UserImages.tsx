@@ -20,7 +20,7 @@ import { Data } from "../../interfaces/Data";
  }
 
  interface DispatchToProps {
-     uploadImage: (username: string, formData: FormData) => void;
+     uploadImage: (username: string, desription: string, formData: FormData) => void;
      addSelectedImageId: (id: number) => void;
      removeSelectedImageId: (id: number) => void;
      deleteImages: (username: string, ids: number[]) => void;
@@ -54,8 +54,8 @@ const mapStateToProps = (state: Root) => {
 
 const mapDispatchToProps = (dispatch: Dispatch<Root>) => {
     return {
-        uploadImage: (username: string, formData: FormData) => {
-            dispatch(uploadImage(username, formData, () => { dispatch(fetchUserImages(username)); }, () => { }));
+        uploadImage: (username: string, description: string, formData: FormData) => {
+            dispatch(uploadImage(username, description, formData, () => { dispatch(fetchUserImages(username)); }, () => { }));
         },
         addSelectedImageId: (id: number) => {
             // Images to be deleted by selection:
@@ -123,7 +123,7 @@ class UserImagesContainer extends React.Component<Props, null> {
         if (!canEdit) return null;
 
         return  <Row>
-                    <Col lg={4}>
+                    <Col lg={7}>
                         <ImageUpload
                             uploadImage={uploadImage}
                             username={username}>

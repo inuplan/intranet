@@ -2,7 +2,7 @@ import { combineReducers } from "redux";
 import { Data } from "../interfaces/Data";
 import { General } from "../interfaces/General";
 import { ActionType } from "../constants/Actions";
-import { put } from "../utilities/utils";
+import { put, union } from "../utilities/utils";
 import { filter, omit } from "underscore";
 import { ImagesState } from "../interfaces/State";
 
@@ -81,9 +81,8 @@ const selectedImageIds = (state: number[] = [], action: Action<number[] | number
     switch (action.type) {
         case ActionType.ADD_SELECTED_IMAGE_ID:
         {
-            const merge = state.concat(action.payload);
-            const result = [...new Set(merge)];
-            return result;
+            const id = <number>action.payload;
+            return union(state, [id], (id1, id2) => id1 === id2);
         }
         case ActionType.REMOVE_SELECTED_IMAGE_ID:
         {
