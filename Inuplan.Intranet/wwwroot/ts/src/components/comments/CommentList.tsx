@@ -1,11 +1,11 @@
-import * as React from 'react'
-import { CommentDeleted } from './CommentDeleted'
-import { Comment } from './Comment'
-import { Media } from 'react-bootstrap'
-import { Components } from '../../interfaces/Components'
-import { Data } from '../../interfaces/Data'
+import * as React from "react";
+import { CommentDeleted } from "./CommentDeleted";
+import { Comment } from "./Comment";
+import { Media } from "react-bootstrap";
+import { Components } from "../../interfaces/Components";
+import { Data } from "../../interfaces/Data";
 
-export class CommentList extends React.Component<Components.commentList, null> {
+export class CommentList extends React.Component<Components.CommentList, null> {
     constructor(props: any) {
         super(props);
         this.constructComment = this.constructComment.bind(this);
@@ -18,7 +18,7 @@ export class CommentList extends React.Component<Components.commentList, null> {
             const node = this.constructComment(comment);
             return  <Media.ListItem key={"rootComment_" + comment.CommentID}>
                         {node}
-                    </Media.ListItem>
+                    </Media.ListItem>;
         });
     }
 
@@ -29,7 +29,7 @@ export class CommentList extends React.Component<Components.commentList, null> {
             return  <CommentDeleted
                         key={key}
                         construct={this.constructComment}
-                        replies={comment.Replies} />
+                        replies={comment.Replies} />;
 
         const { contextId, getName, canEdit } = this.props;
         const { skip, take, editComment, deleteComment, replyComment } = this.props;
@@ -48,7 +48,7 @@ export class CommentList extends React.Component<Components.commentList, null> {
                     canEdit={canEdit}
                     commentId={comment.CommentID}
                     {...controls}
-                />
+                />;
     }
 
     render() {
@@ -57,6 +57,6 @@ export class CommentList extends React.Component<Components.commentList, null> {
 
         return  <Media.List>
                     {nodes}
-                </Media.List>
+                </Media.List>;
     }
 }

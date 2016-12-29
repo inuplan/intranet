@@ -1,9 +1,9 @@
-import { Data, WhatsNewType } from '../interfaces/Data'
+import { Data, WhatsNewType } from "../interfaces/Data";
 
 export const normalizeLatest = (latest: Data.Raw.WhatsNewItem): Data.WhatsNew => {
     let item = null;
     let authorId = -1;
-    if(latest.Type == WhatsNewType.Image) {
+    if (latest.Type === WhatsNewType.Image) {
         // Image - omit Author and CommentCount
         const image = <Data.Raw.ImageDTO>latest.Item;
         item = {
@@ -17,7 +17,7 @@ export const normalizeLatest = (latest: Data.Raw.WhatsNewItem): Data.WhatsNew =>
         };
         authorId = image.Author.ID;
     }
-    else if (latest.Type == WhatsNewType.Comment) {
+    else if (latest.Type === WhatsNewType.Comment) {
         // Comment - omit Author and Deleted and Replies
         const comment = <Data.Raw.WhatsNewImageCommentDTO>latest.Item;
         item = {
@@ -29,7 +29,7 @@ export const normalizeLatest = (latest: Data.Raw.WhatsNewItem): Data.WhatsNew =>
         };
         authorId = comment.Author.ID;
     }
-    else if (latest.Type == WhatsNewType.ForumPost) {
+    else if (latest.Type === WhatsNewType.ForumPost) {
         const post = <Data.Raw.ThreadPostContentDTO>latest.Item;
         item = {
             ID: post.ThreadID,
@@ -37,7 +37,7 @@ export const normalizeLatest = (latest: Data.Raw.WhatsNewItem): Data.WhatsNew =>
             Text: post.Text,
             Sticky: post.Header.Sticky,
             CommentCount: post.Header.CommentCount
-        }
+        };
         authorId = post.Header.Author.ID;
     }
 
@@ -47,8 +47,8 @@ export const normalizeLatest = (latest: Data.Raw.WhatsNewItem): Data.WhatsNew =>
         Item: item,
         On: latest.On,
         AuthorID: authorId,
-    }
-}
+    };
+};
 
 export const normalizeImage = (img: Data.Raw.ImageDTO): Data.Image => {
     return {
@@ -61,7 +61,7 @@ export const normalizeImage = (img: Data.Raw.ImageDTO): Data.Image => {
         CommentCount: img.CommentCount,
         Uploaded: new Date(img.Uploaded),
     };
-}
+};
 
 export const normalizeThreadTitle = (title: Data.Raw.ThreadPostTitleDTO): Data.ForumTitle => {
     const viewedBy = title.ViewedBy.map(user => user.ID);
@@ -79,8 +79,8 @@ export const normalizeThreadTitle = (title: Data.Raw.ThreadPostTitleDTO): Data.F
         LatestComment: latestComment,
         CommentCount: title.CommentCount,
         ViewedBy: viewedBy,
-    }
-}
+    };
+};
 
 export const normalizeComment = (comment: Data.Raw.Comment): Data.Comment => {
     let r = comment.Replies ? comment.Replies : [];
@@ -94,5 +94,5 @@ export const normalizeComment = (comment: Data.Raw.Comment): Data.Comment => {
         Text: comment.Text,
         Replies: replies,
         Edited: comment.Edited
-    }
-}
+    };
+};

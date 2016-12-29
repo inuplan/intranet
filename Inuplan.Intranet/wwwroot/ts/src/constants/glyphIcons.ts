@@ -1,8 +1,8 @@
-type icons = 
+type icons =
       "trash"
     | "pencil"
     | "eye-open"
     | "eye-close"
-    | "envelope"
+    | "envelope";
 
-export default icons
+export default icons;

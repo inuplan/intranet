@@ -1,26 +1,26 @@
-import * as React from 'react'
-import { connect, Dispatch } from 'react-redux'
-import { fetchUsers } from '../../actions/users'
-import { UserList } from '../users/UserList'
-import { Row, Col, PageHeader } from 'react-bootstrap'
-import { Breadcrumb } from '../breadcrumbs/Breadcrumb'
-import { values } from 'underscore'
-import { Root } from '../../interfaces/State'
-import { Data } from '../../interfaces/Data'
+import * as React from "react";
+import { connect, Dispatch } from "react-redux";
+import { fetchUsers } from "../../actions/users";
+import { UserList } from "../users/UserList";
+import { Row, Col, PageHeader } from "react-bootstrap";
+import { Breadcrumb } from "../breadcrumbs/Breadcrumb";
+import { values } from "underscore";
+import { Root } from "../../interfaces/State";
+import { Data } from "../../interfaces/Data";
 
-interface stateToProps {
-    users: Data.User[]
+interface StateToProps {
+    users: Data.User[];
 }
 
-interface dispatchToProps {
-    getUsers: () => void
+interface DispatchToProps {
+    getUsers: () => void;
 }
 
-const mapUsersToProps = (state: Root): stateToProps => {
+const mapUsersToProps = (state: Root): StateToProps => {
     return {
         users: values(state.usersInfo.users) as Data.User[]
     };
-}
+};
 
 const mapDispatchToProps = (dispatch: Dispatch<Root>) => {
     return {
@@ -28,9 +28,9 @@ const mapDispatchToProps = (dispatch: Dispatch<Root>) => {
             dispatch<any>(fetchUsers());
         }
     };
-}
+};
 
-class UsersContainer extends React.Component<stateToProps & dispatchToProps, null> {
+class UsersContainer extends React.Component<StateToProps & DispatchToProps, null> {
     componentDidMount() {
         document.title = "Brugere";
     }
@@ -58,9 +58,9 @@ class UsersContainer extends React.Component<stateToProps & dispatchToProps, nul
                             <UserList users={users} />
                         </Row>
                     </Col>
-                </Row>
+                </Row>;
     }
 }
 
-const Users = connect(mapUsersToProps, mapDispatchToProps)(UsersContainer)
-export default Users
+const Users = connect(mapUsersToProps, mapDispatchToProps)(UsersContainer);
+export default Users;

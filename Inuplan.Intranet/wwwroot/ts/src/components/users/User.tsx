@@ -1,13 +1,13 @@
-import * as React from 'react'
-import { Link } from 'react-router'
-import { Row, Col, Panel } from 'react-bootstrap'
-import { Components } from '../../interfaces/Components'
+import * as React from "react";
+import { Link } from "react-router";
+import { Row, Col, Panel } from "react-bootstrap";
+import { Components } from "../../interfaces/Components";
 
-interface titleProp {
-    title: string
+interface TitleProp {
+    title: string;
 }
 
-export class User extends React.Component<Components.user, null> {
+export class User extends React.Component<Components.User, null> {
     render() {
         const { username, firstName, lastName, email } = this.props;
         const emailLink = "mailto:" + email;
@@ -19,7 +19,7 @@ export class User extends React.Component<Components.user, null> {
                         <UserItem title="Email"><a href={emailLink}>{email}</a></UserItem>
                         <UserItem title="Billeder"><Link to={gallery}>Billeder</Link></UserItem>
                     </Panel>
-                </Col>
+                </Col>;
     }
 }
 
@@ -27,7 +27,7 @@ class UserHeading extends React.Component<null, null> {
     render() {
         return  <Col lg={6}>
                     <strong>{this.props.children}</strong>
-                </Col>
+                </Col>;
     }
 }
 
@@ -35,16 +35,16 @@ class UserBody extends React.Component<null, null> {
     render() {
         return  <Col lg={6}>
                     {this.props.children}
-                </Col>
+                </Col>;
     }
 }
 
-class UserItem extends React.Component<titleProp, null> {
+class UserItem extends React.Component<TitleProp, null> {
     render() {
         const { title } = this.props;
         return  <Row>
                     <UserHeading>{title}</UserHeading>
                     <UserBody>{this.props.children}</UserBody>
-                </Row>
+                </Row>;
     }
 }

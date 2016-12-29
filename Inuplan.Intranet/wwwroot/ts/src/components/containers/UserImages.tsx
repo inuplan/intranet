@@ -1,47 +1,47 @@
-import * as React from 'react'
-import { connect, Dispatch } from 'react-redux'
-import { uploadImage, addSelectedImageId,  deleteImages, removeSelectedImageId, clearSelectedImageIds, fetchUserImages } from '../../actions/images'
-import { ImageUpload } from '../images/ImageUpload'
-import ImageList from '../images/ImageList'
-import { find } from 'underscore'
-import { withRouter, RouterOnContext, PlainRoute } from 'react-router'
-import { Row, Col, Button } from 'react-bootstrap'
-import { Breadcrumb } from '../breadcrumbs/Breadcrumb'
-import { values } from 'underscore'
-import UsedSpace from './UsedSpace'
-import { Root } from '../../interfaces/State'
-import { Data } from '../../interfaces/Data'
+import * as React from "react";
+import { connect, Dispatch } from "react-redux";
+import { uploadImage, addSelectedImageId,  deleteImages, removeSelectedImageId, clearSelectedImageIds, fetchUserImages } from "../../actions/images";
+import { ImageUpload } from "../images/ImageUpload";
+import ImageList from "../images/ImageList";
+import { find } from "underscore";
+import { withRouter, RouterOnContext, PlainRoute } from "react-router";
+import { Row, Col, Button } from "react-bootstrap";
+import { Breadcrumb } from "../breadcrumbs/Breadcrumb";
+import { values } from "underscore";
+import UsedSpace from "./UsedSpace";
+import { Root } from "../../interfaces/State";
+import { Data } from "../../interfaces/Data";
 
- interface stateToProps {
-     images: Data.Image[]
-     canEdit: boolean
-     selectedImageIds: number[]
-     fullName: string
+ interface StateToProps {
+     images: Data.Image[];
+     canEdit: boolean;
+     selectedImageIds: number[];
+     fullName: string;
  }
 
- interface dispatchToProps {
-     uploadImage: (username: string, formData: FormData) => void
-     addSelectedImageId: (id: number) => void
-     removeSelectedImageId: (id: number) => void
-     deleteImages: (username: string, ids: number[]) => void
-     clearSelectedImageIds: () => void
+ interface DispatchToProps {
+     uploadImage: (username: string, formData: FormData) => void;
+     addSelectedImageId: (id: number) => void;
+     removeSelectedImageId: (id: number) => void;
+     deleteImages: (username: string, ids: number[]) => void;
+     clearSelectedImageIds: () => void;
  }
 
-interface routeParams {
-    username :string
+interface RouteParams {
+    username: string;
 }
 
-interface router {
-    router: RouterOnContext
-    route: PlainRoute
+interface Router {
+    router: RouterOnContext;
+    route: PlainRoute;
 }
 
 const mapStateToProps = (state: Root) => {
     const { ownerId } = state.imagesInfo;
     const currentId = state.usersInfo.currentUserId;
-    const canEdit = (ownerId > 0 && currentId > 0 && ownerId == currentId);
+    const canEdit = (ownerId > 0 && currentId > 0 && ownerId === currentId);
     const user = state.usersInfo.users[ownerId];
-    const fullName = user ? `${user.FirstName} ${user.LastName}` : '';
+    const fullName = user ? `${user.FirstName} ${user.LastName}` : "";
     const images: Data.Image[] = values(state.imagesInfo.images);
 
     return {
@@ -49,8 +49,8 @@ const mapStateToProps = (state: Root) => {
         canEdit: canEdit,
         selectedImageIds: state.imagesInfo.selectedImageIds,
         fullName: fullName,
-    }
-}
+    };
+};
 
 const mapDispatchToProps = (dispatch: Dispatch<Root>) => {
     return {
@@ -71,14 +71,14 @@ const mapDispatchToProps = (dispatch: Dispatch<Root>) => {
         clearSelectedImageIds: () => {
             dispatch(clearSelectedImageIds());
         }
-    }
+    };
+};
+
+interface Props extends Router, StateToProps, DispatchToProps {
+    params: RouteParams;
 }
 
-interface props extends router, stateToProps, dispatchToProps {
-    params: routeParams
-}
-
-class UserImagesContainer extends React.Component<props, null> {
+class UserImagesContainer extends React.Component<Props, null> {
     constructor(props: any) {
         super(props);
         this.imageIsSelected = this.imageIsSelected.bind(this);
@@ -103,7 +103,7 @@ class UserImagesContainer extends React.Component<props, null> {
     imageIsSelected(checkId: number) {
         const { selectedImageIds } = this.props;
         const res = find(selectedImageIds, (id) => {
-            return id == checkId;
+            return id === checkId;
         });
         return res ? true : false;
     }
@@ -120,29 +120,29 @@ class UserImagesContainer extends React.Component<props, null> {
         const { username } = this.props.params;
         const hasImages = selectedImageIds.length > 0;
 
-        if(!canEdit) return null;
+        if (!canEdit) return null;
 
         return  <Row>
                     <Col lg={4}>
                         <ImageUpload
                             uploadImage={uploadImage}
                             username={username}>
-                                {'\u00A0'}
+                                {"\u00A0"}
                                 <Button bsStyle="danger" disabled={!hasImages} onClick={this.deleteSelectedImages}>Slet markeret billeder</Button>
                         </ImageUpload>
                     </Col>
-                </Row>
+                </Row>;
     }
 
     uploadLimitView() {
         const { canEdit } = this.props;
-        if(!canEdit) return null;
+        if (!canEdit) return null;
         return  <Row>
                     <Col lgOffset={2} lg={2}>
                         <br />
                         <UsedSpace />
                     </Col>
-                </Row>
+                </Row>;
     }
 
     render() {
@@ -179,7 +179,7 @@ class UserImagesContainer extends React.Component<props, null> {
                     </Row>
                     {this.uploadLimitView()}
                     {this.props.children}
-                </Row>
+                </Row>;
     }
 }
 

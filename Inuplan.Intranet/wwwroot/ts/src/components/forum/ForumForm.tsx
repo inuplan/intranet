@@ -1,42 +1,42 @@
-import * as React from 'react'
-import { FormGroup, ControlLabel, FormControl, Button, Row, Col, Modal, ButtonGroup, Glyphicon } from 'react-bootstrap'
-import { Data } from '../../interfaces/Data'
+import * as React from "react";
+import { FormGroup, ControlLabel, FormControl, Button, Row, Col, Modal, ButtonGroup, Glyphicon } from "react-bootstrap";
+import { Data } from "../../interfaces/Data";
 
-interface forumFormProps {
-    show: boolean
-    close: () => void
-    onSubmit: (post: Partial<Data.Raw.Models.ThreadPostContent>) => void
+interface ForumFormProps {
+    show: boolean;
+    close: () => void;
+    onSubmit: (post: Partial<Data.Raw.Models.ThreadPostContent>) => void;
     edit?: {
         Title: string
         Text: string
         Sticky: boolean
         IsPublished: boolean
-    }
+    };
 }
 
-interface forumFormState {
-    Title?: string,
-    Text?: string
-    Sticky?: boolean
-    IsPublished?: boolean
+interface ForumFormState {
+    Title?: string;
+    Text?: string;
+    Sticky?: boolean;
+    IsPublished?: boolean;
 }
 
-export class ForumForm extends React.Component<forumFormProps, forumFormState> {
+export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
     constructor(props: any) {
         super(props);
         this.state = {
-            Title: '',
-            Text: '',
+            Title: "",
+            Text: "",
             Sticky: false,
             IsPublished: true,
-        }
+        };
 
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     componentWillReceiveProps(nextProps: any) {
         const { edit } = nextProps;
-        if(edit) {
+        if (edit) {
             this.setState({
                 Title: edit.Title,
                 Text: edit.Text,
@@ -56,14 +56,14 @@ export class ForumForm extends React.Component<forumFormProps, forumFormState> {
 
     getValidation() {
         const length = this.state.Title.length;
-        if (length >= 0 && length < 200) return 'success';
-        if (length >= 200 && length <= 250) return 'warning';
+        if (length >= 0 && length < 200) return "success";
+        if (length >= 200 && length <= 250) return "warning";
 
         // Greater than 250 characters
-        return 'error';
+        return "error";
     }
 
-    transformToDTO(state: forumFormState): Partial<Data.Raw.Models.ThreadPostContent> {
+    transformToDTO(state: ForumFormState): Partial<Data.Raw.Models.ThreadPostContent> {
         // A ThreadPostContent class
         const header = {
                 IsPublished: state.IsPublished,
@@ -73,7 +73,7 @@ export class ForumForm extends React.Component<forumFormProps, forumFormState> {
         return {
             Header: header,
             Text: state.Text
-        }
+        };
     }
 
     handleSubmit(e: React.MouseEvent<any>) {
@@ -104,8 +104,8 @@ export class ForumForm extends React.Component<forumFormProps, forumFormState> {
     render() {
         const { show, edit } = this.props;
         const readMode = Boolean(!edit);
-        const title =  readMode ? 'Skriv nyt indlæg' : 'Ændre indlæg';
-        const btnSubmit = readMode ? 'Skriv indlæg' : 'Gem ændringer';
+        const title =  readMode ? "Skriv nyt indlæg" : "Ændre indlæg";
+        const btnSubmit = readMode ? "Skriv indlæg" : "Gem ændringer";
         return  <Modal show={show} onHide={this.closeHandle.bind(this)} bsSize="lg">
                     <form>
                         <Modal.Header closeButton>
@@ -139,6 +139,6 @@ export class ForumForm extends React.Component<forumFormProps, forumFormState> {
                             <Button bsStyle="primary" type="submit" onClick={this.handleSubmit}>{btnSubmit}</Button>
                         </Modal.Footer>
                     </form>
-                </Modal>
+                </Modal>;
     }
 }

@@ -1,13 +1,13 @@
-import { combineReducers } from 'redux'
-import { Data } from '../interfaces/Data'
-import { General } from '../interfaces/General'
-import { ActionType } from '../constants/Actions'
-import { put } from '../utilities/utils'
-import { filter, omit } from 'underscore'
-import { ImagesState } from '../interfaces/State'
+import { combineReducers } from "redux";
+import { Data } from "../interfaces/Data";
+import { General } from "../interfaces/General";
+import { ActionType } from "../constants/Actions";
+import { put } from "../utilities/utils";
+import { filter, omit } from "underscore";
+import { ImagesState } from "../interfaces/State";
 
-type ImageReducer = General.KeyValue<Data.Image>
-type Action<T> = General.Action<T>
+type ImageReducer = General.KeyValue<Data.Image>;
+type Action<T> = General.Action<T>;
 
 const ownerId = (state: number = -1, action: Action<number>): number => {
     switch (action.type) {
@@ -20,13 +20,13 @@ const ownerId = (state: number = -1, action: Action<number>): number => {
             return state;
         }
     }
-}
+};
 
 const images = (state: ImageReducer = {}, action: Action<ImageReducer | Partial<Data.Image>>): ImageReducer => {
     switch (action.type) {
         case ActionType.ADD_IMAGE:
         {
-            const image= (<Data.Image>action.payload); 
+            const image = (<Data.Image>action.payload);
             return put(state, image.ImageID, image);
         }
         case ActionType.RECIEVED_USER_IMAGES:
@@ -62,7 +62,7 @@ const images = (state: ImageReducer = {}, action: Action<ImageReducer | Partial<
             return state;
         }
     }
-}
+};
 
 const selectedImageId = (state: number = -1, action: Action<number>): number => {
     switch (action.type) {
@@ -75,7 +75,7 @@ const selectedImageId = (state: number = -1, action: Action<number>): number => 
             return state;
         }
     }
-}
+};
 
 const selectedImageIds = (state: number[] = [], action: Action<number[] | number>): number[] => {
     switch (action.type) {
@@ -87,7 +87,7 @@ const selectedImageIds = (state: number[] = [], action: Action<number[] | number
         }
         case ActionType.REMOVE_SELECTED_IMAGE_ID:
         {
-            return filter(state, (id) => id != action.payload);
+            return filter(state, (id) => id !== action.payload);
         }
         case ActionType.CLEAR_SELECTED_IMAGE_IDS:
         {
@@ -98,13 +98,13 @@ const selectedImageIds = (state: number[] = [], action: Action<number[] | number
             return state;
         }
     }
-}
+};
 
 const imagesInfo = combineReducers<ImagesState>({
     ownerId,
     images,
     selectedImageId,
     selectedImageIds
-})
+});
 
 export default imagesInfo;

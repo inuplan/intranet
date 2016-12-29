@@ -1,6 +1,6 @@
-import * as React from 'react'
-import { Row, Col, Alert } from 'react-bootstrap'
-import { Components as C } from '../../interfaces/Components'
+import * as React from "react";
+import { Row, Col, Alert } from "react-bootstrap";
+import { Components as C } from "../../interfaces/Components";
 
 export class Error extends React.Component<C.Error, any> {
     render() {
@@ -12,6 +12,6 @@ export class Error extends React.Component<C.Error, any> {
                             <p>{message}</p>
                         </Alert>
                     </Col>
-                </Row>
+                </Row>;
     }
 }

@@ -1,22 +1,22 @@
-import * as React from 'react'
-import { CommentProfile } from '../comments/CommentProfile'
-import { WhatsNewTooltip } from './WhatsNewTooltip'
-import { formatText, getWords, timeText } from '../../utilities/utils'
-import { Link } from 'react-router'
-import { Media, Glyphicon } from 'react-bootstrap'
-import { Data } from '../../interfaces/Data'
+import * as React from "react";
+import { CommentProfile } from "../comments/CommentProfile";
+import { WhatsNewTooltip } from "./WhatsNewTooltip";
+import { formatText, getWords, timeText } from "../../utilities/utils";
+import { Link } from "react-router";
+import { Media, Glyphicon } from "react-bootstrap";
+import { Data } from "../../interfaces/Data";
 
-interface stateProps {
-    commentId: number
-    text: string
-    uploadedBy: Data.User
-    imageId: number
-    on: Date
-    author: Data.User
-    filename: string
+interface StateProps {
+    commentId: number;
+    text: string;
+    uploadedBy: Data.User;
+    imageId: number;
+    on: Date;
+    author: Data.User;
+    filename: string;
 }
 
-export class WhatsNewItemComment extends React.Component<stateProps, any> {
+export class WhatsNewItemComment extends React.Component<StateProps, any> {
     createSummary() {
         const { text } = this.props;
         return formatText(getWords(text, 5) + "...");
@@ -24,7 +24,7 @@ export class WhatsNewItemComment extends React.Component<stateProps, any> {
 
     fullname() {
         const { author } = this.props;
-        return author.FirstName + ' ' + author.LastName;
+        return author.FirstName + " " + author.LastName;
     }
 
     when() {
@@ -37,7 +37,7 @@ export class WhatsNewItemComment extends React.Component<stateProps, any> {
         const username = uploadedBy.Username;
         const name = this.fullname();
         const summary = this.createSummary();
-        const link = `${username}/gallery/image/${imageId}/comment?id=${commentId}`
+        const link = `${username}/gallery/image/${imageId}/comment?id=${commentId}`;
         return  <WhatsNewTooltip tooltip="Kommentar">
                     <Media.ListItem className="whatsnewItem hover-shadow">
                         <CommentProfile />
@@ -48,6 +48,6 @@ export class WhatsNewItemComment extends React.Component<stateProps, any> {
                             </blockquote>
                         </Media.Body>
                     </Media.ListItem>
-                </WhatsNewTooltip>
+                </WhatsNewTooltip>;
     }
 }

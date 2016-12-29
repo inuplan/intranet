@@ -1,36 +1,36 @@
 /// <reference path="../../interfaces/globals.d.ts" />
-import * as React from 'react'
-import { Comment } from '../comments/Comment'
-import { connect, Dispatch } from 'react-redux'
-import { Well, Button, Glyphicon } from 'react-bootstrap'
-import { fetchAndFocusSingleComment, postComment, editComment, deleteComment } from '../../actions/comments'
-import { withRouter, InjectedRouter } from 'react-router'
-import { getImageCommentsDeleteUrl } from '../../utilities/utils'
-import { Root } from '../../interfaces/State'
-import { Data } from '../../interfaces/Data'
+import * as React from "react";
+import { Comment } from "../comments/Comment";
+import { connect, Dispatch } from "react-redux";
+import { Well, Button, Glyphicon } from "react-bootstrap";
+import { fetchAndFocusSingleComment, postComment, editComment, deleteComment } from "../../actions/comments";
+import { withRouter, InjectedRouter } from "react-router";
+import { getImageCommentsDeleteUrl } from "../../utilities/utils";
+import { Root } from "../../interfaces/State";
+import { Data } from "../../interfaces/Data";
 
-interface stateToProps {
-    getName: (id: number) => string
-    focusedId: number
-    focused: Data.Comment
-    imageId: number
-    imageOwner: string
-    canEdit: (id: number) => boolean
-    skip: number
-    take: number
+interface StateToProps {
+    getName: (id: number) => string;
+    focusedId: number;
+    focused: Data.Comment;
+    imageId: number;
+    imageOwner: string;
+    canEdit: (id: number) => boolean;
+    skip: number;
+    take: number;
 }
 
-type cb = () => void
+type cb = () => void;
 
-interface dispatchToProps {
-    editHandle: (commentId: number, imageId: number, text: string, cb: cb) => void
-    deleteHandle: (commentId: number, cb: cb) => void
-    replyHandle: (imageId: number, text: string, parentId: number, cb: cb) => void
-    focusComment: (id: number) => void
+interface DispatchToProps {
+    editHandle: (commentId: number, imageId: number, text: string, cb: cb) => void;
+    deleteHandle: (commentId: number, cb: cb) => void;
+    replyHandle: (imageId: number, text: string, parentId: number, cb: cb) => void;
+    focusComment: (id: number) => void;
 
 }
 
-const mapStateToProps = (state: Root): stateToProps => {
+const mapStateToProps = (state: Root): StateToProps => {
     const { comments, focusedComment } = state.commentsInfo;
     const { users } = state.usersInfo;
     const { ownerId, selectedImageId } = state.imagesInfo;
@@ -44,13 +44,13 @@ const mapStateToProps = (state: Root): stateToProps => {
         focused: comments[0],
         imageId: selectedImageId,
         imageOwner: users[ownerId].Username,
-        canEdit: (id) => state.usersInfo.currentUserId == id,
+        canEdit: (id) => state.usersInfo.currentUserId === id,
         skip: state.commentsInfo.skip,
         take: state.commentsInfo.take,
-    }
-}
+    };
+};
 
-const mapDispatchToProps = (dispatch: Dispatch<Root>): dispatchToProps => {
+const mapDispatchToProps = (dispatch: Dispatch<Root>): DispatchToProps => {
     return {
         editHandle: (commentId: number, _: number, text: string, cb: cb) => {
             const url = globals.urls.imagecomments;
@@ -65,10 +65,10 @@ const mapDispatchToProps = (dispatch: Dispatch<Root>): dispatchToProps => {
             dispatch<any>(postComment(url, imageId, text, parentId, cb));
         },
         focusComment: (id) => dispatch<any>(fetchAndFocusSingleComment(id))
-    }
-}
+    };
+};
 
-class SingleCommentRedux extends React.Component<stateToProps & dispatchToProps & { router: InjectedRouter }, null> {
+class SingleCommentRedux extends React.Component<StateToProps & DispatchToProps & { router: InjectedRouter }, null> {
     constructor(props: any) {
         super(props);
         this.allComments = this.allComments.bind(this);
@@ -104,7 +104,7 @@ class SingleCommentRedux extends React.Component<stateToProps & dispatchToProps 
 
     render() {
         const { focusedId } = this.props;
-        if(focusedId < 0) return null;
+        if (focusedId < 0) return null;
 
         const { Text, AuthorID, CommentID, PostedOn, Edited } = this.props.focused;
         const { canEdit, imageId } = this.props;
@@ -141,7 +141,7 @@ class SingleCommentRedux extends React.Component<stateToProps & dispatchToProps 
                             </Button>
                         </p>
                     </div>
-                </div>
+                </div>;
     }
 }
 

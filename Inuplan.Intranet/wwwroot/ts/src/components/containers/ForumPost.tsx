@@ -1,46 +1,46 @@
-import * as React from 'react'
-import { ForumForm } from '../forum/ForumForm'
-import { ButtonTooltip } from '../comments/CommentControls'
-import { markPost, updatePost, fetchPost, deletePost, setSelectedThread } from '../../actions/forum'
-import { find, contains } from 'underscore'
-import {  getFullName, formatText } from '../../utilities/utils'
-import { Row, Col, Glyphicon, ButtonToolbar, ButtonGroup } from 'react-bootstrap'
-import { withRouter, InjectedRouter } from 'react-router'
-import { connect, Dispatch } from 'react-redux'
-import { Root } from '../../interfaces/State'
-import { Data } from '../../interfaces/Data'
-import * as moment from 'moment'
+import * as React from "react";
+import { ForumForm } from "../forum/ForumForm";
+import { ButtonTooltip } from "../comments/CommentControls";
+import { markPost, updatePost, fetchPost, deletePost, setSelectedThread } from "../../actions/forum";
+import { find, contains } from "underscore";
+import {  getFullName, formatText } from "../../utilities/utils";
+import { Row, Col, Glyphicon, ButtonToolbar, ButtonGroup } from "react-bootstrap";
+import { withRouter, InjectedRouter } from "react-router";
+import { connect, Dispatch } from "react-redux";
+import { Root } from "../../interfaces/State";
+import { Data } from "../../interfaces/Data";
+import * as moment from "moment";
 
-interface stateToPropsPost {
-    selected: number
-    title: Data.ForumTitle
-    text: string
-    getUser: (id: number) => Data.User
-    canEdit: (id: number) => boolean
-    hasRead: boolean
+interface StateToPropsPost {
+    selected: number;
+    title: Data.ForumTitle;
+    text: string;
+    getUser: (id: number) => Data.User;
+    canEdit: (id: number) => boolean;
+    hasRead: boolean;
 }
 
-interface dispatchToPropsPost {
-    update: (id: number, post: Partial<Data.Raw.Models.ThreadPostContent>, cb: () => void) => void
-    getPost: (id: number) => any
-    deletePost: (id: number, cb: Function) => void
-    readPost: (postId: number, read: boolean, cb: Function) => void
+interface DispatchToPropsPost {
+    update: (id: number, post: Partial<Data.Raw.Models.ThreadPostContent>, cb: () => void) => void;
+    getPost: (id: number) => any;
+    deletePost: (id: number, cb: Function) => void;
+    readPost: (postId: number, read: boolean, cb: Function) => void;
 }
 
-const mapStateToProps = (state: Root): stateToPropsPost => {
+const mapStateToProps = (state: Root): StateToPropsPost => {
     const selected = state.forumInfo.titlesInfo.selectedThread;
-    const title = find(state.forumInfo.titlesInfo.titles, (title) => title.ID == selected);
+    const title = find(state.forumInfo.titlesInfo.titles, (title) => title.ID === selected);
     return {
         selected: selected,
         title: title,
         text: state.forumInfo.postContent,
         getUser: (id) => state.usersInfo.users[id],
-        canEdit: (id) => state.usersInfo.currentUserId == id,
+        canEdit: (id) => state.usersInfo.currentUserId === id,
         hasRead: title ? contains(title.ViewedBy, state.usersInfo.currentUserId) : false,
-    }
-}
+    };
+};
 
-const mapDispatchToProps = (dispatch: Dispatch<any>): dispatchToPropsPost => {
+const mapDispatchToProps = (dispatch: Dispatch<any>): DispatchToPropsPost => {
     return {
         update: (id: number, post: Partial<Data.Raw.Models.ThreadPostContent>, cb: () => void) => {
             dispatch(updatePost(id, post, cb));
@@ -55,20 +55,20 @@ const mapDispatchToProps = (dispatch: Dispatch<any>): dispatchToPropsPost => {
         readPost: (postId: number, read: boolean, cb: () => void) => {
             dispatch(markPost(postId, read, cb));
         }
-    }
-}
+    };
+};
 
-interface componentState {
-    edit?: boolean
+interface ComponentState {
+    edit?: boolean;
     model?: {
         Title: string
         Text: string
         Sticky: boolean
         IsPublished: boolean
-    }
+    };
 }
 
-class ForumPostContainer extends React.Component<stateToPropsPost & dispatchToPropsPost & { router: InjectedRouter }, componentState> {
+class ForumPostContainer extends React.Component<StateToPropsPost & DispatchToPropsPost & { router: InjectedRouter }, ComponentState> {
     constructor(props: any) {
         super(props);
         this.state = {
@@ -83,7 +83,7 @@ class ForumPostContainer extends React.Component<stateToPropsPost & dispatchToPr
 
     componentWillReceiveProps(nextProps: any) {
         const hasTitle = Boolean(nextProps.title);
-        if(!hasTitle) return;
+        if (!hasTitle) return;
 
         this.setState({
             model: {
@@ -102,7 +102,7 @@ class ForumPostContainer extends React.Component<stateToPropsPost & dispatchToPr
         const cb = () => {
             const forumlists = `/forum`;
             router.push(forumlists);
-        }
+        };
 
         deletePost(title.ID, cb);
     }
@@ -125,7 +125,7 @@ class ForumPostContainer extends React.Component<stateToPropsPost & dispatchToPr
         const { getPost, readPost, title } = this.props;
         const cb = () => {
             getPost(title.ID);
-        }
+        };
 
         readPost(title.ID, toggle, cb);
     }
@@ -136,7 +136,7 @@ class ForumPostContainer extends React.Component<stateToPropsPost & dispatchToPr
 
     render() {
         const { canEdit, selected, title, text, getUser, hasRead } = this.props;
-        if(selected < 0 || !title) return null;
+        if (selected < 0 || !title) return null;
 
         const edit = canEdit(title.AuthorID);
         const user = getUser(title.AuthorID);
@@ -161,17 +161,17 @@ class ForumPostContainer extends React.Component<stateToPropsPost & dispatchToPr
                         close={this.close.bind(this)}
                         onSubmit={this.onSubmit.bind(this)}
                         edit={this.state.model} />
-                </Row>
+                </Row>;
     }
 }
 
-interface forumBodyProps {
-    text: string
-    lg?: number
-    lgOffset?: number
+interface ForumBodyProps {
+    text: string;
+    lg?: number;
+    lgOffset?: number;
 }
 
-export class ForumBody extends React.Component<forumBodyProps, any> {
+export class ForumBody extends React.Component<ForumBodyProps, any> {
     render() {
         const { text, lg, lgOffset } = this.props;
         const formattedText = formatText(text);
@@ -184,25 +184,25 @@ export class ForumBody extends React.Component<forumBodyProps, any> {
                             </Col>
                         </Row>
                     </Col>
-                </Row>
+                </Row>;
     }
 }
 
-interface forumHeaderProps {
-    createdOn?: Date
-    modifiedOn?: Date
-    title: string
-    name: string
-    lg?: number
-    lgOffset?: number
+interface ForumHeaderProps {
+    createdOn?: Date;
+    modifiedOn?: Date;
+    title: string;
+    name: string;
+    lg?: number;
+    lgOffset?: number;
 }
 
-export class ForumHeader extends React.Component<forumHeaderProps, any> {
+export class ForumHeader extends React.Component<ForumHeaderProps, any> {
     getCreatedOnText(createdOn: Date, modifiedOn: Date) {
         const date = moment(createdOn);
         const dateText = date.format("D-MM-YY");
         const timeText = date.format(" H:mm");
-        if(!modifiedOn)
+        if (!modifiedOn)
             return `Udgivet ${dateText} kl. ${timeText}`;
 
         const modified = moment(modifiedOn);
@@ -226,32 +226,32 @@ export class ForumHeader extends React.Component<forumHeaderProps, any> {
                             {this.props.children}
                         </Row>
                     </Col>
-                </Row>
+                </Row>;
 
     }
 }
 
-interface forumButtonGroupProps {
-    show: boolean
-    editable: boolean
-    initialRead: boolean
-    onDelete: () => void
-    onEdit: (e: React.MouseEvent<any>) => void
-    onRead: () => void
-    onUnread: () => void
+interface ForumButtonGroupProps {
+    show: boolean;
+    editable: boolean;
+    initialRead: boolean;
+    onDelete: () => void;
+    onEdit: (e: React.MouseEvent<any>) => void;
+    onRead: () => void;
+    onUnread: () => void;
 }
 
-interface forumButtonGroupState {
-    read: boolean
+interface ForumButtonGroupState {
+    read: boolean;
 }
 
 // props: { show, editable, initialRead, onDelete, onEdit, onRead, onUnread }
-export class ForumButtonGroup extends React.Component<forumButtonGroupProps, forumButtonGroupState> {
+export class ForumButtonGroup extends React.Component<ForumButtonGroupProps, ForumButtonGroupState> {
     constructor(props: any) {
         super(props);
         this.state = {
             read: props.initialRead
-        }
+        };
 
         this.readHandle = this.readHandle.bind(this);
         this.unreadHandle = this.unreadHandle.bind(this);
@@ -259,7 +259,7 @@ export class ForumButtonGroup extends React.Component<forumButtonGroupProps, for
 
     readHandle() {
         const { onRead } = this.props;
-        if(this.state.read) return;
+        if (this.state.read) return;
 
         this.setState({ read: true });
         onRead();
@@ -267,7 +267,7 @@ export class ForumButtonGroup extends React.Component<forumButtonGroupProps, for
 
     unreadHandle() {
         const { onUnread } = this.props;
-        if(!this.state.read) return;
+        if (!this.state.read) return;
 
         this.setState({ read: false });
         onUnread();
@@ -275,7 +275,7 @@ export class ForumButtonGroup extends React.Component<forumButtonGroupProps, for
 
     render() {
         const { editable, show, onDelete, onEdit } = this.props;
-        if(!show) return null;
+        if (!show) return null;
 
         const { read } = this.state;
         return  <Col lg={12} className="forum-editbar">
@@ -287,7 +287,7 @@ export class ForumButtonGroup extends React.Component<forumButtonGroupProps, for
                             <ButtonTooltip bsStyle="primary" onClick={this.unreadHandle} icon="eye-close" tooltip="marker som ulæst" active={!read} mount={true} />
                         </ButtonGroup>
                     </ButtonToolbar>
-                </Col>
+                </Col>;
     }
 }
 

@@ -1,45 +1,45 @@
 /// <reference path="../../interfaces/globals.d.ts" />
-import * as React from 'react'
-import { fetchComments, postComment, editComment, deleteComment } from '../../actions/comments'
-import { incrementCommentCount, decrementCommentCount } from '../../actions/images'
-import { CommentList } from '../comments/CommentList'
-import { connect, Dispatch } from 'react-redux'
-import { Pagination } from '../pagination/Pagination'
-import { CommentForm } from '../comments/CommentForm'
-import { getImageCommentsPageUrl, getImageCommentsDeleteUrl } from '../../utilities/utils'
-import { Row, Col } from 'react-bootstrap'
-import { withRouter, InjectedRouter } from 'react-router'
-import { Root } from '../../interfaces/State'
-import { Data } from '../../interfaces/Data'
+import * as React from "react";
+import { fetchComments, postComment, editComment, deleteComment } from "../../actions/comments";
+import { incrementCommentCount, decrementCommentCount } from "../../actions/images";
+import { CommentList } from "../comments/CommentList";
+import { connect, Dispatch } from "react-redux";
+import { Pagination } from "../pagination/Pagination";
+import { CommentForm } from "../comments/CommentForm";
+import { getImageCommentsPageUrl, getImageCommentsDeleteUrl } from "../../utilities/utils";
+import { Row, Col } from "react-bootstrap";
+import { withRouter, InjectedRouter } from "react-router";
+import { Root } from "../../interfaces/State";
+import { Data } from "../../interfaces/Data";
 
-type cb = () => void
+type cb = () => void;
 
-interface stateToProps {
-    canEdit: (id: number) => boolean
-    imageId: number
-    skip: number
-    take: number
-    page: number
-    totalPages: number
-    comments: Data.Comment[]
-    getName: (userId: number) => string
-    owner: Data.User
+interface StateToProps {
+    canEdit: (id: number) => boolean;
+    imageId: number;
+    skip: number;
+    take: number;
+    page: number;
+    totalPages: number;
+    comments: Data.Comment[];
+    getName: (userId: number) => string;
+    owner: Data.User;
 }
 
-interface dispatchToProps {
-    postHandle: (imageId: number, text: string, cb: cb) => void
-    fetchComments: (imageId: number, skip: number, take: number) => void
-    editHandle: (commentId: number, imageId: number, text: string, cb: cb) => void
-    deleteHandle: (commentId: number, cb: cb) => void
-    replyHandle: (imageId: number, text: string, parentId: number, cb: cb) => void
-    incrementCount: (imageId: number) => void
-    decrementCount: (imageId: number) => void
-    loadComments: (imageId: number, skip:number, take: number) => void
+interface DispatchToProps {
+    postHandle: (imageId: number, text: string, cb: cb) => void;
+    fetchComments: (imageId: number, skip: number, take: number) => void;
+    editHandle: (commentId: number, imageId: number, text: string, cb: cb) => void;
+    deleteHandle: (commentId: number, cb: cb) => void;
+    replyHandle: (imageId: number, text: string, parentId: number, cb: cb) => void;
+    incrementCount: (imageId: number) => void;
+    decrementCount: (imageId: number) => void;
+    loadComments: (imageId: number, skip: number, take: number) => void;
 }
 
-const mapStateToProps = (state: Root): stateToProps => {
+const mapStateToProps = (state: Root): StateToProps => {
     return {
-        canEdit: (id: number) => state.usersInfo.currentUserId == id,
+        canEdit: (id: number) => state.usersInfo.currentUserId === id,
         imageId: state.imagesInfo.selectedImageId,
         skip: state.commentsInfo.skip,
         take: state.commentsInfo.take,
@@ -52,10 +52,10 @@ const mapStateToProps = (state: Root): stateToProps => {
             return `${FirstName} ${LastName}`;
         },
         owner: state.usersInfo.users[state.imagesInfo.ownerId]
-    }
-}
+    };
+};
 
-const mapDispatchToProps = (dispatch: Dispatch<Root>): dispatchToProps => {
+const mapDispatchToProps = (dispatch: Dispatch<Root>): DispatchToProps => {
     return {
         postHandle: (imageId: number, text: string, cb: cb) => {
             const url = globals.urls.imagecomments;
@@ -83,10 +83,10 @@ const mapDispatchToProps = (dispatch: Dispatch<Root>): dispatchToProps => {
             const url = getImageCommentsPageUrl(imageId, skip, take);
             dispatch(fetchComments(url, skip, take));
         }
-    }
-}
+    };
+};
 
-class CommentsContainer extends React.Component<stateToProps & dispatchToProps & { router: InjectedRouter }, null> {
+class CommentsContainer extends React.Component<StateToProps & DispatchToProps & { router: InjectedRouter }, null> {
     constructor(props: any) {
         super(props);
         this.pageHandle = this.pageHandle.bind(this);
@@ -99,7 +99,7 @@ class CommentsContainer extends React.Component<stateToProps & dispatchToProps &
     componentWillReceiveProps(nextProps: any) {
         const { fetchComments, imageId, take } = this.props;
         const { page } = nextProps.location.query;
-        if(!Number(page)) return;
+        if (!Number(page)) return;
         const skipPages = page - 1;
         const skipItems = (skipPages * take);
         fetchComments(imageId, skipItems, take);
@@ -109,7 +109,7 @@ class CommentsContainer extends React.Component<stateToProps & dispatchToProps &
         const { owner, imageId, page } = this.props;
         const { push } = this.props.router;
         const username = owner.Username;
-        if(page == to) return;
+        if (page === to) return;
         const url = `/${username}/gallery/image/${imageId}/comments?page=${to}`;
         push(url);
     }
@@ -119,7 +119,7 @@ class CommentsContainer extends React.Component<stateToProps & dispatchToProps &
         const cb = () => {
             decrementCount(imageId);
             loadComments(imageId, skip, take);
-        }
+        };
 
         deleteHandle(commentId, cb);
     }
@@ -135,7 +135,7 @@ class CommentsContainer extends React.Component<stateToProps & dispatchToProps &
         const cb = () => {
             incrementCount(imageId);
             loadComments(imageId, skip, take);
-        }
+        };
 
         replyHandle(imageId, text, parentId, cb);
     }
@@ -145,7 +145,7 @@ class CommentsContainer extends React.Component<stateToProps & dispatchToProps &
         const cb = () => {
             incrementCount(imageId);
             loadComments(imageId, skip, take);
-        }
+        };
 
         postHandle(imageId, text, cb);
     }
@@ -189,7 +189,7 @@ class CommentsContainer extends React.Component<stateToProps & dispatchToProps &
                             <CommentForm postHandle={this.postComment}/>
                         </Col>
                     </Row>
-                </div>
+                </div>;
     }
 }
 

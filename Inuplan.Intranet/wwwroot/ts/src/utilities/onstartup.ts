@@ -1,63 +1,63 @@
-import store from '../store/store'
-import { fetchLatestNews } from '../actions/whatsnew'
-import * as moment from 'moment'
-import { fetchThreads, fetchPost } from '../actions/forum'
-import { RouterState } from 'react-router'
-import { fetchUserImages, setSelectedImg, setImageOwner } from '../actions/images'
-import { fetchComments, setSkipComments, setTakeComments, fetchAndFocusSingleComment } from '../actions/comments'
-import { getImageCommentsPageUrl, getForumCommentsPageUrl } from '../utilities/utils'
+import store from "../store/store";
+import { fetchLatestNews } from "../actions/whatsnew";
+import * as moment from "moment";
+import { fetchThreads, fetchPost } from "../actions/forum";
+import { RouterState } from "react-router";
+import { fetchUserImages, setSelectedImg, setImageOwner } from "../actions/images";
+import { fetchComments, setSkipComments, setTakeComments, fetchAndFocusSingleComment } from "../actions/comments";
+import { getImageCommentsPageUrl, getForumCommentsPageUrl } from "../utilities/utils";
 
 export const init = () => {
-    moment.locale('da');
-}
+    moment.locale("da");
+};
 
 export const fetchWhatsNew = () => {
     const getLatest = (skip: number, take: number): void => store.dispatch(fetchLatestNews(skip, take));
     const { skip, take } = store.getState().whatsNewInfo;
     getLatest(skip, take);
-}
+};
 
 export const fetchForum = (_: RouterState) => {
     const { skip, take } = store.getState().forumInfo.titlesInfo;
     store.dispatch<any>(fetchThreads(skip, take));
-}
+};
 
 export const fetchSinglePost = (nextState: RouterState) => {
     const { id } = nextState.params;
     store.dispatch<any>(fetchPost(Number(id)));
+};
+
+interface ParamsId {
+    params: { id: string };
 }
 
-interface paramsId {
-    params: { id: string }
+interface ParamsUsername {
+    params: { username: string };
 }
 
-interface paramsUsername {
-    params: { username: string }
-}
-
-interface locationQueryPage {
+interface LocationQueryPage {
     location: {
         query: {
             page: string
         }
-    }
+    };
 }
 
-interface locationQueryId {
+interface LocationQueryId {
     location: {
         query: {
             id: string
         }
-    }
+    };
 }
 
 
-export const selectImage = (nextState: RouterState & paramsId) => {
+export const selectImage = (nextState: RouterState & ParamsId) => {
     const imageId = Number(nextState.params.id);
     store.dispatch(setSelectedImg(imageId));
-}
+};
 
-export const fetchImages = (nextState: RouterState & paramsUsername) => {
+export const fetchImages = (nextState: RouterState & ParamsUsername) => {
     const username = nextState.params.username;
     store.dispatch(setImageOwner(username));
     store.dispatch(fetchUserImages(username));
@@ -65,15 +65,15 @@ export const fetchImages = (nextState: RouterState & paramsUsername) => {
     // reset comment state
     store.dispatch(setSkipComments(undefined));
     store.dispatch(setTakeComments(undefined));
-}
+};
 
-export const loadComments = (nextState: RouterState & paramsId & locationQueryPage) => {
+export const loadComments = (nextState: RouterState & ParamsId & LocationQueryPage) => {
     const { id } = nextState.params;
     const page = Number(nextState.location.query.page);
     const { skip, take } = store.getState().commentsInfo;
 
     const url = getImageCommentsPageUrl(Number(id), skip, take);
-    if(!page) {
+    if (!page) {
         store.dispatch(fetchComments(url, skip, take));
     }
     else {
@@ -81,17 +81,17 @@ export const loadComments = (nextState: RouterState & paramsId & locationQueryPa
         const skipItems = (skipPages * take);
         store.dispatch(fetchComments(url, skipItems, take));
     }
-}
+};
 
-export const fetchComment = (nextState: RouterState & locationQueryId) => {
+export const fetchComment = (nextState: RouterState & LocationQueryId) => {
     const id = Number(nextState.location.query.id);
     store.dispatch(fetchAndFocusSingleComment(id));
-}
+};
 
-export const fetchPostComments = (nextState: RouterState & paramsId) => {
+export const fetchPostComments = (nextState: RouterState & ParamsId) => {
     const { id } = nextState.params;
     const { skip, take } = store.getState().commentsInfo;
 
     const url = getForumCommentsPageUrl(Number(id), skip, take);
     store.dispatch(fetchComments(url, skip, take));
-}
+};

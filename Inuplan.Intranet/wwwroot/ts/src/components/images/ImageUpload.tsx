@@ -1,9 +1,9 @@
-import * as React from 'react'
-import { Button } from 'react-bootstrap'
-import { Components as C } from '../../interfaces/Components'
+import * as React from "react";
+import { Button } from "react-bootstrap";
+import { Components as C } from "../../interfaces/Components";
 
 interface UploadImageProp {
-    uploadImage: (username: string, formData: FormData) => void
+    uploadImage: (username: string, formData: FormData) => void;
 }
 
 export class ImageUpload extends React.Component<C.UsernameProp & UploadImageProp, any> {
@@ -13,16 +13,16 @@ export class ImageUpload extends React.Component<C.UsernameProp & UploadImagePro
     }
 
     clearInput(fileInput: HTMLInputElement) {
-        if(fileInput.value){
-            try{
-                fileInput.value = ''; //for IE11, latest Chrome/Firefox/Opera...
-            }catch(err){ }
-            if(fileInput.value){ //for IE5 ~ IE10
-                var form = document.createElement('form'),
+        if (fileInput.value) {
+            try {
+                fileInput.value = ""; // for IE11, latest Chrome/Firefox/Opera...
+            }catch (err) { }
+            if (fileInput.value) { // for IE5 ~ IE10
+                let form = document.createElement("form"),
                     parentNode = fileInput.parentNode, ref = fileInput.nextSibling;
                 form.appendChild(fileInput);
                 form.reset();
-                parentNode.insertBefore(fileInput,ref);
+                parentNode.insertBefore(fileInput, ref);
             }
         }
     }
@@ -39,11 +39,11 @@ export class ImageUpload extends React.Component<C.UsernameProp & UploadImagePro
         const fileInput = document.getElementById("files") as HTMLInputElement;
         const files = fileInput.files;
 
-        if (files.length == 0) return;
+        if (files.length === 0) return;
         let formData = new FormData();
-        for (var i = 0; i < files.length; i++) {
+        for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            formData.append('file', file);
+            formData.append("file", file);
         }
 
         uploadImage(username, formData);
@@ -58,6 +58,6 @@ export class ImageUpload extends React.Component<C.UsernameProp & UploadImagePro
                         </div>
                     <Button bsStyle="primary" type="submit">Upload</Button>
                     {this.props.children}
-                </form>
+                </form>;
     }
 }

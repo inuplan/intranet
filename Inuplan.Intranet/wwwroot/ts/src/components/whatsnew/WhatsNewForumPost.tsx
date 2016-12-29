@@ -1,22 +1,22 @@
-import * as React from 'react'
-import { WhatsNewTooltip } from './WhatsNewTooltip'
-import { CommentProfile } from '../comments/CommentProfile'
-import { getWords, timeText } from '../../utilities/utils'
-import { Media, Glyphicon, Tooltip } from 'react-bootstrap'
-import { Data } from '../../interfaces/Data'
+import * as React from "react";
+import { WhatsNewTooltip } from "./WhatsNewTooltip";
+import { CommentProfile } from "../comments/CommentProfile";
+import { getWords, timeText } from "../../utilities/utils";
+import { Media, Glyphicon, Tooltip } from "react-bootstrap";
+import { Data } from "../../interfaces/Data";
 
-interface stateProps {
-    on: Date
-    author: Data.User
-    title: string
-    text: string
-    sticky: boolean
-    commentCount: number
-    preview: (index: number) => void
-    index: number
+interface StateProps {
+    on: Date;
+    author: Data.User;
+    title: string;
+    text: string;
+    sticky: boolean;
+    commentCount: number;
+    preview: (index: number) => void;
+    index: number;
 }
 
-export class WhatsNewForumPost extends React.Component<stateProps, any> {
+export class WhatsNewForumPost extends React.Component<StateProps, any> {
     constructor(props: any) {
         super(props);
         this.showModal = this.showModal.bind(this);
@@ -24,7 +24,7 @@ export class WhatsNewForumPost extends React.Component<stateProps, any> {
 
     fullname() {
         const { author } = this.props;
-        return author.FirstName + ' ' + author.LastName;
+        return author.FirstName + " " + author.LastName;
     }
 
     when() {
@@ -39,7 +39,7 @@ export class WhatsNewForumPost extends React.Component<stateProps, any> {
 
     overlay() {
         const { commentCount } = this.props;
-        return <Tooltip id="tooltip_post">Forum indl&aelig;g, antal kommentarer: {commentCount}</Tooltip>
+        return <Tooltip id="tooltip_post">Forum indl&aelig;g, antal kommentarer: {commentCount}</Tooltip>;
     }
 
     showModal(event: React.MouseEvent<HTMLAnchorElement>) {
@@ -62,6 +62,6 @@ export class WhatsNewForumPost extends React.Component<stateProps, any> {
                             </blockquote>
                         </Media.Body>
                     </Media.ListItem>
-                </WhatsNewTooltip>
+                </WhatsNewTooltip>;
     }
 }

@@ -1,12 +1,12 @@
-import { combineReducers } from 'redux'
-import { Data } from '../interfaces/Data'
-import { General } from '../interfaces/General'
-import { ActionType } from '../constants/Actions'
-import { put, objMap } from '../utilities/utils'
-import { UsersState } from '../interfaces/State'
+import { combineReducers } from "redux";
+import { Data } from "../interfaces/Data";
+import { General } from "../interfaces/General";
+import { ActionType } from "../constants/Actions";
+import { put, objMap } from "../utilities/utils";
+import { UsersState } from "../interfaces/State";
 
-type UserReducer = General.KeyValue<Data.User>
-type Action<T> = General.Action<T>
+type UserReducer = General.KeyValue<Data.User>;
+type Action<T> = General.Action<T>;
 
 const users = (state: UserReducer = {}, action: Action<Data.User[]>): UserReducer => {
     switch (action.type) {
@@ -19,7 +19,7 @@ const users = (state: UserReducer = {}, action: Action<Data.User[]>): UserReduce
         default:
             return state;
     }
-}
+};
 
 const currentUserId = (state: number = -1, action: Action<number>): number => {
     switch (action.type) {
@@ -28,11 +28,11 @@ const currentUserId = (state: number = -1, action: Action<number>): number => {
         default:
             return state;
     }
-}
+};
 
 const usersInfo = combineReducers<UsersState>({
     currentUserId,
     users
-})
+});
 
 export default usersInfo;

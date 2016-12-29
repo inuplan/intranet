@@ -1,10 +1,10 @@
-import { combineReducers } from 'redux'
-import { ActionType as T } from '../constants/actions'
-import { Data } from '../interfaces/Data'
-import { reducer } from '../constants/types'
-import { CommentsState } from '../interfaces/State'
+import { combineReducers } from "redux";
+import { ActionType as T } from "../constants/actions";
+import { Data } from "../interfaces/Data";
+import { reducer } from "../constants/types";
+import { CommentsState } from "../interfaces/State";
 
-type Comment = Data.Comment
+type Comment = Data.Comment;
 
 const comments: reducer<Comment[]> = (state = [], action) => {
     switch (action.type) {
@@ -15,7 +15,7 @@ const comments: reducer<Comment[]> = (state = [], action) => {
         default:
             return state;
     }
-}
+};
 
 const skip: reducer<number> = (state = 0, action) => {
     switch (action.type) {
@@ -24,7 +24,7 @@ const skip: reducer<number> = (state = 0, action) => {
         default:
             return state;
     }
-}
+};
 
 const take: reducer<number> = (state = 10, action) => {
     switch (action.type) {
@@ -33,7 +33,7 @@ const take: reducer<number> = (state = 10, action) => {
         default:
             return state;
     }
-}
+};
 
 const page: reducer<number> = (state = 1, action) => {
     switch (action.type) {
@@ -42,7 +42,7 @@ const page: reducer<number> = (state = 1, action) => {
         default:
             return state;
     }
-}
+};
 
 const totalPages: reducer<number> = (state = 0, action) => {
     switch (action.type) {
@@ -51,7 +51,7 @@ const totalPages: reducer<number> = (state = 0, action) => {
         default:
             return state;
     }
-}
+};
 
 const focusedComment: reducer<number> = (state = -1, action) => {
     switch (action.type) {
@@ -60,7 +60,7 @@ const focusedComment: reducer<number> = (state = -1, action) => {
         default:
             return state;
     }
-}
+};
 
 const commentsInfo = combineReducers<CommentsState>({
     comments,
@@ -69,6 +69,6 @@ const commentsInfo = combineReducers<CommentsState>({
     page,
     totalPages,
     focusedComment
-})
+});
 
 export default commentsInfo;

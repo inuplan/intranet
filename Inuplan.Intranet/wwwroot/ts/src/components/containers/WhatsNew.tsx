@@ -1,35 +1,35 @@
-import * as React from 'react'
-import { connect, Dispatch } from 'react-redux'
-import { fetchLatestNews } from '../../actions/whatsnew'
-import { WhatsNewList } from '../whatsnew/WhatsNewList'
-import { ForumHeader, ForumBody } from './ForumPost'
-import { Button, ButtonToolbar, Modal, Row, Col } from 'react-bootstrap'
-import { Pagination } from '../pagination/Pagination'
-import { withRouter, InjectedRouter } from 'react-router'
-import { Root } from '../../interfaces/State'
-import { Data } from '../../interfaces/Data'
+import * as React from "react";
+import { connect, Dispatch } from "react-redux";
+import { fetchLatestNews } from "../../actions/whatsnew";
+import { WhatsNewList } from "../whatsnew/WhatsNewList";
+import { ForumHeader, ForumBody } from "./ForumPost";
+import { Button, ButtonToolbar, Modal, Row, Col } from "react-bootstrap";
+import { Pagination } from "../pagination/Pagination";
+import { withRouter, InjectedRouter } from "react-router";
+import { Root } from "../../interfaces/State";
+import { Data } from "../../interfaces/Data";
 
-interface stateProps {
-    items: Data.WhatsNew[]
-    getUser: (id:number) => Data.User
-    skip: number
-    take: number
-    totalPages: number
-    page: number
+interface StateProps {
+    items: Data.WhatsNew[];
+    getUser: (id: number) => Data.User;
+    skip: number;
+    take: number;
+    totalPages: number;
+    page: number;
 }
 
-interface dispatchProps {
-    getLatest: (skip:number, take:number) => Dispatch<any>
+interface DispatchProps {
+    getLatest: (skip: number, take: number) => Dispatch<any>;
 }
 
-interface componentState {
-    modal: boolean
-    postPreview: Data.WhatsNewForumPost
-    author: Data.User
-    on: Date
+interface ComponentState {
+    modal: boolean;
+    postPreview: Data.WhatsNewForumPost;
+    author: Data.User;
+    on: Date;
 }
 
-const mapStateToProps = (state: Root): stateProps => {
+const mapStateToProps = (state: Root): StateProps => {
     return {
         items: state.whatsNewInfo.items,
         getUser: (id) => state.usersInfo.users[id],
@@ -37,16 +37,16 @@ const mapStateToProps = (state: Root): stateProps => {
         take: state.whatsNewInfo.take,
         totalPages: state.whatsNewInfo.totalPages,
         page: state.whatsNewInfo.page,
-    }
-}
+    };
+};
 
-const mapDispatchToProps = (dispatch: Dispatch<Root>): dispatchProps => {
+const mapDispatchToProps = (dispatch: Dispatch<Root>): DispatchProps => {
     return {
         getLatest: (skip, take) => dispatch<any>(fetchLatestNews(skip, take)),
-    }
-}
+    };
+};
 
-class WhatsNewContainer extends React.Component<stateProps & dispatchProps & { router: InjectedRouter }, componentState> {
+class WhatsNewContainer extends React.Component<StateProps & DispatchProps & { router: InjectedRouter }, ComponentState> {
     constructor(props: any) {
         super(props);
         this.state = {
@@ -54,7 +54,7 @@ class WhatsNewContainer extends React.Component<stateProps & dispatchProps & { r
             postPreview: null,
             author: null,
             on: null
-        }
+        };
 
         this.pageHandle = this.pageHandle.bind(this);
         this.previewPost = this.previewPost.bind(this);
@@ -65,7 +65,7 @@ class WhatsNewContainer extends React.Component<stateProps & dispatchProps & { r
 
     pageHandle(to: number) {
         const { getLatest, page, take } = this.props;
-        if(page == to) return;
+        if (page === to) return;
 
         const skipPages = to - 1;
         const skipItems = (skipPages * take);
@@ -98,7 +98,7 @@ class WhatsNewContainer extends React.Component<stateProps & dispatchProps & { r
     }
 
     modalView() {
-        if(!Boolean(this.state.postPreview)) return null;
+        if (!Boolean(this.state.postPreview)) return null;
         const { Text, Title, ID } = this.state.postPreview;
         const author = this.state.author;
         const name = `${author.FirstName} ${author.LastName}`;
@@ -130,7 +130,7 @@ class WhatsNewContainer extends React.Component<stateProps & dispatchProps & { r
                             <Button onClick={this.closeModal}>Luk</Button>
                         </ButtonToolbar>
                     </Modal.Footer>
-                </Modal>
+                </Modal>;
     }
 
     render() {
@@ -152,7 +152,7 @@ class WhatsNewContainer extends React.Component<stateProps & dispatchProps & { r
                         />
                         {this.modalView()}
                     </Col>
-                </Row>
+                </Row>;
     }
 }
 

@@ -1,8 +1,8 @@
-import * as React from 'react'
-import { Media, Glyphicon  } from "react-bootstrap"
-import { Components } from '../../interfaces/Components'
+import * as React from "react";
+import { Media, Glyphicon  } from "react-bootstrap";
+import { Components } from "../../interfaces/Components";
 
-export class CommentDeleted extends React.Component<Components.commentDeleted, null> {
+export class CommentDeleted extends React.Component<Components.CommentDeleted, null> {
     render() {
         const { replies, construct } = this.props;
         const replyNodes = replies.map(reply => construct(reply));
@@ -17,6 +17,6 @@ export class CommentDeleted extends React.Component<Components.commentDeleted, n
                         </p>
                         {replyNodes}
                     </Media.Body>
-                </Media>
+                </Media>;
     }
 }

@@ -1,37 +1,37 @@
 /// <reference path="../../interfaces/globals.d.ts" />
-import * as React from 'react'
-import { connect, Dispatch } from 'react-redux'
-import { Row, Col, ProgressBar } from 'react-bootstrap'
-import { fetchSpaceInfo } from '../../actions/status'
-import { Root } from '../../interfaces/State'
+import * as React from "react";
+import { connect, Dispatch } from "react-redux";
+import { Row, Col, ProgressBar } from "react-bootstrap";
+import { fetchSpaceInfo } from "../../actions/status";
+import { Root } from "../../interfaces/State";
 
-interface stateToProps {
-    usedMB: number
-    totalMB: number
-    loaded: boolean
+interface StateToProps {
+    usedMB: number;
+    totalMB: number;
+    loaded: boolean;
 }
 
-interface dispatchToProps {
-    getSpaceInfo: (url:string) => void
+interface DispatchToProps {
+    getSpaceInfo: (url: string) => void;
 }
 
 const mapStateToProps = (state: Root) => {
     return {
         usedMB: (state.statusInfo.spaceInfo.usedSpacekB / 1000),
         totalMB: (state.statusInfo.spaceInfo.totalSpacekB / 1000),
-        loaded: (state.statusInfo.spaceInfo.totalSpacekB != -1)
-    }
-}
+        loaded: (state.statusInfo.spaceInfo.totalSpacekB !== -1)
+    };
+};
 
 const mapDispatchToProps = (dispatch: Dispatch<Root>) => {
     return {
         getSpaceInfo: (url: string) => {
             dispatch(fetchSpaceInfo(url));
         }
-    }
-}
+    };
+};
 
-class UsedSpaceView extends React.Component<stateToProps & dispatchToProps, any> {
+class UsedSpaceView extends React.Component<StateToProps & DispatchToProps, any> {
     componentDidMount() {
         const { getSpaceInfo } = this.props;
         const url = `${globals.urls.diagnostics}/getspaceinfo`;
@@ -41,12 +41,12 @@ class UsedSpaceView extends React.Component<stateToProps & dispatchToProps, any>
     render() {
         const { usedMB, totalMB } = this.props;
         const total = Math.round(totalMB);
-        const used = Math.round(usedMB*100) / 100;
-        const free = Math.round((total - used)*100) / 100;
-        const usedPercent = ((used/total)* 100);
-        const percentRound = Math.round(usedPercent*100) / 100;
+        const used = Math.round(usedMB * 100) / 100;
+        const free = Math.round((total - used) * 100) / 100;
+        const usedPercent = ((used / total) * 100);
+        const percentRound = Math.round(usedPercent * 100) / 100;
         const show = Boolean(usedPercent) && Boolean(used) && Boolean(free) && Boolean(total);
-        if(!show) return null;
+        if (!show) return null;
 
         return  <Row>
                     <Col>
@@ -57,7 +57,7 @@ class UsedSpaceView extends React.Component<stateToProps & dispatchToProps, any>
                             Total: {total.toString()} MB
                         </p>
                     </Col>
-                </Row>
+                </Row>;
     }
 }
 
@@ -72,7 +72,7 @@ export default UsedSpace;
 //                            height={300}
 //                        />
 
-//class UsedSpaceDoughnut extends React.Component {
+// class UsedSpaceDoughnut extends React.Component {
 //    componentDidMount() {
 //        const { id, used, free } = this.props;
 //        const ctx = document.getElementById(id);
@@ -103,4 +103,4 @@ export default UsedSpace;
 //        return  <canvas id={id} width={width} height={height}>
 //                </canvas>
 //    }
-//}
+// }

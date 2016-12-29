@@ -1,5 +1,5 @@
-import * as React from 'react'
-import { Row, Col } from 'react-bootstrap'
+import * as React from "react";
+import { Row, Col } from "react-bootstrap";
 
 export default class Forum extends React.PureComponent<null, null> {
     render() {
@@ -9,6 +9,6 @@ export default class Forum extends React.PureComponent<null, null> {
                         <hr />
                         {this.props.children}
                     </Col>
-                </Row>
+                </Row>;
     }
 }

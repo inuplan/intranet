@@ -1,8 +1,8 @@
-import { combineReducers } from 'redux'
-import { Data } from '../interfaces/Data'
-import { ActionType as T } from '../constants/Actions'
-import { WhatsNewState } from '../interfaces/State'
-import { reducer } from '../constants/types'
+import { combineReducers } from "redux";
+import { Data } from "../interfaces/Data";
+import { ActionType as T } from "../constants/Actions";
+import { WhatsNewState } from "../interfaces/State";
+import { reducer } from "../constants/types";
 
 const skip: reducer<number> = (state = 0, action) => {
     switch (action.type) {
@@ -11,7 +11,7 @@ const skip: reducer<number> = (state = 0, action) => {
         default:
             return state;
     }
-}
+};
 
 const take: reducer<number> = (state = 10, action) => {
     switch (action.type) {
@@ -20,7 +20,7 @@ const take: reducer<number> = (state = 10, action) => {
         default:
             return state;
     }
-}
+};
 
 const page: reducer<number> = (state = 1, action) => {
     switch (action.type) {
@@ -29,7 +29,7 @@ const page: reducer<number> = (state = 1, action) => {
         default:
             return state;
     }
-}
+};
 
 const totalPages: reducer<number> = (state = 0, action) => {
     switch (action.type) {
@@ -38,7 +38,7 @@ const totalPages: reducer<number> = (state = 0, action) => {
         default:
             return state;
     }
-}
+};
 
 const items: reducer<Data.WhatsNew[]> = (state = [], action) => {
     switch (action.type) {
@@ -47,7 +47,7 @@ const items: reducer<Data.WhatsNew[]> = (state = [], action) => {
         default:
             return state;
     }
-}
+};
 
 const whatsNewInfo = combineReducers<WhatsNewState>({
     skip,
@@ -55,6 +55,6 @@ const whatsNewInfo = combineReducers<WhatsNewState>({
     page,
     totalPages,
     items
-})
+});
 
 export default whatsNewInfo;

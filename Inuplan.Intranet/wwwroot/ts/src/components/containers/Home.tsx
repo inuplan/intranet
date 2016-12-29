@@ -1,29 +1,29 @@
 /// <reference path="../../interfaces/globals.d.ts" />
-import * as React from 'react'
-import { Components as C } from '../../interfaces/Components'
-import { Jumbotron, Grid, Row, Col, Panel, Alert } from 'react-bootstrap'
-import { Root } from '../../interfaces/State'
-import { connect, Dispatch } from 'react-redux'
-import { fetchLatestNews } from '../../actions/whatsnew'
-import { ImageUpload } from '../images/ImageUpload'
-import { uploadImage } from '../../actions/images'
-import UsedSpace from './UsedSpace'
-import WhatsNew from './WhatsNew'
+import * as React from "react";
+import { Components as C } from "../../interfaces/Components";
+import { Jumbotron, Grid, Row, Col, Panel, Alert } from "react-bootstrap";
+import { Root } from "../../interfaces/State";
+import { connect, Dispatch } from "react-redux";
+import { fetchLatestNews } from "../../actions/whatsnew";
+import { ImageUpload } from "../images/ImageUpload";
+import { uploadImage } from "../../actions/images";
+import UsedSpace from "./UsedSpace";
+import WhatsNew from "./WhatsNew";
 
-interface stateToProps extends C.UsernameProp {
-    skip: number
-    take: number
+interface StateToProps extends C.UsernameProp {
+    skip: number;
+    take: number;
 }
 
-interface dispatchToProps {
-    uploadImage: (skip: number, take: number, username: string, formData: FormData) => void
+interface DispatchToProps {
+    uploadImage: (skip: number, take: number, username: string, formData: FormData) => void;
 }
 
-interface componentState {
-    recommended: boolean
+interface ComponentState {
+    recommended: boolean;
 }
 
-const mapStateToProps = (state:Root): stateToProps => {
+const mapStateToProps = (state: Root): StateToProps => {
     const user = state.usersInfo.users[state.usersInfo.currentUserId];
     const hasUser = state.usersInfo.currentUserId > 0 && Boolean(user.Username);
     const name = hasUser ? user.Username : "User";
@@ -31,27 +31,27 @@ const mapStateToProps = (state:Root): stateToProps => {
         username: name,
         skip: state.whatsNewInfo.skip,
         take: state.whatsNewInfo.take
-    }
-}
+    };
+};
 
-const mapDispatchToProps = (dispatch: Dispatch<Root>): dispatchToProps => {
+const mapDispatchToProps = (dispatch: Dispatch<Root>): DispatchToProps => {
     return {
         uploadImage: (skip, take, username, formData) => {
             const onSuccess = () => {
                 dispatch(fetchLatestNews(skip, take));
-            }
+            };
 
             dispatch<any>(uploadImage(username, formData, onSuccess, (r) => { console.log(r); }));
         }
-    }
-}
+    };
+};
 
-class HomeContainer extends React.Component<stateToProps & dispatchToProps, componentState> {
+class HomeContainer extends React.Component<StateToProps & DispatchToProps, ComponentState> {
     constructor(props: any) {
         super(props);
         this.state = {
             recommended: true
-        }
+        };
 
         this.upload = this.upload.bind(this);
         this.recommendedView = this.recommendedView.bind(this);
@@ -67,7 +67,7 @@ class HomeContainer extends React.Component<stateToProps & dispatchToProps, comp
     }
 
     recommendedView() {
-        if(!this.state.recommended) return null;
+        if (!this.state.recommended) return null;
 
         return  <Row>
                     <Col>
@@ -78,7 +78,7 @@ class HomeContainer extends React.Component<stateToProps & dispatchToProps, comp
                             </ul>
                         </Alert>
                     </Col>
-                </Row>
+                </Row>;
     }
 
     render() {
@@ -92,7 +92,7 @@ class HomeContainer extends React.Component<stateToProps & dispatchToProps, comp
 
                         <Row>
                             <Col lg={4}>
-                                <Panel header={'Du kan uploade billeder til dit eget galleri her'} bsStyle="primary">
+                                <Panel header={"Du kan uploade billeder til dit eget galleri her"} bsStyle="primary">
                                     <ImageUpload username={username} uploadImage={this.upload} />
                                 </Panel>
                             </Col>
@@ -117,9 +117,9 @@ class HomeContainer extends React.Component<stateToProps & dispatchToProps, comp
                             </Col>
                         </Row>
                     </Grid>
-                </Row>
+                </Row>;
     }
 }
 
-const Home = connect(mapStateToProps, mapDispatchToProps)(HomeContainer)
+const Home = connect(mapStateToProps, mapDispatchToProps)(HomeContainer);
 export default Home;

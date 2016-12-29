@@ -1,14 +1,14 @@
-import { Link, IndexLink } from 'react-router'
-import * as React from 'react'
+import { Link, IndexLink } from "react-router";
+import * as React from "react";
 
 interface LinkProps {
-    to: string
+    to: string;
 }
 
 export class NavLink extends React.Component<LinkProps, any> {
     static contextTypes = {
         router: React.PropTypes.object
-    }
+    };
 
     render() {
         let isActive = this.context.router.isActive(this.props.to, true),
@@ -20,14 +20,14 @@ export class NavLink extends React.Component<LinkProps, any> {
                     {this.props.children}
                 </Link>
             </li>
-        )
+        );
     }
 }
 
 export class IndexNavLink extends React.Component<LinkProps, any> {
     static contextTypes = {
         router: React.PropTypes.object
-    }
+    };
 
     render() {
         let isActive = this.context.router.isActive(this.props.to, true),
@@ -39,6 +39,6 @@ export class IndexNavLink extends React.Component<LinkProps, any> {
                     {this.props.children}
                 </IndexLink>
             </li>
-        )
+        );
     }
 }

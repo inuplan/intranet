@@ -1,36 +1,36 @@
-import * as React from 'react'
-import { Row, Col, ButtonToolbar, ButtonGroup, OverlayTrigger, Button, Glyphicon, Tooltip, Collapse, FormGroup, FormControl } from 'react-bootstrap'
-import { Components } from '../../interfaces/Components'
+import * as React from "react";
+import { Row, Col, ButtonToolbar, ButtonGroup, OverlayTrigger, Button, Glyphicon, Tooltip, Collapse, FormGroup, FormControl } from "react-bootstrap";
+import { Components } from "../../interfaces/Components";
 
-interface commentControlsState {
-    text: string
-    replyText: string
-    reply: boolean
-    edit: boolean
-    onChange: (e?: React.FormEvent<any>) => void
+interface CommentControlsState {
+    text: string;
+    replyText: string;
+    reply: boolean;
+    edit: boolean;
+    onChange: (e?: React.FormEvent<any>) => void;
 }
 
-export class ButtonTooltip extends React.Component<Components.buttonTooltipProps, null> {
+export class ButtonTooltip extends React.Component<Components.ButtonTooltipProps, null> {
     render() {
         const { tooltip, onClick, icon, bsStyle, active, mount } = this.props;
         let overlayTip = <Tooltip id="tooltip">{tooltip}</Tooltip>;
 
-        if(!mount) return null;
+        if (!mount) return null;
 
         return  <OverlayTrigger placement="top" overlay={overlayTip}>
                     <Button bsStyle={bsStyle} bsSize="xsmall" onClick={onClick} active={active}>
                         <Glyphicon glyph={icon} />
                     </Button>
-                </OverlayTrigger>
+                </OverlayTrigger>;
     }
 }
 
-export class CommentControls extends React.Component<Components.commentControlsProps, Partial<commentControlsState>> {
+export class CommentControls extends React.Component<Components.CommentControlsProps, Partial<CommentControlsState>> {
     constructor(props: any) {
         super(props);
         this.state = {
             text: props.text,
-            replyText: '',
+            replyText: "",
             reply: false,
             edit: false
         };
@@ -51,13 +51,13 @@ export class CommentControls extends React.Component<Components.commentControlsP
     }
 
     handleReplyChange(e: any) {
-        this.setState({ replyText: e.target.value })
+        this.setState({ replyText: e.target.value });
     }
 
     toggleEdit() {
         const { edit } = this.state;
         this.setState({ edit: !edit });
-        if(!edit) {
+        if (!edit) {
             const { text } = this.props;
             this.setState({ text: text });
         }
@@ -85,7 +85,7 @@ export class CommentControls extends React.Component<Components.commentControlsP
         const { commentId, contextId, replyComment } = this.props;
         const { replyText } = this.state;
 
-        this.setState({ reply: false, replyText: '' });
+        this.setState({ reply: false, replyText: "" });
         replyComment(contextId, replyText, commentId);
     }
 
@@ -95,7 +95,7 @@ export class CommentControls extends React.Component<Components.commentControlsP
         const mount = canEdit(authorId);
 
         return  <Row>
-                    <Row style={{paddingBottom: '5px', paddingLeft: "15px"}}>
+                    <Row style={{paddingBottom: "5px", paddingLeft: "15px"}}>
                         <Col lg={4}>
                             <ButtonToolbar>
                                 <ButtonGroup>
@@ -108,7 +108,7 @@ export class CommentControls extends React.Component<Components.commentControlsP
                             </ButtonToolbar>
                         </Col>
                     </Row>
-                    <Row style={{paddingBottom: '5px'}}>
+                    <Row style={{paddingBottom: "5px"}}>
                         <Col lgOffset={1} lg={10}>
                             <CollapseTextArea
                                 show={edit}
@@ -136,14 +136,14 @@ export class CommentControls extends React.Component<Components.commentControlsP
                             />
                         </Col>
                     </Row>
-                </Row>
+                </Row>;
     }
 }
 
-class CollapseTextArea extends React.Component<Components.collapseTextAreaProps, null> {
+class CollapseTextArea extends React.Component<Components.CollapseTextAreaProps, null> {
     render() {
         const { show, id, value, onChange, toggle, save, saveText, mount } = this.props;
-        if(!mount) return null;
+        if (!mount) return null;
         return  <Collapse in={show}>
                     <FormGroup controlId={id}>
                         <FormControl componentClass="textarea" value={value} onChange={onChange} rows={4} />
@@ -153,6 +153,6 @@ class CollapseTextArea extends React.Component<Components.collapseTextAreaProps,
                             <Button type="submit" bsStyle="info" onClick={save}>{saveText}</Button>
                         </ButtonToolbar>
                     </FormGroup>
-                </Collapse>
+                </Collapse>;
     }
 }

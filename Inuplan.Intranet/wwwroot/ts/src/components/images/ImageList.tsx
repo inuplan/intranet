@@ -1,23 +1,23 @@
-import * as React from 'react'
-import { Image } from './Image'
-import { Row, Col } from 'react-bootstrap'
-import { Components } from '../../interfaces/Components'
-import { Data } from '../../interfaces/Data'
+import * as React from "react";
+import { Image } from "./Image";
+import { Row, Col } from "react-bootstrap";
+import { Components } from "../../interfaces/Components";
+import { Data } from "../../interfaces/Data";
 
 const elementsPerRow = 4;
 
-export default class ImageList extends React.Component<Components.imageList, null> {
+export default class ImageList extends React.Component<Components.ImageList, null> {
     arrangeArray(images: Data.Image[]) {
         const length = images.length;
         const times = Math.ceil(length / elementsPerRow);
 
         let result: Array<Data.Image[]> = [];
         let start = 0;
-        for (var i = 0; i < times; i++) {
+        for (let i = 0; i < times; i++) {
             start = i * elementsPerRow;
             const end = start + elementsPerRow;
             const last = end > length;
-            if(last) {
+            if (last) {
                 const row = images.slice(start);
                 result.push(row);
             } else {
@@ -30,7 +30,7 @@ export default class ImageList extends React.Component<Components.imageList, nul
     }
 
     imagesView(images: Data.Image[]) {
-        if(images.length == 0) return null;
+        if (images.length === 0) return null;
         const { addSelectedImageId, removeSelectedImageId, canEdit, imageIsSelected, username } = this.props;
         const result = this.arrangeArray(images);
         const view = result.map((row, i) => {
@@ -44,13 +44,13 @@ export default class ImageList extends React.Component<Components.imageList, nul
                                 imageIsSelected={imageIsSelected}
                                 username={username}
                             />
-                        </Col>
+                        </Col>;
             });
 
             const rowId = "rowId" + i;
             return  <Row key={rowId}>
                         {imgs}
-                    </Row>
+                    </Row>;
         });
 
         return view;
@@ -61,6 +61,6 @@ export default class ImageList extends React.Component<Components.imageList, nul
         const { images } = this.props;
         return  <Row>
                     {this.imagesView(images)}
-                </Row>
+                </Row>;
     }
 }

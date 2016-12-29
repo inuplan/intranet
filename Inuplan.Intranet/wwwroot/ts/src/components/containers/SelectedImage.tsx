@@ -1,45 +1,45 @@
-import * as React from 'react'
-import { setSelectedImg, fetchSingleImage, deleteImage } from '../../actions/images'
-import { setSkipComments, setTakeComments, setFocusedComment, receivedComments } from '../../actions/comments'
-import { setError } from '../../actions/error'
-import { connect, Dispatch } from 'react-redux'
-import { withRouter, InjectedRouter } from 'react-router'
-import { Modal, Image, Button, ButtonToolbar, Glyphicon } from 'react-bootstrap'
-import { Root } from '../../interfaces/State'
-import { ErrorState } from '../../interfaces/State'
-import * as moment from 'moment'
+import * as React from "react";
+import { setSelectedImg, fetchSingleImage, deleteImage } from "../../actions/images";
+import { setSkipComments, setTakeComments, setFocusedComment, receivedComments } from "../../actions/comments";
+import { setError } from "../../actions/error";
+import { connect, Dispatch } from "react-redux";
+import { withRouter, InjectedRouter } from "react-router";
+import { Modal, Image, Button, ButtonToolbar, Glyphicon } from "react-bootstrap";
+import { Root } from "../../interfaces/State";
+import { ErrorState } from "../../interfaces/State";
+import * as moment from "moment";
 
-interface stateToProps {
-    canEdit: boolean
-    hasImage: () => boolean
-    filename: string
-    previewUrl: string
-    extension: string
-    originalUrl: string
-    uploaded: Date
+interface StateToProps {
+    canEdit: boolean;
+    hasImage: () => boolean;
+    filename: string;
+    previewUrl: string;
+    extension: string;
+    originalUrl: string;
+    uploaded: Date;
 }
 
-interface dispatchToProps {
-    setSelectedImageId: (id: number) => void
-    deselectImage: () => void
-    setError: (error: ErrorState) => void
-    fetchImage: (id: number) => void
-    deleteImage: (id: number, username: string) => void
-    resetComments: () => void
+interface DispatchToProps {
+    setSelectedImageId: (id: number) => void;
+    deselectImage: () => void;
+    setError: (error: ErrorState) => void;
+    fetchImage: (id: number) => void;
+    deleteImage: (id: number, username: string) => void;
+    resetComments: () => void;
 }
 
 const mapStateToProps = (state: Root) => {
     const ownerId  = state.imagesInfo.ownerId;
     const currentId = state.usersInfo.currentUserId;
-    const canEdit = (ownerId > 0 && currentId > 0 && ownerId == currentId);
+    const canEdit = (ownerId > 0 && currentId > 0 && ownerId === currentId);
 
     const getImage = (id: number) => state.imagesInfo.images[id];
     const image = () => getImage(state.imagesInfo.selectedImageId);
-    const filename = () => { if(image()) return image().Filename; return ''; };
-    const previewUrl = () => { if(image()) return image().PreviewUrl; return ''; };
-    const extension = () => { if(image()) return image().Extension; return ''; };
-    const originalUrl = () => { if(image()) return image().OriginalUrl; return ''; };
-    const uploaded = () => { if(image()) return image().Uploaded; return new Date(); };
+    const filename = () => { if (image()) return image().Filename; return ""; };
+    const previewUrl = () => { if (image()) return image().PreviewUrl; return ""; };
+    const extension = () => { if (image()) return image().Extension; return ""; };
+    const originalUrl = () => { if (image()) return image().OriginalUrl; return ""; };
+    const uploaded = () => { if (image()) return image().Uploaded; return new Date(); };
 
     return {
         canEdit: canEdit,
@@ -49,8 +49,8 @@ const mapStateToProps = (state: Root) => {
         extension: extension(),
         originalUrl: originalUrl(),
         uploaded: uploaded()
-    }
-}
+    };
+};
 
 const mapDispatchToProps = (dispatch: Dispatch<Root>) => {
     return {
@@ -75,10 +75,10 @@ const mapDispatchToProps = (dispatch: Dispatch<Root>) => {
             dispatch(setFocusedComment(-1));
             dispatch(receivedComments([]));
         }
-    }
-}
+    };
+};
 
-class ModalImage extends React.Component<stateToProps & dispatchToProps & { router: InjectedRouter, params: { id: string, username: string } }, null> {
+class ModalImage extends React.Component<StateToProps & DispatchToProps & { router: InjectedRouter, params: { id: string, username: string } }, null> {
     constructor(props: any) {
         super(props);
         this.deleteImageHandler = this.deleteImageHandler.bind(this);
@@ -108,7 +108,7 @@ class ModalImage extends React.Component<stateToProps & dispatchToProps & { rout
 
     deleteImageView() {
         const { canEdit } = this.props;
-        if(!canEdit) return null;
+        if (!canEdit) return null;
         return <Button bsStyle="danger" onClick={this.deleteImageHandler}>Slet billede</Button>;
     }
 
@@ -122,13 +122,13 @@ class ModalImage extends React.Component<stateToProps & dispatchToProps & { rout
 
     seeAllCommentsView() {
         const show = !Boolean(this.props.children);
-        if(!show) return null;
+        if (!show) return null;
 
         return  <p className="text-center">
                     <Button onClick={this.reload}>
                         <Glyphicon glyph="refresh"/> Se alle kommentarer?
                     </Button>
-                </p>
+                </p>;
     }
 
     render() {
@@ -158,7 +158,7 @@ class ModalImage extends React.Component<stateToProps & dispatchToProps & { rout
                             <Button onClick={this.close}>Luk</Button>
                         </ButtonToolbar>
                     </Modal.Footer>
-                </Modal>
+                </Modal>;
     }
 }
 

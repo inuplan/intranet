@@ -1,35 +1,35 @@
 /// <reference path="../../interfaces/globals.d.ts" />
-import * as React from 'react'
-import { CommentList } from '../comments/CommentList'
-import { CommentForm } from '../comments/CommentForm'
-import { Pagination } from '../pagination/Pagination'
-import { fetchComments, postComment, editComment, deleteComment } from '../../actions/comments'
-import { getForumCommentsDeleteUrl, getForumCommentsPageUrl } from '../../utilities/utils'
-import { Root } from '../../interfaces/State'
-import { Data } from '../../interfaces/Data'
-import { Row, Col } from 'react-bootstrap'
-import { connect, Dispatch } from 'react-redux'
-import { withRouter, InjectedRouter } from 'react-router'
+import * as React from "react";
+import { CommentList } from "../comments/CommentList";
+import { CommentForm } from "../comments/CommentForm";
+import { Pagination } from "../pagination/Pagination";
+import { fetchComments, postComment, editComment, deleteComment } from "../../actions/comments";
+import { getForumCommentsDeleteUrl, getForumCommentsPageUrl } from "../../utilities/utils";
+import { Root } from "../../interfaces/State";
+import { Data } from "../../interfaces/Data";
+import { Row, Col } from "react-bootstrap";
+import { connect, Dispatch } from "react-redux";
+import { withRouter, InjectedRouter } from "react-router";
 
-type cb = () => void
+type cb = () => void;
 
-interface stateToProps {
-    comments: Data.Comment[]
-    getName: (id: number) => string
-    canEdit: (id: number) => boolean
-    postId: number
-    page: number
-    skip: number
-    take: number
-    totalPages: number
+interface StateToProps {
+    comments: Data.Comment[];
+    getName: (id: number) => string;
+    canEdit: (id: number) => boolean;
+    postId: number;
+    page: number;
+    skip: number;
+    take: number;
+    totalPages: number;
 }
 
-interface dispatchToProps {
-    editHandle: (commentId: number, postId: number, text: string, cb: cb) => void
-    deleteHandle: (commentId: number, cb: cb) => void
-    replyHandle: (postId: number, text: string, parentId: number, cb: cb) => void
-    loadComments: (postId: number, skip: number, take: number) => void
-    postHandle: (postId: number, text: string, cb: cb) => void
+interface DispatchToProps {
+    editHandle: (commentId: number, postId: number, text: string, cb: cb) => void;
+    deleteHandle: (commentId: number, cb: cb) => void;
+    replyHandle: (postId: number, text: string, parentId: number, cb: cb) => void;
+    loadComments: (postId: number, skip: number, take: number) => void;
+    postHandle: (postId: number, text: string, cb: cb) => void;
 }
 
 const mapStateToProps = (state: Root) => {
@@ -37,17 +37,17 @@ const mapStateToProps = (state: Root) => {
         comments: state.commentsInfo.comments,
         getName: (id: number) => {
             const user = state.usersInfo.users[id];
-            if(!user) return '';
+            if (!user) return "";
             return `${user.FirstName} ${user.LastName}`;
         },
-        canEdit: (id: number) => state.usersInfo.currentUserId == id,
+        canEdit: (id: number) => state.usersInfo.currentUserId === id,
         postId: state.forumInfo.titlesInfo.selectedThread,
         page: state.commentsInfo.page,
         skip: state.commentsInfo.skip,
         take: state.commentsInfo.take,
         totalPages: state.commentsInfo.totalPages,
-    }
-}
+    };
+};
 
 const mapDispatchToProps = (dispatch: Dispatch<Root>) => {
     return {
@@ -71,10 +71,10 @@ const mapDispatchToProps = (dispatch: Dispatch<Root>) => {
             const url = globals.urls.forumcomments;
             dispatch(postComment(url, postId, text, null, cb));
         }
-    }
-}
+    };
+};
 
-class ForumCommentsContainer extends React.Component<stateToProps & dispatchToProps & { router: InjectedRouter, params: { id: string } }, any> {
+class ForumCommentsContainer extends React.Component<StateToProps & DispatchToProps & { router: InjectedRouter, params: { id: string } }, any> {
     constructor(props: any) {
         super(props);
         this.deleteComment = this.deleteComment.bind(this);
@@ -87,7 +87,7 @@ class ForumCommentsContainer extends React.Component<stateToProps & dispatchToPr
     componentWillReceiveProps(nextProps: any) {
         const { loadComments, postId, take } = this.props;
         const { page } = nextProps.location.query;
-        if(!Number(page)) return;
+        if (!Number(page)) return;
         const skipPages = page - 1;
         const skipItems = (skipPages * take);
         loadComments(postId, skipItems, take);
@@ -96,7 +96,7 @@ class ForumCommentsContainer extends React.Component<stateToProps & dispatchToPr
     pageHandle(to: number) {
         const { postId, page } = this.props;
         const { push } = this.props.router;
-        if(page == to) return;
+        if (page === to) return;
         const url = `/forum/post/${postId}/comments?page=${to}`;
         push(url);
     }
@@ -105,7 +105,7 @@ class ForumCommentsContainer extends React.Component<stateToProps & dispatchToPr
         const { deleteHandle, loadComments, skip, take } = this.props;
         const cb = () => {
             loadComments(postId, skip, take);
-        }
+        };
 
         deleteHandle(commentId, cb);
     }
@@ -114,7 +114,7 @@ class ForumCommentsContainer extends React.Component<stateToProps & dispatchToPr
         const { editHandle, loadComments, skip, take } = this.props;
         const cb = () => {
             loadComments(postId, skip, take);
-        }
+        };
 
         editHandle(commentId, postId, text, cb);
     }
@@ -123,7 +123,7 @@ class ForumCommentsContainer extends React.Component<stateToProps & dispatchToPr
         const { replyHandle, loadComments, skip, take } = this.props;
         const cb = () => {
             loadComments(postId, skip, take);
-        }
+        };
 
         replyHandle(postId, text, parentId, cb);
     }
@@ -132,7 +132,7 @@ class ForumCommentsContainer extends React.Component<stateToProps & dispatchToPr
         const { loadComments, postId, skip, take, postHandle } = this.props;
         const cb = () => {
             loadComments(postId, skip, take);
-        }
+        };
 
         postHandle(postId, text, cb);
     }
@@ -168,7 +168,7 @@ class ForumCommentsContainer extends React.Component<stateToProps & dispatchToPr
                             <br />
                         </Col>
                     </Row>
-                </Row>
+                </Row>;
     }
 }
 

@@ -1,17 +1,17 @@
-import * as React from 'react'
-import { WhatsNewItemImage } from './WhatsNewItemImage'
-import { WhatsNewItemComment } from './WhatsNewItemComment'
-import { WhatsNewForumPost } from './WhatsNewForumPost'
-import { Media } from 'react-bootstrap'
-import { Data, WhatsNewType } from '../../interfaces/Data'
+import * as React from "react";
+import { WhatsNewItemImage } from "./WhatsNewItemImage";
+import { WhatsNewItemComment } from "./WhatsNewItemComment";
+import { WhatsNewForumPost } from "./WhatsNewForumPost";
+import { Media } from "react-bootstrap";
+import { Data, WhatsNewType } from "../../interfaces/Data";
 
-interface stateProps {
-    items: Data.WhatsNew[]
-    getUser: (id: number) => Data.User
-    preview: (item: Data.WhatsNew) => void
+interface StateProps {
+    items: Data.WhatsNew[];
+    getUser: (id: number) => Data.User;
+    preview: (item: Data.WhatsNew) => void;
 }
 
-export class WhatsNewList extends React.Component<stateProps, any> {
+export class WhatsNewList extends React.Component<StateProps, any> {
     constructor(props: any) {
         super(props);
         this.previewPostHandle = this.previewPostHandle.bind(this);
@@ -25,8 +25,8 @@ export class WhatsNewList extends React.Component<stateProps, any> {
 
     constructItems(): JSX.Element[] {
         const { items, getUser } = this.props;
-        const generateKey = (id:number) => "whatsnew_" + id;
-        return items.map( (item ,index ) => {
+        const generateKey = (id: number) => "whatsnew_" + id;
+        return items.map( (item , index ) => {
             const itemKey = generateKey(item.ID);
             const author = getUser(item.AuthorID);
             switch (item.Type) {
@@ -41,7 +41,7 @@ export class WhatsNewList extends React.Component<stateProps, any> {
                                 thumbnail={image.ThumbnailUrl}
                                 author={author}
                                 key={itemKey}
-                            />
+                            />;
                 }
                 case WhatsNewType.Comment:
                 {
@@ -55,7 +55,7 @@ export class WhatsNewList extends React.Component<stateProps, any> {
                                 on={item.On}
                                 author={author}
                                 key={itemKey}
-                            />
+                            />;
                 }
                 case WhatsNewType.ForumPost:
                 {
@@ -70,7 +70,7 @@ export class WhatsNewList extends React.Component<stateProps, any> {
                                 preview={this.previewPostHandle}
                                 index={index}
                                 key={itemKey}
-                            />
+                            />;
                 }
                 default:
                 {
@@ -84,6 +84,6 @@ export class WhatsNewList extends React.Component<stateProps, any> {
         const itemNodes = this.constructItems();
         return  <Media.List>
                     {itemNodes}
-                </Media.List>
+                </Media.List>;
     }
 }

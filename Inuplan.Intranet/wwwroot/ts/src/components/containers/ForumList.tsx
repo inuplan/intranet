@@ -1,29 +1,29 @@
-import * as React from 'react'
-import { Row, Col, ButtonGroup, Button } from 'react-bootstrap'
-import { ForumTitle } from '../forum/ForumTitle'
-import { connect, Dispatch } from 'react-redux'
-import { fetchThreads, postThread } from '../../actions/forum'
-import { Pagination } from '../pagination/Pagination'
-import { ForumForm } from '../forum/ForumForm'
-import { Root } from '../../interfaces/State'
-import { Data } from '../../interfaces/Data'
+import * as React from "react";
+import { Row, Col, ButtonGroup, Button } from "react-bootstrap";
+import { ForumTitle } from "../forum/ForumTitle";
+import { connect, Dispatch } from "react-redux";
+import { fetchThreads, postThread } from "../../actions/forum";
+import { Pagination } from "../pagination/Pagination";
+import { ForumForm } from "../forum/ForumForm";
+import { Root } from "../../interfaces/State";
+import { Data } from "../../interfaces/Data";
 
-interface stateToProps {
-    threads: Data.ForumTitle[]
-    skip: number
-    take: number
-    page: number
-    totalPages: number
-    getAuthor: (id: number) => string
+interface StateToProps {
+    threads: Data.ForumTitle[];
+    skip: number;
+    take: number;
+    page: number;
+    totalPages: number;
+    getAuthor: (id: number) => string;
 }
 
-interface dispatchToProps {
-    fetchThreads: (skip: number, take: number) => void
-    postThread: (cb: () => void, post: Partial<Data.Raw.Models.ThreadPostContent>) => void
+interface DispatchToProps {
+    fetchThreads: (skip: number, take: number) => void;
+    postThread: (cb: () => void, post: Partial<Data.Raw.Models.ThreadPostContent>) => void;
 }
 
-interface componentState {
-    newPost: boolean
+interface ComponentState {
+    newPost: boolean;
 }
 
 const mapStateToProps = (state: Root) => {
@@ -37,8 +37,8 @@ const mapStateToProps = (state: Root) => {
             const user = state.usersInfo.users[id];
             return `${user.FirstName} ${user.LastName}`;
         },
-    }
-}
+    };
+};
 
 const mapDispatchToProps = (dispatch: Dispatch<any>) => {
     return {
@@ -48,10 +48,10 @@ const mapDispatchToProps = (dispatch: Dispatch<any>) => {
         postThread: (cb: () => void, post: Partial<Data.Raw.Models.ThreadPostContent>) => {
             dispatch<any>(postThread(post, cb));
         }
-    }
-}
+    };
+};
 
-class ForumListContainer extends React.Component<stateToProps & dispatchToProps, componentState> {
+class ForumListContainer extends React.Component<StateToProps & DispatchToProps, ComponentState> {
     constructor(props: any) {
         super(props);
         this.state = {
@@ -69,7 +69,7 @@ class ForumListContainer extends React.Component<stateToProps & dispatchToProps,
     pageHandle(to: number) {
         const { fetchThreads, page, take } = this.props;
 
-        if(page == to) return;
+        if (page === to) return;
         const skipItems = (to - 1) * take;
         fetchThreads(skipItems, take);
     }
@@ -81,7 +81,7 @@ class ForumListContainer extends React.Component<stateToProps & dispatchToProps,
             return <ForumTitle
                         title={thread}
                         key={id}
-                        getAuthor={getAuthor} />
+                        getAuthor={getAuthor} />;
         });
     }
 
@@ -130,7 +130,7 @@ class ForumListContainer extends React.Component<stateToProps & dispatchToProps,
                         close={this.close.bind(this)}
                         onSubmit={this.submit.bind(this)}
                     />
-                </Row>
+                </Row>;
     }
 }
 

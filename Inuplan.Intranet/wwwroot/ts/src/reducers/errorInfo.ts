@@ -1,7 +1,7 @@
-import { combineReducers } from 'redux'
-import { ActionType as T } from '../constants/actions'
-import { reducer } from '../constants/types'
-import { ErrorState } from '../interfaces/State'
+import { combineReducers } from "redux";
+import { ActionType as T } from "../constants/actions";
+import { reducer } from "../constants/types";
+import { ErrorState } from "../interfaces/State";
 
 export const title: reducer<string> = (state = "", action) => {
     switch (action.type) {
@@ -10,7 +10,7 @@ export const title: reducer<string> = (state = "", action) => {
         default:
             return state;
     }
-}
+};
 
 export const message: reducer<string> = (state = "", action) => {
     switch (action.type) {
@@ -19,7 +19,7 @@ export const message: reducer<string> = (state = "", action) => {
         default:
             return state;
     }
-}
+};
 
 const errorInfo = combineReducers<ErrorState>({
     title,
