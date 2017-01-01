@@ -2,7 +2,7 @@ import buble from "rollup-plugin-buble";
 
 export default {
   entry: "dist/app.js",
-  dest: "dist/bundle.js",
+  dest: "../js/bundle.js",
   format: "cjs",
   plugins: [
     buble()
