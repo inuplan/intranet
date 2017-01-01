@@ -67,6 +67,8 @@ namespace Inuplan.Common.DTOs
         /// </summary>
         public string ThumbnailUrl { get; set; }
 
+        public string Description { get; set; }
+
         /// <summary>
         /// Gets or sets the number of comments for this image
         /// </summary>

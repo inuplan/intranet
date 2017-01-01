@@ -200,3 +200,5 @@ Inuplan.Intranet.Core/wwwroot/js/bundle-es2015.js
 Inuplan.Intranet.Core/wwwroot/js/bundle.min.js
 Inuplan.Intranet.Core/wwwroot/js/bundle.js
 Inuplan.Intranet.Core/wwwroot/css/site.min.css
+Inuplan.Intranet/wwwroot/ts/dist/app.jsx
+Inuplan.Intranet/wwwroot/ts/dist

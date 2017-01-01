@@ -53,7 +53,8 @@ var paths = {
     es6Promise: noderoot + "es6-promise/lib/es6-promise.js",
     es6PromiseMin: noderoot + "es6-promise/dist/es6-promise.js",
     objectAssign: noderoot + "es6-object-assign/dist/object-assign.js",
-    objectAssignMin: noderoot + "es6-object-assign/dist/object-assign.min.js"
+    objectAssignMin: noderoot + "es6-object-assign/dist/object-assign.min.js",
+    whatwg: noderoot + "whatwg-fetch/fetch.js"
 };
 
 var vendors = [

@@ -1,0 +1,65 @@
+export const enum ActionType {
+    // Error -->
+    SET_HAS_ERROR,
+    SET_ERROR_TITLE,
+    CLEAR_ERROR_TITLE,
+    SET_ERROR_MESSAGE,
+    CLEAR_ERROR_MESSAGE,
+    // <-- end
+
+    // WhatsNew -->
+    SET_LATEST,
+    SET_SKIP_WHATS_NEW,
+    SET_TAKE_WHATS_NEW,
+    SET_PAGE_WHATS_NEW,
+    SET_TOTAL_PAGES_WHATS_NEW,
+    // <-- end
+
+    // Images -->
+    SET_IMAGES_OWNER,
+    RECIEVED_USER_IMAGES,
+    SET_SELECTED_IMG,
+    ADD_IMAGE,
+    REMOVE_IMAGE,
+    ADD_SELECTED_IMAGE_ID,
+    REMOVE_SELECTED_IMAGE_ID,
+    CLEAR_SELECTED_IMAGE_IDS,
+    INCR_IMG_COMMENT_COUNT,
+    DECR_IMG_COMMENT_COUNT,
+    // <-- end
+
+    // Users -->
+    SET_CURRENT_USER_ID,
+    ADD_USER,
+    RECIEVED_USERS,
+    // <-- end
+
+    // Forum -->
+    SET_POST_COMMENTS,
+    ADD_THREAD_TITLE,
+    SET_THREAD_TITLES,
+    SET_TOTAL_PAGES_THREADS,
+    SET_PAGE_THREADS,
+    SET_SKIP_THREADS,
+    SET_TAKE_THREADS,
+    SET_SELECTEDTHREAD_ID,
+    SET_POST_CONTENT,
+    // <--
+
+    // status -->
+    SET_USED_SPACE_KB,
+    SET_TOTAL_SPACE_KB,
+    // <-- end
+
+    // comments -->
+    SET_SKIP_COMMENTS,
+    SET_DEFAULT_SKIP,
+    SET_DEFAULT_TAKE,
+    SET_TAKE_COMMENTS,
+    SET_CURRENT_PAGE,
+    SET_TOTAL_PAGES,
+    SET_DEFAULT_COMMENTS,
+    RECIEVED_COMMENTS,
+    ADD_COMMENT,
+    SET_FOCUSED_COMMENT,
+}
