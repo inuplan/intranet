@@ -156,7 +156,7 @@ export const setImageOwner = (username: string) => {
             let user: Data.User = null;
             for (let key in users) {
                 user = users[key];
-                if (user.Username = username) {
+                if (user.Username === username) {
                     break;
                 }
             }
