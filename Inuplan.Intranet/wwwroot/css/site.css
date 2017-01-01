@@ -30,6 +30,10 @@
     margin-right: 7px;
 }
 
+.comment-deleted-left {
+    min-width: 74px;
+}
+
 .thread-head {
     border-bottom-width: 1px;
     border-bottom-style: solid;
@@ -99,6 +103,34 @@
     color: #2c3e50;
 }
 
+.whatsnewItem:hover > .media-body > blockquote > span {
+    color: #2c3e50;
+}
+
 .hover-shadow:hover {
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.hide-input {
+    cursor: pointer;
+    border: 1px solid #2c3e50;
+    background-color: #fff;
+    color: #2c3e50;
+    display: inline-block;
+    padding: 12px 12px;
+    border-radius: 4px;
+}
+
+.hide-input input[type="file"] {
+    display: none;
+}
+
+.image-whatsnew-descriptiontext {
+    font-size: 0.9em;
+    color: #b4bcc2;
+}
+
+.image-selected-descriptiontext {
+    font-size: 1.1em;
+    margin-top: 1.0em;
 }

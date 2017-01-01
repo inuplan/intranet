@@ -4,6 +4,15 @@
   "author": "JMS",
   "license": "MIT",
   "dependencies": {
+    "@types/history": "^2.0.41",
+    "@types/isomorphic-fetch": "0.0.31",
+    "@types/marked": "0.0.28",
+    "@types/react-bootstrap": "0.0.37",
+    "@types/react-dom": "^0.14.19",
+    "@types/react-redux": "^4.4.35",
+    "@types/react-router": "^2.0.41",
+    "@types/react-router-redux": "^4.0.35",
+    "@types/underscore": "^1.7.36",
     "browserify": "^13.1.1",
     "chart.js": "^2.4.0",
     "es6-object-assign": "^1.0.3",
@@ -37,7 +46,11 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "scripts": {
+    "transpile:ts": "tsc -p wwwroot/ts/",
     "bundle:js": "rollup -c rollup.config.js",
     "bundle:js-release": "rollup -c rollup.config.release.js"
+  },
+  "devDependencies": {
+    "rollup-plugin-cleanup": "^0.1.4"
   }
 }

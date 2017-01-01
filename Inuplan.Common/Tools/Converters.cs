@@ -79,6 +79,7 @@ namespace Inuplan.Common.Tools
                 Author = author,
                 CommentCount = commentCount,
                 Uploaded = image.Uploaded,
+                Description = image.Description
             };
         }
 

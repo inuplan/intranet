@@ -1,11 +1,11 @@
-import buble from 'rollup-plugin-buble'
+import buble from "rollup-plugin-buble";
 
 export default {
-  entry: 'wwwroot/js/app.js',
-  dest: 'wwwroot/js/bundle.js',
-  format: 'cjs',
+  entry: "wwwroot/ts/dist/app.js",
+  dest: "wwwroot/js/bundle.js",
+  format: "cjs",
   plugins: [
     buble()
   ],
-  sourceMap: 'inline'
-}
+  sourceMap: "inline",
+};

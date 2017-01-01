@@ -67,7 +67,8 @@
       "wwwroot/favicon.ico"
     ],
     "exclude": [
-      "wwwroot/lib/bootstrap/dist/js"
+      "wwwroot/lib/bootstrap/dist/js",
+      "wwwroot/ts/**/*"
     ]
   },
 
@@ -76,6 +77,7 @@
       "gulp clean",
       "gulp min:css",
       "gulp bundle:vendors-min",
+      "npm run transpile:ts",
       "npm run bundle:js-release"
     ],
     "postpublish": [ ]
