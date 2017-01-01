@@ -42,7 +42,7 @@ const mapStateToProps = (state: Root) => {
     const canEdit = (ownerId > 0 && currentId > 0 && ownerId === currentId);
     const user = state.usersInfo.users[ownerId];
     const fullName = user ? `${user.FirstName} ${user.LastName}` : "";
-    const images: Data.Image[] = values(state.imagesInfo.images);
+    const images: Data.Image[] = values(state.imagesInfo.images).reverse();
 
     return {
         images: images,
