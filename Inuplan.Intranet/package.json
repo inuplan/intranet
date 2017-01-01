@@ -46,6 +46,7 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "scripts": {
+    "transpile:ts": "tsc -p wwwroot/ts/",
     "bundle:js": "rollup -c rollup.config.js",
     "bundle:js-release": "rollup -c rollup.config.release.js"
   },
