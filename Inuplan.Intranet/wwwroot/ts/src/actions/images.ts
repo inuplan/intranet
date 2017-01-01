@@ -124,7 +124,7 @@ export const fetchUserImages = (username: string) => {
         return fetch(url, options)
             .then(handler)
             .then((data: Data.Raw.ImageDTO[]) => {
-                const normalized = data.map(normalize).reverse();
+                const normalized = data.map(normalize);
                 const obj = objMap<Data.Image, Data.Image>(normalized, (img) => img.ImageID, (img) => img);
                 dispatch(recievedUserImages(obj));
             });
