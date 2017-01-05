@@ -1,6 +1,5 @@
 /// <reference path="../../interfaces/globals.d.ts" />
 import * as React from "react";
-import { Components as C } from "../../interfaces/Components";
 import { Jumbotron, Grid, Row, Col, Panel, Alert } from "react-bootstrap";
 import { Root } from "../../interfaces/State";
 import { connect, Dispatch } from "react-redux";
@@ -10,7 +9,8 @@ import { uploadImage } from "../../actions/images";
 import UsedSpace from "./UsedSpace";
 import WhatsNew from "./WhatsNew";
 
-interface StateToProps extends C.UsernameProp {
+interface StateToProps {
+    name: string;
     skip: number;
     take: number;
 }
@@ -25,9 +25,9 @@ interface ComponentState {
 
 const mapStateToProps = (state: Root): StateToProps => {
     const user = state.usersInfo.users[state.usersInfo.currentUserId];
-    const name = user ? user.Username : "User";
+    const name = user ? user.FirstName : "User";
     return {
-        username: name,
+        name: name,
         skip: state.whatsNewInfo.skip,
         take: state.whatsNewInfo.take
     };
@@ -81,10 +81,10 @@ class HomeContainer extends React.Component<StateToProps & DispatchToProps, Comp
     }
 
     render() {
-        const username = globals.currentUsername;
+        const { name } = this.props;
         return  <Row>
                     <Jumbotron>
-                        <h1><span>Velkommen <small>{username}!</small></span></h1>
+                        <h1><span>Velkommen <small>{name}!</small></span></h1>
                         <p className="lead">
                             Til Inuplans forum og billed-arkiv side
                         </p>
@@ -92,7 +92,7 @@ class HomeContainer extends React.Component<StateToProps & DispatchToProps, Comp
                         <Row>
                             <Col lg={4}>
                                 <Panel header={"Du kan uploade billeder til dit eget galleri her"} bsStyle="primary">
-                                    <ImageUpload username={username} uploadImage={this.upload} />
+                                    <ImageUpload username={globals.currentUsername} uploadImage={this.upload} />
                                 </Panel>
                             </Col>
                         </Row>
