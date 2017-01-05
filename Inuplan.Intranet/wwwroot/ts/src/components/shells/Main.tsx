@@ -8,7 +8,8 @@ import { clearError } from "../../actions/error";
 import { NavLink, IndexNavLink } from "../wrappers/Links";
 import { Components as C } from "../../interfaces/Components";
 
-interface StateToProps extends C.HasErrorProp, C.UsernameProp {
+interface StateToProps extends C.HasErrorProp {
+    name: string;
     error: C.ErrorState;
 }
 
@@ -20,7 +21,7 @@ const mapStateToProps = (state: Root) : StateToProps => {
     const user = state.usersInfo.users[state.usersInfo.currentUserId];
     const name = user ? user.FirstName : "User";
     return {
-        username: name,
+        name: name,
         hasError: state.statusInfo.hasError,
         error: state.statusInfo.errorInfo
     };
@@ -45,14 +46,14 @@ class Shell extends React.Component<StateToProps & DispatchToProps, any> {
     }
 
     render() {
-        const { username } = this.props;
+        const { name } = this.props;
         const employeeUrl = globals.urls.employeeHandbook;
         const c5SearchUrl = globals.urls.c5Search;
         return  <Grid fluid={true}>
                     <Navbar fixedTop>
                         <Navbar.Header>
                             <Navbar.Brand>
-                                <a href="http://intranetside" className="navbar-brand">Inuplan Intranet</a>
+                                <a href={globals.urls.intranetside} className="navbar-brand">Inuplan Intranet</a>
                             </Navbar.Brand>
                             <Navbar.Toggle />
                         </Navbar.Header>
@@ -66,7 +67,7 @@ class Shell extends React.Component<StateToProps & DispatchToProps, any> {
                             </Nav>
 
                             <Navbar.Text pullRight>
-                                Hej, {username}!
+                                Hej, {name}!
                             </Navbar.Text>
 
                             <Nav pullRight>

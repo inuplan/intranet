@@ -19,4 +19,5 @@ interface urls {
     readonly websocket: {
         readonly latest: string
     }
+    readonly intranetside: string
 }
