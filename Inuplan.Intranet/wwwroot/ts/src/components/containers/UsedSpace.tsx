@@ -1,4 +1,3 @@
-/// <reference path="../../interfaces/globals.d.ts" />
 import * as React from "react";
 import { connect, Dispatch } from "react-redux";
 import { Row, Col, ProgressBar } from "react-bootstrap";

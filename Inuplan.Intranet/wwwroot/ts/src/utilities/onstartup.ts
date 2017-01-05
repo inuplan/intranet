@@ -1,5 +1,3 @@
-/// <reference path="./es6-promise.d.ts" />
-/// <reference path="./es6-object-assign.d.ts" />
 import store from "../store/store";
 import { fetchLatestNews } from "../actions/whatsnew";
 import { fetchThreads, fetchPost } from "../actions/forum";

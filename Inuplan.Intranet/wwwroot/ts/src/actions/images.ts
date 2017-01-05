@@ -1,4 +1,3 @@
-/// <reference path="../interfaces/globals.d.ts" />
 import * as fetch from "isomorphic-fetch";
 import { ActionType } from "../constants/actions";
 import { addUser } from "./users";

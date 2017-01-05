@@ -1,5 +1,3 @@
-/// <reference path="../../../../node_modules/@types/isomorphic-fetch/index.d.ts" />
-/// <reference path="../interfaces/globals.d.ts" />
 import { ActionType } from "../constants/actions";
 import * as fetch from "isomorphic-fetch";
 import { options, normalizeComment, responseHandler } from "../utilities/utils";

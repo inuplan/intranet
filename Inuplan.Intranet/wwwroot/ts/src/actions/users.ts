@@ -1,4 +1,3 @@
-/// <reference path="../interfaces/globals.d.ts" />
 import { ActionType } from "../constants/actions";
 import { Data } from "../interfaces/Data";
 import { General } from "../interfaces/General";

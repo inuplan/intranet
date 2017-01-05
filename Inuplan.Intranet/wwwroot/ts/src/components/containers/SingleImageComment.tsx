@@ -1,4 +1,3 @@
-/// <reference path="../../interfaces/globals.d.ts" />
 import * as React from "react";
 import { Comment } from "../comments/Comment";
 import { connect, Dispatch } from "react-redux";

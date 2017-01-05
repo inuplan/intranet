@@ -1,4 +1,3 @@
-/// <reference path="../../interfaces/globals.d.ts" />
 import * as React from "react";
 import { fetchComments, postComment, editComment, deleteComment } from "../../actions/comments";
 import { incrementCommentCount, decrementCommentCount } from "../../actions/images";

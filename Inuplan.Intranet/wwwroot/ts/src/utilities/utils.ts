@@ -1,6 +1,3 @@
-/// <reference path="remove-markdown.d.ts" />
-/// <reference path="../../../../node_modules/@types/isomorphic-fetch/index.d.ts" />
-/// <reference path="../interfaces/globals.d.ts" />
 import { General as G } from "../interfaces/General";
 import { Root } from "../interfaces/State";
 import { setError } from "../actions/error";

@@ -1,4 +1,3 @@
-/// <reference path="../interfaces/globals.d.ts" />
 import { General } from "../interfaces/General";
 import { responseHandler, options } from "../utilities/utils";
 import { normalizeLatest as normalize } from "../utilities/normalize";

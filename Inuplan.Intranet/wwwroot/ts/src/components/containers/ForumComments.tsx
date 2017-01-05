@@ -1,4 +1,3 @@
-/// <reference path="../../interfaces/globals.d.ts" />
 import * as React from "react";
 import { CommentList } from "../comments/CommentList";
 import { CommentForm } from "../comments/CommentForm";

@@ -1,4 +1,3 @@
-/// <reference path="../../interfaces/globals.d.ts" />
 import * as React from "react";
 import { Jumbotron, Grid, Row, Col, Panel, Alert } from "react-bootstrap";
 import { Root } from "../../interfaces/State";
