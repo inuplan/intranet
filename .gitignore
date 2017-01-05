@@ -191,6 +191,7 @@ Inuplan.Intranet.vNext/wwwroot/js/tests
 **/web.release.config
 *.pdb
 docs/rest_api.pdf
+Inuplan.Intranet/site.bat
 
 # NodeJS modules
 **/node_modules/
