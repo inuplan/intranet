@@ -30,7 +30,7 @@ export const options: RequestInit = {
     credentials: "include"
 };
 
-export const responseHandler =  <T>(dispatch: Dispatch<Root>) => (onSuccess: (r: IResponse) => Promise<T>) => (response: IResponse) => {
+export const responseHandler =  <T>(dispatch: Dispatch<Root>) => (onSuccess: (r: Response) => Promise<T>) => (response: Response) => {
     if (response.ok) return onSuccess(response);
     else {
         switch (response.status) {

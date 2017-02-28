@@ -121,9 +121,9 @@ export const fetchPost = (id: number, cb?: () => void): fetchResult<any, void> =
     };
 };
 
-export const updatePost = (id: number, post: Partial<Data.Raw.Models.ThreadPostContent>, cb: () => void): fetchResult<any, void> => {
+export const updatePost = (post: Data.Raw.Models.ThreadPostContent, cb: () => void): fetchResult<any, void> => {
     return (dispatch) => {
-        const url = `${globals.urls.forumpost}?id=${id}`;
+        const url = `${globals.urls.forumpost}`;
         const headers = new Headers();
         headers.append("Content-Type", "application/json");
         const handler = responseHandler(dispatch)(_ => null);

@@ -20,7 +20,7 @@ interface StateToPropsPost {
 }
 
 interface DispatchToPropsPost {
-    update: (id: number, post: Partial<Data.Raw.Models.ThreadPostContent>, cb: () => void) => void;
+    update: (post: Data.Raw.Models.ThreadPostContent, cb: () => void) => void;
     getPost: (id: number) => any;
     deletePost: (id: number, cb: Function) => void;
     readPost: (postId: number, read: boolean, cb: Function) => void;
@@ -41,8 +41,8 @@ const mapStateToProps = (state: Root): StateToPropsPost => {
 
 const mapDispatchToProps = (dispatch: Dispatch<any>): DispatchToPropsPost => {
     return {
-        update: (id: number, post: Partial<Data.Raw.Models.ThreadPostContent>, cb: () => void) => {
-            dispatch(updatePost(id, post, cb));
+        update: (post: Data.Raw.Models.ThreadPostContent, cb: () => void) => {
+            dispatch(updatePost(post, cb));
         },
         getPost: (id: number) => {
             dispatch(fetchPost(id))
@@ -60,6 +60,7 @@ const mapDispatchToProps = (dispatch: Dispatch<any>): DispatchToPropsPost => {
 interface ComponentState {
     edit?: boolean;
     model?: {
+        ThreadID: number,
         Title: string
         Text: string
         Sticky: boolean
@@ -84,12 +85,15 @@ class ForumPostContainer extends React.Component<StateToPropsPost & DispatchToPr
         const hasTitle = Boolean(nextProps.title);
         if (!hasTitle) return;
 
+        const title = nextProps.title as Data.ForumTitle;
+
         this.setState({
             model: {
-                Title: nextProps.title.Title,
+                ThreadID: title.ID,
+                Title: title.Title,
                 Text: nextProps.text,
-                Sticky: nextProps.title.Sticky,
-                IsPublished: nextProps.title.IsPublished
+                Sticky: title.Sticky,
+                IsPublished: title.IsPublished
             },
         });
 
@@ -111,13 +115,13 @@ class ForumPostContainer extends React.Component<StateToPropsPost & DispatchToPr
         this.setState({ edit: !edit });
     }
 
-    onSubmit(post: Partial<Data.Raw.Models.ThreadPostContent>) {
+    onSubmit(post: Data.Raw.Models.ThreadPostContent) {
         const { update, getPost, title } = this.props;
         const cb = () => {
             getPost(title.ID);
         };
 
-        update(title.ID, post, cb);
+        update(post, cb);
     }
 
     togglePostRead(toggle: boolean) {

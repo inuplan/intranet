@@ -5,8 +5,9 @@ import { Data } from "../../interfaces/Data";
 interface ForumFormProps {
     show: boolean;
     close: () => void;
-    onSubmit: (post: Partial<Data.Raw.Models.ThreadPostContent>) => void;
+    onSubmit: (post: Data.Raw.Models.ThreadPostContent) => void;
     edit?: {
+        ThreadID: number,
         Title: string
         Text: string
         Sticky: boolean
@@ -15,16 +16,18 @@ interface ForumFormProps {
 }
 
 interface ForumFormState {
-    Title?: string;
-    Text?: string;
-    Sticky?: boolean;
-    IsPublished?: boolean;
+    ThreadID: number;
+    Title: string;
+    Text: string;
+    Sticky: boolean;
+    IsPublished: boolean;
 }
 
 export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
     constructor(props: any) {
         super(props);
         this.state = {
+            ThreadID: -1,
             Title: "",
             Text: "",
             Sticky: false,
@@ -38,6 +41,7 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
         const { edit } = nextProps;
         if (edit) {
             this.setState({
+                ThreadID: edit.ThreadID,
                 Title: edit.Title,
                 Text: edit.Text,
                 Sticky: edit.Sticky,
@@ -63,7 +67,7 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
         return "error";
     }
 
-    transformToDTO(state: ForumFormState): Partial<Data.Raw.Models.ThreadPostContent> {
+    transformToDTO(state: ForumFormState): Data.Raw.Models.ThreadPostContent {
         // A ThreadPostContent class
         const header = {
                 IsPublished: state.IsPublished,
@@ -72,7 +76,8 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
             };
         return {
             Header: header,
-            Text: state.Text
+            Text: state.Text,
+            ThreadID: state.ThreadID
         };
     }
 

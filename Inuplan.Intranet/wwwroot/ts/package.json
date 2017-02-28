@@ -1,0 +1,38 @@
+{
+  "name": "intranet",
+  "version": "1.1.0",
+  "author": "JMS",
+  "license": "MIT",
+  "dependencies": {},
+  "scripts": {
+    "bundle": "webpack --config webpack.config.js && mv ./dist/app.js ../js/ -f && mv ./dist/lib.js ../lib/ -f && rm -rf ./dist",
+    "bundle:release": "set NODE_ENV=production && webpack -p --config ./wwwroot/ts/webpack.config.release.js && mv ./wwwroot/ts/dist/app.min.js ./wwwroot/js/ -f && mv ./wwwroot/ts/dist/lib.min.js ./wwwroot/lib/ -f && rm -rf ./dist"
+  },
+  "devDependencies": {
+    "@types/draft-js": "^0.9.1",
+    "@types/isomorphic-fetch": "0.0.33",
+    "@types/marked": "0.0.28",
+    "@types/react": "^15.0.12",
+    "@types/react-bootstrap": "0.0.45",
+    "@types/react-dom": "^0.14.23",
+    "@types/react-redux": "^4.4.36",
+    "@types/react-router": "^3.0.5",
+    "@types/underscore": "^1.7.36",
+    "draft-js": "^0.10.0",
+    "es6-object-assign": "^1.0.3",
+    "es6-promise": "^4.0.5",
+    "isomorphic-fetch": "^2.2.1",
+    "marked": "0.3.6",
+    "react": "^15.4.1",
+    "react-bootstrap": "^0.30.7",
+    "react-dom": "^15.4.1",
+    "react-redux": "^4.4.6",
+    "react-router": "^3.0.0",
+    "redux": "^3.6.0",
+    "redux-thunk": "^2.1.0",
+    "remove-markdown": "^0.1.0",
+    "ts-loader": "^2.0.0",
+    "underscore": "^1.8.3",
+    "webpack": "^2.2.1"
+  }
+}

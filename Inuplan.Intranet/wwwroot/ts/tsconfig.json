@@ -9,20 +9,28 @@
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
-        "target": "es6",
+        "target": "es3",
         "lib": [
             "es2015", "dom"
         ],
+        "baseUrl": ".",
+        "paths": {
+            "redux": [ "node_modules/redux/index.d.ts" ],
+            "immutable": [ "node_modules/immutable/dist/immutable.d.ts" ],
+            "redux-thunk": [ "node_modules/redux-thunk/index.d.ts" ]
+        },
         "typeRoots": [
-            "C:/Users/Johnny/Documents/Inuplan/intranet/Inuplan.Intranet/node_modules/@types",
             "./typings/globals"
         ]
     },
     "typeAcquisition": {
         "enable": true
     },
-    "compileOnSave": false,
-    "files":[
+    "include": [
         "./src/app.tsx"
+    ],
+    "compileOnSave": false,
+    "exclude": [
+        "node_modules"
     ]
 }

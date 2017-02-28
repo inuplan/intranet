@@ -67,6 +67,7 @@
 
 .sticky [class*="glyphicon-"] {
     margin-top: 8px;
+    transform: rotate(-45deg);
     -webkit-transform: rotate(-45deg);
     -moz-transform: rotate(-45deg);
     -o-transform: rotate(-45deg);
