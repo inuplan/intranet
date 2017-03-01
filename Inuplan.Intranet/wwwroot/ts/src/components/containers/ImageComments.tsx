@@ -87,7 +87,7 @@ const mapDispatchToProps = (dispatch: Dispatch<Root>): DispatchToProps => {
     };
 };
 
-class CommentsContainer extends React.Component<StateToProps & DispatchToProps & { router: InjectedRouter }, null> {
+class CommentsContainer extends React.Component<StateToProps & DispatchToProps & { router: InjectedRouter; location: any; }, null> {
     constructor(props: any) {
         super(props);
         this.pageHandle = this.pageHandle.bind(this);
@@ -98,10 +98,11 @@ class CommentsContainer extends React.Component<StateToProps & DispatchToProps &
     }
 
     componentDidMount() {
-        this.getComments(1);
+        const { page } = this.props.location.query;
+        this.getComments(page);
     }
 
-    getComments(page: number) {
+    getComments(page: number = 1) {
         const { fetchComments, imageId, take } = this.props;
         if (!Number(page)) return;
         const skipPages = page - 1;

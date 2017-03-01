@@ -2383,9 +2383,11 @@ var CommentsContainer = (function (_super) {
         return _this;
     }
     CommentsContainer.prototype.componentDidMount = function () {
-        this.getComments(1);
+        var page = this.props.location.query.page;
+        this.getComments(page);
     };
     CommentsContainer.prototype.getComments = function (page) {
+        if (page === void 0) { page = 1; }
         var _a = this.props, fetchComments = _a.fetchComments, imageId = _a.imageId, take = _a.take;
         if (!Number(page))
             return;
