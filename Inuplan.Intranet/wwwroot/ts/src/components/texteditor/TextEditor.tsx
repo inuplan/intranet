@@ -9,7 +9,6 @@ require("draft-js/dist/Draft.css");
 
 interface TextEditorProps {
     placeholder: string;
-    onSubmit: (markdown: string) => void;
     markdown: string;
 }
 
@@ -31,19 +30,22 @@ export class TextEditor extends React.Component<TextEditorProps, TextEditorState
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.onChange = this.onChange.bind(this);
-        this.onSubmit = this.onSubmit.bind(this);
+        this.getText = this.getText.bind(this);
+        this.setText = this.setText.bind(this);
         this.handleFocus = this.handleFocus.bind(this);
 
         this.onStyleClick = this.onStyleClick.bind(this);
     }
 
-    onSubmit(e: React.MouseEvent<any>) {
-        e.preventDefault();
-        const { onSubmit } = this.props;
+    getText() {
         const { editorState } = this.state;
         const markdown = stateToMarkdown(editorState.getCurrentContent());
-        onSubmit(markdown);
-        this.setState({ editorState: EditorState.createEmpty() });
+        return markdown;
+    }
+
+    setText(markdown: string) {
+        const editorState = Boolean(markdown) ? EditorState.createWithContent(stateFromMarkdown(markdown)) : EditorState.createEmpty();
+        this.setState({ editorState });
     }
 
     onChange(editorState: EditorState) {
@@ -125,10 +127,6 @@ export class TextEditor extends React.Component<TextEditorProps, TextEditorState
                     </div>
 
                     <br />
-
-                    <div>
-                        <button type="submit" onClick={this.onSubmit} className="btn btn-primary">Send</button>
-                    </div>
                 </div>;
     }
 }

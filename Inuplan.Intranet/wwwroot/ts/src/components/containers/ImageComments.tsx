@@ -146,13 +146,20 @@ class CommentsContainer extends React.Component<StateToProps & DispatchToProps &
         replyHandle(imageId, text, parentId, cb);
     }
 
-    postComment(text: string) {
+    postComment(e: React.MouseEvent<any>) {
+        e.preventDefault();
+
         const { imageId, loadComments, incrementCount, skip, take, postHandle } = this.props;
+        const editor = this.refs.editor as TextEditor;
         const cb = () => {
             incrementCount(imageId);
             loadComments(imageId, skip, take);
+
+            // Clear input field
+            editor.setText("");
         };
 
+        const text = editor.getText();
         postHandle(imageId, text, cb);
     }
 
@@ -193,10 +200,11 @@ class CommentsContainer extends React.Component<StateToProps & DispatchToProps &
                     <Row>
                         <Col lgOffset={1} lg={10}>
                             <TextEditor
-                                onSubmit={this.postComment}
                                 markdown=""
                                 placeholder="Skriv kommentar her..."
+                                ref="editor"
                             />
+                            <button onClick={this.postComment} className="btn btn-primary">Send</button>
                         </Col>
                     </Row>
                 </div>;

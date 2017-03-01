@@ -18,8 +18,8 @@ export class Comment extends React.Component<Components.CommentProps, any> {
 
     render() {
         const { canEdit, contextId, name, text, commentId, replies, construct, authorId, edited } = this.props;
-        const { skip, take, editComment, deleteComment, replyComment } = this.props;
-        const props = { skip, take, editComment, deleteComment, replyComment };
+        const { editComment, deleteComment, replyComment } = this.props;
+        const props = { editComment, deleteComment, replyComment };
         const txt = formatText(text);
         const replyNodes = replies.map(reply => construct(reply));
 

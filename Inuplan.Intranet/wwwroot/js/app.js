@@ -214,7 +214,7 @@ var clearError = function () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_isomorphic_fetch__ = __webpack_require__(64);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_isomorphic_fetch___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_isomorphic_fetch__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utilities_utils__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utilities_normalize__ = __webpack_require__(193);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utilities_normalize__ = __webpack_require__(194);
 /* unused harmony export addThreadTitle */
 /* unused harmony export setThreadTitles */
 /* unused harmony export setTotalPages */
@@ -382,7 +382,7 @@ var postThread = function (post, cb) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities_utils__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utilities_normalize__ = __webpack_require__(193);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utilities_normalize__ = __webpack_require__(194);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_isomorphic_fetch__ = __webpack_require__(64);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_isomorphic_fetch___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_isomorphic_fetch__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__actions_users__ = __webpack_require__(116);
@@ -521,6 +521,127 @@ var Breadcrumb = (function (_super) {
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_draft_js__ = __webpack_require__(71);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_draft_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_draft_js__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ToolbarBlock__ = __webpack_require__(729);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_draft_js_import_markdown__ = __webpack_require__(409);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_draft_js_import_markdown___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_draft_js_import_markdown__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_draft_js_export_markdown__ = __webpack_require__(403);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_draft_js_export_markdown___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_draft_js_export_markdown__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return TextEditor; });
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+
+
+
+
+__webpack_require__(716);
+var TextEditor = (function (_super) {
+    __extends(TextEditor, _super);
+    function TextEditor(props) {
+        var _this = _super.call(this, props) || this;
+        var editorState = Boolean(props.markdown) ? __WEBPACK_IMPORTED_MODULE_1_draft_js__["EditorState"].createWithContent(__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_3_draft_js_import_markdown__["stateFromMarkdown"])(props.markdown)) : __WEBPACK_IMPORTED_MODULE_1_draft_js__["EditorState"].createEmpty();
+        _this.state = {
+            hasFocus: false,
+            editorState: editorState
+        };
+        _this.onFocus = _this.onFocus.bind(_this);
+        _this.onBlur = _this.onBlur.bind(_this);
+        _this.onChange = _this.onChange.bind(_this);
+        _this.getText = _this.getText.bind(_this);
+        _this.setText = _this.setText.bind(_this);
+        _this.handleFocus = _this.handleFocus.bind(_this);
+        _this.onStyleClick = _this.onStyleClick.bind(_this);
+        return _this;
+    }
+    TextEditor.prototype.getText = function () {
+        var editorState = this.state.editorState;
+        var markdown = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_4_draft_js_export_markdown__["stateToMarkdown"])(editorState.getCurrentContent());
+        return markdown;
+    };
+    TextEditor.prototype.setText = function (markdown) {
+        var editorState = Boolean(markdown) ? __WEBPACK_IMPORTED_MODULE_1_draft_js__["EditorState"].createWithContent(__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_3_draft_js_import_markdown__["stateFromMarkdown"])(markdown)) : __WEBPACK_IMPORTED_MODULE_1_draft_js__["EditorState"].createEmpty();
+        this.setState({ editorState: editorState });
+    };
+    TextEditor.prototype.onChange = function (editorState) {
+        this.setState({ editorState: editorState });
+    };
+    TextEditor.prototype.onFocus = function (_) {
+        this.setState({ hasFocus: true });
+    };
+    TextEditor.prototype.onBlur = function (_) {
+        this.setState({ hasFocus: false });
+    };
+    TextEditor.prototype.onStyleClick = function (styleType, style) {
+        var editorState = this.state.editorState;
+        var changeState;
+        switch (styleType) {
+            case 0: {
+                changeState = __WEBPACK_IMPORTED_MODULE_1_draft_js__["RichUtils"].toggleBlockType(editorState, style);
+                break;
+            }
+            case 1: {
+                changeState = __WEBPACK_IMPORTED_MODULE_1_draft_js__["RichUtils"].toggleInlineStyle(editorState, style);
+                break;
+            }
+            default: {
+                changeState = editorState;
+                break;
+            }
+        }
+        this.onChange(changeState);
+    };
+    TextEditor.prototype.handleFocus = function (_) {
+        var hasFocus = this.state.hasFocus;
+        if (!hasFocus) {
+            var editor = this.refs.editor;
+            editor.focus();
+        }
+    };
+    TextEditor.prototype.render = function () {
+        var placeholder = this.props.placeholder;
+        var _a = this.state, hasFocus = _a.hasFocus, editorState = _a.editorState;
+        var currentBlockType = __WEBPACK_IMPORTED_MODULE_1_draft_js__["RichUtils"].getCurrentBlockType(editorState);
+        var currentInlineType = editorState.getCurrentInlineStyle();
+        var css = hasFocus ? "richEditor-root textEditor-focus" : "richEditor-root";
+        var styleMap = {
+            "CODE": {
+                padding: "2px 4px",
+                fontSize: "90%",
+                color: "#c7254e",
+                backgroundColor: "#f9f2f4",
+                borderRadius: "4px"
+            }
+        };
+        return __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("div", null,
+            __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("div", { className: css },
+                __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_2__ToolbarBlock__["a" /* ToolbarBlock */], { onStyleClick: this.onStyleClick, currentBlockType: currentBlockType, currentInlineType: currentInlineType }),
+                __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("div", { onClick: this.handleFocus, className: "textEditor-base" },
+                    __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_draft_js__["Editor"], { editorState: editorState, onChange: this.onChange, onFocus: this.onFocus, onBlur: this.onBlur, placeholder: placeholder, customStyleMap: styleMap, ref: "editor" }))),
+            __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("br", null));
+    };
+    return TextEditor;
+}(__WEBPACK_IMPORTED_MODULE_0_react__["Component"]));
+
+
+
+/***/ }),
+
+/***/ 193:
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__ = __webpack_require__(11);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return WhatsNewTooltip; });
 var __extends = (this && this.__extends) || (function () {
@@ -554,7 +675,7 @@ var WhatsNewTooltip = (function (_super) {
 
 /***/ }),
 
-/***/ 193:
+/***/ 194:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -658,14 +779,14 @@ var normalizeComment = function (comment) {
 
 /***/ }),
 
-/***/ 199:
+/***/ 200:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__forum_ForumForm__ = __webpack_require__(325);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__comments_CommentControls__ = __webpack_require__(322);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__forum_ForumForm__ = __webpack_require__(326);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__comments_CommentControls__ = __webpack_require__(323);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__actions_forum__ = __webpack_require__(189);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_underscore__ = __webpack_require__(92);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_underscore___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_underscore__);
@@ -910,12 +1031,12 @@ var ForumPost = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_7_react_router__
 
 /***/ }),
 
-/***/ 200:
+/***/ 201:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_redux__ = __webpack_require__(42);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_redux_thunk__ = __webpack_require__(197);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_redux_thunk__ = __webpack_require__(198);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_redux_thunk___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_redux_thunk__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__reducers_root__ = __webpack_require__(741);
 
@@ -932,9 +1053,9 @@ var store = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_0_redux__["createSto
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__actions_error__ = __webpack_require__(188);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_marked__ = __webpack_require__(196);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_marked__ = __webpack_require__(197);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_marked___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_marked__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_remove_markdown__ = __webpack_require__(198);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_remove_markdown__ = __webpack_require__(199);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_remove_markdown___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_remove_markdown__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "f", function() { return objMap; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "n", function() { return put; });
@@ -1080,13 +1201,13 @@ var getImageCommentsDeleteUrl = function (commentId) {
 
 /***/ }),
 
-/***/ 321:
+/***/ 322:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__CommentControls__ = __webpack_require__(322);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__CommentControls__ = __webpack_require__(323);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__CommentProfile__ = __webpack_require__(117);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utilities_utils__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_react_bootstrap__ = __webpack_require__(11);
@@ -1130,8 +1251,8 @@ var Comment = (function (_super) {
     };
     Comment.prototype.render = function () {
         var _a = this.props, canEdit = _a.canEdit, contextId = _a.contextId, name = _a.name, text = _a.text, commentId = _a.commentId, replies = _a.replies, construct = _a.construct, authorId = _a.authorId, edited = _a.edited;
-        var _b = this.props, skip = _b.skip, take = _b.take, editComment = _b.editComment, deleteComment = _b.deleteComment, replyComment = _b.replyComment;
-        var props = { skip: skip, take: take, editComment: editComment, deleteComment: deleteComment, replyComment: replyComment };
+        var _b = this.props, editComment = _b.editComment, deleteComment = _b.deleteComment, replyComment = _b.replyComment;
+        var props = { editComment: editComment, deleteComment: deleteComment, replyComment: replyComment };
         var txt = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_3__utilities_utils__["i" /* formatText */])(text);
         var replyNodes = replies.map(function (reply) { return construct(reply); });
         return __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_4_react_bootstrap__["Media"], null,
@@ -1155,13 +1276,14 @@ var Comment = (function (_super) {
 
 /***/ }),
 
-/***/ 322:
+/***/ 323:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_bootstrap__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__texteditor_TextEditor__ = __webpack_require__(192);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return ButtonTooltip; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return CommentControls; });
 var __extends = (this && this.__extends) || (function () {
@@ -1174,6 +1296,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+
 
 
 var ButtonTooltip = (function (_super) {
@@ -1197,58 +1320,55 @@ var CommentControls = (function (_super) {
     __extends(CommentControls, _super);
     function CommentControls(props) {
         var _this = _super.call(this, props) || this;
+        var editId = "editTextControl_" + props.commentId + "_" + props.contextId;
+        var replyId = "replyTextControl_" + props.commentId + "_" + props.contextId;
         _this.state = {
-            text: props.text,
-            replyText: "",
             reply: false,
-            edit: false
+            edit: false,
+            editId: editId,
+            replyId: replyId
         };
         _this.toggleEdit = _this.toggleEdit.bind(_this);
         _this.toggleReply = _this.toggleReply.bind(_this);
         _this.editHandle = _this.editHandle.bind(_this);
         _this.replyHandle = _this.replyHandle.bind(_this);
         _this.deleteHandle = _this.deleteHandle.bind(_this);
-        _this.handleTextChange = _this.handleTextChange.bind(_this);
-        _this.handleReplyChange = _this.handleReplyChange.bind(_this);
         return _this;
     }
-    CommentControls.prototype.handleTextChange = function (e) {
-        this.setState({ text: e.target.value });
-    };
-    CommentControls.prototype.handleReplyChange = function (e) {
-        this.setState({ replyText: e.target.value });
-    };
     CommentControls.prototype.toggleEdit = function () {
-        var edit = this.state.edit;
+        var text = this.props.text;
+        var _a = this.state, edit = _a.edit, editId = _a.editId;
         this.setState({ edit: !edit });
-        if (!edit) {
-            var text = this.props.text;
-            this.setState({ text: text });
+        if (edit) {
+            var editor = this.refs[editId];
+            editor.setText(text);
         }
     };
     CommentControls.prototype.toggleReply = function () {
-        var reply = this.state.reply;
+        var _a = this.state, reply = _a.reply, replyId = _a.replyId;
         this.setState({ reply: !reply });
+        if (!reply) {
+            var editor = this.refs[replyId];
+            editor.setText("");
+        }
     };
     CommentControls.prototype.deleteHandle = function () {
         var _a = this.props, deleteComment = _a.deleteComment, commentId = _a.commentId, contextId = _a.contextId;
         deleteComment(commentId, contextId);
     };
-    CommentControls.prototype.editHandle = function () {
+    CommentControls.prototype.editHandle = function (text) {
         var _a = this.props, editComment = _a.editComment, contextId = _a.contextId, commentId = _a.commentId;
-        var text = this.state.text;
         this.setState({ edit: false });
         editComment(commentId, contextId, text);
     };
-    CommentControls.prototype.replyHandle = function () {
+    CommentControls.prototype.replyHandle = function (text) {
         var _a = this.props, commentId = _a.commentId, contextId = _a.contextId, replyComment = _a.replyComment;
-        var replyText = this.state.replyText;
-        this.setState({ reply: false, replyText: "" });
-        replyComment(contextId, replyText, commentId);
+        this.setState({ reply: false });
+        replyComment(contextId, text, commentId);
     };
     CommentControls.prototype.render = function () {
-        var _a = this.props, authorId = _a.authorId, canEdit = _a.canEdit;
-        var _b = this.state, edit = _b.edit, text = _b.text, reply = _b.reply, replyText = _b.replyText;
+        var _a = this.props, authorId = _a.authorId, canEdit = _a.canEdit, text = _a.text;
+        var _b = this.state, edit = _b.edit, reply = _b.reply, editId = _b.editId, replyId = _b.replyId;
         var mount = canEdit(authorId);
         return __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["Row"], null,
             __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["Row"], { style: { paddingBottom: "5px", paddingLeft: "15px" } },
@@ -1260,30 +1380,44 @@ var CommentControls = (function (_super) {
                             __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](ButtonTooltip, { bsStyle: "primary", onClick: this.toggleReply, icon: "envelope", tooltip: "svar", active: reply, mount: true }))))),
             __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["Row"], { style: { paddingBottom: "5px" } },
                 __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["Col"], { lgOffset: 1, lg: 10 },
-                    __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](CollapseTextArea, { show: edit, id: "editTextControl", value: text, onChange: this.handleTextChange, toggle: this.toggleEdit, save: this.editHandle, saveText: "Gem ændringer", mount: mount }))),
+                    __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](CollapseTextArea, { show: edit, id: editId, value: text, toggle: this.toggleEdit, onSubmit: this.editHandle, submitText: "Gem ændringer", mount: mount, ref: editId }))),
             __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["Row"], null,
                 __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["Col"], { lgOffset: 1, lg: 10 },
-                    __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](CollapseTextArea, { show: reply, id: "replyTextControl", value: replyText, onChange: this.handleReplyChange, toggle: this.toggleReply, save: this.replyHandle, saveText: "Svar", mount: true }))));
+                    __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](CollapseTextArea, { show: reply, id: replyId, value: "", toggle: this.toggleReply, onSubmit: this.replyHandle, submitText: "Svar", mount: true, ref: replyId }))));
     };
     return CommentControls;
 }(__WEBPACK_IMPORTED_MODULE_0_react__["Component"]));
 
 var CollapseTextArea = (function (_super) {
     __extends(CollapseTextArea, _super);
-    function CollapseTextArea() {
-        return _super !== null && _super.apply(this, arguments) || this;
+    function CollapseTextArea(props) {
+        var _this = _super.call(this, props) || this;
+        _this.onClick = _this.onClick.bind(_this);
+        _this.setText = _this.setText.bind(_this);
+        return _this;
     }
+    CollapseTextArea.prototype.onClick = function () {
+        var _a = this.props, onSubmit = _a.onSubmit, id = _a.id;
+        var editor = this.refs[id];
+        var text = editor.getText();
+        onSubmit(text);
+    };
+    CollapseTextArea.prototype.setText = function (text) {
+        var id = this.props.id;
+        var editor = this.refs[id];
+        editor.setText(text);
+    };
     CollapseTextArea.prototype.render = function () {
-        var _a = this.props, show = _a.show, id = _a.id, value = _a.value, onChange = _a.onChange, toggle = _a.toggle, save = _a.save, saveText = _a.saveText, mount = _a.mount;
+        var _a = this.props, value = _a.value, show = _a.show, id = _a.id, toggle = _a.toggle, submitText = _a.submitText, mount = _a.mount;
         if (!mount)
             return null;
         return __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["Collapse"], { "in": show },
             __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["FormGroup"], { controlId: id },
-                __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["FormControl"], { componentClass: "textarea", value: value, onChange: onChange, rows: 4 }),
                 __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("br", null),
                 __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["ButtonToolbar"], null,
+                    __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_2__texteditor_TextEditor__["a" /* TextEditor */], { placeholder: "Skriv kommentar her...", markdown: value, ref: id }),
                     __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["Button"], { onClick: toggle }, "Luk"),
-                    __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["Button"], { type: "submit", bsStyle: "info", onClick: save }, saveText))));
+                    __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["Button"], { bsStyle: "info", onClick: this.onClick }, submitText))));
     };
     return CollapseTextArea;
 }(__WEBPACK_IMPORTED_MODULE_0_react__["Component"]));
@@ -1291,14 +1425,14 @@ var CollapseTextArea = (function (_super) {
 
 /***/ }),
 
-/***/ 323:
+/***/ 324:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__CommentDeleted__ = __webpack_require__(721);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__Comment__ = __webpack_require__(321);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__Comment__ = __webpack_require__(322);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_react_bootstrap__ = __webpack_require__(11);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return CommentList; });
 var __extends = (this && this.__extends) || (function () {
@@ -1361,7 +1495,7 @@ var CommentList = (function (_super) {
 
 /***/ }),
 
-/***/ 324:
+/***/ 325:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1445,7 +1579,7 @@ var UsedSpace = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1_react_redux__[
 
 /***/ }),
 
-/***/ 325:
+/***/ 326:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1570,7 +1704,7 @@ var ForumForm = (function (_super) {
 
 /***/ }),
 
-/***/ 326:
+/***/ 327:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1698,127 +1832,6 @@ var ImageUpload = (function (_super) {
 
 /***/ }),
 
-/***/ 327:
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_draft_js__ = __webpack_require__(71);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_draft_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_draft_js__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__ToolbarBlock__ = __webpack_require__(729);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_draft_js_import_markdown__ = __webpack_require__(409);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_draft_js_import_markdown___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_draft_js_import_markdown__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_draft_js_export_markdown__ = __webpack_require__(403);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_draft_js_export_markdown___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_draft_js_export_markdown__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return TextEditor; });
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-
-
-
-
-
-__webpack_require__(716);
-var TextEditor = (function (_super) {
-    __extends(TextEditor, _super);
-    function TextEditor(props) {
-        var _this = _super.call(this, props) || this;
-        var editorState = Boolean(props.markdown) ? __WEBPACK_IMPORTED_MODULE_1_draft_js__["EditorState"].createWithContent(__webpack_require__.i(__WEBPACK_IMPORTED_MODULE_3_draft_js_import_markdown__["stateFromMarkdown"])(props.markdown)) : __WEBPACK_IMPORTED_MODULE_1_draft_js__["EditorState"].createEmpty();
-        _this.state = {
-            hasFocus: false,
-            editorState: editorState
-        };
-        _this.onFocus = _this.onFocus.bind(_this);
-        _this.onBlur = _this.onBlur.bind(_this);
-        _this.onChange = _this.onChange.bind(_this);
-        _this.onSubmit = _this.onSubmit.bind(_this);
-        _this.handleFocus = _this.handleFocus.bind(_this);
-        _this.onStyleClick = _this.onStyleClick.bind(_this);
-        return _this;
-    }
-    TextEditor.prototype.onSubmit = function (e) {
-        e.preventDefault();
-        var onSubmit = this.props.onSubmit;
-        var editorState = this.state.editorState;
-        var markdown = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_4_draft_js_export_markdown__["stateToMarkdown"])(editorState.getCurrentContent());
-        onSubmit(markdown);
-        this.setState({ editorState: __WEBPACK_IMPORTED_MODULE_1_draft_js__["EditorState"].createEmpty() });
-    };
-    TextEditor.prototype.onChange = function (editorState) {
-        this.setState({ editorState: editorState });
-    };
-    TextEditor.prototype.onFocus = function (_) {
-        this.setState({ hasFocus: true });
-    };
-    TextEditor.prototype.onBlur = function (_) {
-        this.setState({ hasFocus: false });
-    };
-    TextEditor.prototype.onStyleClick = function (styleType, style) {
-        var editorState = this.state.editorState;
-        var changeState;
-        switch (styleType) {
-            case 0: {
-                changeState = __WEBPACK_IMPORTED_MODULE_1_draft_js__["RichUtils"].toggleBlockType(editorState, style);
-                break;
-            }
-            case 1: {
-                changeState = __WEBPACK_IMPORTED_MODULE_1_draft_js__["RichUtils"].toggleInlineStyle(editorState, style);
-                break;
-            }
-            default: {
-                changeState = editorState;
-                break;
-            }
-        }
-        this.onChange(changeState);
-    };
-    TextEditor.prototype.handleFocus = function (_) {
-        var hasFocus = this.state.hasFocus;
-        if (!hasFocus) {
-            var editor = this.refs.editor;
-            editor.focus();
-        }
-    };
-    TextEditor.prototype.render = function () {
-        var placeholder = this.props.placeholder;
-        var _a = this.state, hasFocus = _a.hasFocus, editorState = _a.editorState;
-        var currentBlockType = __WEBPACK_IMPORTED_MODULE_1_draft_js__["RichUtils"].getCurrentBlockType(editorState);
-        var currentInlineType = editorState.getCurrentInlineStyle();
-        var css = hasFocus ? "richEditor-root textEditor-focus" : "richEditor-root";
-        var styleMap = {
-            "CODE": {
-                padding: "2px 4px",
-                fontSize: "90%",
-                color: "#c7254e",
-                backgroundColor: "#f9f2f4",
-                borderRadius: "4px"
-            }
-        };
-        return __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("div", null,
-            __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("div", { className: css },
-                __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_2__ToolbarBlock__["a" /* ToolbarBlock */], { onStyleClick: this.onStyleClick, currentBlockType: currentBlockType, currentInlineType: currentInlineType }),
-                __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("div", { onClick: this.handleFocus, className: "textEditor-base" },
-                    __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_draft_js__["Editor"], { editorState: editorState, onChange: this.onChange, onFocus: this.onFocus, onBlur: this.onBlur, placeholder: placeholder, customStyleMap: styleMap, ref: "editor" }))),
-            __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("br", null),
-            __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("div", null,
-                __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("button", { type: "submit", onClick: this.onSubmit, className: "btn btn-primary" }, "Send")));
-    };
-    return TextEditor;
-}(__WEBPACK_IMPORTED_MODULE_0_react__["Component"]));
-
-
-
-/***/ }),
-
 /***/ 328:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -1881,7 +1894,7 @@ var About = (function (_super) {
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__comments_CommentList__ = __webpack_require__(323);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__comments_CommentList__ = __webpack_require__(324);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__comments_CommentForm__ = __webpack_require__(722);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__pagination_Pagination__ = __webpack_require__(118);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__actions_comments__ = __webpack_require__(90);
@@ -2055,7 +2068,7 @@ var ForumComments = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_8_react_rout
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_react_redux___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3_react_redux__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__actions_forum__ = __webpack_require__(189);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__pagination_Pagination__ = __webpack_require__(118);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__forum_ForumForm__ = __webpack_require__(325);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__forum_ForumForm__ = __webpack_require__(326);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -2173,9 +2186,9 @@ var ForumList = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_3_react_redux__[
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_redux__ = __webpack_require__(25);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_redux___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_react_redux__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__actions_whatsnew__ = __webpack_require__(190);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__images_ImageUpload__ = __webpack_require__(326);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__images_ImageUpload__ = __webpack_require__(327);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__actions_images__ = __webpack_require__(91);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__UsedSpace__ = __webpack_require__(324);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__UsedSpace__ = __webpack_require__(325);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__WhatsNew__ = __webpack_require__(724);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -2288,11 +2301,11 @@ var Home = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_2_react_redux__["conn
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__actions_comments__ = __webpack_require__(90);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__actions_images__ = __webpack_require__(91);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__comments_CommentList__ = __webpack_require__(323);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__comments_CommentList__ = __webpack_require__(324);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_react_redux__ = __webpack_require__(25);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_react_redux___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_react_redux__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__pagination_Pagination__ = __webpack_require__(118);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__texteditor_TextEditor__ = __webpack_require__(327);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__texteditor_TextEditor__ = __webpack_require__(192);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__utilities_utils__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8_react_bootstrap__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9_react_router__ = __webpack_require__(22);
@@ -2426,12 +2439,16 @@ var CommentsContainer = (function (_super) {
         };
         replyHandle(imageId, text, parentId, cb);
     };
-    CommentsContainer.prototype.postComment = function (text) {
+    CommentsContainer.prototype.postComment = function (e) {
+        e.preventDefault();
         var _a = this.props, imageId = _a.imageId, loadComments = _a.loadComments, incrementCount = _a.incrementCount, skip = _a.skip, take = _a.take, postHandle = _a.postHandle;
+        var editor = this.refs.editor;
         var cb = function () {
             incrementCount(imageId);
             loadComments(imageId, skip, take);
+            editor.setText("");
         };
+        var text = editor.getText();
         postHandle(imageId, text, cb);
     };
     CommentsContainer.prototype.render = function () {
@@ -2454,7 +2471,8 @@ var CommentsContainer = (function (_super) {
             __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("hr", null),
             __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_8_react_bootstrap__["Row"], null,
                 __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_8_react_bootstrap__["Col"], { lgOffset: 1, lg: 10 },
-                    __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_6__texteditor_TextEditor__["a" /* TextEditor */], { onSubmit: this.postComment, markdown: "", placeholder: "Skriv kommentar her..." }))));
+                    __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_6__texteditor_TextEditor__["a" /* TextEditor */], { markdown: "", placeholder: "Skriv kommentar her...", ref: "editor" }),
+                    __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("button", { onClick: this.postComment, className: "btn btn-primary" }, "Send"))));
     };
     return CommentsContainer;
 }(__WEBPACK_IMPORTED_MODULE_0_react__["Component"]));
@@ -2636,7 +2654,7 @@ var SelectedImage = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_5_react_rout
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__comments_Comment__ = __webpack_require__(321);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__comments_Comment__ = __webpack_require__(322);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_redux__ = __webpack_require__(25);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_react_redux___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_react_redux__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_react_bootstrap__ = __webpack_require__(11);
@@ -2774,14 +2792,14 @@ var SingleImageComment = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_5_react
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_redux__ = __webpack_require__(25);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_redux___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_react_redux__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__actions_images__ = __webpack_require__(91);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__images_ImageUpload__ = __webpack_require__(326);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__images_ImageUpload__ = __webpack_require__(327);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__images_ImageList__ = __webpack_require__(727);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_underscore__ = __webpack_require__(92);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_underscore___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5_underscore__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_react_router__ = __webpack_require__(22);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_react_bootstrap__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__breadcrumbs_Breadcrumb__ = __webpack_require__(191);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__UsedSpace__ = __webpack_require__(324);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__UsedSpace__ = __webpack_require__(325);
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -3129,16 +3147,16 @@ var Main = __webpack_require__.i(__WEBPACK_IMPORTED_MODULE_1_react_redux__["conn
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__store_store__ = __webpack_require__(200);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__store_store__ = __webpack_require__(201);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__actions_whatsnew__ = __webpack_require__(190);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__actions_forum__ = __webpack_require__(189);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__actions_users__ = __webpack_require__(116);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__actions_images__ = __webpack_require__(91);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__actions_comments__ = __webpack_require__(90);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__utilities_utils__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_es6_promise__ = __webpack_require__(195);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_es6_promise__ = __webpack_require__(196);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_es6_promise___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7_es6_promise__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8_es6_object_assign__ = __webpack_require__(194);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8_es6_object_assign__ = __webpack_require__(195);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8_es6_object_assign___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_8_es6_object_assign__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return init; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return fetchWhatsNew; });
@@ -3308,7 +3326,7 @@ var CommentDeleted = (function (_super) {
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__texteditor_TextEditor__ = __webpack_require__(327);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__texteditor_TextEditor__ = __webpack_require__(192);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return CommentForm; });
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -3326,88 +3344,22 @@ var CommentForm = (function (_super) {
     __extends(CommentForm, _super);
     function CommentForm(props) {
         var _this = _super.call(this, props) || this;
-        _this.state = {
-            SelectionStart: 0,
-            SelectionEnd: 0,
-            Text: "",
-            Bold: false,
-            Italics: false
-        };
         _this.postComment = _this.postComment.bind(_this);
-        _this.handleTextChange = _this.handleTextChange.bind(_this);
-        _this.handleBoldClick = _this.handleBoldClick.bind(_this);
-        _this.handleSelection = _this.handleSelection.bind(_this);
         return _this;
     }
     CommentForm.prototype.postComment = function (e) {
         e.preventDefault();
         var postHandle = this.props.postHandle;
-        postHandle(this.state.Text);
-        this.setState({
-            Text: "",
-            Bold: false,
-            Italics: false
-        });
-    };
-    CommentForm.prototype.handleTextChange = function (e) {
-        var text = e.target.value;
-        this.setState({
-            Text: text
-        });
-    };
-    CommentForm.prototype.handleSelection = function (start, end) {
-        this.setState({
-            SelectionStart: start,
-            SelectionEnd: end
-        });
-    };
-    CommentForm.prototype.handleBoldClick = function () {
-        var _a = this.state, SelectionStart = _a.SelectionStart, SelectionEnd = _a.SelectionEnd;
-        var hasSelection = SelectionStart !== SelectionEnd;
-        if (!hasSelection)
-            return;
-        else {
-            var boldText = this.toggleBold(SelectionStart, SelectionEnd);
-            this.setState({
-                Text: boldText
-            });
-        }
-    };
-    CommentForm.prototype.toggleBold = function (start, end) {
-        var Text = this.state.Text;
-        var beginText = Text.substring(0, start);
-        var midText = Text.substring(start, end);
-        var endText = Text.substring(end);
-        var isBold = midText.startsWith("**") && midText.endsWith("**");
-        var result;
-        if (isBold) {
-            result = midText.substring(2, midText.length - 2);
-        }
-        else {
-            result = "**" + midText + "**";
-        }
-        return beginText.concat(result, endText);
-    };
-    CommentForm.prototype.toggleItalics = function (start, end) {
-        var Text = this.state.Text;
-        var beginText = Text.substring(0, start);
-        var midText = Text.substring(start, end);
-        var endText = Text.substring(end);
-        var isItalics = (midText.startsWith("***") && midText.endsWith("***"))
-            || ((midText.startsWith("*") && midText.endsWith("*")) && !(midText.startsWith("**") && midText.endsWith("**")));
-        var result;
-        if (isItalics) {
-            result = midText.substring(1, midText.length - 1);
-        }
-        else {
-            result = "*" + midText + "*";
-        }
-        return beginText.concat(result, endText);
+        var editor = this.refs.editor;
+        var text = editor.getText();
+        postHandle(text);
+        editor.setText("");
     };
     CommentForm.prototype.render = function () {
         return __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("form", { onSubmit: this.postComment },
             __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("label", { htmlFor: "remark" }, "Kommentar"),
-            __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1__texteditor_TextEditor__["a" /* TextEditor */], { onSubmit: function () { }, placeholder: "Skriv tekst", markdown: "" }));
+            __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1__texteditor_TextEditor__["a" /* TextEditor */], { placeholder: "Skriv tekst", markdown: "", ref: "editor" }),
+            __WEBPACK_IMPORTED_MODULE_0_react__["createElement"]("button", { type: "submit", className: "btn btn-primary" }, "Send"));
     };
     return CommentForm;
 }(__WEBPACK_IMPORTED_MODULE_0_react__["Component"]));
@@ -3466,7 +3418,7 @@ var Error = (function (_super) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_react_redux___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_react_redux__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__actions_whatsnew__ = __webpack_require__(190);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__whatsnew_WhatsNewList__ = __webpack_require__(735);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__ForumPost__ = __webpack_require__(199);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__ForumPost__ = __webpack_require__(200);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_react_bootstrap__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__pagination_Pagination__ = __webpack_require__(118);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_react_router__ = __webpack_require__(22);
@@ -4076,7 +4028,7 @@ var UserList = (function (_super) {
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__WhatsNewTooltip__ = __webpack_require__(192);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__WhatsNewTooltip__ = __webpack_require__(193);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__comments_CommentProfile__ = __webpack_require__(117);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utilities_utils__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_react_bootstrap__ = __webpack_require__(11);
@@ -4160,7 +4112,7 @@ var WhatsNewForumPost = (function (_super) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__comments_CommentProfile__ = __webpack_require__(117);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__WhatsNewTooltip__ = __webpack_require__(192);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__WhatsNewTooltip__ = __webpack_require__(193);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utilities_utils__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_react_router__ = __webpack_require__(22);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_react_bootstrap__ = __webpack_require__(11);
@@ -4235,7 +4187,7 @@ var WhatsNewItemComment = (function (_super) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_react___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_react__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__comments_CommentProfile__ = __webpack_require__(117);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__WhatsNewTooltip__ = __webpack_require__(192);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__WhatsNewTooltip__ = __webpack_require__(193);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_react_bootstrap__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__utilities_utils__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5_react_router__ = __webpack_require__(22);
@@ -4962,7 +4914,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__components_containers_Home__ = __webpack_require__(331);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__components_shells_Forum__ = __webpack_require__(337);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__components_containers_ForumList__ = __webpack_require__(330);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__components_containers_ForumPost__ = __webpack_require__(199);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__components_containers_ForumPost__ = __webpack_require__(200);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__components_containers_ForumComments__ = __webpack_require__(329);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__components_containers_Users__ = __webpack_require__(336);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__components_containers_UserImages__ = __webpack_require__(335);
@@ -4970,7 +4922,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_13__components_containers_ImageComments__ = __webpack_require__(332);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_14__components_containers_SingleImageComment__ = __webpack_require__(334);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_15__components_containers_About__ = __webpack_require__(328);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__store_store__ = __webpack_require__(200);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_16__store_store__ = __webpack_require__(201);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_17__utilities_onstartup__ = __webpack_require__(339);
 
 
@@ -5176,7 +5128,7 @@ var fetchAndFocusSingleComment = function (id) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_isomorphic_fetch___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_isomorphic_fetch__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__users__ = __webpack_require__(116);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utilities_utils__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utilities_normalize__ = __webpack_require__(193);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utilities_normalize__ = __webpack_require__(194);
 /* unused harmony export setImagesOwner */
 /* unused harmony export recievedUserImages */
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return setSelectedImg; });

@@ -172,6 +172,7 @@
 
     border-top: 1px solid #ddd;
     cursor: text;
+    min-height: 80px;
 }
 
 .textEditor-focus {
