@@ -1,15 +1,13 @@
 import * as React from "react";
 import { Components } from "../../interfaces/Components";
-import { TextToolbar } from "./TextToolbar";
-import { formatText } from "../../utilities/utils";
+import { TextEditor } from "../texteditor/TextEditor";
 
 interface CommentFormState {
-    SelectionStart?: number,
-    SelectionEnd?: number,
+    SelectionStart?: number;
+    SelectionEnd?: number;
     Text?: string;
     Bold?: boolean;
     Italics?: boolean;
-    Preview?: string;
 }
 
 export class CommentForm extends React.Component<Components.CommentForm, CommentFormState> {
@@ -20,8 +18,7 @@ export class CommentForm extends React.Component<Components.CommentForm, Comment
             SelectionEnd: 0,
             Text: "",
             Bold: false,
-            Italics: false,
-            Preview: ""
+            Italics: false
         };
 
         this.postComment = this.postComment.bind(this);
@@ -44,11 +41,9 @@ export class CommentForm extends React.Component<Components.CommentForm, Comment
 
     handleTextChange(e: any) {
         const text = e.target.value;
-        const html = text ? (formatText(text)).__html : "";
 
         this.setState({
             Text: text,
-            Preview: html
         });
     }
 
@@ -65,10 +60,8 @@ export class CommentForm extends React.Component<Components.CommentForm, Comment
         if (!hasSelection) return;
         else {
             const boldText = this.toggleBold(SelectionStart, SelectionEnd);
-            const html = (formatText(boldText)).__html;
             this.setState({
                 Text: boldText,
-                Preview: html
             });
         }
     }
@@ -108,14 +101,13 @@ export class CommentForm extends React.Component<Components.CommentForm, Comment
     }
 
     render() {
-        const { Preview } = this.state;
         return  <form onSubmit={this.postComment}>
                     <label htmlFor="remark">Kommentar</label>
-                    <TextToolbar />
-                    <br />
-                    {Preview ? <label htmlFor="preview">Eksempel</label> : null}
-                    <div dangerouslySetInnerHTML={{__html: Preview}} id="preview" />
-                    <button type="submit" className="btn btn-primary">Send</button>
+                    <TextEditor
+                        onSubmit={() => {}}
+                        placeholder="Skriv tekst"
+                        markdown=""
+                    />
                 </form>;
     }
 }

@@ -9,6 +9,6 @@
         "tslint.json": true,
         "webpack**.js": false,
         "dist": true,
-        "typings": true
+        "typings": false
     }
 }

@@ -17,7 +17,9 @@
         "paths": {
             "redux": [ "node_modules/redux/index.d.ts" ],
             "immutable": [ "node_modules/immutable/dist/immutable.d.ts" ],
-            "redux-thunk": [ "node_modules/redux-thunk/index.d.ts" ]
+            "redux-thunk": [ "node_modules/redux-thunk/index.d.ts" ],
+            "draft-js-import-markdown": [ "typings/locals/rte/markdown.import.d.ts" ],
+            "draft-js-export-markdown": [ "typings/locals/rte/markdown.export.d.ts" ]
         },
         "typeRoots": [
             "./typings/globals"

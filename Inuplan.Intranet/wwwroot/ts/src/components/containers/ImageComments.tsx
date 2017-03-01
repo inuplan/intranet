@@ -4,7 +4,9 @@ import { incrementCommentCount, decrementCommentCount } from "../../actions/imag
 import { CommentList } from "../comments/CommentList";
 import { connect, Dispatch } from "react-redux";
 import { Pagination } from "../pagination/Pagination";
-import { CommentForm } from "../comments/CommentForm";
+// import { CommentForm } from "../comments/CommentForm";
+import { TextEditor } from "../texteditor/TextEditor";
+
 import { getImageCommentsPageUrl, getImageCommentsDeleteUrl } from "../../utilities/utils";
 import { Row, Col } from "react-bootstrap";
 import { withRouter, InjectedRouter } from "react-router";
@@ -95,9 +97,12 @@ class CommentsContainer extends React.Component<StateToProps & DispatchToProps &
         this.postComment = this.postComment.bind(this);
     }
 
-    componentWillReceiveProps(nextProps: any) {
+    componentDidMount() {
+        this.getComments(1);
+    }
+
+    getComments(page: number) {
         const { fetchComments, imageId, take } = this.props;
-        const { page } = nextProps.location.query;
         if (!Number(page)) return;
         const skipPages = page - 1;
         const skipItems = (skipPages * take);
@@ -111,6 +116,7 @@ class CommentsContainer extends React.Component<StateToProps & DispatchToProps &
         if (page === to) return;
         const url = `/${username}/gallery/image/${imageId}/comments?page=${to}`;
         push(url);
+        this.getComments(to);
     }
 
     deleteComment(commentId: number, imageId: number) {
@@ -185,7 +191,11 @@ class CommentsContainer extends React.Component<StateToProps & DispatchToProps &
                     <hr />
                     <Row>
                         <Col lgOffset={1} lg={10}>
-                            <CommentForm postHandle={this.postComment}/>
+                            <TextEditor
+                                onSubmit={this.postComment}
+                                markdown=""
+                                placeholder="Skriv kommentar her..."
+                            />
                         </Col>
                     </Row>
                 </div>;
