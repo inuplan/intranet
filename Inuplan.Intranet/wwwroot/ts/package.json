@@ -6,7 +6,7 @@
   "dependencies": {},
   "scripts": {
     "bundle": "webpack --config webpack.config.js && mv ./dist/app.js ../js/ -f && mv ./dist/lib.js ../lib/ -f && rm -rf ./dist",
-    "bundle:release": "set NODE_ENV=production && webpack -p --config ./wwwroot/ts/webpack.config.release.js && mv ./wwwroot/ts/dist/app.min.js ./wwwroot/js/ -f && mv ./wwwroot/ts/dist/lib.min.js ./wwwroot/lib/ -f && rm -rf ./dist"
+    "bundle:release": "set NODE_ENV=production && webpack -p --config webpack.config.release.js && mv ./dist/app.min.js ../js/ -f && mv ./dist/lib.min.js ../lib/ -f && rm -rf ./dist"
   },
   "devDependencies": {
     "@types/draft-js": "^0.9.1",

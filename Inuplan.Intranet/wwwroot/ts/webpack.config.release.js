@@ -18,12 +18,12 @@ var externals = [
 
 module.exports = {
     entry: {
-        app: "./wwwroot/ts/src/app.tsx",
+        app: "./src/app.tsx",
         lib: lib
     },
     output: {
         filename: "[name].min.js",
-        path: "./wwwroot/ts/dist",
+        path: "./dist",
         chunkFilename: "[id].chunk.js",
         publicPath: "/assets/"
     },
@@ -34,6 +34,10 @@ module.exports = {
                 loader: 'ts-loader',
                 exclude: /node_modules/,
             },
+            {
+                test: /\.css$/,
+                loader: "style-loader!css-loader"
+            }
         ]
     },
     resolve: {
