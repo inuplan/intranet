@@ -1,6 +1,7 @@
 import * as React from "react";
 import { FormGroup, ControlLabel, FormControl, Button, Row, Col, Modal, ButtonGroup, Glyphicon } from "react-bootstrap";
 import { Data } from "../../interfaces/Data";
+import { TextEditor } from "../texteditor/TextEditor";
 
 interface ForumFormProps {
     show: boolean;
@@ -18,7 +19,6 @@ interface ForumFormProps {
 interface ForumFormState {
     ThreadID: number;
     Title: string;
-    Text: string;
     Sticky: boolean;
     IsPublished: boolean;
 }
@@ -29,7 +29,6 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
         this.state = {
             ThreadID: -1,
             Title: "",
-            Text: "",
             Sticky: false,
             IsPublished: true,
         };
@@ -43,7 +42,6 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
             this.setState({
                 ThreadID: edit.ThreadID,
                 Title: edit.Title,
-                Text: edit.Text,
                 Sticky: edit.Sticky,
                 IsPublished: edit.IsPublished
             });
@@ -52,10 +50,6 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
 
     handleTitleChange(e: any) {
         this.setState({ Title: e.target.value });
-    }
-
-    handleTextChange(e: any) {
-        this.setState({ Text: e.target.value });
     }
 
     getValidation() {
@@ -69,14 +63,16 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
 
     transformToDTO(state: ForumFormState): Data.Raw.Models.ThreadPostContent {
         // A ThreadPostContent class
+        const editor = this.refs.editor as TextEditor;
         const header = {
                 IsPublished: state.IsPublished,
                 Sticky: state.Sticky,
                 Title: state.Title
             };
+        const text = editor.getText();
         return {
             Header: header,
-            Text: state.Text,
+            Text: text,
             ThreadID: state.ThreadID
         };
     }
@@ -127,7 +123,11 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
 
                                         <FormGroup controlId="formPostContent">
                                             <ControlLabel>Indl&aelig;g</ControlLabel>
-                                            <FormControl componentClass="textarea" placeholder="Skriv besked her..." onChange={this.handleTextChange.bind(this)} value={this.state.Text} rows={8} />
+                                            <TextEditor
+                                                markdown={edit.Text}
+                                                placeholder="Skriv besked her..."
+                                                ref="editor"
+                                            />
                                         </FormGroup>
 
                                         <FormGroup controlId="formPostSticky">
