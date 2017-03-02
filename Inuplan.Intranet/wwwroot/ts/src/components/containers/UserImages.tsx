@@ -4,7 +4,8 @@ import { uploadImage, addSelectedImageId,  deleteImages, removeSelectedImageId, 
 import { ImageUpload } from "../images/ImageUpload";
 import ImageList from "../images/ImageList";
 import { find } from "underscore";
-import { withRouter, RouterOnContext, PlainRoute } from "react-router";
+import { withRouter, PlainRoute } from "react-router";
+import { Location } from "history";
 import { Row, Col, Button } from "react-bootstrap";
 import { Breadcrumb } from "../breadcrumbs/Breadcrumb";
 import { values } from "underscore";
@@ -32,7 +33,9 @@ interface RouteParams {
 }
 
 interface Router {
-    router: RouterOnContext;
+    router: {
+        setRouteLeaveHook: (route: PlainRoute, hook: (nextLocation: Location) => (string | boolean)) => void
+    };
     route: PlainRoute;
 }
 

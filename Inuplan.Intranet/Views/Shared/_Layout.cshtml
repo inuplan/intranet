@@ -19,12 +19,56 @@
     @RenderBody()
 
     <environment names="Development">
-        <script src="~/lib/vendors.js"></script>
-        <script src="~/js/bundle.js"></script>
+        <script type="text/javascript">
+            var globals = {
+                urls: {
+                    users: 'http://localhost:9000/api/user',
+                    images: 'http://localhost:9000/api/userimage',
+                    imagecomments: 'http://localhost:9000/api/imagecomment',
+                    whatsnew: 'http://localhost:9000/api/whatsnew',
+                    forumtitle: 'http://localhost:9000/api/forumtitle',
+                    forumpost: 'http://localhost:9000/api/forumpost',
+                    forumcomments: 'http://localhost:9000/api/forumcomment',
+                    diagnostics: 'http://localhost:9000/api/diagnostic',
+                    employeeHandbook: 'http://www.google.com',
+                    c5Search: 'http://www.google.dk',
+                    websocket: {
+                        latest: 'ws://localhost:9000/latest',
+                    },
+                    intranetside: 'http://www.reddit.com/',
+                },
+                currentUsername: '@ViewBag.Username'
+            };
+        </script>
+        @*<script src="~/lib/vendors.js"></script>*@
+        <script src="~/lib/lib.js"></script>
+        <script src="~/js/app.js"></script>
     </environment>
     <environment names="Staging,Production">
-        <script src="~/lib/vendors.min.js"></script>
-        <script src="~/js/bundle.min.js"></script>
+        <script type="text/javascript">
+            var globals = {
+                urls: {
+                    users: 'http://intranet:9000/api/user',
+                    images: 'http://intranet:9000/api/userimage',
+                    imagecomments: 'http://intranet:9000/api/imagecomment',
+                    whatsnew: 'http://intranet:9000/api/whatsnew',
+                    forumtitle: 'http://intranet:9000/api/forumtitle',
+                    forumpost: 'http://intranet:9000/api/forumpost',
+                    forumcomments: 'http://intranet:9000/api/forumcomment',
+                    diagnostics: 'http://intranet:9000/api/diagnostic',
+                    employeeHandbook: 'http://intranetside/Medarbejderhåndbog',
+                    c5Search: 'http://intranetc5/Home/Search',
+                    websocket: {
+                        latest: 'ws://intranet:9000/latest',
+                    },
+                    intranetside: 'http://intranetside/',
+                },
+                currentUsername: '@ViewBag.Username'
+            };
+        </script>
+        @*<script src="~/lib/vendors.min.js"></script>*@
+        <script src="~/lib/lib.min.js"></script>
+        <script src="~/js/app.min.js"></script>
     </environment>
 
     @RenderSection("scripts", required: false)

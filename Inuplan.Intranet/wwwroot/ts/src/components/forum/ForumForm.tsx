@@ -1,12 +1,14 @@
 import * as React from "react";
 import { FormGroup, ControlLabel, FormControl, Button, Row, Col, Modal, ButtonGroup, Glyphicon } from "react-bootstrap";
 import { Data } from "../../interfaces/Data";
+import { TextEditor } from "../texteditor/TextEditor";
 
 interface ForumFormProps {
     show: boolean;
     close: () => void;
-    onSubmit: (post: Partial<Data.Raw.Models.ThreadPostContent>) => void;
+    onSubmit: (post: Data.Raw.Models.ThreadPostContent) => void;
     edit?: {
+        ThreadID: number,
         Title: string
         Text: string
         Sticky: boolean
@@ -15,18 +17,18 @@ interface ForumFormProps {
 }
 
 interface ForumFormState {
-    Title?: string;
-    Text?: string;
-    Sticky?: boolean;
-    IsPublished?: boolean;
+    ThreadID: number;
+    Title: string;
+    Sticky: boolean;
+    IsPublished: boolean;
 }
 
 export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
     constructor(props: any) {
         super(props);
         this.state = {
+            ThreadID: -1,
             Title: "",
-            Text: "",
             Sticky: false,
             IsPublished: true,
         };
@@ -38,8 +40,8 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
         const { edit } = nextProps;
         if (edit) {
             this.setState({
+                ThreadID: edit.ThreadID,
                 Title: edit.Title,
-                Text: edit.Text,
                 Sticky: edit.Sticky,
                 IsPublished: edit.IsPublished
             });
@@ -48,10 +50,6 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
 
     handleTitleChange(e: any) {
         this.setState({ Title: e.target.value });
-    }
-
-    handleTextChange(e: any) {
-        this.setState({ Text: e.target.value });
     }
 
     getValidation() {
@@ -63,16 +61,19 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
         return "error";
     }
 
-    transformToDTO(state: ForumFormState): Partial<Data.Raw.Models.ThreadPostContent> {
+    transformToDTO(state: ForumFormState): Data.Raw.Models.ThreadPostContent {
         // A ThreadPostContent class
+        const editor = this.refs.editor as TextEditor;
         const header = {
                 IsPublished: state.IsPublished,
                 Sticky: state.Sticky,
                 Title: state.Title
             };
+        const text = editor.getText();
         return {
             Header: header,
-            Text: state.Text
+            Text: text,
+            ThreadID: state.ThreadID
         };
     }
 
@@ -103,6 +104,7 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
 
     render() {
         const { show, edit } = this.props;
+        const text = Boolean(edit) ? edit.Text : "";
         const readMode = Boolean(!edit);
         const title =  readMode ? "Skriv nyt indlæg" : "Ændre indlæg";
         const btnSubmit = readMode ? "Skriv indlæg" : "Gem ændringer";
@@ -122,7 +124,11 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
 
                                         <FormGroup controlId="formPostContent">
                                             <ControlLabel>Indl&aelig;g</ControlLabel>
-                                            <FormControl componentClass="textarea" placeholder="Skriv besked her..." onChange={this.handleTextChange.bind(this)} value={this.state.Text} rows={8} />
+                                            <TextEditor
+                                                markdown={text}
+                                                placeholder="Skriv besked her..."
+                                                ref="editor"
+                                            />
                                         </FormGroup>
 
                                         <FormGroup controlId="formPostSticky">

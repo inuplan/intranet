@@ -118,7 +118,7 @@ export const uploadImage = (username: string, description: string, formData: For
 export const fetchUserImages = (username: string) => {
     return (dispatch: Dispatch<Root>) => {
         const url = `${globals.urls.images}?username=${username}`;
-        const handler: (r: IResponse) => Promise<Data.Raw.ImageDTO[]> = responseHandler(dispatch)(r => r.json());
+        const handler: (r: Response) => Promise<Data.Raw.ImageDTO[]> = responseHandler(dispatch)(r => r.json());
 
         return fetch(url, options)
             .then(handler)

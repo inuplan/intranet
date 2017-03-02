@@ -1,5 +1,10 @@
+// ** Libraries **
 import * as React from "react";
-import * as ReactDOM from "react-dom";
+import { render } from "react-dom";
+import { Router, Route, IndexRoute, browserHistory } from "react-router";
+import { Provider } from "react-redux";
+
+// ** User modules
 import Main from "./components/shells/Main";
 import Home from "./components/containers/Home";
 import Forum from "./components/shells/Forum";
@@ -13,17 +18,16 @@ import ImageComments from "./components/containers/ImageComments";
 import SingleImageComment from "./components/containers/SingleImageComment";
 import About from "./components/containers/About";
 import store from "./store/store";
-import { Router, Route, IndexRoute, browserHistory } from "react-router";
-import { Provider } from "react-redux";
 import {
     init, fetchForum, selectImage, fetchImages,
     loadComments, fetchComment, fetchWhatsNew,
     fetchSinglePost, fetchPostComments
 } from "./utilities/onstartup";
 
+// ** User methods
 init();
 
-ReactDOM.render(
+render(
     <Provider store={store}>
         <Router history={browserHistory}>
             <Route path="/" component={Main}>

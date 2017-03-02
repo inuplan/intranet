@@ -1,38 +1,34 @@
 import * as React from "react";
 import { Components } from "../../interfaces/Components";
+import { TextEditor } from "../texteditor/TextEditor";
 
-interface CommentFormState {
-    Text: string;
-}
-
-export class CommentForm extends React.Component<Components.CommentForm, CommentFormState> {
+export class CommentForm extends React.Component<Components.CommentForm, null> {
     constructor(props: any) {
         super(props);
-        this.state = {
-            Text: ""
-        };
 
         this.postComment = this.postComment.bind(this);
-        this.handleTextChange = this.handleTextChange.bind(this);
     }
 
     postComment(e: React.FormEvent<any>) {
         e.preventDefault();
 
         const { postHandle } = this.props;
-        postHandle(this.state.Text);
-        this.setState({ Text: "" });
-    }
+        const editor = this.refs.editor as TextEditor;
+        const text = editor.getText();
+        postHandle(text);
 
-    handleTextChange(e: any) {
-        this.setState({ Text: e.target.value });
+        // Clear textarea
+        editor.setText("");
     }
 
     render() {
         return  <form onSubmit={this.postComment}>
                     <label htmlFor="remark">Kommentar</label>
-                    <textarea className="form-control" onChange={this.handleTextChange} value={this.state.Text} placeholder="Skriv kommentar her..." id="remark" rows={4}></textarea>
-                    <br />
+                    <TextEditor
+                        placeholder="Skriv tekst"
+                        markdown=""
+                        ref="editor"
+                    />
                     <button type="submit" className="btn btn-primary">Send</button>
                 </form>;
     }

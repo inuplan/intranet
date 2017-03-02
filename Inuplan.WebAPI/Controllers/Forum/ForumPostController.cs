@@ -35,6 +35,7 @@ namespace Inuplan.WebAPI.Controllers.Forum
     using Optional;
     using Optional.Unsafe;
     using System;
+    using System.Diagnostics;
     using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
@@ -176,22 +177,22 @@ namespace Inuplan.WebAPI.Controllers.Forum
         }
 
         [HttpPut]
-        public async Task<HttpResponseMessage> Put([FromUri] int id, ThreadPostContent content)
+        public async Task<HttpResponseMessage> Put(ThreadPostContent content)
         {
             logger.Debug("Class: ForumPostController, Method: Put, BEGIN");
-            var title = await titleRepository.GetByID(id);
+            var title = await titleRepository.GetByID(content.ThreadID);
 
-            var updateHeader = await title
+            Option<ThreadPostTitle> updateHeader = await title
                 .Map(t =>
                 {
                     content.Header.CreatedOn = t.CreatedOn;
                     content.Header.ThreadID = t.ThreadID;
                     content.ThreadID = t.ThreadID;
-                    return t;
+                    return content.Header;
                 })
                 .Filter(t => t.ThreadID > 0)
                 .LogSome(t => logger.Trace("Updating header id {0}", t.ThreadID))
-                .LogNone(() => logger.Error("No post header found with id: {0}", id))
+                .LogNone(() => logger.Error("No post header found with id: {0}", content.ThreadID))
                 .FlatMapAsync(async t =>
                 {
                     var success = await titleRepository.Update(t.ThreadID, t);

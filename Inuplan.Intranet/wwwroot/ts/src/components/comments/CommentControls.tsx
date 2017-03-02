@@ -1,13 +1,13 @@
 import * as React from "react";
-import { Row, Col, ButtonToolbar, ButtonGroup, OverlayTrigger, Button, Glyphicon, Tooltip, Collapse, FormGroup, FormControl } from "react-bootstrap";
+import { Row, Col, ButtonToolbar, ButtonGroup, OverlayTrigger, Button, Glyphicon, Tooltip, Collapse, FormGroup } from "react-bootstrap";
 import { Components } from "../../interfaces/Components";
+import { TextEditor } from "../texteditor/TextEditor";
 
 interface CommentControlsState {
-    text: string;
-    replyText: string;
     reply: boolean;
     edit: boolean;
-    onChange: (e?: React.FormEvent<any>) => void;
+    editId: string;
+    replyId: string;
 }
 
 export class ButtonTooltip extends React.Component<Components.ButtonTooltipProps, null> {
@@ -26,14 +26,19 @@ export class ButtonTooltip extends React.Component<Components.ButtonTooltipProps
 }
 
 export class CommentControls extends React.Component<Components.CommentControlsProps, Partial<CommentControlsState>> {
-    constructor(props: any) {
+    constructor(props: Components.CommentControlsProps) {
         super(props);
+
+        const editId = "editTextControl_" + props.commentId + "_" + props.contextId;
+        const replyId = "replyTextControl_" + props.commentId + "_" + props.contextId;
+
         this.state = {
-            text: props.text,
-            replyText: "",
             reply: false,
-            edit: false
+            edit: false,
+            editId,
+            replyId
         };
+
 
         this.toggleEdit = this.toggleEdit.bind(this);
         this.toggleReply = this.toggleReply.bind(this);
@@ -41,31 +46,29 @@ export class CommentControls extends React.Component<Components.CommentControlsP
         this.editHandle = this.editHandle.bind(this);
         this.replyHandle = this.replyHandle.bind(this);
         this.deleteHandle = this.deleteHandle.bind(this);
-
-        this.handleTextChange = this.handleTextChange.bind(this);
-        this.handleReplyChange = this.handleReplyChange.bind(this);
-    }
-
-    handleTextChange(e: any) {
-        this.setState({ text: e.target.value });
-    }
-
-    handleReplyChange(e: any) {
-        this.setState({ replyText: e.target.value });
     }
 
     toggleEdit() {
-        const { edit } = this.state;
+        const { text } = this.props;
+        const { edit, editId } = this.state;
         this.setState({ edit: !edit });
-        if (!edit) {
-            const { text } = this.props;
-            this.setState({ text: text });
+
+        // The edit is toggled but since it's constant it doesn't change
+        // hence we dont negate it
+        if (edit) {
+            const editor = this.refs[editId] as CollapseTextArea;
+            editor.setText(text);
         }
     }
 
     toggleReply() {
-        const { reply } = this.state;
+        const { reply, replyId } = this.state;
         this.setState({ reply: !reply });
+
+        if (!reply) {
+            const editor = this.refs[replyId] as CollapseTextArea;
+            editor.setText("");
+        }
     }
 
     deleteHandle() {
@@ -73,25 +76,23 @@ export class CommentControls extends React.Component<Components.CommentControlsP
         deleteComment(commentId, contextId);
     }
 
-    editHandle() {
+    editHandle(text: string) {
         const { editComment, contextId, commentId } = this.props;
-        const { text } = this.state;
 
         this.setState({ edit: false });
         editComment(commentId, contextId, text);
     }
 
-    replyHandle() {
+    replyHandle(text: string) {
         const { commentId, contextId, replyComment } = this.props;
-        const { replyText } = this.state;
 
-        this.setState({ reply: false, replyText: "" });
-        replyComment(contextId, replyText, commentId);
+        this.setState({ reply: false });
+        replyComment(contextId, text, commentId);
     }
 
     render() {
-        const { authorId, canEdit } = this.props;
-        const { edit, text, reply, replyText } = this.state;
+        const { authorId, canEdit, text } = this.props;
+        const { edit, reply, editId, replyId } = this.state;
         const mount = canEdit(authorId);
 
         return  <Row>
@@ -112,13 +113,13 @@ export class CommentControls extends React.Component<Components.CommentControlsP
                         <Col lgOffset={1} lg={10}>
                             <CollapseTextArea
                                 show={edit}
-                                id="editTextControl"
+                                id={editId}
                                 value={text}
-                                onChange={this.handleTextChange}
                                 toggle={this.toggleEdit}
-                                save={this.editHandle}
-                                saveText="Gem ændringer"
+                                onSubmit={this.editHandle}
+                                submitText="Gem ændringer"
                                 mount={mount}
+                                ref={editId}
                             />
                         </Col>
                     </Row>
@@ -126,13 +127,13 @@ export class CommentControls extends React.Component<Components.CommentControlsP
                         <Col lgOffset={1} lg={10}>
                             <CollapseTextArea
                                 show={reply}
-                                id="replyTextControl"
-                                value={replyText}
-                                onChange={this.handleReplyChange}
+                                id={replyId}
+                                value=""
                                 toggle={this.toggleReply}
-                                save={this.replyHandle}
-                                saveText="Svar"
+                                onSubmit={this.replyHandle}
+                                submitText="Svar"
                                 mount={true}
+                                ref={replyId}
                             />
                         </Col>
                     </Row>
@@ -141,16 +142,41 @@ export class CommentControls extends React.Component<Components.CommentControlsP
 }
 
 class CollapseTextArea extends React.Component<Components.CollapseTextAreaProps, null> {
+    constructor(props: any) {
+        super(props);
+
+        this.onClick = this.onClick.bind(this);
+        this.setText = this.setText.bind(this);
+    }
+
+    onClick() {
+        const { onSubmit, id } = this.props;
+
+        const editor = this.refs[id] as TextEditor;
+        const text = editor.getText();
+        onSubmit(text);
+    }
+
+    setText(text: string) {
+        const{ id } = this.props;
+        const editor = this.refs[id] as TextEditor;
+        editor.setText(text);
+    }
+
     render() {
-        const { show, id, value, onChange, toggle, save, saveText, mount } = this.props;
+        const { value, show, id, toggle, submitText, mount } = this.props;
         if (!mount) return null;
         return  <Collapse in={show}>
                     <FormGroup controlId={id}>
-                        <FormControl componentClass="textarea" value={value} onChange={onChange} rows={4} />
                         <br />
                         <ButtonToolbar>
+                            <TextEditor
+                                placeholder="Skriv kommentar her..."
+                                markdown={value}
+                                ref={id}
+                            />
                             <Button onClick={toggle}>Luk</Button>
-                            <Button type="submit" bsStyle="info" onClick={save}>{saveText}</Button>
+                            <Button bsStyle="info" onClick={this.onClick}>{submitText}</Button>
                         </ButtonToolbar>
                     </FormGroup>
                 </Collapse>;

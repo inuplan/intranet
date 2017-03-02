@@ -67,6 +67,7 @@
 
 .sticky [class*="glyphicon-"] {
     margin-top: 8px;
+    transform: rotate(-45deg);
     -webkit-transform: rotate(-45deg);
     -moz-transform: rotate(-45deg);
     -o-transform: rotate(-45deg);
@@ -133,4 +134,47 @@
 .image-selected-descriptiontext {
     font-size: 1.1em;
     margin-top: 1.0em;
+}
+
+.richEditor-styleButton {
+    color: #999;
+    cursor: pointer;
+    margin-right: 16px;
+    padding: 2px 0;
+    display: inline-block;
+}
+
+.richEditor-activeButton {
+    color: #5890ff;
+    font-weight: 500;
+    text-decoration: underline;
+}
+
+.richEditor-controls {
+    font-family: 'Helvetica', sans-serif;
+    font-size: 14px;
+    user-select: none;
+    padding: 15px;
+}
+
+.richEditor-root {
+    background: #fff;
+    border: 1px solid #ddd;
+}
+
+.textEditor-base {
+    font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.42857143;
+    color: #2c3e50;
+    background-color: #ffffff;
+    padding: 15px;
+
+    border-top: 1px solid #ddd;
+    cursor: text;
+    min-height: 80px;
+}
+
+.textEditor-focus {
+    border: 1px solid #ddd;
 }

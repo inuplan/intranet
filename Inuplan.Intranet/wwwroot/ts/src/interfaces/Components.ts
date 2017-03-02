@@ -38,8 +38,6 @@ export declare namespace Components {
         authorId: number;
         commentId: number;
         text: string;
-        skip: number;
-        take: number;
     }
 
     interface CommentHandlers {
@@ -52,10 +50,9 @@ export declare namespace Components {
         show: boolean;
         id: string;
         value: string;
-        onChange: (e?: React.FormEvent<any>) => void;
         toggle: (e?: React.MouseEvent<any>) => void;
-        save: (e?: React.MouseEvent<any>) => void;
-        saveText: string;
+        onSubmit: (markdown: string) => void;
+        submitText: string;
         mount: boolean;
     }
 
