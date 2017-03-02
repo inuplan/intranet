@@ -104,6 +104,7 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
 
     render() {
         const { show, edit } = this.props;
+        const text = Boolean(edit) ? edit.Text : "";
         const readMode = Boolean(!edit);
         const title =  readMode ? "Skriv nyt indlæg" : "Ændre indlæg";
         const btnSubmit = readMode ? "Skriv indlæg" : "Gem ændringer";
@@ -124,7 +125,7 @@ export class ForumForm extends React.Component<ForumFormProps, ForumFormState> {
                                         <FormGroup controlId="formPostContent">
                                             <ControlLabel>Indl&aelig;g</ControlLabel>
                                             <TextEditor
-                                                markdown={edit.Text}
+                                                markdown={text}
                                                 placeholder="Skriv besked her..."
                                                 ref="editor"
                                             />

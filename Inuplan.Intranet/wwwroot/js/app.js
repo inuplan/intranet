@@ -1671,6 +1671,7 @@ var ForumForm = (function (_super) {
     };
     ForumForm.prototype.render = function () {
         var _a = this.props, show = _a.show, edit = _a.edit;
+        var text = Boolean(edit) ? edit.Text : "";
         var readMode = Boolean(!edit);
         var title = readMode ? "Skriv nyt indlæg" : "Ændre indlæg";
         var btnSubmit = readMode ? "Skriv indlæg" : "Gem ændringer";
@@ -1686,7 +1687,7 @@ var ForumForm = (function (_super) {
                                 __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["FormControl"], { type: "text", placeholder: "Overskrift på indlæg...", onChange: this.handleTitleChange.bind(this), value: this.state.Title })),
                             __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["FormGroup"], { controlId: "formPostContent" },
                                 __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["ControlLabel"], null, "Indl\u00E6g"),
-                                __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_2__texteditor_TextEditor__["a" /* TextEditor */], { markdown: edit.Text, placeholder: "Skriv besked her...", ref: "editor" })),
+                                __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_2__texteditor_TextEditor__["a" /* TextEditor */], { markdown: text, placeholder: "Skriv besked her...", ref: "editor" })),
                             __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["FormGroup"], { controlId: "formPostSticky" },
                                 __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["ButtonGroup"], null,
                                     __WEBPACK_IMPORTED_MODULE_0_react__["createElement"](__WEBPACK_IMPORTED_MODULE_1_react_bootstrap__["Button"], { bsStyle: "success", bsSize: "small", active: this.state.Sticky, onClick: this.handleSticky.bind(this) },
