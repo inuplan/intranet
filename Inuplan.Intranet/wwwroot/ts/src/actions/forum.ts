@@ -5,6 +5,7 @@ import { General } from "../interfaces/General";
 import { Data } from "../interfaces/Data";
 import { normalizeThreadTitle } from "../utilities/normalize";
 import { fetchResult } from "../constants/types";
+import { startLoading } from "./status";
 
 type Pagination<T> = Data.Raw.Pagination<T>;
 type ThreadPostTitleDTO = Data.Raw.ThreadPostTitleDTO;
@@ -67,6 +68,7 @@ export const setPostContent = (content: string): General.Action<string> => {
 
 export const markPost = (postId: number, read: boolean, cb: () => void): fetchResult<any, void> => {
     return (dispatch) => {
+        dispatch(startLoading());
         const url = `${globals.urls.forumpost}?postId=${postId}&read=${read}`;
         const opt = <RequestInit> Object.assign({}, options, {
             method: "PUT"
@@ -80,6 +82,7 @@ export const markPost = (postId: number, read: boolean, cb: () => void): fetchRe
 
 export const fetchThreads = (skip = 0, take = 10): fetchResult<any, void> => {
     return (dispatch) => {
+        dispatch(startLoading());
         const forum = globals.urls.forumtitle;
         const url = `${forum}?skip=${skip}&take=${take}`;
         const handler = responseHandler<Pagination<ThreadPostTitleDTO>>(dispatch)(r => r.json());
@@ -104,6 +107,7 @@ export const fetchThreads = (skip = 0, take = 10): fetchResult<any, void> => {
 
 export const fetchPost = (id: number, cb?: () => void): fetchResult<any, void> => {
     return (dispatch) => {
+        dispatch(startLoading());
         const forum = globals.urls.forumpost;
         const url = `${forum}?id=${id}`;
         const handler = responseHandler<Data.Raw.ThreadPostContentDTO>(dispatch)(r => r.json());
@@ -123,6 +127,7 @@ export const fetchPost = (id: number, cb?: () => void): fetchResult<any, void> =
 
 export const updatePost = (post: Data.Raw.Models.ThreadPostContent, cb: () => void): fetchResult<any, void> => {
     return (dispatch) => {
+        dispatch(startLoading());
         const url = `${globals.urls.forumpost}`;
         const headers = new Headers();
         headers.append("Content-Type", "application/json");
@@ -142,6 +147,7 @@ export const updatePost = (post: Data.Raw.Models.ThreadPostContent, cb: () => vo
 
 export const deletePost = (id: number, cb: () => void): fetchResult<any, void> => {
     return (dispatch) => {
+        dispatch(startLoading());
         const url = `${globals.urls.forumpost}?id=${id}`;
         const opt = <RequestInit>Object.assign({}, options, {
             method: "DELETE"
@@ -156,6 +162,7 @@ export const deletePost = (id: number, cb: () => void): fetchResult<any, void> =
 
 export const postThread = (post: Partial<Data.Raw.Models.ThreadPostContent>, cb: () => void): fetchResult<any, void> => {
     return (dispatch) => {
+        dispatch(startLoading());
         const url = globals.urls.forumpost;
         const headers = new Headers();
         headers.append("Content-Type", "application/json");

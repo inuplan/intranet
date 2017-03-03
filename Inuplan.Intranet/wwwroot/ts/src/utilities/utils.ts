@@ -5,6 +5,7 @@ import { Dispatch } from "redux";
 import * as marked from "marked";
 import removeMd from "remove-markdown";
 import { Data } from "../interfaces/Data";
+import { endLoading } from "../actions/status";
 
 /// T: The element type, in the array
 /// V: The value type, saved in the associative array
@@ -31,6 +32,7 @@ export const options: RequestInit = {
 };
 
 export const responseHandler =  <T>(dispatch: Dispatch<Root>) => (onSuccess: (r: Response) => Promise<T>) => (response: Response) => {
+    dispatch(endLoading());
     if (response.ok) return onSuccess(response);
     else {
         switch (response.status) {

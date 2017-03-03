@@ -8,6 +8,7 @@ import { General } from "../interfaces/General";
 import { Data } from "../interfaces/Data";
 import { normalizeImage as normalize } from "../utilities/normalize";
 import { Action as ReduxAction } from "redux";
+import { startLoading } from "../actions/status";
 
 export const setImagesOwner = (id: number): General.Action<number> => {
     return {
@@ -85,6 +86,7 @@ export const newImageFromServer = (image: Data.Raw.ImageDTO): General.Action<Dat
 
 export const deleteImage = (id: number, username: string) => {
     return (dispatch: Dispatch<Root>) => {
+        dispatch(startLoading());
         const url = `${globals.urls.images}?username=${username}&id=${id}`;
         const opt = <RequestInit>Object.assign({}, options, {
             method: "DELETE"
@@ -101,6 +103,8 @@ export const deleteImage = (id: number, username: string) => {
 
 export const uploadImage = (username: string, description: string, formData: FormData, onSuccess: () => void, onError: (reason: any) => void) => {
     return (dispatch: Dispatch<Root>) => {
+        dispatch(startLoading());
+
         const url = `${globals.urls.images}?username=${username}&description=${description}`;
         const opt = <RequestInit>Object.assign({}, options, {
             method: "POST",
@@ -117,6 +121,7 @@ export const uploadImage = (username: string, description: string, formData: For
 
 export const fetchUserImages = (username: string) => {
     return (dispatch: Dispatch<Root>) => {
+        dispatch(startLoading());
         const url = `${globals.urls.images}?username=${username}`;
         const handler: (r: Response) => Promise<Data.Raw.ImageDTO[]> = responseHandler(dispatch)(r => r.json());
 
@@ -132,6 +137,7 @@ export const fetchUserImages = (username: string) => {
 
 export const deleteImages = (username: string, imageIds: number[] = []) => {
     return (dispatch: Dispatch<Root>) => {
+        dispatch(startLoading());
         const ids = imageIds.join(",");
         const url = `${globals.urls.images}?username=${username}&ids=${ids}`;
         const opt = Object.assign({}, options, {
@@ -171,6 +177,7 @@ export const setImageOwner = (username: string) => {
             return Promise.resolve();
         }
         else {
+            dispatch(startLoading());
             const url = `${globals.urls.users}?username=${username}`;
             const handler = responseHandler<Data.User>(dispatch)(r => r.json());
             return fetch(url, options)
@@ -186,6 +193,7 @@ export const setImageOwner = (username: string) => {
 
 export const fetchSingleImage = (id: number) => {
     return (dispatch: Dispatch<Root>) => {
+        dispatch(startLoading());
         const url = `${globals.urls.images}/getbyid?id=${id}`;
         const handler = responseHandler<Data.Raw.ImageDTO>(dispatch)(r => r.json());
         return fetch(url, options)

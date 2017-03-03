@@ -70,7 +70,7 @@ export class ImageUpload extends React.Component<C.UsernameProp & UploadImagePro
         this.clearInput(fileInput);
     }
 
-    setHasFile() {
+    setHasFile(_: React.ChangeEvent<any>) {
         const fileInput = document.getElementById("files") as HTMLInputElement;
         const files = fileInput.files;
 
@@ -116,7 +116,7 @@ export class ImageUpload extends React.Component<C.UsernameProp & UploadImagePro
     render() {
         return  <form onSubmit={this.handleSubmit} id="form-upload" className="form-inline" encType="multipart/form-data">
                         <div className="form-group">
-                            <label htmlFor="files" className="hide-input">
+                            <label htmlFor="files" className="hide-input" onClick={this.setHasFile}>
                                 <Glyphicon glyph="camera" /> V&aelig;lg filer
                                 <input type="file" id="files" name="files" onChange={this.setHasFile} multiple />
                             </label>

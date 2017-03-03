@@ -49,6 +49,8 @@ export const enum ActionType {
     // status -->
     SET_USED_SPACE_KB,
     SET_TOTAL_SPACE_KB,
+    START_LOADING,
+    END_LOADING,
     // <-- end
 
     // comments -->

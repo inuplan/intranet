@@ -3,6 +3,7 @@ import { ActionType as T } from "../constants/Actions";
 import { StatusState, SpaceState } from "../interfaces/State";
 import errorInfo from "./errorInfo";
 import { reducer } from "../constants/types";
+import { Stack } from "immutable";
 
 export const hasError: reducer<boolean> = (state = false, action) => {
     switch (action.type) {
@@ -20,8 +21,16 @@ export const message: reducer<string> = (state = "", action) => {
     }
 };
 
-export const done: reducer<boolean> = (state = true, action) => {
+export const loadStack: reducer<Stack<boolean>> = (state = Stack<boolean>(), action) => {
     switch (action.type) {
+        case T.START_LOADING: {
+            const result = state.push(true);
+            return result;
+        }
+        case T.END_LOADING: {
+            const result = state.pop();
+            return result;
+        }
         default:
             return state;
     }
@@ -55,7 +64,7 @@ const statusInfo = combineReducers<StatusState>({
     errorInfo,
     spaceInfo,
     message,
-    done
+    loadStack
 });
 
 export default statusInfo;

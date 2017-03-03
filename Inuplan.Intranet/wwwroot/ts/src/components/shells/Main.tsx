@@ -6,10 +6,12 @@ import { Error } from "../containers/Error";
 import { clearError } from "../../actions/error";
 import { NavLink, IndexNavLink } from "../wrappers/Links";
 import { Components as C } from "../../interfaces/Components";
+import { Spinner } from "../loading/Spinner";
 
 interface StateToProps extends C.HasErrorProp {
     name: string;
     error: C.ErrorState;
+    loading: boolean;
 }
 
 interface DispatchToProps {
@@ -19,10 +21,12 @@ interface DispatchToProps {
 const mapStateToProps = (state: Root) : StateToProps => {
     const user = state.usersInfo.users[state.usersInfo.currentUserId];
     const name = user ? user.FirstName : "User";
+
     return {
         name: name,
         hasError: state.statusInfo.hasError,
-        error: state.statusInfo.errorInfo
+        error: state.statusInfo.errorInfo,
+        loading: (state.statusInfo.loadStack.size > 0)
     };
 };
 
@@ -45,10 +49,11 @@ class Shell extends React.Component<StateToProps & DispatchToProps, any> {
     }
 
     render() {
-        const { name } = this.props;
+        const { name, loading } = this.props;
         const employeeUrl = globals.urls.employeeHandbook;
         const c5SearchUrl = globals.urls.c5Search;
         return  <Grid fluid={true}>
+                    <Spinner show={loading} />
                     <Navbar fixedTop>
                         <Navbar.Header>
                             <Navbar.Brand>

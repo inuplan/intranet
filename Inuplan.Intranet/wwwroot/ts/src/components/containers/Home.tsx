@@ -15,31 +15,31 @@ interface StateToProps {
 }
 
 interface DispatchToProps {
-    uploadImage: (skip: number, take: number, username: string, description: string, formData: FormData) => void;
+    uploadImage: (username: string, description: string, formData: FormData, onSuccess: () => void) => void;
+    fetchLatestNews: (skip: number, take: number) => void;
 }
 
 interface ComponentState {
     recommended: boolean;
 }
 
-const mapStateToProps = (state: Root): StateToProps => {
+const mapStateToProps = (state: Root) => {
     const user = state.usersInfo.users[state.usersInfo.currentUserId];
     const name = user ? user.FirstName : "User";
     return {
         name: name,
         skip: state.whatsNewInfo.skip,
-        take: state.whatsNewInfo.take
+        take: state.whatsNewInfo.take,
     };
 };
 
 const mapDispatchToProps = (dispatch: Dispatch<Root>): DispatchToProps => {
     return {
-        uploadImage: (skip, take, username, description, formData) => {
-            const onSuccess = () => {
-                dispatch(fetchLatestNews(skip, take));
-            };
-
+        uploadImage: (username, description, formData, onSuccess) => {
             dispatch<any>(uploadImage(username, description, formData, onSuccess, (r) => { console.log(r); }));
+        },
+        fetchLatestNews: (skip, take) => {
+            dispatch(fetchLatestNews(skip, take));
         }
     };
 };
@@ -60,8 +60,13 @@ class HomeContainer extends React.Component<StateToProps & DispatchToProps, Comp
     }
 
     upload(username: string, description: string, formData: FormData) {
-        const { uploadImage, skip, take } = this.props;
-        uploadImage(skip, take, username, description, formData);
+        const { uploadImage, fetchLatestNews, skip, take } = this.props;
+
+        const onSuccess = () => {
+            fetchLatestNews(skip, take);
+        };
+
+        uploadImage(username, description, formData, onSuccess);
     }
 
     recommendedView() {

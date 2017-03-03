@@ -27,26 +27,30 @@ import {
 // ** User methods
 init();
 
-render(
-    <Provider store={store}>
-        <Router history={browserHistory}>
-            <Route path="/" component={Main}>
-                <IndexRoute component={Home} onEnter={fetchWhatsNew} />
-                <Route path="forum" component={Forum}>
-                    <IndexRoute component={ForumList} onEnter={fetchForum} />
-                    <Route path="post/:id" component={ForumPost} onEnter={fetchSinglePost}>
-                        <Route path="comments" component={ForumComments} onEnter={fetchPostComments} />
-                    </Route>
-                </Route>
-                <Route path="users" component={Users} />
-                <Route path=":username/gallery" component={UserImages} onEnter={fetchImages}>
-                    <Route path="image/:id" component={SelectedImage} onEnter={selectImage}>
-                        <Route path="comments" component={ImageComments} onEnter={loadComments} />
-                        <Route path="comment" component={SingleImageComment} onEnter={fetchComment} />
-                    </Route>
-                </Route>
-                <Route path="about" component={About} />
-            </Route>
-        </Router>
-    </Provider>,
-    document.getElementById("content"));
+class App extends React.Component<null, null> {
+    render() {
+        return  <Provider store={store}>
+                    <Router history={browserHistory}>
+                        <Route path="/" component={Main}>
+                            <IndexRoute component={Home} onEnter={fetchWhatsNew} />
+                            <Route path="forum" component={Forum}>
+                                <IndexRoute component={ForumList} onEnter={fetchForum} />
+                                <Route path="post/:id" component={ForumPost} onEnter={fetchSinglePost}>
+                                    <Route path="comments" component={ForumComments} onEnter={fetchPostComments} />
+                                </Route>
+                            </Route>
+                            <Route path="users" component={Users} />
+                            <Route path=":username/gallery" component={UserImages} onEnter={fetchImages}>
+                                <Route path="image/:id" component={SelectedImage} onEnter={selectImage}>
+                                    <Route path="comments" component={ImageComments} onEnter={loadComments} />
+                                    <Route path="comment" component={SingleImageComment} onEnter={fetchComment} />
+                                </Route>
+                            </Route>
+                            <Route path="about" component={About} />
+                        </Route>
+                    </Router>
+                </Provider>;
+    }
+}
+
+render(<App />, document.getElementById("content"));

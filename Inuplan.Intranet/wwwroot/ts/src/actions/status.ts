@@ -4,6 +4,18 @@ import * as fetch from "isomorphic-fetch";
 import { General } from "../interfaces/General";
 import { fetchResult } from "../constants/types";
 
+export const startLoading = () => {
+    return {
+        type: T.START_LOADING
+    };
+};
+
+export const endLoading = () => {
+    return {
+        type: T.END_LOADING
+    };
+};
+
 export const setUsedSpacekB = (usedSpace: number): General.Action<number> => {
     return {
         type: T.SET_USED_SPACE_KB,
@@ -20,6 +32,7 @@ export const setTotalSpacekB = (totalSpace: number): General.Action<number> => {
 
 export const fetchSpaceInfo = (url: string): fetchResult<any, void> => {
     return (dispatch) => {
+        dispatch(startLoading());
         const handler = responseHandler<{UsedSpaceKB: number, SpaceQuotaKB: number}>(dispatch)(r => r.json());
         return fetch(url, options)
             .then(handler)

@@ -7,6 +7,7 @@ import { Data, WhatsNewType } from "../interfaces/Data";
 import * as fetch from "isomorphic-fetch";
 import { ActionType } from "../constants/actions";
 import { addUser } from "../actions/users";
+import { startLoading } from "./status";
 
 export const setLatest = (latest: Data.WhatsNew[]): General.Action<Data.WhatsNew[]> => {
     return {
@@ -45,6 +46,7 @@ export const setTotalPages = (totalPages: number): General.Action<number> => {
 
 export const fetchLatestNews = (skip: number, take: number): any => {
     return function(dispatch: Dispatch<Root>): Promise<void> {
+        dispatch(startLoading());
         const url = `${globals.urls.whatsnew}?skip=${skip}&take=${take}`;
         const handler = responseHandler<Data.Raw.Pagination<Data.Raw.WhatsNewItem>>(dispatch)(r => r.json());
         return fetch(url, options)

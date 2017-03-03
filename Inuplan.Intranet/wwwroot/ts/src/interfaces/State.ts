@@ -1,5 +1,6 @@
 import { General } from "./General";
 import { Data } from "./Data";
+import { Stack } from "immutable";
 
 export interface Root {
     usersInfo: UsersState;
@@ -46,7 +47,7 @@ export interface StatusState {
     errorInfo: ErrorState;
     spaceInfo: SpaceState;
     message: string;
-    done: boolean;
+    loadStack: Stack<boolean>;
 }
 
 export interface WhatsNewState {

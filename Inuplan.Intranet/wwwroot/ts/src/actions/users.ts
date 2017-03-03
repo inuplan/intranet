@@ -5,6 +5,7 @@ import * as fetch from "isomorphic-fetch";
 import { options, objMap, responseHandler } from "../utilities/utils";
 import { fetchResult } from "../constants/types";
 import { Dispatch } from "redux";
+import { startLoading } from "./status";
 
 type User = Data.User;
 type Action<T> = (payload: T) => General.Action<T>;
@@ -32,6 +33,7 @@ export const recievedUsers: Action<General.KeyValue<User>> = (users) => {
 
 export const fetchCurrentUser = (username: string): fetchResult<any, void>  => {
     return (dispatch: Dispatch<any>) => {
+        dispatch(startLoading());
         let url = `${globals.urls.users}?username=${username}`;
         const handler = responseHandler<User>(dispatch)(r => r.json());
 
@@ -46,6 +48,7 @@ export const fetchCurrentUser = (username: string): fetchResult<any, void>  => {
 
 export const fetchUser = (username: string): fetchResult<any, void> => {
     return (dispatch) => {
+        dispatch(startLoading());
         let url = `${globals.urls.users}?username=${username}`;
         const handler = responseHandler<User>(dispatch)(r => r.json());
 
@@ -57,6 +60,7 @@ export const fetchUser = (username: string): fetchResult<any, void> => {
 
 export const fetchUsers = (): fetchResult<any, void> => {
     return (dispatch) => {
+        dispatch(startLoading());
         const handler = responseHandler<User[]>(dispatch)(r => r.json());
         return fetch(globals.urls.users, options)
             .then(handler)
