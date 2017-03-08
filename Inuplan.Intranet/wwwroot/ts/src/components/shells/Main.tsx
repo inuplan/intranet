@@ -78,6 +78,7 @@ class Shell extends React.Component<StateToProps & DispatchToProps, any> {
                                 <NavDropdown eventKey={5} title="Links" id="extern_links">
                                     <MenuItem href={employeeUrl} eventKey={5.1}>Medarbejder h&aring;ndbog</MenuItem>
                                     <MenuItem href={c5SearchUrl} eventKey={5.2}>C5 S&oslash;gning</MenuItem>
+                                    <MenuItem href="/admin" eventKey={5.3}>Admin side</MenuItem>
                                 </NavDropdown>
                             </Nav>
 
@@ -90,5 +91,8 @@ class Shell extends React.Component<StateToProps & DispatchToProps, any> {
     }
 }
 
+/**
+ * Main shell which has the standard menubar.
+ */
 const Main = connect(mapStateToProps, mapDispatchToProps)(Shell);
 export default Main;
