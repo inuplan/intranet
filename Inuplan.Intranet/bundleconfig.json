@@ -26,5 +26,17 @@
     "inputFiles": [
       "wwwroot/lib/bootstrap/dist/css/bootstrap-theme.css"
     ]
+  },
+  {
+    "outputFileName": "wwwroot/js/startsWithPolyfill.min.js",
+    "inputFiles": [
+      "wwwroot/js/startsWithPolyfill.js"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/js/stringPolyfill.min.js",
+    "inputFiles": [
+      "wwwroot/js/stringPolyfill.js"
+    ]
   }
 ]

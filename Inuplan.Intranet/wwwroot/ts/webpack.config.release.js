@@ -22,7 +22,7 @@ module.exports = {
         lib: lib
     },
     output: {
-        filename: "[name].min.js",
+        filename: "../../js/[name].min.js",
         path: "./dist",
         chunkFilename: "[id].chunk.js",
         publicPath: "/assets/"
@@ -53,7 +53,7 @@ module.exports = {
             minChunks: function (module) {
                 return module.context && module.context.indexOf('node_modules') !== -1;
             },
-            filename: "[name].min.js"
+            filename: "../../lib/[name].min.js"
         })
     ],
     externals: externals

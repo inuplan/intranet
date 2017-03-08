@@ -22,13 +22,18 @@ module.exports = {
         lib: lib,
     },
     output: {
-        filename: "[name].js",
+        filename: "../../js/[name].js",
         path: "./dist",
         chunkFilename: "[id].chunk.js",
         publicPath: "/assets/"
     },
     module: {
         rules: [
+            {
+                test: /\.js$/,
+                use: ["source-map-loader"],
+                enforce: "pre"
+            },
             {
                 test: /\.tsx?$/,
                 loader: 'ts-loader',
@@ -43,13 +48,14 @@ module.exports = {
     resolve: {
         extensions: [".tsx", ".ts", ".js"]
     },
+    devtool: "source-map",
     plugins: [
         new webpack.optimize.CommonsChunkPlugin({
             name: "lib",
             minChunks: function (module) {
                 return module.context && module.context.indexOf('node_modules') !== -1;
             },
-            filename: "[name].js"
+            filename: "../../lib/[name].js"
         })
     ],
     externals: externals
