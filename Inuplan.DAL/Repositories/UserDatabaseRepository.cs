@@ -28,6 +28,7 @@ namespace Inuplan.DAL.Repositories
     using Dapper;
     using Optional;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Data.SqlClient;
     using System.Diagnostics;
@@ -292,13 +293,32 @@ namespace Inuplan.DAL.Repositories
                 logger.Begin();
                 using (var connection = connectionFactory.CreateConnection())
                 {
-                    var sql = @"SELECT ID, FirstName, LastName, Email, Username, DisplayName
-                        FROM Users";
+                    var sql = @"SELECT U.ID, FirstName, LastName, Email, Username, DisplayName, R.ID, R.Name
+                                FROM Users U INNER JOIN UserRoles UR ON U.ID = UR.UserID
+                                INNER JOIN Roles R on UR.RoleID = R.ID";
 
-                    var result = await connection.QueryAsync<User>(sql);
+                    var users = new List<User>();
+                    var result = await connection.QueryAsync<User, Role, User>(sql, (user, role) =>
+                    {
+                        user.Roles = new List<Role>
+                        {
+                            role
+                        };
+
+                        return user;
+                    });
+
+                    var group = result.GroupBy(u => u.ID);
+                    foreach(var g in group)
+                    {
+                        var roles = g.SelectMany(u => u.Roles);
+                        var user = g.First();
+                        user.Roles = roles.ToList();
+                        users.Add(user);
+                    }
 
                     logger.End();
-                    return result.ToList();
+                    return users;
                 }
             }
             catch (Exception ex)

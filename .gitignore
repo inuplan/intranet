@@ -203,3 +203,9 @@ Inuplan.Intranet.Core/wwwroot/js/bundle.js
 Inuplan.Intranet.Core/wwwroot/css/site.min.css
 Inuplan.Intranet/wwwroot/ts/dist/app.jsx
 Inuplan.Intranet/wwwroot/ts/dist
+
+Inuplan.Intranet/wwwroot/js/app.min.js
+Inuplan.Intranet/wwwroot/js/app.js
+Inuplan.Intranet/wwwroot/js/app.js.map
+Inuplan.Intranet/wwwroot/lib/lib.js
+Inuplan.Intranet/wwwroot/lib/lib.js.map

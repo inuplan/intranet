@@ -1,8 +1,8 @@
 ﻿@section head {
 <environment names="Development">
     <script src="~/js/stringPolyfill.js" type="text/javascript"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.united.css" />
+    <link rel="stylesheet" href="~/css/admin.site.css" />
     <link rel="stylesheet" href="~/css/loader.css" />
 </environment>
 <environment names="Staging,Production">
@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="~/css/loader.min.css" />
 </environment>
 }
-@* Javascript global variables *@
 @section before {
 <environment names="Development">
     <script type="text/javascript">
@@ -61,20 +60,18 @@
     </script>
 </environment>
 }
-@* React content anchor *@
-<div id="content"></div>
-@* React libraries and application *@
+<div id="content">Must be admin to see this page</div>
 @section after {
 <environment names="Staging,Production">
     <script src="~/lib/moment/min/moment.min.js" asp-append-version="true"></script>
     <script src="~/lib/moment/locale/da.js" asp-append-version="true"></script>
     <script src="~/lib/lib.min.js"></script>
-    <script src="~/js/app.min.js"></script>
+    <script src="~/js/admin.min.js"></script>
 </environment>
 <environment names="Development">
     <script src="~/lib/moment/moment.js"></script>
     <script src="~/lib/moment/locale/da.js"></script>
     <script src="~/lib/lib.js"></script>
-    <script src="~/js/app.js"></script>
+    <script src="~/js/admin.js"></script>
 </environment>
 }

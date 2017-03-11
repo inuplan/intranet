@@ -26,7 +26,7 @@ export const setCurrentUserId: Action<number> = (id) => {
 
 export const recievedUsers: Action<General.KeyValue<User>> = (users) => {
     return {
-        type: ActionType.RECIEVED_USERS,
+        type: ActionType.RECEIVED_USERS,
         payload: users
     };
 };
@@ -40,8 +40,8 @@ export const fetchCurrentUser = (username: string): fetchResult<any, void>  => {
         return fetch(url, options)
             .then(handler)
             .then(user => {
-                dispatch(setCurrentUserId(user.ID));
                 dispatch(addUser(user));
+                dispatch(setCurrentUserId(user.ID));
             });
     };
 };
