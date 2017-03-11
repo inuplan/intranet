@@ -18,8 +18,9 @@ var externals = [
 
 module.exports = {
     entry: {
-        app: "./src/app.tsx",
+        app: "./src/App.tsx",
         lib: lib,
+        admin: "./src/Admin.tsx"
     },
     output: {
         filename: "../../js/[name].js",

@@ -6,8 +6,8 @@
   "dependencies": {},
   "scripts": {
     "webpack": "webpack --config webpack.config.js",
-    "bundle": "webpack --config webpack.config.js && rm -rf ./dist",
-    "bundle:release": "set NODE_ENV=production && webpack -p --config webpack.config.release.js && rm -rf ./dist"
+    "bundle": "webpack --config webpack.config.js",
+    "bundle:release": "set NODE_ENV=production && webpack -p --config webpack.config.release.js"
   },
   "devDependencies": {
     "@types/draft-js": "^0.9.1",

@@ -25,11 +25,13 @@ namespace Inuplan.Intranet.Controllers
     using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Mvc;
+    using Extensions;
 
     public class AdminController : Controller
     {
         public IActionResult Index()
         {
+            ViewBag.Username = User.Identity.UsernameWithoutDomain();
             return View();
         }
     }

@@ -30,7 +30,8 @@
         "enable": true
     },
     "include": [
-        "./src/app.tsx"
+        "./src/App.tsx",
+        "./src/Admin.tsx"
     ],
     "compileOnSave": false,
     "exclude": [

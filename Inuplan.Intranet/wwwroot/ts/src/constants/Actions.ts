@@ -31,7 +31,7 @@ export const enum ActionType {
     // Users -->
     SET_CURRENT_USER_ID,
     ADD_USER,
-    RECIEVED_USERS,
+    RECEIVED_USERS,
     // <-- end
 
     // Forum -->
